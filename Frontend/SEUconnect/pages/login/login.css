@@ -1,0 +1,566 @@
+/* ==========================================================================
+   SEUConnect - South Eastern University of Sri Lanka (Faculty of Technology)
+   Centered Single-Card Login Interface (Zero-Scroll & Exact SEUSL Brand Style)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+
+:root {
+  --seu-primary: #0f2b5c;
+  --seu-primary-dark: #071733;
+  --seu-primary-light: #1e3a8a;
+  --seu-accent-gold: #f59e0b;
+  --seu-accent-cyan: #0ea5e9;
+  --seu-accent-teal: #14b8a6;
+  
+  --seu-card-bg: rgba(10, 23, 44, 0.86);
+  --seu-card-border: rgba(255, 255, 255, 0.12);
+  
+  --seu-text-main: #f8fafc;
+  --seu-text-muted: #94a3b8;
+  --seu-text-dim: #64748b;
+  
+  --seu-input-bg: rgba(7, 18, 36, 0.78);
+  --seu-input-border: rgba(148, 163, 184, 0.25);
+  --seu-input-focus: #38bdf8;
+  --seu-input-focus-shadow: rgba(56, 189, 248, 0.25);
+  
+  --seu-danger: #ef4444;
+  --seu-danger-bg: rgba(239, 68, 68, 0.15);
+  --seu-danger-border: rgba(239, 68, 68, 0.35);
+  
+  --seu-success: #10b981;
+  --seu-success-bg: rgba(16, 185, 129, 0.15);
+  --seu-success-border: rgba(16, 185, 129, 0.35);
+  
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-serif-brand: 'Times New Roman', Times, Georgia, Garamond, serif;
+}
+
+/* Page Root with Campus Background (100vh Zero-Scroll) */
+.seu-login-root {
+  height: 100vh;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  background: 
+    linear-gradient(135deg, rgba(6, 17, 36, 0.82) 0%, rgba(3, 10, 24, 0.88) 100%),
+    url('/seu_campus_bg.jpg') center center / cover no-repeat fixed;
+  color: var(--seu-text-main);
+  padding: 1.25rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ==========================================================================
+   SEUSL Brand on Left Side Bottom (Authentic VLE Pillar Style)
+   ========================================================================== */
+.seu-left-bottom-brand {
+  position: absolute;
+  left: 2rem;
+  bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  animation: seuFadeIn 0.8s ease-out;
+}
+
+.seu-vle-vertical-group {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.35rem; /* Reduced space between SEU Connect Environment and SEUSL */
+}
+
+/* Left vertical text: 'SEU Connect Environment' - Increased size */
+.seu-vle-subtext {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-sans);
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Right vertical text: 'SEUSL' in Serif font - Increased size */
+.seu-vle-acronym {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-serif-brand);
+  font-size: 5.25rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(195, 202, 215, 0.72);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.9);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Official Seal at Bottom - Increased logo size */
+.seu-vle-seal-wrapper {
+  width: 108px;
+  height: 108px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.seu-vle-seal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.75));
+}
+
+/* ==========================================================================
+   Centered Single Authentication Card
+   ========================================================================== */
+.seu-auth-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--seu-card-bg);
+  border: 1px solid var(--seu-card-border);
+  border-radius: 18px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7), 
+    0 0 35px rgba(14, 165, 233, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 2.25rem 2.25rem 1.85rem 2.25rem;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  animation: seuCardFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes seuCardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Card Shake on Error */
+.seu-auth-card.seu-shake-active {
+  animation: seuShakeCard 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes seuShakeCard {
+  10%, 90% { transform: translate3d(-3px, 0, 0); }
+  20%, 80% { transform: translate3d(5px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+  40%, 60% { transform: translate3d(6px, 0, 0); }
+}
+
+/* University Logo & Crest Header at Top of Card - Increased Logo Size */
+.seu-top-logo-header {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  padding-bottom: 1.15rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.seu-top-crest-badge {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.seu-official-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+}
+
+.seu-top-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.seu-top-uni-title {
+  font-family: var(--font-sans);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.seu-top-uni-sub {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+.seu-oluvil-highlight {
+  color: var(--seu-accent-gold);
+  font-weight: 700;
+}
+
+/* Form Headings */
+.seu-form-header {
+  margin-bottom: 1.35rem;
+}
+
+.seu-form-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+}
+
+.seu-form-subtitle {
+  font-size: 0.86rem;
+  color: var(--seu-text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Alert Banners */
+.seu-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 1.15rem;
+  animation: seuFadeIn 0.3s ease-in-out;
+}
+
+@keyframes seuFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.seu-alert-error {
+  background: var(--seu-danger-bg);
+  border: 1px solid var(--seu-danger-border);
+  color: #fca5a5;
+}
+
+.seu-alert-success {
+  background: var(--seu-success-bg);
+  border: 1px solid var(--seu-success-border);
+  color: #6ee7b7;
+}
+
+.seu-alert-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Form Fields */
+.seu-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+}
+
+.seu-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.seu-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  letter-spacing: 0.01em;
+}
+
+.seu-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.seu-input-icon-left {
+  position: absolute;
+  left: 0.9rem;
+  color: var(--seu-text-dim);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.seu-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: #ffffff;
+  background: var(--seu-input-bg);
+  border: 1px solid var(--seu-input-border);
+  border-radius: 9px;
+  padding: 0.75rem 0.9rem 0.75rem 2.65rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.seu-input-has-toggle {
+  padding-right: 2.75rem;
+}
+
+.seu-input::placeholder {
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.seu-input:focus {
+  border-color: var(--seu-input-focus);
+  background: rgba(10, 24, 48, 0.92);
+  box-shadow: 0 0 0 3px var(--seu-input-focus-shadow);
+}
+
+.seu-input-wrapper:focus-within .seu-input-icon-left {
+  color: var(--seu-accent-cyan);
+}
+
+.seu-input-error {
+  border-color: var(--seu-danger) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
+}
+
+.seu-toggle-password-btn {
+  position: absolute;
+  right: 0.65rem;
+  background: transparent;
+  border: none;
+  color: var(--seu-text-dim);
+  padding: 0.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.2s ease;
+}
+
+.seu-toggle-password-btn:hover {
+  color: #e2e8f0;
+}
+
+.seu-toggle-password-btn:focus-visible {
+  outline: 2px solid var(--seu-accent-cyan);
+}
+
+.seu-inline-error {
+  font-size: 0.75rem;
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+
+/* Options Row */
+.seu-form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-top: -0.15rem;
+}
+
+.seu-remember-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--seu-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.seu-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--seu-input-border);
+  border-radius: 4px;
+  background: var(--seu-input-bg);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all 0.2s ease;
+}
+
+.seu-checkbox:checked {
+  background: var(--seu-accent-cyan);
+  border-color: var(--seu-accent-cyan);
+}
+
+.seu-checkbox:checked::before {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.seu-forgot-link {
+  color: var(--seu-accent-cyan);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.seu-forgot-link:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+}
+
+/* Primary Sign In Button */
+.seu-submit-btn {
+  margin-top: 0.25rem;
+  width: 100%;
+  padding: 0.85rem 1.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 9px;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seu-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.seu-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.seu-submit-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.seu-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: seuSpin 0.75s linear infinite;
+}
+
+@keyframes seuSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Security Footer */
+.seu-security-footer {
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  color: var(--seu-text-dim);
+  text-align: center;
+}
+
+.seu-security-icon {
+  color: var(--seu-accent-teal);
+}
+
+/* Responsive Hide for small screens to prevent overlap */
+@media (max-width: 980px) {
+  .seu-left-bottom-brand {
+    display: none;
+  }
+}
+
+@media (max-height: 640px), (max-width: 480px) {
+  .seu-login-root {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .seu-auth-card {
+    padding: 1.75rem 1.25rem 1.5rem 1.25rem;
+    border-radius: 14px;
+  }
+
+  .seu-top-uni-title {
+    font-size: 0.88rem;
+  }
+
+  .seu-top-uni-sub {
+    font-size: 0.78rem;
+  }
+
+  .seu-form-title {
+    font-size: 1.45rem;
+  }
+}
