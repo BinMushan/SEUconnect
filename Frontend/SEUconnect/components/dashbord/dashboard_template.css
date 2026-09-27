@@ -1,0 +1,623 @@
+/* ==========================================================================
+   SEUConnect - Dashboard Template Shell Stylesheet
+   Reusable Master Dashboard Shell for Faculty of Technology Roles
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --seu-sidebar-bg: #071732;
+  --seu-sidebar-hover: rgba(245, 158, 11, 0.12);
+  --seu-sidebar-active: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --seu-sidebar-text: #94a3b8;
+  --seu-sidebar-text-active: #ffffff;
+  --seu-sidebar-heading: #526786;
+  
+  --seu-brand-yellow: #f59e0b;
+  --seu-brand-yellow-dark: #d97706;
+  --seu-brand-yellow-light: #fbbf24;
+  
+  --seu-topbar-bg: rgba(255, 255, 255, 0.94);
+  --seu-topbar-border: #e2e8f0;
+  
+  --seu-dash-bg: #edf5fe;
+  --seu-dash-banner-bg: #091e3e;
+  --seu-dash-banner-gradient: linear-gradient(135deg, rgba(9, 30, 62, 0.96) 0%, rgba(13, 40, 84, 0.96) 100%);
+  
+  --font-dash-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-dash-display: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Master Layout Wrapper */
+.seu-dash-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--seu-dash-bg);
+  font-family: var(--font-dash-sans);
+  color: #0f172a;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   LEFT SIDEBAR (Dark Navy)
+   ========================================================================== */
+.seu-dash-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background-color: var(--seu-sidebar-bg);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Sidebar Brand Header */
+.seu-sidebar-brand {
+  padding: 1rem 1.15rem 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.seu-sidebar-logo-box {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.seu-sidebar-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.seu-sidebar-brand-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.seu-sidebar-brand-name {
+  font-family: var(--font-dash-sans);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0;
+  padding: 0;
+}
+
+.seu-sidebar-brand-faculty {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #93c5fd;
+  text-transform: uppercase;
+  margin: 0;
+  padding: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Scrollable Nav Area */
+.seu-sidebar-nav-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar for Sidebar */
+.seu-sidebar-nav-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.seu-sidebar-nav-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.seu-sidebar-nav-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.seu-nav-section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--seu-sidebar-heading);
+  padding: 1rem 0.75rem 0.35rem 0.75rem;
+}
+
+.seu-nav-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.58rem 0.85rem;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--seu-sidebar-text);
+  font-family: var(--font-dash-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  margin-bottom: 2px;
+}
+
+.seu-nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.seu-nav-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.seu-nav-item-btn:hover {
+  background-color: var(--seu-sidebar-hover);
+  color: #fbbf24;
+}
+
+/* Active Nav Item - Yellow / Amber Brand Accent */
+.seu-nav-item-btn.active {
+  background: var(--seu-sidebar-active);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.seu-nav-item-btn.active .seu-nav-item-icon {
+  color: #ffffff;
+}
+
+.seu-nav-chevron {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+/* Sidebar Footer (AI Assistant & Sign Out) */
+.seu-sidebar-footer {
+  padding: 0.85rem 1rem 1.15rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: rgba(4, 13, 29, 0.4);
+}
+
+.seu-ai-assistant-btn {
+  width: 100%;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1.5px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.58rem 0.85rem;
+  color: #f59e0b;
+  font-family: var(--font-dash-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seu-ai-assistant-btn:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.seu-signout-link-btn {
+  background: transparent;
+  border: none;
+  padding: 0.45rem 0.5rem;
+  color: #ef4444;
+  font-family: var(--font-dash-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.seu-signout-link-btn:hover {
+  color: #f87171;
+}
+
+/* ==========================================================================
+   MAIN DASHBOARD AREA (Top Nav + Display Name Banner + Content)
+   ========================================================================== */
+.seu-dash-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--seu-dash-bg);
+}
+
+/* Top Navigation Bar */
+.seu-dash-topbar {
+  height: 64px;
+  background-color: var(--seu-topbar-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--seu-topbar-border);
+  padding: 0 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  box-sizing: border-box;
+}
+
+/* Topbar Left Search Bar */
+.seu-topbar-search-wrapper {
+  position: relative;
+  width: 520px;
+  max-width: 100%;
+}
+
+.seu-search-icon {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.seu-topbar-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 0.52rem 1rem 0.52rem 2.6rem;
+  font-family: var(--font-dash-sans);
+  font-size: 0.82rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.seu-topbar-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.seu-topbar-search-input:focus {
+  background: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+/* Topbar Right Actions & Profile */
+.seu-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.seu-role-pill-badge {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+}
+
+.seu-icon-action-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  border-radius: 6px;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.seu-icon-action-btn:hover {
+  color: #0f172a;
+}
+
+.seu-notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* User Profile Badge */
+.seu-topbar-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.seu-user-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+  border: 1px solid #bfdbfe;
+}
+
+.seu-user-name-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.seu-user-display-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.seu-user-display-email {
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.seu-user-dropdown-arrow {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+/* ==========================================================================
+   DISPLAY NAME SECTION / HERO BANNER (Deep Blue Container)
+   ========================================================================== */
+.seu-dash-hero-banner {
+  margin: 1.2rem 1.75rem 1.25rem 1.75rem;
+  background-color: transparent;
+  background-image: 
+    linear-gradient(90deg, #071732 0%, rgba(7, 23, 50, 0.94) 38%, rgba(7, 23, 50, 0.68) 60%, rgba(7, 23, 50, 0.15) 82%, transparent 100%),
+    url('/dashboard_banner_bg.png');
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: cover;
+  border-radius: 14px;
+  border: none;
+  outline: none;
+  box-shadow: 0 4px 18px rgba(7, 23, 50, 0.12);
+  color: #ffffff;
+  padding: 1.25rem 1.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.seu-hero-banner-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.seu-hero-institution-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #f59e0b;
+  padding: 0.26rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.seu-hero-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.seu-btn-gpa-report {
+  background: #ffffff;
+  color: #0f2b5c;
+  border: 1.5px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.44rem 0.95rem;
+  font-family: var(--font-dash-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.seu-btn-gpa-report:hover {
+  background: #fffbeb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+}
+
+.seu-btn-faculty-forms {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.44rem 0.95rem;
+  font-family: var(--font-dash-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+  transition: all 0.2s ease;
+}
+
+.seu-btn-faculty-forms:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.45);
+}
+
+.seu-hero-greeting-title {
+  font-family: var(--font-dash-sans);
+  font-size: 1.32rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0.2rem 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.seu-hero-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+  color: #93c5fd;
+}
+
+.seu-hero-meta-divider {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.seu-hero-meta-strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   MAIN DASHBOARD CONTENT AREA (For Role Components Children)
+   ========================================================================== */
+.seu-dash-body-content {
+  flex: 1;
+  padding: 0 1.75rem 2rem 1.75rem;
+  box-sizing: border-box;
+}
+
+.seu-dash-placeholder-box {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  color: #64748b;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.seu-dash-placeholder-title {
+  font-family: var(--font-dash-sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f2b5c;
+  margin: 0 0 0.4rem 0;
+}
+
+.seu-dash-placeholder-desc {
+  font-size: 0.84rem;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .seu-topbar-search-wrapper {
+    width: 240px;
+  }
+}
+
+@media (max-width: 860px) {
+  .seu-dash-sidebar {
+    display: none; /* Can be toggled on mobile via hamburger if needed */
+  }
+
+  .seu-dash-hero-banner {
+    margin: 1rem;
+    padding: 1.25rem;
+  }
+
+  .seu-dash-topbar {
+    padding: 0 1rem;
+  }
+
+  .seu-dash-body-content {
+    padding: 0 1rem 1.5rem 1rem;
+  }
+}
