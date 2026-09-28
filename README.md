@@ -249,7 +249,7 @@ This project is being developed as part of the **Internet Application Developmen
 | **01** | **Bin Mushan**       | _SEU/IS/22/ICT/091_      | Full-stack Architecture, Frontend Routing & Setup | [@BinMushan](https://github.com/BinMushan)                |
 | **02** | **Mohommadhu Afnan** | _[Enter Reg No]_         | Authentication UI & Role Portal Scaffolding       | [@mohommadhuafnan](https://github.com/mohommadhuafnan756) |
 | **03** | _Kamsa Jeyasankar_   | _SEU/IS/22/ICT/072_      | _[Contribution / Module Area]_                    | [@jeyashankarkamsa](https://github.com/JeyashankarKamsa)  |
-| **04** | _[Team Member Name]_ | _[Enter Reg No]_         | _[Contribution / Module Area]_                    | [@username](https://github.com/)                          |
+| **04** | _Jelaxsi Kularasan_ | _SEU/IS/22/ICT/068_         | _[Contribution / Module Area]_                    | [@Jelaxsi](https://github.com/Jelaxsi)                          |
 | **05** | _[Team Member Name]_ | _[Enter Reg No]_         | _[Contribution / Module Area]_                    | [@username](https://github.com/)                          |
 
 > _Tip: Team members can replace the bracketed placeholders `[Enter Reg No]` and `[Team Member Name]` with their respective details._
