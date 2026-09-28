@@ -1,8 +1,8 @@
 # SEUconnect 🎓
 
 > **Unified University Academic & Administrative Digital Platform**  
-> *Developed for the South Eastern University of Sri Lanka (SEUSL) • Faculty of Technology*  
-> *Internet Application Development (IAD) Continuous Assessment Project*
+> _Developed for the South Eastern University of Sri Lanka (SEUSL) • Faculty of Technology_  
+> _Internet Application Development (IAD) Continuous Assessment Project_
 
 ---
 
@@ -15,6 +15,7 @@
 ---
 
 ## 📌 Table of Contents
+
 - [About SEUconnect](#-about-seuconnect)
 - [Project Vision & Objectives](#-project-vision--objectives)
 - [What Has Been Done Up To Now](#-what-has-been-done-up-to-now)
@@ -50,11 +51,13 @@ In standard university environments, students, lecturers, heads of departments, 
 The repository has been structured and developed with a solid modular foundation:
 
 ### 1. 🏗️ Repository Scaffolding & Multi-Tier Architecture
+
 - Organized monorepo structure separating **`Frontend`** and **`Backend`**.
 - Setup Git version control workflow with `development` and feature branching.
 - Established an open-source MIT License and project metadata.
 
 ### 2. 🔐 Authentication & Single Sign-On (SSO) System
+
 - **SEUSL-Themed Login Interface:**
   - High-fidelity, zero-scroll centered card interface styled with official SEUSL branding colors (Deep Blue `#0f2b5c`, Gold `#f59e0b`, and Cyan accents).
   - Background imagery featuring the SEUSL campus (`seu_campus_bg.jpg`) and official university crest (`seusl_logo.png`).
@@ -66,6 +69,7 @@ The repository has been structured and developed with a solid modular foundation
   - Realistic loading state simulation on submit.
 
 ### 3. 🏛️ Role-Based Portals & Client-Side Hash Routing
+
 - Modular page components and dedicated styling sheets created for **7 university roles**:
   - 🎓 **Student Portal** (`Frontend/SEUconnect/pages/student/`): View student identity, faculty details, and academic home.
   - 👨‍🏫 **Lecturer Portal** (`Frontend/SEUconnect/pages/Lecturer/`): Academic staff dashboard foundation.
@@ -79,10 +83,12 @@ The repository has been structured and developed with a solid modular foundation
   - Session state tracking with authenticated user info display and one-click Logout functionality.
 
 ### 4. 🎨 Design System & Visual Identity
+
 - Integrated Google Fonts: **Plus Jakarta Sans** and **Outfit** for clean typography.
 - CSS token system supporting smooth transitions, glassmorphic card overlays, responsive layouts, and cross-browser consistency.
 
 ### 5. ⚡ Backend Initialization
+
 - Node.js environment configured with **Express 5.x** (`Backend/package.json`).
 - Ready for RESTful route definition, controller creation, and database connectivity.
 
@@ -92,17 +98,17 @@ The repository has been structured and developed with a solid modular foundation
 
 For demonstration and testing purposes, pre-configured accounts are active in the authentication module:
 
-| Portal Role | Demo Email | Password | Role Key / Hash Route |
-| :--- | :--- | :--- | :--- |
-| **Student** | `Student@gmail.com` | `123456` | `#student` |
-| **Lecturer** | `Lecturer@gmail.com` | `123456` | `#lecturer` |
-| **Head of Department (HOD)** | `HOD@gmail.com` | `123456` | `#hod` |
-| **Dean** | `Dean@gmail.com` | `123456` | `#dean` |
-| **System Admin** | `Admin@gmail.com` | `123456` | `#admin` |
-| **Examination Officer** | `Examination@gmail.com` | `123456` | `#examination` |
-| **Super Admin** | `SuperAdmin@gmail.com` | `123456` | `#superadmin` |
+| Portal Role                  | Demo Email              | Password | Role Key / Hash Route |
+| :--------------------------- | :---------------------- | :------- | :-------------------- |
+| **Student**                  | `Student@gmail.com`     | `123456` | `#student`            |
+| **Lecturer**                 | `Lecturer@gmail.com`    | `123456` | `#lecturer`           |
+| **Head of Department (HOD)** | `HOD@gmail.com`         | `123456` | `#hod`                |
+| **Dean**                     | `Dean@gmail.com`        | `123456` | `#dean`               |
+| **System Admin**             | `Admin@gmail.com`       | `123456` | `#admin`              |
+| **Examination Officer**      | `Examination@gmail.com` | `123456` | `#examination`        |
+| **Super Admin**              | `SuperAdmin@gmail.com`  | `123456` | `#superadmin`         |
 
-*(Note: Emails are matched case-insensitively for testing convenience).*
+_(Note: Emails are matched case-insensitively for testing convenience)._
 
 ---
 
@@ -149,18 +155,21 @@ SEUconnect/
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **Framework:** React 19 (`^19.2.8`)
 - **Build Tool:** Vite 8 (`^8.2.2`)
 - **Styling:** Vanilla CSS3 with CSS Variables, Flexbox/Grid, and Keyframe Animations
-- **Typography:** Google Fonts (*Plus Jakarta Sans*, *Outfit*)
+- **Typography:** Google Fonts (_Plus Jakarta Sans_, _Outfit_)
 - **Code Quality:** ESLint (`@eslint/js`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`)
 
 ### Backend
+
 - **Runtime:** Node.js
 - **Server Framework:** Express 5 (`^5.2.1`)
 - **Architecture:** RESTful API ready
 
 ### Version Control & Collaboration
+
 - **VCS:** Git & GitHub
 - **Workflow:** Feature branch & pull request methodology
 
@@ -169,17 +178,20 @@ SEUconnect/
 ## 💻 Getting Started / Installation
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (Version 18.x or higher recommended)
 - [Git](https://git-scm.com/)
 - Modern web browser (Chrome, Edge, Firefox, Safari)
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/BinMushan/SEUconnect.git
 cd SEUconnect
 ```
 
 ### 2. Frontend Setup & Run
+
 ```bash
 # Navigate to the frontend directory
 cd Frontend/SEUconnect
@@ -190,12 +202,15 @@ npm install
 # Start the local Vite development server
 npm run dev
 ```
+
 Open your browser and navigate to:
+
 ```
 http://localhost:5173
 ```
 
 ### 3. Backend Setup
+
 ```bash
 # Open a new terminal in the root directory and navigate to Backend
 cd Backend
@@ -229,15 +244,15 @@ node index.js
 
 This project is being developed as part of the **Internet Application Development (IAD) Continuous Assessment** for the **Faculty of Technology, South Eastern University of Sri Lanka (SEUSL)**.
 
-| # | Student Name | Registration / Index No. | Role / Contribution | GitHub Profile |
-| :-: | :--- | :--- | :--- | :--- |
-| **01** | **Bin Mushan** *(Team Lead)* | *[Enter Reg No]* | Full-stack Architecture, Frontend Routing & Setup | [@BinMushan](https://github.com/BinMushan) |
-| **02** | **Mohommadhu Afnan** | *[Enter Reg No]* | Authentication UI & Role Portal Scaffolding | [@mohommadhuafnan](https://github.com/mohommadhuafnan756) |
-| **03** | *Kamsa Jeyasankar* | *SEU/IS/22/ICT/072* | *[Contribution / Module Area]* | [@jeyashankarkamsa](https://github.com/JeyashankarKamsa) |
-| **04** | *[Team Member Name]* | *[Enter Reg No]* | *[Contribution / Module Area]* | [@username](https://github.com/) |
-| **05** | *[Team Member Name]* | *[Enter Reg No]* | *[Contribution / Module Area]* | [@username](https://github.com/) |
+|   #    | Student Name         | Registration / Index No. | Role / Contribution                               | GitHub Profile                                            |
+| :----: | :------------------- | :----------------------- | :------------------------------------------------ | :-------------------------------------------------------- |
+| **01** | **Bin Mushan**       | _SEU/IS/22/ICT/091_      | Full-stack Architecture, Frontend Routing & Setup | [@BinMushan](https://github.com/BinMushan)                |
+| **02** | **Mohommadhu Afnan** | _[Enter Reg No]_         | Authentication UI & Role Portal Scaffolding       | [@mohommadhuafnan](https://github.com/mohommadhuafnan756) |
+| **03** | _Kamsa Jeyasankar_   | _SEU/IS/22/ICT/072_      | _[Contribution / Module Area]_                    | [@jeyashankarkamsa](https://github.com/JeyashankarKamsa)  |
+| **04** | _[Team Member Name]_ | _[Enter Reg No]_         | _[Contribution / Module Area]_                    | [@username](https://github.com/)                          |
+| **05** | _[Team Member Name]_ | _[Enter Reg No]_         | _[Contribution / Module Area]_                    | [@username](https://github.com/)                          |
 
-> *Tip: Team members can replace the bracketed placeholders `[Enter Reg No]` and `[Team Member Name]` with their respective details.*
+> _Tip: Team members can replace the bracketed placeholders `[Enter Reg No]` and `[Team Member Name]` with their respective details._
 
 ---
 
