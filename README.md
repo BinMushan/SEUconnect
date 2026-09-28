@@ -233,8 +233,9 @@ This project is being developed as part of the **Internet Application Developmen
 | :-: | :--- | :--- | :--- | :--- |
 | **01** | **Bin Mushan** *(Team Lead)* | *[Enter Reg No]* | Full-stack Architecture, Frontend Routing & Setup | [@BinMushan](https://github.com/BinMushan) |
 | **02** | **Mohommadhu Afnan** | *[Enter Reg No]* | Authentication UI & Role Portal Scaffolding | [@mohommadhuafnan](https://github.com/mohommadhuafnan756) |
-| **03** | *[Team Member Name]* | *[Enter Reg No]* | *[Contribution / Module Area]* | [@username](https://github.com/) |
-| **04** | **Jelaxsi Kularasan** | *[Enter Reg No]* | *[Contribution / Module Area]* | [@username](https://github.com/Jelaxsi) |
+<<<<<<< HEAD
+| **03** | *Kamsa Jeyasankar* | *SEU/IS/22/ICT/072* | *[Contribution / Module Area]* | [@jeyashankarkamsa](https://github.com/JeyashankarKamsa) |
+| **04** | **Jelaxsi Kularasan** | *[Enter Reg No]* | *[Contribution / Module Area]* | [@Jelaxsi](https://github.com/Jelaxsi) |
 | **05** | *[Team Member Name]* | *[Enter Reg No]* | *[Contribution / Module Area]* | [@username](https://github.com/) |
 
 > *Tip: Team members can replace the bracketed placeholders `[Enter Reg No]` and `[Team Member Name]` with their respective details.*
