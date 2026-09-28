@@ -1,139 +1,572 @@
-/* Student Dashboard Placeholder Styles */
-.student-dashboard-wrapper {
-  min-height: 100vh;
-  width: 100%;
-  background-color: #f8fafc;
-  color: #1e293b;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+/* ==========================================================================
+   SEUConnect - Student Dashboard Custom Styles
+   Typography and theme aligned with https://seuconnect-frontend.onrender.com/student/dashboard
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+.std-dashboard-container {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.student-navbar {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1rem 2rem;
+.std-dashboard-container * {
+  font-family: inherit;
+}
+
+
+/* ==========================================================================
+   1. TOP 4 METRIC STAT CARDS
+   ========================================================================== */
+.std-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.std-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  align-items: flex-start;
+  gap: 0.9rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.student-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.std-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
-.student-brand-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f2b5c;
-  margin: 0;
-}
-
-.student-brand-sub {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin: 0;
-}
-
-.student-logout-btn {
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
-}
-
-.student-logout-btn:hover {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
-}
-
-.student-content {
-  flex: 1;
+.std-stat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  flex-shrink: 0;
 }
 
-.student-welcome-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 3rem 2.5rem;
-  max-width: 600px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+.icon-blue {
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
-.student-badge {
-  display: inline-block;
-  background-color: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1.25rem;
+.icon-amber {
+  background: #fef3c7;
+  color: #d97706;
 }
 
-.student-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 0.75rem 0;
+.icon-emerald {
+  background: #dcfce7;
+  color: #16a34a;
 }
 
-.student-subtitle {
-  font-size: 1rem;
+.std-stat-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.std-stat-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.std-stat-title {
+  font-size: 0.78rem;
+  font-weight: 600;
   color: #64748b;
-  margin: 0 0 2rem 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.std-stat-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.std-stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0.15rem 0 0.25rem 0;
+}
+
+.std-stat-target {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   2. "WHAT DO YOU NEED TO DO?" GUIDANCE CARD
+   ========================================================================== */
+.std-guidance-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #1d4ed8;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.std-guidance-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.std-guidance-icon {
+  width: 32px;
+  height: 32px;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.std-guidance-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.std-guidance-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+.std-guidance-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
   line-height: 1.5;
 }
 
-.student-info-box {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1.25rem;
-  margin-bottom: 2rem;
-  text-align: left;
-}
-
-.student-info-row {
+.std-guidance-search-bar {
   display: flex;
-  justify-content: space-between;
-  padding: 0.35rem 0;
-  font-size: 0.9rem;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
 }
 
-.student-info-label {
+.std-search-input-box {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.std-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.std-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.62rem 1rem 0.62rem 2.5rem;
+  font-size: 0.82rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.std-search-input:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.std-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.std-find-process-btn {
+  background: #0f2b5c;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.62rem 1.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease;
+}
+
+.std-find-process-btn:hover {
+  background: #091a38;
+}
+
+.std-suggested-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.std-suggested-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.std-suggested-chip {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.std-suggested-chip:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   3. MIDDLE ROW: PROGRESSION TREND & QUICK ACTIONS
+   ========================================================================== */
+.std-middle-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.std-trend-card,
+.std-quick-actions-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.std-card-heading {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+/* Academic Progression SVG Chart */
+.std-chart-wrapper {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.std-trend-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.std-grid-line {
+  stroke: #e2e8f0;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.std-grid-line-vert {
+  stroke: #f1f5f9;
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.std-axis-text {
+  font-size: 11px;
+  fill: #64748b;
+  font-weight: 500;
+  text-anchor: end;
+}
+
+.std-axis-text-x {
+  font-size: 11px;
+  fill: #64748b;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+.std-trend-path {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.std-trend-dot {
+  fill: #2563eb;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  transition: r 0.18s;
+  cursor: pointer;
+}
+
+.std-trend-dot:hover {
+  r: 6;
+}
+
+.std-trend-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.15rem;
+  margin-top: 0.5rem;
+}
+
+.std-metric-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.std-metric-label {
+  font-size: 0.72rem;
   color: #64748b;
   font-weight: 500;
 }
 
-.student-info-value {
+.std-metric-value {
+  font-size: 1.45rem;
+  font-weight: 800;
   color: #0f172a;
-  font-weight: 600;
 }
 
-.student-note {
-  font-size: 0.85rem;
+.std-metric-value.text-green {
+  color: #16a34a;
+}
+
+/* Quick Actions List */
+.std-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.std-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.std-action-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1d4ed8;
+  transform: translateX(2px);
+}
+
+.std-action-icon {
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.std-action-label {
+  flex: 1;
+}
+
+/* ==========================================================================
+   4. UPCOMING INSTITUTIONAL DEADLINES
+   ========================================================================== */
+.std-deadlines-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.std-deadlines-heading {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+.std-deadlines-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.std-deadline-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.std-deadline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+}
+
+.std-deadline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.std-deadline-pill {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.std-status-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.status-open {
+  color: #ea580c;
+}
+
+.status-upcoming {
+  color: #d97706;
+}
+
+.status-active {
+  color: #ea580c;
+}
+
+.std-deadline-title {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  min-height: 2.3rem;
+}
+
+.std-deadline-time {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.std-deadline-time svg {
   color: #94a3b8;
-  margin-bottom: 2rem;
+  flex-shrink: 0;
+}
+
+.std-view-details-btn {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.18s ease;
+}
+
+.std-view-details-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .std-stats-grid,
+  .std-deadlines-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .std-middle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .std-stats-grid,
+  .std-deadlines-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .std-guidance-search-bar {
+    flex-direction: column;
+  }
+
+  .std-find-process-btn {
+    width: 100%;
+  }
 }
