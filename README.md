@@ -250,7 +250,7 @@ This project is being developed as part of the **Internet Application Developmen
 | **02** | **Mohommadhu Afnan** | _[Enter Reg No]_         | Authentication UI & Role Portal Scaffolding       | [@mohommadhuafnan](https://github.com/mohommadhuafnan756) |
 | **03** | _Kamsa Jeyasankar_   | _SEU/IS/22/ICT/072_      | _[Contribution / Module Area]_                    | [@jeyashankarkamsa](https://github.com/JeyashankarKamsa)  |
 | **04** | _Jelaxsi Kularasan_ | _SEU/IS/22/ICT/068_         | _[Contribution / Module Area]_                    | [@Jelaxsi](https://github.com/Jelaxsi)                          |
-| **05** | _[Team Member Name]_ | _[Enter Reg No]_         | _[Contribution / Module Area]_                    | [@username](https://github.com/)                          |
+| **05** | _Shahnaz Razick_ | _SEU/IS/22/ICT/083_         | _[Contribution / Module Area]_                    | [@shahnas-razick]                          |
 
 > _Tip: Team members can replace the bracketed placeholders `[Enter Reg No]` and `[Team Member Name]` with their respective details._
 
