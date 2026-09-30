@@ -4,16 +4,19 @@ This repository uses `.github/workflows/branch-sync-guard.yml` to enforce **`mai
 
 ## What it does
 
-- Runs whenever code is pushed to `Development` (including merge commits from PRs merged into `Development`).
+- Runs whenever code is pushed to non-protected branches (all branches except `main`, `development`, and `Development`).
+- Runs on pull requests targeting `development` (opened/reopened/synchronize/ready_for_review).
 - Runs on pull requests targeting `main` **from `Development`**.
 - Compares branch history and file contents between `main` and `Development`.
 - Detects whether `Development` can be merged into `main` without conflicts.
+- For `development` integration, detects whether the source branch is behind/diverged from `development` and checks whether it merges cleanly into the latest `development`.
 - Publishes the result in workflow logs and in the GitHub Actions step summary.
 - Opens/updates a single bot-created issue (no duplicates) when `Development` has changes that are not in `main`.
 
 ## Trigger matrix
 
-- `push` on `Development`
+- `push` on all non-protected branches (`main`, `development`, and `Development` are excluded)
+- `pull_request` to `development` (opened/reopened/synchronize/ready_for_review)
 - `pull_request` to `main` (opened/reopened/synchronize/ready_for_review)
 - `workflow_dispatch` (manual run)
 
@@ -30,7 +33,10 @@ The workflow reports one of these states:
 ## Conflict policy
 
 - For PRs from `Development` to `main`, the check fails when conflicts are detected and prints actionable resolution steps.
-- For pushes to `Development`, conflict status is calculated and reported only (no branch modifications).
+- For PRs targeting `development`, the check:
+  - fails when merge conflicts are detected while probing source → `development`;
+  - fails when the PR source branch is behind/diverged from `development`, with sync commands in logs.
+- For non-protected branch pushes, sync/conflict status versus `development` is reported (no branch modifications).
 
 ## Safety controls
 
