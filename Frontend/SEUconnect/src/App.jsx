@@ -18,8 +18,13 @@ function App() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (!hash) {
         setCurrentPage('login');
-      } else if (['student', 'lecturer', 'hod', 'dean', 'admin', 'superadmin', 'examination'].includes(hash)) {
-        setCurrentPage(hash);
+      } else {
+        const matchedRole = ['student', 'lecturer', 'hod', 'dean', 'admin', 'superadmin', 'examination'].find(
+          (role) => hash === role || hash.startsWith(`${role}/`)
+        );
+        if (matchedRole) {
+          setCurrentPage(matchedRole);
+        }
       }
     };
 
