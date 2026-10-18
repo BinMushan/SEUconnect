@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import AcademicProfile from './academic_profile.jsx';
+import SemesterRegistration from './semester_registration.jsx';
+import Attendance from './attendance.jsx';
+import MedicalRequests from './medical_requests.jsx';
 import './student.css';
 
 export default function Student({ user, onLogout }) {
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase();
+      if (hash.includes('medical')) return 'medical_requests';
+      if (hash.includes('attendance')) return 'attendance';
+      if (hash.includes('registration')) return 'semester_registration';
+      if (hash.includes('profile')) return 'academic_profile';
+    }
+    return 'attendance';
+  });
+  const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
 
   const suggestedChips = [
@@ -15,6 +30,7 @@ export default function Student({ user, onLogout }) {
   const quickActions = [
     {
       label: 'Register Subjects',
+      actionId: 'semester_registration',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -26,6 +42,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Check Attendance',
+      actionId: 'attendance',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
@@ -55,6 +72,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Submit Medical Request',
+      actionId: 'medical_requests',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -127,8 +145,31 @@ export default function Student({ user, onLogout }) {
   ];
 
   return (
-    <DashboardTemplate user={user} onLogout={onLogout} activeItem="dashboard">
-      <div className="std-dashboard-container">
+    <DashboardTemplate
+      user={studentUser || user}
+      onLogout={onLogout}
+      activeItem={activeTab}
+      onNavigate={(id) => setActiveTab(id)}
+    >
+      {activeTab === 'academic_profile' ? (
+        <AcademicProfile
+          user={studentUser || user}
+          onProfileUpdate={(updated) => setStudentUser(updated)}
+        />
+      ) : activeTab === 'semester_registration' ? (
+        <SemesterRegistration
+          user={studentUser || user}
+        />
+      ) : activeTab === 'attendance' ? (
+        <Attendance
+          onNavigateMedical={() => setActiveTab('medical_requests')}
+        />
+      ) : activeTab === 'medical_requests' ? (
+        <MedicalRequests
+          user={studentUser || user}
+        />
+      ) : (
+        <div className="std-dashboard-container">
         
         {/* =========================================================
             1. TOP 4 METRIC STAT CARDS
@@ -338,7 +379,14 @@ export default function Student({ user, onLogout }) {
             <h3 className="std-card-heading">Quick Actions</h3>
             <div className="std-actions-list">
               {quickActions.map((action, idx) => (
-                <button key={idx} type="button" className="std-action-btn">
+                <button
+                  key={idx}
+                  type="button"
+                  className="std-action-btn"
+                  onClick={() => {
+                    if (action.actionId) setActiveTab(action.actionId);
+                  }}
+                >
                   <span className="std-action-icon">{action.icon}</span>
                   <span className="std-action-label">{action.label}</span>
                 </button>
@@ -374,8 +422,8 @@ export default function Student({ user, onLogout }) {
             ))}
           </div>
         </section>
-
       </div>
+    )}
     </DashboardTemplate>
   );
 }
