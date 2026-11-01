@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
 import './dashboard_template.css';
 
 /**
@@ -197,20 +198,24 @@ export default function DashboardTemplate({
   showHeroBanner,
   onNavigate,
   onLogout,
-  navSections = DEFAULT_NAV_SECTIONS,
+  navSections,
   actionButtons,
   heroActions,
   className = '',
   greetingText,
   metaItems,
-  facultyPillText = 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
+  facultyPillText,
   notificationCount = 3,
   searchPlaceholder = 'Search portal resources, subjects, or forms...',
   onSearch,
   onAiAssistantClick,
   children
 }) {
-  const [currentActive, setCurrentActive] = useState(activeItem);
+  const roleMeta = getRoleMetaData(user);
+  const effectiveNavSections = navSections || getNavSectionsForRole(user?.roleKey || user?.role);
+
+  const [internalActive, setInternalActive] = useState(activeItem);
+  const currentActive = activeItem !== undefined ? activeItem : internalActive;
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [openSubmenus, setOpenSubmenus] = useState({ faculty_forms: true });
@@ -236,9 +241,9 @@ export default function DashboardTemplate({
     });
   };
 
-  // Keep currentActive in sync with activeItem prop
+  // Keep internalActive in sync with activeItem prop
   React.useEffect(() => {
-    setCurrentActive(activeItem);
+    setInternalActive(activeItem);
   }, [activeItem]);
 
   // Determine if hero banner should display (hidden on pages like academic_profile)
@@ -246,18 +251,15 @@ export default function DashboardTemplate({
     ? showHeroBanner
     : (currentActive === 'dashboard');
 
-  // Default values matching the screenshot exactly
-  const userName = user?.name || 'M.N.M. Afnan';
-  const userEmail = user?.email || '22ict085@seu.ac.lk';
-  const userRegNo = user?.regNo || '22ICT085';
-  const userProgramme = user?.programme || 'BICT';
-  const userSemester = user?.semester || 'Semester 05';
-  const userSpecialization = user?.specialization || 'Software Systems';
-  const userRole = user?.role || 'STUDENT';
-  const greeting = greetingText || `Good Morning, ${userName}`;
+  // Dynamic user details matching their role
+  const userName = user?.name || (user?.email ? user.email.split('@')[0] : 'User');
+  const userEmail = user?.email || 'user@seu.ac.lk';
+  const userRole = roleMeta?.rolePill || user?.role || 'STUDENT';
+  const greeting = greetingText || roleMeta?.greeting || `Good Morning, ${userName}`;
+  const effectiveFacultyPill = facultyPillText || roleMeta?.facultyPill || 'FACULTY OF TECHNOLOGY';
+  const effectiveMetaItems = (metaItems && metaItems.length > 0) ? metaItems : (roleMeta?.metaItems || []);
 
-  // Avatar initial: 'M.' as shown in screenshot
-  const userInitial = user?.avatarInitial || (userName ? userName.charAt(0).toUpperCase() + '.' : 'M.');
+  const userInitial = user?.avatarInitial || (userName ? userName.charAt(0).toUpperCase() + '.' : 'U.');
 
   const handleItemClick = (id) => {
     setCurrentActive(id);
@@ -295,7 +297,7 @@ export default function DashboardTemplate({
       )}
 
       {/* ====================================================================
-          LEFT SIDEBAR (Dark Navy Portal Menu)
+          LEFT SIDEBAR (Dark Navy Portal Menu - Changes by Role)
           ==================================================================== */}
       <aside className={`seu-dash-sidebar ${mobileNavOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         {/* Brand Header */}
@@ -320,9 +322,9 @@ export default function DashboardTemplate({
           </button>
         </div>
 
-        {/* Scrollable Navigation Sections */}
+        {/* Scrollable Navigation Sections - Dynamically tailored to user's role */}
         <nav className="seu-sidebar-nav-container">
-          {navSections.map((section) => (
+          {effectiveNavSections.map((section) => (
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
@@ -523,7 +525,7 @@ export default function DashboardTemplate({
           <section className="seu-dash-hero-banner">
             <div className="seu-hero-banner-top-row">
               <span className="seu-hero-institution-pill">
-                {facultyPillText}
+                {effectiveFacultyPill}
               </span>
 
               {/* Top Right Action Buttons */}
@@ -538,7 +540,7 @@ export default function DashboardTemplate({
                           <circle cx="12" cy="8" r="6" />
                           <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
                         </svg>
-                        View GPA Report
+                        {user?.role === 'student' ? 'View GPA Report' : 'Department Reports'}
                       </button>
 
                       <button type="button" className="seu-btn-faculty-forms" onClick={() => handleItemClick('forms_all')}>
@@ -548,7 +550,7 @@ export default function DashboardTemplate({
                           <line x1="16" y1="13" x2="8" y2="13" />
                           <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
-                        Faculty Forms
+                        {user?.role === 'student' ? 'Faculty Forms' : 'Faculty Regulations'}
                       </button>
                     </>
                   )}
@@ -559,26 +561,14 @@ export default function DashboardTemplate({
             {/* Main Greeting & Display Name */}
             <h1 className="seu-hero-greeting-title">{greeting}</h1>
 
-            {/* Meta Info Line */}
+            {/* Role-Specific Meta Info Line */}
             <div className="seu-hero-meta-row">
-              {metaItems && metaItems.length > 0 ? (
-                metaItems.map((meta, idx) => (
-                  <React.Fragment key={idx}>
-                    <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
-                    {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
-                  </React.Fragment>
-                ))
-              ) : (
-                <>
-                  <span>Reg No: <span className="seu-hero-meta-strong">{userRegNo}</span></span>
-                  <span className="seu-hero-meta-divider">•</span>
-                  <span>Programme: <span className="seu-hero-meta-strong">{userProgramme}</span></span>
-                  <span className="seu-hero-meta-divider">•</span>
-                  <span>Current: <span className="seu-hero-meta-strong">{userSemester}</span></span>
-                  <span className="seu-hero-meta-divider">•</span>
-                  <span>Specialization: <span className="seu-hero-meta-strong">{userSpecialization}</span></span>
-                </>
-              )}
+              {effectiveMetaItems.map((meta, idx) => (
+                <React.Fragment key={idx}>
+                  <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
+                  {idx < effectiveMetaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
+                </React.Fragment>
+              ))}
             </div>
 
             {/* Bottom Hero Actions (e.g. Mark Attendance, Upload CA Marks) */}
@@ -590,19 +580,9 @@ export default function DashboardTemplate({
           </section>
         )}
 
-        {/* 3. MAIN DASHBOARD BODY (Where team members inject their role content) */}
+        {/* 3. MAIN DASHBOARD BODY (Where role content is injected) */}
         <main className="seu-dash-body-content">
-          {children ? (
-            children
-          ) : (
-            <div className="seu-dash-placeholder-box">
-              <h3 className="seu-dash-placeholder-title">Welcome to SEUConnect Portal</h3>
-              <p className="seu-dash-placeholder-desc">
-                This reusable dashboard template shell is ready. Team members can import 
-                <code>DashboardTemplate</code> and render their specific role modules, metric widgets, and tables as children.
-              </p>
-            </div>
-          )}
+          {children}
         </main>
       </div>
     </div>

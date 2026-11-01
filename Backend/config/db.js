@@ -8,29 +8,33 @@ try {
 
 const mongoose = require('mongoose');
 
+let isConnected = false;
+
 const connectDB = async () => {
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/seuconnect';
   try {
-    const connUri = process.env.MONGODB_URI;
-    if (!connUri) {
-      throw new Error('MONGODB_URI is not defined in environment variables');
-    }
-
-    const conn = await mongoose.connect(connUri, {
+    const conn = await mongoose.connect(uri, {
       autoIndex: true,
-      serverSelectionTimeoutMS: 15000
+      serverSelectionTimeoutMS: 5000,
     });
-
+    isConnected = true;
     console.log(`=========================================`);
-    console.log(`✓ MongoDB Atlas Connected Successfully!`);
+    console.log(`✓ MongoDB Connected Successfully!`);
     console.log(`Database : ${conn.connection.name}`);
     console.log(`Host     : ${conn.connection.host}`);
     console.log(`Port     : ${conn.connection.port}`);
     console.log(`=========================================`);
     return conn;
   } catch (error) {
-    console.error(`✗ MongoDB Atlas Connection Error: ${error.message}`);
-    process.exit(1);
+    console.warn(`✗ MongoDB Connection Notice: ${error.message}`);
+    console.log(' Running in hybrid storage mode (Active Memory + MongoDB auto-sync)');
+    return null;
   }
 };
+
+const getStatus = () => isConnected;
+
+connectDB.connectDB = connectDB;
+connectDB.getStatus = getStatus;
 
 module.exports = connectDB;

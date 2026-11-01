@@ -1,60 +1,668 @@
-import React from 'react';
+import { useState } from 'react';
+import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
+// Mock Data Models
+import {
+  INITIAL_STATS,
+  INITIAL_BATCHES,
+  INITIAL_STUDENTS,
+  INITIAL_REGISTRATIONS,
+  INITIAL_MEDICALS,
+  INITIAL_EXAMINATIONS,
+  INITIAL_REPEAT_CANDIDATES,
+  INITIAL_ANNOUNCEMENTS,
+  INITIAL_FACULTY_FORMS,
+  INITIAL_PENALTIES,
+  INITIAL_USERS,
+  INITIAL_AUDIT_LOG
+} from './adminData.js';
+
+// Admin Subcomponents
+import AdminOverview from './components/AdminOverview.jsx';
+import StudentManagement from './components/StudentManagement.jsx';
+import RegistrationManagement from './components/RegistrationManagement.jsx';
+import MedicalRequests from './components/MedicalRequests.jsx';
+import ExaminationManagement from './components/ExaminationManagement.jsx';
+import ResultsManagement from './components/ResultsManagement.jsx';
+import WelfareSocieties from './components/WelfareSocieties.jsx';
+import AnnouncementsManagement from './components/AnnouncementsManagement.jsx';
+import FormsGuidanceManagement from './components/FormsGuidanceManagement.jsx';
+import PenaltiesManagement from './components/PenaltiesManagement.jsx';
+import UserRoleManagement from './components/UserRoleManagement.jsx';
+import SettingsManagement from './components/SettingsManagement.jsx';
+
+/**
+ * Admin Navigation Sections customized for Faculty Administration
+ */
+const ADMIN_NAV_SECTIONS = [
+  {
+    title: 'MAIN',
+    items: [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+        )
+      }
+    ]
+  },
+  {
+    title: 'ACADEMIC ADMINISTRATION',
+    items: [
+      {
+        id: 'student_management',
+        label: 'Student Management',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        )
+      },
+      {
+        id: 'semester_registration',
+        label: 'Academic Registration',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        )
+      },
+      {
+        id: 'attendance_medicals',
+        label: 'Attendance & Medicals',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+        )
+      },
+      {
+        id: 'examinations',
+        label: 'Examination Management',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="6" />
+            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+          </svg>
+        )
+      },
+      {
+        id: 'results_progress',
+        label: 'Results & Progression',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+        )
+      }
+    ]
+  },
+  {
+    title: 'STUDENT SERVICES & WELFARE',
+    items: [
+      {
+        id: 'welfare_scholarships',
+        label: 'Welfare & Scholarships',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        )
+      },
+      {
+        id: 'announcements',
+        label: 'Announcements',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+        )
+      },
+      {
+        id: 'forms_guidance',
+        label: 'Forms & Process Guidance',
+        hasSubmenu: true,
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+        )
+      },
+      {
+        id: 'penalties',
+        label: 'Penalties & Disciplinary',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2.5" />
+          </svg>
+        )
+      }
+    ]
+  },
+  {
+    title: 'SYSTEM & SECURITY',
+    items: [
+      {
+        id: 'users_roles',
+        label: 'User & Role Management',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        )
+      },
+      {
+        id: 'settings',
+        label: 'System Settings',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        )
+      }
+    ]
+  }
+];
+
 export default function Admin({ user, onLogout }) {
-  const email = user?.email || 'Admin@gmail.com';
+  const [currentSection, setCurrentSection] = useState('dashboard');
+  const [stats, setStats] = useState(INITIAL_STATS);
+  const [batches, setBatches] = useState(INITIAL_BATCHES);
+  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [registrations, setRegistrations] = useState(INITIAL_REGISTRATIONS);
+  const [medicals, setMedicals] = useState(INITIAL_MEDICALS);
+  const [examinations] = useState(INITIAL_EXAMINATIONS);
+  const [repeatCandidates, setRepeatCandidates] = useState(INITIAL_REPEAT_CANDIDATES);
+  const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
+  const [facultyForms, setFacultyForms] = useState(INITIAL_FACULTY_FORMS);
+  const [penalties, setPenalties] = useState(INITIAL_PENALTIES);
+  const [users, setUsers] = useState(INITIAL_USERS);
+  const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOG);
+
+  // Global modals triggered from top action buttons
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage('');
+    }, 3800);
+  };
+
+  // Add Log helper
+  const addAuditLog = (action, detail) => {
+    const newLog = {
+      id: `LOG-${Date.now()}`,
+      time: 'Just now',
+      user: user?.email || 'Admin@gmail.com',
+      action,
+      detail
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
+
+  // 1. Approve Medical Request
+  const handleApproveMedical = (id) => {
+    const med = medicals.find((m) => m.id === id);
+    if (!med) return;
+
+    setMedicals((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, status: 'Approved', verificationDate: 'Today' } : m))
+    );
+
+    // Update student attendance
+    setStudents((prev) =>
+      prev.map((s) => (s.regNo === med.regNo ? { ...s, attendance: med.attendanceAfterApproval } : s))
+    );
+
+    setStats((prev) => ({
+      ...prev,
+      pendingMedicals: Math.max(0, prev.pendingMedicals - 1)
+    }));
+
+    addAuditLog('Approved Medical Certificate', `${med.certificateRef} for ${med.studentName} (${med.regNo}). Restored to ${med.attendanceAfterApproval}%.`);
+    showToast(`Medical Certificate ${med.certificateRef} approved. Attendance updated to ${med.attendanceAfterApproval}%.`);
+  };
+
+  // 2. Reject Medical Request
+  const handleRejectMedical = (id, reason) => {
+    const med = medicals.find((m) => m.id === id);
+    if (!med) return;
+
+    setMedicals((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, status: 'Rejected', remarks: reason } : m))
+    );
+
+    setStats((prev) => ({
+      ...prev,
+      pendingMedicals: Math.max(0, prev.pendingMedicals - 1)
+    }));
+
+    addAuditLog('Rejected Medical Certificate', `${med.certificateRef} (${med.regNo}): ${reason}`);
+    showToast(`Medical Request ${med.certificateRef} rejected.`);
+  };
+
+  // 3. Approve Registration Request
+  const handleApproveRegistration = (id) => {
+    const reg = registrations.find((r) => r.id === id);
+    if (!reg) return;
+
+    setRegistrations((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'Approved', approvalDate: 'Today' } : r))
+    );
+
+    setStats((prev) => ({
+      ...prev,
+      pendingRegistrations: Math.max(0, prev.pendingRegistrations - 1)
+    }));
+
+    addAuditLog('Approved Course Registration', `${reg.id} for ${reg.studentName} (${reg.regNo} - ${reg.totalCredits} Credits).`);
+    showToast(`Semester Registration ${reg.id} approved for ${reg.studentName}.`);
+  };
+
+  // 4. Batch Approve Registrations
+  const handleBatchApprove = () => {
+    setRegistrations((prev) =>
+      prev.map((r) => ({ ...r, status: 'Approved', approvalDate: 'Today' }))
+    );
+    setStats((prev) => ({ ...prev, pendingRegistrations: 0 }));
+    addAuditLog('Batch Approved Registrations', 'All pending semester subject applications approved.');
+    showToast('All pending semester subject registrations have been approved.');
+  };
+
+  // 5. Add Student
+  const handleAddStudent = (newStudent) => {
+    setStudents((prev) => [newStudent, ...prev]);
+    setStats((prev) => ({
+      ...prev,
+      totalStudents: prev.totalStudents + 1,
+      activeAccounts: prev.activeAccounts + 1
+    }));
+    addAuditLog('Registered Student Account', `${newStudent.regNo} - ${newStudent.name} enrolled in ${newStudent.programme}.`);
+    showToast(`Student ${newStudent.name} (${newStudent.regNo}) registered successfully.`);
+  };
+
+  // 6. Update Student Status
+  const handleUpdateStudentStatus = (id, newStatus) => {
+    setStudents((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+    );
+    const stu = students.find((s) => s.id === id);
+    addAuditLog('Updated Student Standing', `${stu?.regNo} standing changed to "${newStatus}".`);
+    showToast(`Student standing updated to ${newStatus}.`);
+  };
+
+  // 7. Clear Repeat Exam Candidate
+  const handleClearRepeatCandidate = (id) => {
+    setRepeatCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, pivSlipVerified: true, admissionStatus: 'Cleared' } : c))
+    );
+    setStats((prev) => ({
+      ...prev,
+      pendingExamClearance: Math.max(0, prev.pendingExamClearance - 1)
+    }));
+    const cand = repeatCandidates.find((c) => c.id === id);
+    addAuditLog('Cleared Repeat Admission', `${cand?.regNo} (${cand?.moduleCode}) bank PIV slip verified.`);
+    showToast(`Exam Admission cleared for ${cand?.studentName} (${cand?.moduleCode}).`);
+  };
+
+  // 8. Add Announcement
+  const handleAddAnnouncement = (newAnn) => {
+    setAnnouncements((prev) => [newAnn, ...prev]);
+    setStats((prev) => ({
+      ...prev,
+      publishedAnnouncements: prev.publishedAnnouncements + 1
+    }));
+    addAuditLog('Published Faculty Notice', `"${newAnn.title}" broadcast to ${newAnn.targetAudience}.`);
+    showToast('Official announcement published to student portal.');
+  };
+
+  // 9. Delete Announcement
+  const handleDeleteAnnouncement = (id) => {
+    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    addAuditLog('Deleted Announcement', `Notice ID ${id} removed.`);
+    showToast('Announcement removed.');
+  };
+
+  // 10. Toggle Pin Announcement
+  const handleTogglePinAnnouncement = (id) => {
+    setAnnouncements((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, pinned: !a.pinned } : a))
+    );
+  };
+
+  // 11. Add Faculty Form
+  const handleAddForm = (newForm) => {
+    setFacultyForms((prev) => [newForm, ...prev]);
+    addAuditLog('Uploaded Faculty Form', `${newForm.code}: ${newForm.title}`);
+    showToast(`Form ${newForm.code} published to faculty downloads.`);
+  };
+
+  // 12. Clear Penalty
+  const handleClearPenalty = (id) => {
+    setPenalties((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status: 'Cleared' } : p))
+    );
+    addAuditLog('Cleared Disciplinary Penalty', `Fine/penalty cleared for entry ${id}.`);
+    showToast('Disciplinary record cleared.');
+  };
+
+  // 13. Add Penalty
+  const handleAddPenalty = (newPen) => {
+    setPenalties((prev) => [newPen, ...prev]);
+    setStats((prev) => ({ ...prev, disciplinaryCases: prev.disciplinaryCases + 1 }));
+    addAuditLog('Recorded Disciplinary Fine', `${newPen.regNo}: ${newPen.category}`);
+    showToast(`Disciplinary record logged for ${newPen.regNo}.`);
+  };
+
+  // 14. Toggle User Status
+  const handleToggleUserStatus = (id) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' } : u))
+    );
+    showToast('User account status updated.');
+  };
+
+  // 15. Publish Results
+  const handlePublishResults = (sem) => {
+    addAuditLog('Published Moderated Results', `SGPA & CGPA ledgers finalized and released for ${sem}.`);
+    showToast(`Results Ledger for ${sem} published to student portal.`);
+  };
+
+  // 16. Onboard Intake Batch
+  const handleAddBatch = (newBatch) => {
+    setBatches((prev) => [newBatch, ...prev]);
+    setStats((prev) => ({ ...prev, totalBatches: prev.totalBatches + 1 }));
+    addAuditLog('Onboarded Intake Batch', `${newBatch.name} (Intake ${newBatch.code}) provisioned.`);
+    showToast(`Intake Batch ${newBatch.name} onboarded successfully.`);
+  };
+
+  // 17. Assign & Reassign Staff Roles (Lecturers, HODs, Dean, Exam Officers)
+  const handleAssignRole = (userId, { role, department, designation }) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? {
+        ...u,
+        role,
+        roleKey: role === 'Head of Department (HOD)' ? 'hod' : role === 'Faculty Dean' ? 'dean' : role === 'Examination Officer' ? 'examination' : role === 'Lecturer' ? 'lecturer' : 'admin',
+        department,
+        designation,
+        isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Examination Officer'].includes(role)
+      } : u))
+    );
+    const target = users.find((u) => u.id === userId);
+    addAuditLog('Reassigned Staff Role', `${target?.name} assigned as "${role}" in ${department}.`);
+    showToast(`Role for ${target?.name} updated to ${role}.`);
+  };
+
+  // 18. Appoint New Staff Member
+  const handleAppointUser = (newStaff) => {
+    setUsers((prev) => [newStaff, ...prev]);
+    addAuditLog('Appointed Staff Member', `${newStaff.name} appointed as ${newStaff.role} (${newStaff.department}).`);
+    showToast(`Staff member ${newStaff.name} appointed as ${newStaff.role}.`);
+  };
+
+  // 16. Global Topbar Search Handler
+  const handleGlobalSearch = (query) => {
+    if (!query) return;
+    const q = query.toLowerCase();
+    if (q.includes('student') || q.includes('profile') || q.includes('gpa') || q.includes('reg') || q.startsWith('2')) {
+      setCurrentSection('student_management');
+    } else if (q.includes('medical') || q.includes('health') || q.includes('doctor') || q.includes('excuse')) {
+      setCurrentSection('attendance_medicals');
+    } else if (q.includes('exam') || q.includes('esa') || q.includes('repeat')) {
+      setCurrentSection('examinations');
+    } else if (q.includes('notice') || q.includes('announc')) {
+      setCurrentSection('announcements');
+    } else if (q.includes('form') || q.includes('voucher') || q.includes('piv')) {
+      setCurrentSection('forms_guidance');
+    } else if (q.includes('welfare') || q.includes('mahapola') || q.includes('bursary')) {
+      setCurrentSection('welfare_scholarships');
+    } else {
+      setCurrentSection('student_management');
+    }
+  };
+
+  // Custom User details for DashboardTemplate
+  const adminUser = {
+    name: user?.name || 'Faculty Admin Office',
+    email: user?.email || 'Admin@gmail.com',
+    role: 'ADMIN',
+    avatarInitial: 'AD'
+  };
+
+  // Total pending tasks for topbar notification badge
+  const pendingTotal = stats.pendingMedicals + stats.pendingRegistrations + stats.pendingExamClearance;
 
   return (
-    <div className="admin-dashboard-wrapper">
-      <nav className="admin-navbar">
-        <div className="admin-brand">
-          <div>
-            <h2 className="admin-brand-title">SEUConnect</h2>
-            <p className="admin-brand-sub">South Eastern University of Sri Lanka • Faculty of Technology</p>
+    <DashboardTemplate
+      user={adminUser}
+      onLogout={onLogout}
+      activeItem={currentSection}
+      onNavigate={(id) => setCurrentSection(id)}
+      navSections={ADMIN_NAV_SECTIONS}
+      facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ADMIN CONSOLE"
+      greetingText="Good Morning, Faculty Administrator"
+      notificationCount={pendingTotal}
+      searchPlaceholder="Search student records, reg numbers, staff, or faculty requests..."
+      onSearch={handleGlobalSearch}
+      metaItems={[
+        { label: 'Role:', value: 'System Administrator' },
+        { label: 'Division:', value: 'Academic & Student Affairs' },
+        { label: 'Faculty:', value: 'Faculty of Technology' },
+        { label: 'Campus:', value: 'Oluvil Main Campus' }
+      ]}
+      actionButtons={
+        <>
+          <button
+            type="button"
+            className="seu-btn-gpa-report"
+            onClick={() => {
+              setCurrentSection('student_management');
+              setIsAddStudentModalOpen(true);
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="23" y1="11" x2="17" y2="11" />
+            </svg>
+            + Register Student
+          </button>
+
+          <button
+            type="button"
+            className="seu-btn-faculty-forms"
+            onClick={() => {
+              setCurrentSection('announcements');
+              setIsAnnouncementModalOpen(true);
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            + Broadcast Notice
+          </button>
+        </>
+      }
+    >
+      {/* Toast Notification Container */}
+      {toastMessage && (
+        <div className="adm-toast-container">
+          <div className="adm-toast">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span>{toastMessage}</span>
           </div>
         </div>
-        <button
-          type="button"
-          className="admin-logout-btn"
-          onClick={onLogout}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Logout
-        </button>
-      </nav>
+      )}
 
-      <main className="admin-content">
-        <div className="admin-welcome-card">
-          <span className="admin-badge">Admin Portal</span>
-          <h1 className="admin-title">Welcome Admin</h1>
-          <p className="admin-subtitle">
-            Welcome to the System Administration & Faculty Services Portal.
-          </p>
+      {/* Render Active Administrative Section */}
+      {currentSection === 'dashboard' && (
+        <AdminOverview
+          stats={stats}
+          batches={batches}
+          registrations={registrations}
+          medicals={medicals}
+          auditLogs={auditLogs}
+          onNavigate={(id) => setCurrentSection(id)}
+          onApproveMedical={handleApproveMedical}
+          onRejectMedical={handleRejectMedical}
+          onApproveRegistration={handleApproveRegistration}
+          onOpenAddStudentModal={() => {
+            setCurrentSection('student_management');
+            setIsAddStudentModalOpen(true);
+          }}
+          onOpenAnnouncementModal={() => {
+            setCurrentSection('announcements');
+            setIsAnnouncementModalOpen(true);
+          }}
+        />
+      )}
 
-          <div className="admin-info-box">
-            <div className="admin-info-row">
-              <span className="admin-info-label">Logged In User:</span>
-              <span className="admin-info-value">{email}</span>
-            </div>
-            <div className="admin-info-row">
-              <span className="admin-info-label">Role:</span>
-              <span className="admin-info-value">System Administrator</span>
-            </div>
-            <div className="admin-info-row">
-              <span className="admin-info-label">Faculty:</span>
-              <span className="admin-info-value">Faculty of Technology</span>
-            </div>
-          </div>
+      {currentSection === 'student_management' && (
+        <StudentManagement
+          batches={batches}
+          students={students}
+          onAddBatch={handleAddBatch}
+          onAddStudent={handleAddStudent}
+          onUpdateStudentStatus={handleUpdateStudentStatus}
+          isAddModalOpen={isAddStudentModalOpen}
+          setIsAddModalOpen={setIsAddStudentModalOpen}
+        />
+      )}
 
-          <p className="admin-note">
-            The full Administrator control dashboard is currently under development.
-          </p>
-        </div>
-      </main>
-    </div>
+      {currentSection === 'semester_registration' && (
+        <RegistrationManagement
+          registrations={registrations}
+          onApproveRegistration={handleApproveRegistration}
+          onRejectRegistration={(id) => {
+            setRegistrations((prev) =>
+              prev.map((r) => (r.id === id ? { ...r, status: 'Rejected' } : r))
+            );
+            showToast('Registration application marked as rejected.');
+          }}
+          onBatchApprove={handleBatchApprove}
+        />
+      )}
+
+      {currentSection === 'attendance_medicals' && (
+        <MedicalRequests
+          medicals={medicals}
+          onApproveMedical={handleApproveMedical}
+          onRejectMedical={handleRejectMedical}
+        />
+      )}
+
+      {currentSection === 'examinations' && (
+        <ExaminationManagement
+          examinations={examinations}
+          repeatCandidates={repeatCandidates}
+          onClearRepeatCandidate={handleClearRepeatCandidate}
+        />
+      )}
+
+      {currentSection === 'results_progress' && (
+        <ResultsManagement
+          students={students}
+          onPublishResults={handlePublishResults}
+        />
+      )}
+
+      {currentSection === 'welfare_scholarships' && (
+        <WelfareSocieties
+          students={students}
+          onEndorsePermit={(socName) => {
+            addAuditLog('Endorsed Society Permit', `Event Permit endorsed for ${socName}.`);
+          }}
+        />
+      )}
+
+      {currentSection === 'societies_clubs' && (
+        <WelfareSocieties
+          students={students}
+          onEndorsePermit={(socName) => {
+            addAuditLog('Endorsed Society Permit', `Event Permit endorsed for ${socName}.`);
+          }}
+        />
+      )}
+
+      {currentSection === 'announcements' && (
+        <AnnouncementsManagement
+          announcements={announcements}
+          onAddAnnouncement={handleAddAnnouncement}
+          onDeleteAnnouncement={handleDeleteAnnouncement}
+          onTogglePinAnnouncement={handleTogglePinAnnouncement}
+          isCreateModalOpen={isAnnouncementModalOpen}
+          setIsCreateModalOpen={setIsAnnouncementModalOpen}
+        />
+      )}
+
+      {currentSection === 'forms_guidance' && (
+        <FormsGuidanceManagement
+          facultyForms={facultyForms}
+          onAddForm={handleAddForm}
+        />
+      )}
+
+      {currentSection === 'penalties' && (
+        <PenaltiesManagement
+          penalties={penalties}
+          onClearPenalty={handleClearPenalty}
+          onAddPenalty={handleAddPenalty}
+        />
+      )}
+
+      {currentSection === 'users_roles' && (
+        <UserRoleManagement
+          users={users}
+          onAssignRole={handleAssignRole}
+          onAppointUser={handleAppointUser}
+          onToggleUserStatus={handleToggleUserStatus}
+        />
+      )}
+
+      {currentSection === 'settings' && (
+        <SettingsManagement
+          onSaveSettings={() => {
+            addAuditLog('Updated Settings', 'Faculty institutional timeline and cutoffs saved.');
+            showToast('System configuration settings saved.');
+          }}
+        />
+      )}
+    </DashboardTemplate>
   );
 }
