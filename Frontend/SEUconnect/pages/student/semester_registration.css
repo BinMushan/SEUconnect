@@ -1,0 +1,491 @@
+/* ==========================================================================
+   Semester Registration Styles (Exact Parity with Target Image)
+   ========================================================================== */
+
+.semester-reg-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 0 40px 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+  animation: fadeInReg 0.2s ease-in-out;
+}
+
+@keyframes fadeInReg {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Header */
+.semester-reg-container .page-header {
+  margin-bottom: 4px;
+}
+
+.semester-reg-container .page-header h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+  line-height: 1.25;
+}
+
+.semester-reg-container .page-header p {
+  color: #64748b;
+  font-size: 0.92rem;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Alert Notification Banner */
+.reg-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  animation: fadeInAlert 0.15s ease-out;
+}
+
+.reg-alert-success {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.reg-alert-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+/* 3-Column Summary Cards Grid */
+.semester-reg-container .grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Stat Card */
+.semester-reg-container .stat-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.semester-reg-container .stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+.semester-reg-container .stat-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-primary {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+
+.stat-icon-accent {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.stat-icon-success {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.semester-reg-container .stat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.semester-reg-container .stat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.semester-reg-container .stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  line-height: 1.35;
+  max-width: 195px;
+}
+
+.semester-reg-container .stat-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #475569;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.semester-reg-container .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.semester-reg-container .stat-subtext {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* Notice / Regulatory Window Card */
+.reg-notice-card {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.reg-notice-icon {
+  flex-shrink: 0;
+  color: #0284c7;
+  margin-top: 2px;
+}
+
+.reg-notice-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #0369a1;
+  margin-bottom: 2px;
+}
+
+.reg-notice-desc {
+  font-size: 0.82rem;
+  color: #0284c7;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Main Cards (seu-card) */
+.semester-reg-container .seu-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.semester-reg-container .seu-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.semester-reg-container .seu-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Table Responsive */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.seu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.seu-table th {
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.seu-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #edf2f7;
+  color: #0f172a;
+  font-size: 0.88rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.seu-table th:nth-child(2),
+.seu-table td:nth-child(2) {
+  white-space: normal;
+  min-width: 260px;
+}
+
+.seu-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.seu-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.course-code-cell {
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  width: 130px;
+}
+
+/* Badges */
+.semester-reg-container .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.semester-reg-container .badge-neutral {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.semester-reg-container .badge-success {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+/* Action Buttons */
+.semester-reg-container .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  outline: none;
+  white-space: nowrap;
+}
+
+.semester-reg-container .btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.semester-reg-container .btn-primary {
+  background-color: #0f2b54;
+  color: #ffffff;
+}
+
+.semester-reg-container .btn-primary:hover:not(:disabled) {
+  background-color: #163e75;
+}
+
+.semester-reg-container .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.semester-reg-container .btn-drop {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #dc2626;
+  border-radius: 6px;
+  padding: 5px 12px;
+}
+
+.semester-reg-container .btn-drop:hover:not(:disabled) {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+/* Empty State */
+.table-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+/* ==========================================================================
+   Dark Mode Support (Integrated with DashboardTemplate's .dark-mode class)
+   ========================================================================== */
+.dark-mode .semester-reg-container .page-header h1 {
+  color: #f8fafc;
+}
+
+.dark-mode .semester-reg-container .page-header p {
+  color: #94a3b8;
+}
+
+.dark-mode .semester-reg-container .stat-card {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .semester-reg-container .stat-value {
+  color: #f8fafc;
+}
+
+.dark-mode .semester-reg-container .stat-subtext,
+.dark-mode .semester-reg-container .stat-label {
+  color: #94a3b8;
+}
+
+.dark-mode .semester-reg-container .stat-badge {
+  background-color: #1e293b;
+  color: #cbd5e1;
+}
+
+.dark-mode .reg-notice-card {
+  background-color: #0c2d48;
+  border-color: #0369a1;
+}
+
+.dark-mode .reg-notice-title {
+  color: #38bdf8;
+}
+
+.dark-mode .reg-notice-desc {
+  color: #7dd3fc;
+}
+
+.dark-mode .semester-reg-container .seu-card {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .semester-reg-container .seu-card-title {
+  color: #f8fafc;
+}
+
+.dark-mode .semester-reg-container .seu-card-header {
+  border-bottom-color: #1e293b;
+}
+
+.dark-mode .seu-table th {
+  background-color: #162234;
+  color: #94a3b8;
+  border-bottom-color: #1e293b;
+}
+
+.dark-mode .seu-table td {
+  border-bottom-color: #1e293b;
+  color: #f8fafc;
+}
+
+.dark-mode .seu-table tbody tr:hover {
+  background-color: #162234;
+}
+
+.dark-mode .course-code-cell {
+  color: #f8fafc;
+}
+
+.dark-mode .semester-reg-container .badge-neutral {
+  background-color: #1e293b;
+  color: #cbd5e1;
+}
+
+.dark-mode .semester-reg-container .btn-drop {
+  background-color: #111a28;
+  border-color: #334155;
+  color: #f87171;
+}
+
+.dark-mode .semester-reg-container .btn-drop:hover:not(:disabled) {
+  background-color: #450a0a;
+  border-color: #7f1d1d;
+}
+
+.dark-mode .semester-reg-container .btn-primary {
+  background-color: #2563eb;
+}
+
+.dark-mode .semester-reg-container .btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .semester-reg-container .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .semester-reg-container .stat-card {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 860px) {
+  .semester-reg-container .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
