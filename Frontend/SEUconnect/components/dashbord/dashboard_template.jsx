@@ -151,6 +151,12 @@ const DEFAULT_NAV_SECTIONS = [
         id: 'faculty_forms',
         label: 'Faculty Forms & Instructions',
         hasSubmenu: true,
+        subItems: [
+          { id: 'forms_all', label: 'All Forms & Circulars' },
+          { id: 'forms_exam', label: 'Examination Forms' },
+          { id: 'forms_medical', label: 'Medical & Attendance' },
+          { id: 'forms_piv', label: "People's Bank PIV Voucher" }
+        ],
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -207,6 +213,28 @@ export default function DashboardTemplate({
   const [currentActive, setCurrentActive] = useState(activeItem);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState({ faculty_forms: true });
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem('seu_sidebar_collapsed') === 'true';
+      } catch (_) {}
+    }
+    return false;
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('seu_sidebar_collapsed', String(next));
+        } catch (_) {}
+      }
+      return next;
+    });
+  };
 
   // Keep currentActive in sync with activeItem prop
   React.useEffect(() => {
@@ -233,17 +261,43 @@ export default function DashboardTemplate({
 
   const handleItemClick = (id) => {
     setCurrentActive(id);
+    setMobileNavOpen(false);
     if (typeof onNavigate === 'function') {
       onNavigate(id);
     }
   };
 
   return (
-    <div className={`seu-dash-layout ${className}`.trim()}>
+    <div className={`seu-dash-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${className}`.trim()}>
+      {/* Small Toggle on the Right Edge of the Left Sidebar */}
+      <button
+        type="button"
+        className={`seu-sidebar-edge-toggle ${isSidebarCollapsed ? 'collapsed' : ''}`}
+        onClick={toggleSidebarCollapse}
+        title={isSidebarCollapsed ? "Open sidebar" : "Minimize sidebar (Full screen)"}
+        aria-label="Toggle sidebar"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+          {isSidebarCollapsed ? (
+            <polyline points="9 18 15 12 9 6" />
+          ) : (
+            <polyline points="15 18 9 12 15 6" />
+          )}
+        </svg>
+      </button>
+      {/* Mobile Backdrop Overlay */}
+      {mobileNavOpen && (
+        <div
+          className="seu-sidebar-backdrop"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ====================================================================
           LEFT SIDEBAR (Dark Navy Portal Menu)
           ==================================================================== */}
-      <aside className="seu-dash-sidebar">
+      <aside className={`seu-dash-sidebar ${mobileNavOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         {/* Brand Header */}
         <div className="seu-sidebar-brand">
           <div className="seu-sidebar-logo-box">
@@ -253,6 +307,17 @@ export default function DashboardTemplate({
             <span className="seu-sidebar-brand-name">SEUConnect</span>
             <span className="seu-sidebar-brand-faculty">FACULTY OF TECHNOLOGY</span>
           </div>
+          <button
+            type="button"
+            className="seu-sidebar-mobile-close"
+            onClick={() => setMobileNavOpen(false)}
+            aria-label="Close menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
 
         {/* Scrollable Navigation Sections */}
@@ -261,26 +326,65 @@ export default function DashboardTemplate({
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
-                const isActive = currentActive === item.id;
+                const isSubmenuOpen = !!openSubmenus[item.id];
+                const isDirectActive = currentActive === item.id;
+                const isSubActive = item.subItems && item.subItems.some((s) => s.id === currentActive);
+                const isActive = isDirectActive || (!isSubmenuOpen && isSubActive);
+
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`seu-nav-item-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => handleItemClick(item.id)}
-                  >
-                    <div className="seu-nav-item-left">
-                      <span className="seu-nav-item-icon">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </div>
-                    {item.hasSubmenu && (
-                      <span className="seu-nav-chevron">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </span>
+                  <div key={item.id} className="seu-nav-item-container">
+                    <button
+                      type="button"
+                      className={`seu-nav-item-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        if (item.hasSubmenu) {
+                          setOpenSubmenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
+                          handleItemClick(item.subItems ? item.subItems[0].id : item.id);
+                        } else {
+                          handleItemClick(item.id);
+                        }
+                      }}
+                    >
+                      <div className="seu-nav-item-left">
+                        <span className="seu-nav-item-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </div>
+                      {item.hasSubmenu && (
+                        <span className="seu-nav-chevron">
+                          {isSubmenuOpen ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          )}
+                        </span>
+                      )}
+                    </button>
+
+                    {item.hasSubmenu && isSubmenuOpen && item.subItems && (
+                      <div className="seu-nav-submenu-list">
+                        {item.subItems.map((sub) => {
+                          const isThisSubActive = currentActive === sub.id;
+                          return (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              className={`seu-nav-subitem-btn ${isThisSubActive ? 'active' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleItemClick(sub.id);
+                              }}
+                            >
+                              {sub.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -327,6 +431,20 @@ export default function DashboardTemplate({
       <div className={`seu-dash-main ${isDarkMode ? 'dark-mode' : ''}`}>
         {/* 1. TOP NAVIGATION BAR */}
         <header className="seu-dash-topbar">
+          {/* Mobile Menu Hamburger Button */}
+          <button
+            type="button"
+            className="seu-mobile-menu-btn"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
           {/* Topbar Search positioned on the left */}
           <form
             className="seu-topbar-search-wrapper"
@@ -367,7 +485,7 @@ export default function DashboardTemplate({
             </button>
 
             {/* Notifications */}
-            <button type="button" className="seu-icon-action-btn" title="Notifications">
+            <button type="button" className="seu-icon-action-btn" title="Notifications" onClick={() => handleItemClick('notifications')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -423,7 +541,7 @@ export default function DashboardTemplate({
                         View GPA Report
                       </button>
 
-                      <button type="button" className="seu-btn-faculty-forms">
+                      <button type="button" className="seu-btn-faculty-forms" onClick={() => handleItemClick('forms_all')}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
