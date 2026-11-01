@@ -1,189 +1,6 @@
 import React, { useState } from 'react';
+import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
 import './dashboard_template.css';
-
-/**
- * Standard Navigation Sections matching the SEUConnect portal design
- */
-const DEFAULT_NAV_SECTIONS = [
-  {
-    title: 'MAIN',
-    items: [
-      {
-        id: 'dashboard',
-        label: 'Dashboard',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>
-        )
-      }
-    ]
-  },
-  {
-    title: 'ACADEMIC',
-    items: [
-      {
-        id: 'academic_profile',
-        label: 'Academic Profile',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        )
-      },
-      {
-        id: 'semester_registration',
-        label: 'Semester Registration',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        )
-      },
-      {
-        id: 'attendance',
-        label: 'Attendance',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-            <path d="m9 14 2 2 4-4" />
-          </svg>
-        )
-      },
-      {
-        id: 'medical_requests',
-        label: 'Medical Requests',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="12" y1="18" x2="12" y2="12" />
-            <line x1="9" y1="15" x2="15" y2="15" />
-          </svg>
-        )
-      },
-      {
-        id: 'examinations',
-        label: 'Examinations',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="6" />
-            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-          </svg>
-        )
-      },
-      {
-        id: 'results',
-        label: 'Results',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-        )
-      },
-      {
-        id: 'gpa_cgpa',
-        label: 'GPA / CGPA',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
-        )
-      },
-      {
-        id: 'academic_progress',
-        label: 'Academic Progress',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-            <polyline points="17 6 23 6 23 12" />
-          </svg>
-        )
-      }
-    ]
-  },
-  {
-    title: 'STUDENT SERVICES',
-    items: [
-      {
-        id: 'process_guidance',
-        label: 'Process Guidance',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-        )
-      },
-      {
-        id: 'welfare_scholarships',
-        label: 'Welfare & Scholarships',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
-        )
-      },
-      {
-        id: 'societies_clubs',
-        label: 'Societies & Clubs',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        )
-      },
-      {
-        id: 'faculty_forms',
-        label: 'Faculty Forms & Instructions',
-        hasSubmenu: true,
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-        )
-      },
-      {
-        id: 'notifications',
-        label: 'Notifications',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        )
-      },
-      {
-        id: 'penalties_disciplinary',
-        label: 'Penalties / Disciplinary',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2.5" />
-          </svg>
-        )
-      }
-    ]
-  }
-];
 
 export default function DashboardTemplate({
   user,
@@ -191,26 +8,30 @@ export default function DashboardTemplate({
   showHeroBanner,
   onNavigate,
   onLogout,
-  navSections = DEFAULT_NAV_SECTIONS,
+  navSections,
   actionButtons,
   heroActions,
   className = '',
   greetingText,
   metaItems,
-  facultyPillText = 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
+  facultyPillText,
   notificationCount = 3,
   searchPlaceholder = 'Search portal resources, subjects, or forms...',
   onSearch,
   onAiAssistantClick,
   children
 }) {
-  const [currentActive, setCurrentActive] = useState(activeItem);
+  const roleMeta = getRoleMetaData(user);
+  const effectiveNavSections = navSections || getNavSectionsForRole(user?.roleKey || user?.role);
+
+  const [internalActive, setInternalActive] = useState(activeItem);
+  const currentActive = activeItem !== undefined ? activeItem : internalActive;
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Keep currentActive in sync with activeItem prop
+  // Keep internalActive in sync with activeItem prop
   React.useEffect(() => {
-    setCurrentActive(activeItem);
+    setInternalActive(activeItem);
   }, [activeItem]);
 
   // Determine if hero banner should display (hidden on pages like academic_profile)
@@ -218,21 +39,18 @@ export default function DashboardTemplate({
     ? showHeroBanner
     : (currentActive === 'dashboard');
 
-  // Default values matching the screenshot exactly
-  const userName = user?.name || 'M.N.M. Afnan';
-  const userEmail = user?.email || '22ict085@seu.ac.lk';
-  const userRegNo = user?.regNo || '22ICT085';
-  const userProgramme = user?.programme || 'BICT';
-  const userSemester = user?.semester || 'Semester 05';
-  const userSpecialization = user?.specialization || 'Software Systems';
-  const userRole = user?.role || 'STUDENT';
-  const greeting = greetingText || `Good Morning, ${userName}`;
+  // Dynamic user details matching their role
+  const userName = user?.name || (user?.email ? user.email.split('@')[0] : 'User');
+  const userEmail = user?.email || 'user@seu.ac.lk';
+  const userRole = roleMeta?.rolePill || user?.role || 'STUDENT';
+  const greeting = greetingText || roleMeta?.greeting || `Good Morning, ${userName}`;
+  const effectiveFacultyPill = facultyPillText || roleMeta?.facultyPill || 'FACULTY OF TECHNOLOGY';
+  const effectiveMetaItems = (metaItems && metaItems.length > 0) ? metaItems : (roleMeta?.metaItems || []);
 
-  // Avatar initial: 'M.' as shown in screenshot
-  const userInitial = user?.avatarInitial || (userName ? userName.charAt(0).toUpperCase() + '.' : 'M.');
+  const userInitial = user?.avatarInitial || (userName ? userName.charAt(0).toUpperCase() + '.' : 'U.');
 
   const handleItemClick = (id) => {
-    setCurrentActive(id);
+    setInternalActive(id);
     if (typeof onNavigate === 'function') {
       onNavigate(id);
     }
@@ -241,7 +59,7 @@ export default function DashboardTemplate({
   return (
     <div className={`seu-dash-layout ${className}`.trim()}>
       {/* ====================================================================
-          LEFT SIDEBAR (Dark Navy Portal Menu)
+          LEFT SIDEBAR (Dark Navy Portal Menu - Changes by Role)
           ==================================================================== */}
       <aside className="seu-dash-sidebar">
         {/* Brand Header */}
@@ -255,9 +73,9 @@ export default function DashboardTemplate({
           </div>
         </div>
 
-        {/* Scrollable Navigation Sections */}
+        {/* Scrollable Navigation Sections - Dynamically tailored to user's role */}
         <nav className="seu-sidebar-nav-container">
-          {navSections.map((section) => (
+          {effectiveNavSections.map((section) => (
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
@@ -405,7 +223,7 @@ export default function DashboardTemplate({
           <section className="seu-dash-hero-banner">
             <div className="seu-hero-banner-top-row">
               <span className="seu-hero-institution-pill">
-                {facultyPillText}
+                {effectiveFacultyPill}
               </span>
 
               {/* Top Right Action Buttons */}
@@ -420,7 +238,7 @@ export default function DashboardTemplate({
                           <circle cx="12" cy="8" r="6" />
                           <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
                         </svg>
-                        View GPA Report
+                        {user?.role === 'student' ? 'View GPA Report' : 'Department Reports'}
                       </button>
 
                       <button type="button" className="seu-btn-faculty-forms">
@@ -430,7 +248,7 @@ export default function DashboardTemplate({
                           <line x1="16" y1="13" x2="8" y2="13" />
                           <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
-                        Faculty Forms
+                        {user?.role === 'student' ? 'Faculty Forms' : 'Faculty Regulations'}
                       </button>
                     </>
                   )}
@@ -441,26 +259,14 @@ export default function DashboardTemplate({
             {/* Main Greeting & Display Name */}
             <h1 className="seu-hero-greeting-title">{greeting}</h1>
 
-            {/* Meta Info Line */}
+            {/* Role-Specific Meta Info Line */}
             <div className="seu-hero-meta-row">
-              {metaItems && metaItems.length > 0 ? (
-                metaItems.map((meta, idx) => (
-                  <React.Fragment key={idx}>
-                    <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
-                    {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
-                  </React.Fragment>
-                ))
-              ) : (
-                <>
-                  <span>Reg No: <span className="seu-hero-meta-strong">{userRegNo}</span></span>
-                  <span className="seu-hero-meta-divider">•</span>
-                  <span>Programme: <span className="seu-hero-meta-strong">{userProgramme}</span></span>
-                  <span className="seu-hero-meta-divider">•</span>
-                  <span>Current: <span className="seu-hero-meta-strong">{userSemester}</span></span>
-                  <span className="seu-hero-meta-divider">•</span>
-                  <span>Specialization: <span className="seu-hero-meta-strong">{userSpecialization}</span></span>
-                </>
-              )}
+              {effectiveMetaItems.map((meta, idx) => (
+                <React.Fragment key={idx}>
+                  <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
+                  {idx < effectiveMetaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
+                </React.Fragment>
+              ))}
             </div>
 
             {/* Bottom Hero Actions (e.g. Mark Attendance, Upload CA Marks) */}
@@ -472,19 +278,9 @@ export default function DashboardTemplate({
           </section>
         )}
 
-        {/* 3. MAIN DASHBOARD BODY (Where team members inject their role content) */}
+        {/* 3. MAIN DASHBOARD BODY (Where role content is injected) */}
         <main className="seu-dash-body-content">
-          {children ? (
-            children
-          ) : (
-            <div className="seu-dash-placeholder-box">
-              <h3 className="seu-dash-placeholder-title">Welcome to SEUConnect Portal</h3>
-              <p className="seu-dash-placeholder-desc">
-                This reusable dashboard template shell is ready. Team members can import 
-                <code>DashboardTemplate</code> and render their specific role modules, metric widgets, and tables as children.
-              </p>
-            </div>
-          )}
+          {children}
         </main>
       </div>
     </div>
