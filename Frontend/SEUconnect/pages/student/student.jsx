@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import AcademicProfile from './academic_profile.jsx';
 import SemesterRegistration from './semester_registration.jsx';
 import Attendance from './attendance.jsx';
 import MedicalRequests from './medical_requests.jsx';
+import StudentExamination from './examination.jsx';
+import StudentResults from './results.jsx';
+import StudentGpaCgpa from './gpa_cgpa.jsx';
+import StudentAcademicProgress from './academic_progress.jsx';
+import StudentProcessGuidance from './process_guidance.jsx';
+import StudentWelfare from './welfare_scholarships.jsx';
+import StudentSocieties from './societies_clubs.jsx';
 import './student.css';
 
 export default function Student({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
-      const hash = window.location.hash.toLowerCase();
+      const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
+      if (hash.includes('welfare') || hash.includes('scholarship')) return 'welfare_scholarships';
+      if (hash.includes('societ') || hash.includes('club')) return 'societies_clubs';
+      if (hash.includes('process') || hash.includes('guidance')) return 'process_guidance';
+      if (hash.includes('examination')) return 'examinations';
+      if (hash.includes('result')) return 'results';
+      if (hash.includes('progress')) return 'academic_progress';
+      if (hash.includes('gpa') || hash.includes('cgpa')) return 'gpa_cgpa';
       if (hash.includes('medical')) return 'medical_requests';
       if (hash.includes('attendance')) return 'attendance';
       if (hash.includes('registration')) return 'semester_registration';
@@ -17,6 +31,39 @@ export default function Student({ user, onLogout }) {
     }
     return 'attendance';
   });
+
+  // Listen for hash changes to sync navigation
+  useEffect(() => {
+    const handleHashSync = () => {
+      const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
+      if (hash.includes('welfare') || hash.includes('scholarship')) {
+        setActiveTab('welfare_scholarships');
+      } else if (hash.includes('societ') || hash.includes('club')) {
+        setActiveTab('societies_clubs');
+      } else if (hash.includes('process') || hash.includes('guidance')) {
+        setActiveTab('process_guidance');
+      } else if (hash.includes('examination')) {
+        setActiveTab('examinations');
+      } else if (hash.includes('result')) {
+        setActiveTab('results');
+      } else if (hash.includes('progress')) {
+        setActiveTab('academic_progress');
+      } else if (hash.includes('gpa') || hash.includes('cgpa')) {
+        setActiveTab('gpa_cgpa');
+      } else if (hash.includes('medical')) {
+        setActiveTab('medical_requests');
+      } else if (hash.includes('attendance')) {
+        setActiveTab('attendance');
+      } else if (hash.includes('registration')) {
+        setActiveTab('semester_registration');
+      } else if (hash.includes('profile')) {
+        setActiveTab('academic_profile');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashSync);
+    return () => window.removeEventListener('hashchange', handleHashSync);
+  }, []);
   const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -53,6 +100,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Exam Registration',
+      actionId: 'examinations',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="8" r="6"/>
@@ -62,6 +110,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'View Results',
+      actionId: 'results',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="18" y1="20" x2="18" y2="10"/>
@@ -84,6 +133,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Calculate GPA Report',
+      actionId: 'gpa_cgpa',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
@@ -93,6 +143,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Degree Progress',
+      actionId: 'academic_progress',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="5" y1="12" x2="19" y2="12"/>
@@ -119,21 +170,24 @@ export default function Student({ user, onLogout }) {
       status: 'Open',
       statusType: 'open',
       title: 'Semester Subject Registration (Add/Drop)',
-      deadline: 'Deadline: 2026-10-15'
+      deadline: 'Deadline: 2026-10-15',
+      actionId: 'semester_registration'
     },
     {
       category: 'Examination',
       status: 'Upcoming',
       statusType: 'upcoming',
       title: 'ESA Examination Entry Submission',
-      deadline: 'Deadline: 2026-10-30'
+      deadline: 'Deadline: 2026-10-30',
+      actionId: 'examinations'
     },
     {
       category: 'Medical',
       status: 'Active',
       statusType: 'active',
       title: 'Medical Certificate Submission Deadline',
-      deadline: 'Deadline: Within 7 days of absence'
+      deadline: 'Deadline: Within 7 days of absence',
+      actionId: 'medical_requests'
     },
     {
       category: 'Welfare',
@@ -148,8 +202,19 @@ export default function Student({ user, onLogout }) {
     <DashboardTemplate
       user={studentUser || user}
       onLogout={onLogout}
-      activeItem={activeTab}
-      onNavigate={(id) => setActiveTab(id)}
+      activeItem={
+        activeTab === 'examination' ? 'examinations' :
+        activeTab === 'processes' ? 'process_guidance' :
+        activeTab === 'welfare' ? 'welfare_scholarships' :
+        activeTab === 'societies' ? 'societies_clubs' :
+        activeTab
+      }
+      onNavigate={(id) => {
+        setActiveTab(id);
+        if (typeof window !== 'undefined') {
+          window.location.hash = `#student/${id}`;
+        }
+      }}
     >
       {activeTab === 'academic_profile' ? (
         <AcademicProfile
@@ -162,10 +227,49 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'attendance' ? (
         <Attendance
-          onNavigateMedical={() => setActiveTab('medical_requests')}
+          onNavigateMedical={() => {
+            setActiveTab('medical_requests');
+            if (typeof window !== 'undefined') {
+              window.location.hash = '#student/medical_requests';
+            }
+          }}
         />
       ) : activeTab === 'medical_requests' ? (
         <MedicalRequests
+          user={studentUser || user}
+        />
+      ) : activeTab === 'examinations' || activeTab === 'examination' ? (
+        <StudentExamination
+          user={studentUser || user}
+        />
+      ) : activeTab === 'results' || activeTab === 'result' ? (
+        <StudentResults
+          user={studentUser || user}
+        />
+      ) : activeTab === 'gpa_cgpa' || activeTab === 'gpa' ? (
+        <StudentGpaCgpa
+          user={studentUser || user}
+        />
+      ) : activeTab === 'academic_progress' || activeTab === 'progress' ? (
+        <StudentAcademicProgress
+          user={studentUser || user}
+        />
+      ) : activeTab === 'process_guidance' || activeTab === 'processes' ? (
+        <StudentProcessGuidance
+          user={studentUser || user}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+        />
+      ) : activeTab === 'welfare_scholarships' || activeTab === 'welfare' ? (
+        <StudentWelfare
+          user={studentUser || user}
+        />
+      ) : activeTab === 'societies_clubs' || activeTab === 'societies' ? (
+        <StudentSocieties
           user={studentUser || user}
         />
       ) : (
@@ -285,7 +389,16 @@ export default function Student({ user, onLogout }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button type="button" className="std-find-process-btn">
+            <button
+              type="button"
+              className="std-find-process-btn"
+              onClick={() => {
+                setActiveTab('process_guidance');
+                if (typeof window !== 'undefined') {
+                  window.location.hash = '#student/process_guidance';
+                }
+              }}
+            >
               Find Process
             </button>
           </div>
@@ -297,7 +410,12 @@ export default function Student({ user, onLogout }) {
                 key={chip}
                 type="button"
                 className="std-suggested-chip"
-                onClick={() => setSearchQuery(chip)}
+                onClick={() => {
+                  setActiveTab('process_guidance');
+                  if (typeof window !== 'undefined') {
+                    window.location.hash = '#student/process_guidance';
+                  }
+                }}
               >
                 {chip}
               </button>
@@ -415,7 +533,18 @@ export default function Student({ user, onLogout }) {
                   </svg>
                   <span>{item.deadline}</span>
                 </div>
-                <button type="button" className="std-view-details-btn">
+                <button
+                  type="button"
+                  className="std-view-details-btn"
+                  onClick={() => {
+                    if (item.actionId) {
+                      setActiveTab(item.actionId);
+                      if (typeof window !== 'undefined') {
+                        window.location.hash = `#student/${item.actionId}`;
+                      }
+                    }
+                  }}
+                >
                   View Details
                 </button>
               </div>

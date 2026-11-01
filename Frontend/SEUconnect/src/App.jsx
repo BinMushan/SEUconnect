@@ -12,15 +12,15 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('login');
 
-  // Sync state with URL hash
+  // Sync state with URL hash or pathname
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (!hash) {
+      const cleanPath = (window.location.hash.replace('#', '') || window.location.pathname).replace(/^\//, '').toLowerCase();
+      if (!cleanPath) {
         setCurrentPage('login');
       } else {
         const matchedRole = ['student', 'lecturer', 'hod', 'dean', 'admin', 'superadmin', 'examination'].find(
-          (role) => hash === role || hash.startsWith(`${role}/`)
+          (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
         );
         if (matchedRole) {
           setCurrentPage(matchedRole);
@@ -29,9 +29,13 @@ function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
     handleHashChange();
 
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
   }, []);
 
   const handleLoginSuccess = (user) => {
