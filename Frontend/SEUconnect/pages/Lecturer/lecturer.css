@@ -1,139 +1,113 @@
-/* Lecturer Dashboard Placeholder Styles */
-.lecturer-dashboard-wrapper {
-  min-height: 100vh;
-  width: 100%;
-  background-color: #f8fafc;
-  color: #1e293b;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+/* Lecturer Portal Custom Styles */
+.lec-dashboard-container {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
 }
 
-.lecturer-navbar {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1rem 2rem;
+.lec-banner-card {
+  background: linear-gradient(135deg, #0f2b5c 0%, #1e3a8a 100%);
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+  color: #ffffff;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-bottom: 3px solid #f59e0b;
+  box-shadow: 0 4px 15px rgba(15, 43, 92, 0.15);
 }
 
-.lecturer-brand {
+.lec-banner-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.lec-banner-sub {
+  margin: 0.35rem 0 0;
+  color: #93c5fd;
+  font-size: 0.85rem;
+}
+
+.lec-queue-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.lec-queue-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
 }
 
-.lecturer-brand-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f2b5c;
-  margin: 0;
+.lec-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.lecturer-brand-sub {
-  font-size: 0.8rem;
+.lec-table th {
+  background: #f8fafc;
   color: #64748b;
-  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
 }
 
-.lecturer-logout-btn {
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+.lec-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
   font-size: 0.85rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.lec-table tr:hover td {
+  background: #f8fafc;
+}
+
+.lec-btn-recommend {
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
 }
 
-.lecturer-logout-btn:hover {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
+.lec-btn-recommend:hover {
+  background: #059669;
 }
 
-.lecturer-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.lecturer-welcome-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 3rem 2.5rem;
-  max-width: 600px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-}
-
-.lecturer-badge {
-  display: inline-block;
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1.25rem;
-}
-
-.lecturer-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 0.75rem 0;
-}
-
-.lecturer-subtitle {
-  font-size: 1rem;
-  color: #64748b;
-  margin: 0 0 2rem 0;
-  line-height: 1.5;
-}
-
-.lecturer-info-box {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1.25rem;
-  margin-bottom: 2rem;
-  text-align: left;
-}
-
-.lecturer-info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.35rem 0;
-  font-size: 0.9rem;
-}
-
-.lecturer-info-label {
-  color: #64748b;
-  font-weight: 500;
-}
-
-.lecturer-info-value {
-  color: #0f172a;
+.lec-btn-decline {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
 }
 
-.lecturer-note {
-  font-size: 0.85rem;
-  color: #94a3b8;
-  margin-bottom: 2rem;
+.lec-btn-decline:hover {
+  background: #dc2626;
 }
