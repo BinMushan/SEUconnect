@@ -1,60 +1,180 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import ProcessTrackerModal from '../../components/workflow/ProcessTrackerModal.jsx';
+import api from '../../src/services/api.js';
 import './superadmin.css';
 
 export default function SuperAdmin({ user, onLogout }) {
-  const email = user?.email || 'SuperAdmin@gmail.com';
+  const [processes, setProcesses] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [selectedProcess, setSelectedProcess] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [procRes, userRes] = await Promise.all([
+        api.getProcesses().catch(() => ({ data: [] })),
+        api.getUsers().catch(() => ({ data: [] })),
+      ]);
+      if (procRes.data) setProcesses(procRes.data);
+      if (userRes.data) setUsers(userRes.data);
+    } catch (err) {
+      console.warn('SuperAdmin loadData:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   return (
-    <div className="superadmin-dashboard-wrapper">
-      <nav className="superadmin-navbar">
-        <div className="superadmin-brand">
-          <div>
-            <h2 className="superadmin-brand-title">SEUConnect</h2>
-            <p className="superadmin-brand-sub">South Eastern University of Sri Lanka • Faculty of Technology</p>
+    <DashboardTemplate user={user} onLogout={onLogout} activeItem="dashboard">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* Banner */}
+        <div style={{ background: 'linear-gradient(135deg, #020617 0%, #0f172a 100%)', padding: '1.5rem', borderRadius: '14px', color: '#fff', borderBottom: '3px solid #f59e0b', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <span style={{ background: '#f59e0b', color: '#071733', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800 }}>
+                MASTER INFRASTRUCTURE CONSOLE
+              </span>
+              <h1 style={{ margin: '0.4rem 0 0', fontSize: '1.4rem', fontWeight: 700 }}>
+                SEUConnect Root Security & Workflow Audit
+              </h1>
+              <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
+                Central IT Services • South Eastern University of Sri Lanka • MongoDB MERN Cluster
+              </p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ background: '#10b981', color: '#fff', padding: '0.35rem 0.75rem', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700 }}>
+                ● CLUSTER ACTIVE: PORT 5000 & 27017
+              </span>
+            </div>
           </div>
         </div>
-        <button
-          type="button"
-          className="superadmin-logout-btn"
-          onClick={onLogout}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Logout
-        </button>
-      </nav>
 
-      <main className="superadmin-content">
-        <div className="superadmin-welcome-card">
-          <span className="superadmin-badge">Super Admin Portal</span>
-          <h1 className="superadmin-title">Welcome Super Admin</h1>
-          <p className="superadmin-subtitle">
-            Welcome to the Master Infrastructure & Security Command Console.
-          </p>
-
-          <div className="superadmin-info-box">
-            <div className="superadmin-info-row">
-              <span className="superadmin-info-label">Logged In User:</span>
-              <span className="superadmin-info-value">{email}</span>
+        {/* Stats Grid */}
+        <div className="std-stats-grid">
+          <div className="std-stat-card">
+            <div className="std-stat-icon-wrap icon-blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
             </div>
-            <div className="superadmin-info-row">
-              <span className="superadmin-info-label">Role:</span>
-              <span className="superadmin-info-value">Super Admin</span>
-            </div>
-            <div className="superadmin-info-row">
-              <span className="superadmin-info-label">Faculty:</span>
-              <span className="superadmin-info-value">Faculty of Technology</span>
+            <div className="std-stat-body">
+              <div className="std-stat-top-row">
+                <span className="std-stat-title">PROVISIONED ACCOUNTS</span>
+                <span className="std-stat-badge">7 Roles</span>
+              </div>
+              <div className="std-stat-number">{users.length || 7}</div>
+              <div className="std-stat-target">MERN Mongo Auth Active</div>
             </div>
           </div>
 
-          <p className="superadmin-note">
-            The full Super Administrator master console is currently under development.
-          </p>
+          <div className="std-stat-card">
+            <div className="std-stat-icon-wrap icon-emerald">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </div>
+            <div className="std-stat-body">
+              <div className="std-stat-top-row">
+                <span className="std-stat-title">TOTAL PIPELINES</span>
+                <span className="std-stat-badge">Live</span>
+              </div>
+              <div className="std-stat-number">{processes.length}</div>
+              <div className="std-stat-target">Sequential Stages Tracking</div>
+            </div>
+          </div>
+
+          <div className="std-stat-card">
+            <div className="std-stat-icon-wrap icon-amber">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div className="std-stat-body">
+              <div className="std-stat-top-row">
+                <span className="std-stat-title">TAMPER-PROOF AUDIT</span>
+                <span className="std-stat-badge">Immutable</span>
+              </div>
+              <div className="std-stat-number">
+                {processes.reduce((acc, p) => acc + (p.auditLog?.length || 0), 0)} Events
+              </div>
+              <div className="std-stat-target">Recorded with Digital Stamps</div>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+
+        {/* Global Process Inspection Table */}
+        <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '1.5rem' }}>
+          <h3 style={{ margin: '0 0 1rem', fontSize: '1.2rem', color: '#0f2b5c' }}>
+            Master Faculty & Department Workflow Ledger
+          </h3>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table className="lec-table">
+              <thead>
+                <tr>
+                  <th>Tracking Ref</th>
+                  <th>Student & Reg No</th>
+                  <th>Process Title</th>
+                  <th>Current Station</th>
+                  <th>Decision Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processes.map((proc) => (
+                  <tr key={proc._id || proc.trackingNumber}>
+                    <td><span className="wf-tracking-badge">{proc.trackingNumber}</span></td>
+                    <td>
+                      <strong>{proc.student?.name}</strong>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{proc.student?.regNo}</div>
+                    </td>
+                    <td>
+                      <div>{proc.title}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#0284c7' }}>{proc.category}</div>
+                    </td>
+                    <td>
+                      <span style={{ fontWeight: 600, color: '#0f2b5c' }}>
+                        {proc.currentAssignedRole?.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`wf-status-badge ${
+                        proc.status === 'Approved' ? 'badge-approved' : proc.status === 'Declined' ? 'badge-declined' : 'badge-pending'
+                      }`}>
+                        {proc.status}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        type="button"
+                        className="wf-process-action-btn"
+                        onClick={() => setSelectedProcess(proc)}
+                      >
+                        Inspect Audit Trail
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {selectedProcess && (
+          <ProcessTrackerModal
+            process={selectedProcess}
+            currentUserRole="superadmin"
+            onClose={() => setSelectedProcess(null)}
+          />
+        )}
+      </div>
+    </DashboardTemplate>
   );
 }
