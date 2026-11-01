@@ -188,10 +188,13 @@ const DEFAULT_NAV_SECTIONS = [
 export default function DashboardTemplate({
   user,
   activeItem = 'dashboard',
+  showHeroBanner,
   onNavigate,
   onLogout,
   navSections = DEFAULT_NAV_SECTIONS,
   actionButtons,
+  heroActions,
+  className = '',
   greetingText,
   metaItems,
   facultyPillText = 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
@@ -204,6 +207,16 @@ export default function DashboardTemplate({
   const [currentActive, setCurrentActive] = useState(activeItem);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Keep currentActive in sync with activeItem prop
+  React.useEffect(() => {
+    setCurrentActive(activeItem);
+  }, [activeItem]);
+
+  // Determine if hero banner should display (hidden on pages like academic_profile)
+  const shouldShowHero = showHeroBanner !== undefined
+    ? showHeroBanner
+    : (currentActive === 'dashboard');
 
   // Default values matching the screenshot exactly
   const userName = user?.name || 'M.N.M. Afnan';
@@ -226,7 +239,7 @@ export default function DashboardTemplate({
   };
 
   return (
-    <div className="seu-dash-layout">
+    <div className={`seu-dash-layout ${className}`.trim()}>
       {/* ====================================================================
           LEFT SIDEBAR (Dark Navy Portal Menu)
           ==================================================================== */}
@@ -365,7 +378,12 @@ export default function DashboardTemplate({
             </button>
 
             {/* User Profile */}
-            <div className="seu-topbar-user-profile" title={`Signed in as ${userName}`}>
+            <div
+              className="seu-topbar-user-profile"
+              title={`Signed in as ${userName}`}
+              onClick={() => handleItemClick('academic_profile')}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="seu-user-avatar-circle">
                 {userInitial}
               </div>
@@ -383,65 +401,76 @@ export default function DashboardTemplate({
         </header>
 
         {/* 2. DISPLAY NAME SECTION / HERO BANNER */}
-        <section className="seu-dash-hero-banner">
-          <div className="seu-hero-banner-top-row">
-            <span className="seu-hero-institution-pill">
-              {facultyPillText}
-            </span>
+        {shouldShowHero && (
+          <section className="seu-dash-hero-banner">
+            <div className="seu-hero-banner-top-row">
+              <span className="seu-hero-institution-pill">
+                {facultyPillText}
+              </span>
 
-            {/* Top Right Action Buttons */}
-            <div className="seu-hero-banner-actions">
-              {actionButtons ? (
-                actionButtons
+              {/* Top Right Action Buttons */}
+              {actionButtons !== null && (
+                <div className="seu-hero-banner-actions">
+                  {actionButtons ? (
+                    actionButtons
+                  ) : (
+                    <>
+                      <button type="button" className="seu-btn-gpa-report">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="8" r="6" />
+                          <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                        </svg>
+                        View GPA Report
+                      </button>
+
+                      <button type="button" className="seu-btn-faculty-forms">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        Faculty Forms
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Main Greeting & Display Name */}
+            <h1 className="seu-hero-greeting-title">{greeting}</h1>
+
+            {/* Meta Info Line */}
+            <div className="seu-hero-meta-row">
+              {metaItems && metaItems.length > 0 ? (
+                metaItems.map((meta, idx) => (
+                  <React.Fragment key={idx}>
+                    <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
+                    {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
+                  </React.Fragment>
+                ))
               ) : (
                 <>
-                  <button type="button" className="seu-btn-gpa-report">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="8" r="6" />
-                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-                    </svg>
-                    View GPA Report
-                  </button>
-
-                  <button type="button" className="seu-btn-faculty-forms">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                    Faculty Forms
-                  </button>
+                  <span>Reg No: <span className="seu-hero-meta-strong">{userRegNo}</span></span>
+                  <span className="seu-hero-meta-divider">•</span>
+                  <span>Programme: <span className="seu-hero-meta-strong">{userProgramme}</span></span>
+                  <span className="seu-hero-meta-divider">•</span>
+                  <span>Current: <span className="seu-hero-meta-strong">{userSemester}</span></span>
+                  <span className="seu-hero-meta-divider">•</span>
+                  <span>Specialization: <span className="seu-hero-meta-strong">{userSpecialization}</span></span>
                 </>
               )}
             </div>
-          </div>
 
-          {/* Main Greeting & Display Name */}
-          <h1 className="seu-hero-greeting-title">{greeting}</h1>
-
-          {/* Meta Info Line */}
-          <div className="seu-hero-meta-row">
-            {metaItems && metaItems.length > 0 ? (
-              metaItems.map((meta, idx) => (
-                <React.Fragment key={idx}>
-                  <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
-                  {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
-                </React.Fragment>
-              ))
-            ) : (
-              <>
-                <span>Reg No: <span className="seu-hero-meta-strong">{userRegNo}</span></span>
-                <span className="seu-hero-meta-divider">•</span>
-                <span>Programme: <span className="seu-hero-meta-strong">{userProgramme}</span></span>
-                <span className="seu-hero-meta-divider">•</span>
-                <span>Current: <span className="seu-hero-meta-strong">{userSemester}</span></span>
-                <span className="seu-hero-meta-divider">•</span>
-                <span>Specialization: <span className="seu-hero-meta-strong">{userSpecialization}</span></span>
-              </>
+            {/* Bottom Hero Actions (e.g. Mark Attendance, Upload CA Marks) */}
+            {heroActions && (
+              <div className="seu-hero-bottom-actions">
+                {heroActions}
+              </div>
             )}
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* 3. MAIN DASHBOARD BODY (Where team members inject their role content) */}
         <main className="seu-dash-body-content">
