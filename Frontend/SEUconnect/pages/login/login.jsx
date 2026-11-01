@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import api from '../../src/services/api.js';
 import './login.css';
 
 /**
@@ -125,14 +126,35 @@ export default function Login({ onLoginSuccess }) {
     // 2. Loading state
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Find matching hardcoded account (Case-insensitive email, case-sensitive password)
-      const matchedAccount = DEMO_ACCOUNTS.find(
-        (acc) => acc.email.toLowerCase() === trimmedEmail.toLowerCase()
-      );
+    (async () => {
+      let loggedUser = null;
+      try {
+        // Try real MERN backend
+        const res = await api.login(trimmedEmail, password);
+        if (res && res.success && res.user) {
+          loggedUser = res.user;
+        }
+      } catch (err) {
+        console.warn('Backend login attempt:', err.message);
+      }
 
-      // Verify credentials
-      if (!matchedAccount || matchedAccount.password !== password) {
+      // If backend was not reached or returned fallback, verify with DEMO_ACCOUNTS
+      if (!loggedUser) {
+        const matchedAccount = DEMO_ACCOUNTS.find(
+          (acc) => acc.email.toLowerCase() === trimmedEmail.toLowerCase()
+        );
+        if (matchedAccount && matchedAccount.password === password) {
+          loggedUser = {
+            ...matchedAccount,
+            name: matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role,
+            regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
+            department: 'Department of Information and Communication Technology',
+            faculty: 'Faculty of Technology',
+          };
+        }
+      }
+
+      if (!loggedUser) {
         setIsLoading(false);
         setAuthError('Invalid email or password.');
         triggerShake();
@@ -143,19 +165,19 @@ export default function Login({ onLoginSuccess }) {
       }
 
       // 3. Credentials are valid: show success toast
-      const successMessage = `Login successful — Welcome, ${matchedAccount.role}`;
+      const successMessage = `Login successful — Welcome, ${loggedUser.name || loggedUser.role}`;
       setSuccessToast(successMessage);
       setIsLoading(false);
 
       // 4. Smooth transition to destination role page
       setTimeout(() => {
         if (typeof onLoginSuccess === 'function') {
-          onLoginSuccess(matchedAccount);
+          onLoginSuccess(loggedUser);
         } else if (typeof window !== 'undefined' && window.location) {
-          window.location.hash = `#${matchedAccount.roleKey}`;
+          window.location.hash = `#${loggedUser.roleKey || loggedUser.role?.toLowerCase()}`;
         }
-      }, 950);
-    }, 600);
+      }, 700);
+    })();
   };
 
   return (
