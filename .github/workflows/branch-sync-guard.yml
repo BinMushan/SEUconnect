@@ -1,0 +1,272 @@
+name: Branch sync guard
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - development
+      - Development
+      - Development
+  pull_request:
+    branches:
+      - main
+      - development
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  development_sync_status:
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'Development'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Compare Development and main
+        id: compare
+        run: node .github/scripts/branch-sync-check.mjs --main main --development Development
+
+      - name: Upsert maintainer notification issue
+        if: steps.compare.outputs.development_unique != '0'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = '<!-- branch-sync-notice:main-development -->';
+            const title = 'Branch sync required: merge Development into main';
+            const body = [
+              marker,
+              '## Development contains changes not present on main',
+              '',
+              'The branch synchronization check detected that `Development` has commits that are not on `main`.',
+              '',
+              `- Current state: \`${process.env.STATE}\``,
+              `- Development-only commits: ${process.env.DEVELOPMENT_UNIQUE}`,
+              `- main-only commits: ${process.env.MAIN_UNIQUE}`,
+              `- Clean merge Development → main: ${process.env.CAN_MERGE}`,
+              '',
+              '### Maintainer action',
+              '1. Open a PR from `Development` to `main` (or update the existing PR).',
+              '2. Resolve any merge conflicts shown by CI.',
+              '3. Merge into `main` once checks pass.',
+              '',
+              '_This issue is updated by automation to avoid duplicates._'
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            const existing = issues.find(issue =>
+              issue.user?.login === 'github-actions[bot]' &&
+              issue.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                title,
+                body,
+              });
+              core.info(`Updated existing notification issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+              });
+              core.info(`Created notification issue #${created.data.number}`);
+            }
+        env:
+          STATE: ${{ steps.compare.outputs.state }}
+          DEVELOPMENT_UNIQUE: ${{ steps.compare.outputs.development_unique }}
+          MAIN_UNIQUE: ${{ steps.compare.outputs.main_unique }}
+          CAN_MERGE: ${{ steps.compare.outputs.can_merge_cleanly }}
+
+      - name: Resolve previous notification issue when sync is complete
+        if: steps.compare.outputs.development_unique == '0'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = '<!-- branch-sync-notice:main-development -->';
+            const { owner, repo } = context.repo;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            const existing = issues.find(issue =>
+              issue.user?.login === 'github-actions[bot]' &&
+              issue.body?.includes(marker)
+            );
+
+            if (!existing) {
+              core.info('No open automation issue found.');
+              return;
+            }
+
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: existing.number,
+              state: 'closed',
+            });
+            core.info(`Closed notification issue #${existing.number}`);
+
+  pr_conflict_guard:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'Development'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Compare Development and main
+        id: compare
+        run: node .github/scripts/branch-sync-check.mjs --main main --development Development
+
+      - name: Fail when Development cannot merge cleanly into main
+        if: steps.compare.outputs.has_conflicts == 'true'
+        run: |
+          echo "::error title=Merge conflicts detected::Development cannot be merged cleanly into main. Resolve conflicts locally and push updates to Development."
+          echo "Conflict resolution steps:"
+          echo "1) git checkout Development"
+          echo "2) git fetch origin main Development"
+          echo "3) git merge origin/main"
+          echo "4) Resolve conflicts, commit, and push Development"
+          echo "5) Re-run/open the PR from Development to main"
+          exit 1
+
+  development_pr_sync_guard:
+    if: |
+      github.event_name == 'pull_request' && (github.base_ref == 'development' || github.base_ref == 'Development')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch development and source refs
+        id: refs
+        run: |
+          set -euo pipefail
+
+          DEV_REF='refs/remotes/origin/Development'
+          git fetch --no-tags --prune origin +refs/heads/Development:${DEV_REF}
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            SOURCE_REF='refs/remotes/origin/pr-head'
+            git fetch --no-tags --prune origin +refs/pull/${{ github.event.pull_request.number }}/head:${SOURCE_REF}
+            echo "source_label=PR #${{ github.event.pull_request.number }} (${{ github.event.pull_request.head.ref }})" >> "${GITHUB_OUTPUT}"
+          else
+            SOURCE_REF='refs/remotes/origin/push-head'
+            git fetch --no-tags --prune origin +${GITHUB_SHA}:${SOURCE_REF}
+            echo "source_label=branch ${{ github.ref_name }}" >> "${GITHUB_OUTPUT}"
+          fi
+
+          echo "development_ref=${DEV_REF}" >> "${GITHUB_OUTPUT}"
+          echo "source_ref=${SOURCE_REF}" >> "${GITHUB_OUTPUT}"
+
+      - name: Detect branch mismatch against development
+        id: mismatch
+        run: |
+          set -euo pipefail
+
+          DEV_REF='${{ steps.refs.outputs.development_ref }}'
+          SOURCE_REF='${{ steps.refs.outputs.source_ref }}'
+
+          COUNTS=$(git rev-list --left-right --count "${DEV_REF}...${SOURCE_REF}")
+          read -r DEVELOPMENT_UNIQUE SOURCE_UNIQUE <<< "${COUNTS}"
+
+          echo "development_unique=${DEVELOPMENT_UNIQUE}" >> "${GITHUB_OUTPUT}"
+          echo "source_unique=${SOURCE_UNIQUE}" >> "${GITHUB_OUTPUT}"
+
+          echo "Sync status for ${{ steps.refs.outputs.source_label }}:"
+          echo "- Commits only on development: ${DEVELOPMENT_UNIQUE}"
+          echo "- Commits only on source: ${SOURCE_UNIQUE}"
+
+          if [ "${DEVELOPMENT_UNIQUE}" -gt 0 ]; then
+            echo "has_mismatch=true" >> "${GITHUB_OUTPUT}"
+            if [ "${SOURCE_UNIQUE}" -eq 0 ]; then
+              echo "mismatch_kind=behind" >> "${GITHUB_OUTPUT}"
+              echo "::warning title=Source branch behind development::${{ steps.refs.outputs.source_label }} does not include the latest commits from development."
+            else
+              echo "mismatch_kind=diverged" >> "${GITHUB_OUTPUT}"
+              echo "::warning title=Source branch diverged from development::${{ steps.refs.outputs.source_label }} and development both have unique commits."
+            fi
+            echo "To synchronize locally:"
+            echo "1) git fetch origin development"
+            echo "2) git checkout <source-branch>"
+            echo "3) git merge origin/development  # or git rebase origin/development"
+            echo "4) Resolve conflicts if prompted, then push the updated branch"
+          else
+            echo "has_mismatch=false" >> "${GITHUB_OUTPUT}"
+            echo "mismatch_kind=none" >> "${GITHUB_OUTPUT}"
+            echo "Source already includes the latest development history."
+          fi
+
+      - name: Validate clean merge into development
+        id: conflict_check
+        run: |
+          set -euo pipefail
+
+          DEV_REF='${{ steps.refs.outputs.development_ref }}'
+          SOURCE_REF='${{ steps.refs.outputs.source_ref }}'
+
+          git checkout --detach "${DEV_REF}"
+          if ! git merge --no-commit --no-ff "${SOURCE_REF}"; then
+            git merge --abort || true
+            echo "can_merge_cleanly=false" >> "${GITHUB_OUTPUT}"
+            echo "::error title=Merge conflicts detected::${{ steps.refs.outputs.source_label }} cannot be merged cleanly into development."
+            echo "Resolve conflicts locally:"
+            echo "1) git fetch origin development"
+            echo "2) git checkout <source-branch>"
+            echo "3) git merge origin/development  # or git rebase origin/development"
+            echo "4) Resolve conflicts, commit, and push"
+            exit 1
+          fi
+
+          git merge --abort || true
+          echo "can_merge_cleanly=true" >> "${GITHUB_OUTPUT}"
+          echo "No merge conflicts detected for ${{ steps.refs.outputs.source_label }} into development."
+
+      - name: Fail PRs that are not synchronized with development
+        if: github.event_name == 'pull_request' && steps.mismatch.outputs.has_mismatch == 'true'
+        run: |
+          echo "::error title=Source branch is not synchronized with development::Please sync '${{ github.event.pull_request.head.ref }}' with development before merging."
+          echo "Detected mismatch: ${{ steps.mismatch.outputs.mismatch_kind }}"
+          echo "Recommended commands:"
+          echo "1) git fetch origin development"
+          echo "2) git checkout ${{ github.event.pull_request.head.ref }}"
+          echo "3) git merge origin/development  # or git rebase origin/development"
+          echo "4) Resolve conflicts, then push"
+          exit 1

@@ -1,60 +1,169 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import ProcessTrackerModal from '../../components/workflow/ProcessTrackerModal.jsx';
+import ApproveModal from '../../components/workflow/ApproveModal.jsx';
+import DeclineReasonModal from '../../components/workflow/DeclineReasonModal.jsx';
+import api from '../../src/services/api.js';
 import './hod.css';
 
+// HOD Subcomponents
+import HODDashboardOverview from './components/HODDashboardOverview.jsx';
+import DepartmentOverview from './components/DepartmentOverview.jsx';
+import AcademicStaffManagement from './components/AcademicStaffManagement.jsx';
+import DepartmentStudents from './components/DepartmentStudents.jsx';
+import CourseAllocations from './components/CourseAllocations.jsx';
+import DepartmentApprovalsDesk from './components/DepartmentApprovalsDesk.jsx';
+import CAMarksModeration from './components/CAMarksModeration.jsx';
+import RepeatExamEndorsements from './components/RepeatExamEndorsements.jsx';
+import FacultyDeanEscalations from './components/FacultyDeanEscalations.jsx';
+import AttendanceAudit from './components/AttendanceAudit.jsx';
+import DepartmentBoardMinutes from './components/DepartmentBoardMinutes.jsx';
+import HODProfile from './components/HODProfile.jsx';
+
 export default function HOD({ user, onLogout }) {
-  const email = user?.email || 'HOD@gmail.com';
+  const [processes, setProcesses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedProcess, setSelectedProcess] = useState(null);
+  const [actionProcess, setActionProcess] = useState(null);
+  const [declineProcess, setDeclineProcess] = useState(null);
+  const [activeNav, setActiveNav] = useState('dashboard');
+
+  const hodName = user?.name || 'Dr. M.A. Rifky';
+  const hodDesignation = user?.designation || 'Head of the Department (ICT)';
+
+  const loadProcesses = async () => {
+    try {
+      setIsLoading(true);
+      const res = await api.getProcesses();
+      if (res.data) {
+        setProcesses(res.data);
+      }
+    } catch (err) {
+      console.warn('Failed to load processes in HOD:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProcesses();
+  }, []);
+
+  const handleApprove = async (payload) => {
+    if (!actionProcess) return;
+    try {
+      await api.approveStage(actionProcess.trackingNumber || actionProcess._id, payload);
+    } catch (err) {
+      console.warn('Failed to approve stage:', err);
+    }
+    setActionProcess(null);
+    await loadProcesses();
+  };
+
+  const handleDecline = async (payload) => {
+    if (!declineProcess) return;
+    try {
+      await api.declineProcess(declineProcess.trackingNumber || declineProcess._id, payload);
+    } catch (err) {
+      console.warn('Failed to decline process:', err);
+    }
+    setDeclineProcess(null);
+    await loadProcesses();
+  };
+
+  const pendingHOD = processes.filter(
+    (p) =>
+      (p.currentAssignedRole === 'hod' || p.status === 'Pending HOD') &&
+      p.status !== 'Approved' &&
+      p.status !== 'Declined'
+  );
+
+  const renderActiveView = () => {
+    switch (activeNav) {
+      case 'department_overview':
+        return <DepartmentOverview onNavigate={setActiveNav} />;
+      case 'academic_staff':
+        return <AcademicStaffManagement onNavigate={setActiveNav} />;
+      case 'student_roster':
+        return <DepartmentStudents onNavigate={setActiveNav} />;
+      case 'course_coordination':
+        return <CourseAllocations onNavigate={setActiveNav} />;
+      case 'pending_hod_approvals':
+        return (
+          <DepartmentApprovalsDesk
+            processes={processes}
+            pendingHOD={pendingHOD}
+            isLoading={isLoading}
+            onOpenAudit={(p) => setSelectedProcess(p)}
+            onOpenEndorse={(p) => setActionProcess(p)}
+            onOpenDecline={(p) => setDeclineProcess(p)}
+          />
+        );
+      case 'ca_moderation':
+        return <CAMarksModeration onNavigate={setActiveNav} />;
+      case 'repeat_sanctions':
+        return <RepeatExamEndorsements onNavigate={setActiveNav} />;
+      case 'faculty_escalations':
+        return <FacultyDeanEscalations onNavigate={setActiveNav} />;
+      case 'attendance_audit':
+        return <AttendanceAudit onNavigate={setActiveNav} />;
+      case 'department_reports':
+        return <DepartmentBoardMinutes onNavigate={setActiveNav} />;
+      case 'academic_profile':
+        return <HODProfile user={user} onNavigate={setActiveNav} />;
+      case 'dashboard':
+      default:
+        return (
+          <HODDashboardOverview
+            processes={processes}
+            pendingHOD={pendingHOD}
+            isLoading={isLoading}
+            onNavigate={setActiveNav}
+            onOpenAudit={(p) => setSelectedProcess(p)}
+            onOpenEndorse={(p) => setActionProcess(p)}
+            onOpenDecline={(p) => setDeclineProcess(p)}
+          />
+        );
+    }
+  };
 
   return (
-    <div className="hod-dashboard-wrapper">
-      <nav className="hod-navbar">
-        <div className="hod-brand">
-          <div>
-            <h2 className="hod-brand-title">SEUConnect</h2>
-            <p className="hod-brand-sub">South Eastern University of Sri Lanka • Faculty of Technology</p>
-          </div>
-        </div>
-        <button
-          type="button"
-          className="hod-logout-btn"
-          onClick={onLogout}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Logout
-        </button>
-      </nav>
+    <DashboardTemplate
+      user={user}
+      onLogout={onLogout}
+      activeItem={activeNav}
+      onNavigate={(id) => setActiveNav(id)}
+    >
+      <div className="hod-portal-container">
+        {renderActiveView()}
 
-      <main className="hod-content">
-        <div className="hod-welcome-card">
-          <span className="hod-badge">HOD Portal</span>
-          <h1 className="hod-title">Welcome HOD</h1>
-          <p className="hod-subtitle">
-            Welcome to the Head of Department Administrative Desk of Faculty of Technology.
-          </p>
+        {/* Global Lifecycle Workflow Modals */}
+        {selectedProcess && (
+          <ProcessTrackerModal
+            process={selectedProcess}
+            currentUserRole="hod"
+            onClose={() => setSelectedProcess(null)}
+          />
+        )}
 
-          <div className="hod-info-box">
-            <div className="hod-info-row">
-              <span className="hod-info-label">Logged In User:</span>
-              <span className="hod-info-value">{email}</span>
-            </div>
-            <div className="hod-info-row">
-              <span className="hod-info-label">Role:</span>
-              <span className="hod-info-value">Head of Department (HOD)</span>
-            </div>
-            <div className="hod-info-row">
-              <span className="hod-info-label">Faculty:</span>
-              <span className="student-info-value">Faculty of Technology</span>
-            </div>
-          </div>
+        {actionProcess && (
+          <ApproveModal
+            process={actionProcess}
+            user={{ ...user, name: hodName, designation: hodDesignation, role: 'hod' }}
+            onClose={() => setActionProcess(null)}
+            onConfirm={handleApprove}
+          />
+        )}
 
-          <p className="hod-note">
-            The full HOD administrative dashboard is currently under development.
-          </p>
-        </div>
-      </main>
-    </div>
+        {declineProcess && (
+          <DeclineReasonModal
+            process={declineProcess}
+            user={{ ...user, name: hodName, designation: hodDesignation, role: 'hod' }}
+            onClose={() => setDeclineProcess(null)}
+            onConfirm={handleDecline}
+          />
+        )}
+      </div>
+    </DashboardTemplate>
   );
 }

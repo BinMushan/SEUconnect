@@ -5,11 +5,18 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "start:student": "node app.js",
+    "seed": "node seed_students.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.2.1",
+    "mongoose": "^9.11.4"
   }
 }
