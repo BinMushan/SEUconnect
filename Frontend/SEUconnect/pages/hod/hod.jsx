@@ -6,6 +6,20 @@ import DeclineReasonModal from '../../components/workflow/DeclineReasonModal.jsx
 import api from '../../src/services/api.js';
 import './hod.css';
 
+// HOD Subcomponents
+import HODDashboardOverview from './components/HODDashboardOverview.jsx';
+import DepartmentOverview from './components/DepartmentOverview.jsx';
+import AcademicStaffManagement from './components/AcademicStaffManagement.jsx';
+import DepartmentStudents from './components/DepartmentStudents.jsx';
+import CourseAllocations from './components/CourseAllocations.jsx';
+import DepartmentApprovalsDesk from './components/DepartmentApprovalsDesk.jsx';
+import CAMarksModeration from './components/CAMarksModeration.jsx';
+import RepeatExamEndorsements from './components/RepeatExamEndorsements.jsx';
+import FacultyDeanEscalations from './components/FacultyDeanEscalations.jsx';
+import AttendanceAudit from './components/AttendanceAudit.jsx';
+import DepartmentBoardMinutes from './components/DepartmentBoardMinutes.jsx';
+import HODProfile from './components/HODProfile.jsx';
+
 export default function HOD({ user, onLogout }) {
   const [processes, setProcesses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -13,11 +27,9 @@ export default function HOD({ user, onLogout }) {
   const [actionProcess, setActionProcess] = useState(null);
   const [declineProcess, setDeclineProcess] = useState(null);
   const [activeNav, setActiveNav] = useState('dashboard');
-  const [filter, setFilter] = useState('pending_hod');
 
   const hodName = user?.name || 'Dr. M.A. Rifky';
   const hodDesignation = user?.designation || 'Head of the Department (ICT)';
-  const departmentName = user?.department || 'Department of Information and Communication Technology';
 
   const loadProcesses = async () => {
     try {
@@ -39,287 +51,93 @@ export default function HOD({ user, onLogout }) {
 
   const handleApprove = async (payload) => {
     if (!actionProcess) return;
-    await api.approveStage(actionProcess.trackingNumber || actionProcess._id, payload);
+    try {
+      await api.approveStage(actionProcess.trackingNumber || actionProcess._id, payload);
+    } catch (err) {
+      console.warn('Failed to approve stage:', err);
+    }
     setActionProcess(null);
     await loadProcesses();
   };
 
   const handleDecline = async (payload) => {
     if (!declineProcess) return;
-    await api.declineProcess(declineProcess.trackingNumber || declineProcess._id, payload);
+    try {
+      await api.declineProcess(declineProcess.trackingNumber || declineProcess._id, payload);
+    } catch (err) {
+      console.warn('Failed to decline process:', err);
+    }
     setDeclineProcess(null);
     await loadProcesses();
   };
 
   const pendingHOD = processes.filter(
-    (p) => (p.currentAssignedRole === 'hod' || p.status === 'Pending HOD') && p.status !== 'Approved' && p.status !== 'Declined'
+    (p) =>
+      (p.currentAssignedRole === 'hod' || p.status === 'Pending HOD') &&
+      p.status !== 'Approved' &&
+      p.status !== 'Declined'
   );
 
-  const displayedProcesses = processes.filter((p) => {
-    if (filter === 'pending_hod') {
-      return (p.currentAssignedRole === 'hod' || p.status === 'Pending HOD') && p.status !== 'Approved' && p.status !== 'Declined';
+  const renderActiveView = () => {
+    switch (activeNav) {
+      case 'department_overview':
+        return <DepartmentOverview onNavigate={setActiveNav} />;
+      case 'academic_staff':
+        return <AcademicStaffManagement onNavigate={setActiveNav} />;
+      case 'student_roster':
+        return <DepartmentStudents onNavigate={setActiveNav} />;
+      case 'course_coordination':
+        return <CourseAllocations onNavigate={setActiveNav} />;
+      case 'pending_hod_approvals':
+        return (
+          <DepartmentApprovalsDesk
+            processes={processes}
+            pendingHOD={pendingHOD}
+            isLoading={isLoading}
+            onOpenAudit={(p) => setSelectedProcess(p)}
+            onOpenEndorse={(p) => setActionProcess(p)}
+            onOpenDecline={(p) => setDeclineProcess(p)}
+          />
+        );
+      case 'ca_moderation':
+        return <CAMarksModeration onNavigate={setActiveNav} />;
+      case 'repeat_sanctions':
+        return <RepeatExamEndorsements onNavigate={setActiveNav} />;
+      case 'faculty_escalations':
+        return <FacultyDeanEscalations onNavigate={setActiveNav} />;
+      case 'attendance_audit':
+        return <AttendanceAudit onNavigate={setActiveNav} />;
+      case 'department_reports':
+        return <DepartmentBoardMinutes onNavigate={setActiveNav} />;
+      case 'academic_profile':
+        return <HODProfile user={user} onNavigate={setActiveNav} />;
+      case 'dashboard':
+      default:
+        return (
+          <HODDashboardOverview
+            processes={processes}
+            pendingHOD={pendingHOD}
+            isLoading={isLoading}
+            onNavigate={setActiveNav}
+            onOpenAudit={(p) => setSelectedProcess(p)}
+            onOpenEndorse={(p) => setActionProcess(p)}
+            onOpenDecline={(p) => setDeclineProcess(p)}
+          />
+        );
     }
-    if (filter === 'declined') {
-      return p.status === 'Declined';
-    }
-    if (filter === 'approved') {
-      return p.status === 'Approved';
-    }
-    return true;
-  });
+  };
 
   return (
-    <DashboardTemplate user={user} onLogout={onLogout} activeItem={activeNav} onNavigate={(id) => setActiveNav(id)}>
+    <DashboardTemplate
+      user={user}
+      onLogout={onLogout}
+      activeItem={activeNav}
+      onNavigate={(id) => setActiveNav(id)}
+    >
       <div className="hod-portal-container">
-        {/* Banner */}
-        <div className="hod-header-banner">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span style={{ background: '#f59e0b', color: '#071733', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800 }}>
-                HOD COMMAND CENTER
-              </span>
-              <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700 }}>Welcome, {hodName}</h1>
-            </div>
-            <p style={{ margin: '0.35rem 0 0', color: '#93c5fd', fontSize: '0.85rem' }}>
-              {hodDesignation} • {departmentName}
-            </p>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#ffffff', padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
-              Faculty of Technology • SEUSL
-            </span>
-          </div>
-        </div>
+        {renderActiveView()}
 
-        {/* Metric Stat Cards */}
-        <div className="std-stats-grid">
-          <div className="std-stat-card">
-            <div className="std-stat-icon-wrap icon-blue">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-            <div className="std-stat-body">
-              <div className="std-stat-top-row">
-                <span className="std-stat-title">DEPARTMENT INSTRUCTORS</span>
-                <span className="std-stat-badge">ICT Dept</span>
-              </div>
-              <div className="std-stat-number">18 Staff</div>
-              <div className="std-stat-target">Academic & Demonstrators</div>
-            </div>
-          </div>
-
-          <div className="std-stat-card" style={pendingHOD.length > 0 ? { borderLeft: '4px solid #f59e0b', background: '#fffbeb' } : {}}>
-            <div className="std-stat-icon-wrap icon-amber">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-            </div>
-            <div className="std-stat-body">
-              <div className="std-stat-top-row">
-                <span className="std-stat-title" style={pendingHOD.length > 0 ? { color: '#b45309' } : {}}>
-                  AWAITING HOD SIGN-OFF
-                </span>
-                <span className="std-stat-badge" style={{ background: '#f59e0b', color: '#ffffff' }}>
-                  Urgent
-                </span>
-              </div>
-              <div className="std-stat-number" style={pendingHOD.length > 0 ? { color: '#92400e' } : {}}>
-                {pendingHOD.length}
-              </div>
-              <div className="std-stat-target">Escalated from Course Lecturers</div>
-            </div>
-          </div>
-
-          <div className="std-stat-card">
-            <div className="std-stat-icon-wrap icon-emerald">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-            <div className="std-stat-body">
-              <div className="std-stat-top-row">
-                <span className="std-stat-title">ENDORSED TO DEAN</span>
-                <span className="std-stat-badge">Forwarded</span>
-              </div>
-              <div className="std-stat-number">
-                {processes.filter(p => p.history?.some(h => h.role === 'hod')).length}
-              </div>
-              <div className="std-stat-target">Transferred for Faculty Clearance</div>
-            </div>
-          </div>
-
-          <div className="std-stat-card">
-            <div className="std-stat-icon-wrap icon-purple">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-            </div>
-            <div className="std-stat-body">
-              <div className="std-stat-top-row">
-                <span className="std-stat-title">TOTAL DEPT PETITIONS</span>
-                <span className="std-stat-badge">2025/26</span>
-              </div>
-              <div className="std-stat-number">{processes.length}</div>
-              <div className="std-stat-target">All Recorded Processes</div>
-            </div>
-          </div>
-        </div>
-
-        {/* HOD Endorsement Table */}
-        <div className="hod-table-card">
-          <div className="hod-table-header">
-            <div>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>
-                Departmental Verification & Escalation Dashboard
-              </h2>
-              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                Endorse verified medical appeals and academic requests before escalating to the Dean's Office.
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                type="button"
-                className={`std-tab-btn ${filter === 'pending_hod' ? 'active' : ''}`}
-                onClick={() => setFilter('pending_hod')}
-              >
-                Awaiting HOD ({pendingHOD.length})
-              </button>
-              <button
-                type="button"
-                className={`std-tab-btn ${filter === 'all' ? 'active' : ''}`}
-                onClick={() => setFilter('all')}
-              >
-                All Dept Requests ({processes.length})
-              </button>
-              <button
-                type="button"
-                className={`std-tab-btn ${filter === 'approved' ? 'active' : ''}`}
-                onClick={() => setFilter('approved')}
-              >
-                Approved
-              </button>
-              <button
-                type="button"
-                className={`std-tab-btn ${filter === 'declined' ? 'active' : ''}`}
-                onClick={() => setFilter('declined')}
-              >
-                Declined
-              </button>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading departmental queue...</div>
-          ) : displayedProcesses.length === 0 ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
-              <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>No requests found</p>
-              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem' }}>
-                There are no requests waiting for HOD endorsement under this filter.
-              </p>
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="hod-table">
-                <thead>
-                  <tr>
-                    <th>Tracking ID</th>
-                    <th>Student Name & Reg No</th>
-                    <th>Process Title</th>
-                    <th>Lecturer Recommendation</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedProcesses.map((proc) => {
-                    const isPendingMe =
-                      (proc.currentAssignedRole === 'hod' || proc.status === 'Pending HOD') &&
-                      proc.status !== 'Approved' &&
-                      proc.status !== 'Declined';
-
-                    const lecStep = proc.history?.find((h) => h.role === 'lecturer');
-
-                    return (
-                      <tr key={proc._id || proc.trackingNumber}>
-                        <td>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f2b5c' }}>
-                            {proc.trackingNumber}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: 600, color: '#0f172a' }}>{proc.studentName}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{proc.registrationNumber}</div>
-                        </td>
-                        <td>
-                          <span style={{ fontWeight: 600 }}>{proc.processTitle}</span>
-                        </td>
-                        <td>
-                          {lecStep ? (
-                            <div>
-                              <span style={{ background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600 }}>
-                                ✓ Recommended
-                              </span>
-                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem' }}>
-                                by {lecStep.actedBy}
-                              </div>
-                            </div>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Pending / Not Required</span>
-                          )}
-                        </td>
-                        <td>
-                          <span className={`std-status-pill status-${proc.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                            {proc.status}
-                          </span>
-                        </td>
-                        <td>{new Date(proc.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            {isPendingMe && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="hod-btn-endorse"
-                                  onClick={() => setActionProcess(proc)}
-                                >
-                                  Endorse & Forward
-                                </button>
-                                <button
-                                  type="button"
-                                  className="hod-btn-decline"
-                                  onClick={() => setDeclineProcess(proc)}
-                                >
-                                  Decline
-                                </button>
-                              </>
-                            )}
-                            <button
-                              type="button"
-                              className="wf-process-action-btn"
-                              onClick={() => setSelectedProcess(proc)}
-                            >
-                              Track & Audit
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Modals */}
+        {/* Global Lifecycle Workflow Modals */}
         {selectedProcess && (
           <ProcessTrackerModal
             process={selectedProcess}
