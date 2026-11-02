@@ -1,4 +1,8 @@
-/* HOD Portal Custom Styles */
+/* ==========================================================================
+   HOD (HEAD OF DEPARTMENT) PORTAL - SEUCONNECT ENTERPRISE DESIGN
+   Department of Information and Communication Technology, Faculty of Technology, SEUSL
+   ========================================================================== */
+
 .hod-portal-container {
   display: flex;
   flex-direction: column;
@@ -6,21 +10,1722 @@
   width: 100%;
 }
 
-.hod-header-banner {
+.hod-dashboard-content,
+.hod-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* ==========================================================================
+   1. VIEW HEADER BANNERS (Sub-pages)
+   ========================================================================== */
+.hod-view-header-banner {
   background: linear-gradient(135deg, #071733 0%, #0f2b5c 100%);
   border-radius: 14px;
-  padding: 1.5rem 1.75rem;
+  padding: 1.35rem 1.6rem;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 3px solid #f59e0b;
+  box-shadow: 0 4px 15px rgba(7, 23, 51, 0.12);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.hod-card {
+.hod-header-banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hod-banner-tag {
+  background: #f59e0b;
+  color: #071733;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.hod-view-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.hod-view-subtitle {
+  margin: 0;
+  color: #93c5fd;
+  font-size: 0.85rem;
+}
+
+.hod-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.hod-banner-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+}
+
+.hod-banner-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hod-banner-btn.primary {
+  background: #f59e0b;
+  color: #071733;
+  border-color: #f59e0b;
+  font-weight: 700;
+}
+
+.hod-banner-btn.primary:hover {
+  background: #d97706;
+}
+
+/* ==========================================================================
+   2. KPI STATS GRIDS & STRIPS
+   ========================================================================== */
+.hod-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.1rem;
+}
+
+@media (max-width: 1024px) {
+  .hod-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .hod-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hod-stat-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.hod-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.hod-stat-card.pulse-border {
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.hod-stat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-blue { background: #eff6ff; color: #2563eb; }
+.icon-amber { background: #fef3c7; color: #d97706; }
+.icon-emerald { background: #dcfce7; color: #16a34a; }
+.icon-purple { background: #f3e8ff; color: #9333ea; }
+
+.hod-stat-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.hod-stat-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.hod-stat-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hod-stat-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.badge-blue { background: #eff6ff; color: #1d4ed8; }
+.badge-amber { background: #f59e0b; color: #ffffff; }
+.badge-emerald { background: #dcfce7; color: #15803d; }
+.badge-purple { background: #f3e8ff; color: #7e22ce; }
+
+.hod-stat-number {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.hod-stat-target {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Stats Strip (Compact horizontal metric bar) */
+.hod-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.hod-strip-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
+}
+
+.hod-strip-card:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.hod-strip-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  line-height: 1;
+}
+
+.hod-strip-lbl {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   3. HOD QUICK COMMAND BAR
+   ========================================================================== */
+.hod-quick-actions-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.hod-quick-actions-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-pulse-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.hod-quick-actions-btns {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hod-quick-action-btn {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.hod-quick-action-btn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.hod-quick-action-btn.primary {
+  background: #0f2b5c;
+  color: #ffffff;
+  border-color: #0f2b5c;
+}
+
+.hod-quick-action-btn.primary:hover {
+  background: #1e3a8a;
+}
+
+.hod-quick-action-btn.warning {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.hod-quick-action-btn.warning:hover {
+  background: #fef3c7;
+}
+
+.hod-count-pill {
+  background: #f59e0b;
+  color: #071733;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   4. TWO-COLUMN SPLIT LAYOUTS
+   ========================================================================== */
+.hod-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .hod-dual-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hod-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .hod-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hod-sidebar-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ==========================================================================
+   5. TABLE CARDS & LISTINGS
+   ========================================================================== */
+.hod-card,
+.hod-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.hod-table-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hod-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.hod-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.hod-card-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.2rem 0 0;
+}
+
+.hod-card-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hod-live-tag {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Filter Toolbars */
+.hod-toolbar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hod-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hod-filter-tabs {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.hod-tab-btn {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hod-tab-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.hod-tab-btn.active {
+  background: #0f2b5c;
+  color: #ffffff;
+  border-color: #0f2b5c;
+}
+
+.hod-table-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  width: 100%;
+  max-width: 250px;
+}
+
+.hod-table-search-box input {
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  color: #0f172a;
+  outline: none;
+  width: 100%;
+}
+
+/* ==========================================================================
+   6. TABLE FORMATTING & CELLS
+   ========================================================================== */
+.hod-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+}
+
+.hod-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.82rem;
+}
+
+.hod-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hod-table td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.hod-table tr:hover td {
+  background: #f8fafc;
+}
+
+.hod-tracking-badge {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 700;
+  color: #0f2b5c;
+  background: #f1f5f9;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  display: inline-block;
+}
+
+.hod-student-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.hod-student-reg {
+  font-size: 0.73rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.hod-proc-title {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hod-subject-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+.hod-credits-badge {
+  background: #f3e8ff;
+  color: #7e22ce;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.hod-batch-pill {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.hod-staff-tag {
+  font-weight: 600;
+  color: #0f2b5c;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.hod-lec-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hod-lec-pill {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: fit-content;
+}
+
+.hod-lec-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.hod-lec-pending {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.hod-date-text {
+  color: #64748b;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.hod-status-pill {
+  padding: 0.22rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.status-pending-hod,
+.status-awaiting-hod-moderation,
+.status-awaiting-verification,
+[class*="status-pending"],
+[class*="status-awaiting"] {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-approved,
+.status-cleared-by-dean,
+.status-endorsed-for-esa,
+[class*="status-approved"],
+[class*="status-moderated"],
+[class*="status-cleared"],
+[class*="status-endorsed"] {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-declined,
+.status-rejected-by-hod,
+.status-revision-requested-by-hod,
+[class*="status-declined"],
+[class*="status-rejected"],
+[class*="status-revision"] {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-pending-dean,
+.status-forwarded-to-dean-executive,
+[class*="status-forwarded"] {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Action Buttons */
+.hod-actions-cell {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.hod-btn-endorse {
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hod-btn-endorse:hover {
+  background: #059669;
+}
+
+.hod-btn-decline {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hod-btn-decline:hover {
+  background: #dc2626;
+}
+
+.hod-btn-audit {
+  background: #f1f5f9;
+  color: #0f2b5c;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hod-btn-audit:hover {
+  background: #e2e8f0;
+}
+
+.hod-btn-outline {
+  background: #ffffff;
+  color: #0f2b5c;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hod-btn-outline:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* ==========================================================================
+   7. WIDGETS: QUALITY PROGRESS & NOTICES
+   ========================================================================== */
+.hod-quality-card {
+  background: #ffffff;
+}
+
+.hod-semester-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.hod-compliance-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.hod-comp-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.3rem;
+}
+
+.hod-comp-val {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hod-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.hod-comp-sub {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.hod-quick-metric-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.hod-mini-stat {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.55rem 0.4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.hod-mini-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  line-height: 1;
+}
+
+.hod-mini-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.hod-circulars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hod-circular-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.hod-circular-item:hover {
+  background: #f1f5f9;
+}
+
+.hod-circ-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.hod-circ-badge {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
+.hod-circ-date {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.hod-circ-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-circ-body {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.hod-link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hod-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   8. ACADEMIC STAFF & STUDENTS ROSTERS
+   ========================================================================== */
+.hod-staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.1rem;
+}
+
+.hod-staff-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.15rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.hod-staff-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.hod-staff-card.hod-highlight-card {
+  border-top: 4px solid #f59e0b;
+  background: #fffefb;
+}
+
+.hod-staff-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.hod-staff-avatar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hod-staff-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #0f2b5c;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.hod-staff-name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-current-hod-badge {
+  background: #f59e0b;
+  color: #071733;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.hod-staff-id {
+  font-size: 0.73rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.hod-status-active-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 0.15rem 0.45rem;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.hod-staff-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.hod-staff-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.hod-info-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.hod-info-value {
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.35;
+}
+
+.hod-modules-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
+
+.hod-mod-pill {
+  background: #f1f5f9;
+  color: #0f2b5c;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.hod-staff-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.hod-workload-indicator {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.hod-hours-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f2b5c;
+}
+
+.hod-hours-lbl {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* Student specific cells */
+.hod-gpa-badge {
+  font-weight: 700;
+  color: #0f2b5c;
+  background: #eff6ff;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.hod-att-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hod-att-rate {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.hod-att-rate.good { color: #15803d; }
+.hod-att-rate.warning { color: #d97706; }
+.hod-att-rate.danger { color: #dc2626; }
+
+.hod-att-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.hod-att-tag.good { color: #16a34a; }
+.hod-att-tag.warning { color: #b45309; }
+.hod-att-tag.danger { color: #dc2626; }
+
+.hod-standing-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.hod-standing-pill.deans { background: #dcfce7; color: #15803d; }
+.hod-standing-pill.good { background: #f1f5f9; color: #475569; }
+.hod-standing-pill.warning { background: #fee2e2; color: #b91c1c; }
+
+.hod-pet-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.hod-pet-badge.has-pet { color: #d97706; }
+.hod-pet-badge.no-pet { color: #94a3b8; }
+
+/* ==========================================================================
+   9. DEPARTMENT OVERVIEW & LABORATORIES
+   ========================================================================== */
+.hod-vision-mission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+}
+
+@media (max-width: 800px) {
+  .hod-vision-mission-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hod-card-prose {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #334155;
+  margin: 0;
+}
+
+.hod-programmes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hod-programme-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.hod-prog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.45rem;
+}
+
+.hod-prog-code {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.hod-prog-title {
+  margin: 0.3rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-prog-badge {
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.hod-prog-meta {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.hod-prog-specs strong {
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+.hod-specs-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+}
+
+.hod-spec-tag {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.73rem;
+  color: #0f2b5c;
+  font-weight: 600;
+}
+
+.hod-lead-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hod-lead-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #0f2b5c;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  border: 2px solid #f59e0b;
+}
+
+.hod-lead-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-lead-desig {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.hod-lead-qual {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: #334155;
+}
+
+.hod-lead-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+  background: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 8px;
+}
+
+.hod-lead-row {
+  display: flex;
+  font-size: 0.8rem;
+}
+
+.hod-lead-label {
+  width: 90px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.hod-lead-val {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.hod-lead-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hod-board-pill {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.hod-labs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.hod-lab-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hod-lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hod-lab-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.hod-lab-status-badge {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.hod-lab-name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-lab-meta {
+  font-size: 0.76rem;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hod-lab-equipment {
+  font-size: 0.74rem;
+  color: #334155;
+  background: #ffffff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   10. FORMS & ESCALATIONS
+   ========================================================================== */
+.hod-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.hod-form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.hod-input,
+.hod-textarea {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.hod-input:focus,
+.hod-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.hod-memos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.hod-memo-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.hod-memo-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.hod-memo-subject {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-memo-cat {
+  font-size: 0.73rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.hod-memo-status-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin-top: 0.55rem;
+}
+
+.hod-memo-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.hod-dean-minute {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #334155;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   11. MINUTES & RESOLUTIONS
+   ========================================================================== */
+.hod-minutes-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hod-minute-card {
+  background: #ffffff;
+}
+
+.hod-minute-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+@media (max-width: 800px) {
+  .hod-minute-body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hod-minute-subheading {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.5rem;
+}
+
+.hod-agenda-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.hod-resolutions-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hod-res-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.hod-res-bullet {
+  font-size: 1rem;
+}
+
+.hod-res-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   12. MODALS & DOSSIERS
+   ========================================================================== */
+.hod-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.hod-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.hod-modal-header {
+  padding: 1.15rem 1.35rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.hod-modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hod-modal-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.hod-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.hod-modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.hod-modal-body {
+  padding: 1.35rem;
+  overflow-y: auto;
+}
+
+.hod-modal-footer {
+  padding: 0.85rem 1.35rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  background: #f8fafc;
+}
+
+.hod-staff-dossier-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.hod-dossier-item label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.hod-dossier-item div {
+  font-size: 0.85rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   13. ALERTS & EMPTY STATES
+   ========================================================================== */
+.hod-alert-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.hod-alert-banner.success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.hod-alert-banner button {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+.hod-empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hod-empty-state h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.hod-empty-state p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  max-width: 400px;
+}
+
+.hod-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Color Badges Helper */
+.hod-badge-green { background: #dcfce7; color: #15803d; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.hod-badge-amber { background: #fef3c7; color: #b45309; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.hod-badge-blue { background: #eff6ff; color: #1d4ed8; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.hod-badge-red { background: #fee2e2; color: #b91c1c; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.hod-badge-gray { background: #f1f5f9; color: #475569; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+
+.hod-pass-rate {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+.hod-pass-rate.good { color: #15803d; }
+.hod-pass-rate.warning { color: #d97706; }
+
+.hod-counter-badge {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
 }
