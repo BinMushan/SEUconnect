@@ -1,12 +1,4 @@
 import React, { useState } from 'react';
-import {
-  MemoryRouter,
-  Routes,
-  Route,
-  useNavigate,
-  useLocation,
-} from 'react-router-dom';
-
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import ToastStack from './components/ToastStack.jsx';
 
@@ -143,15 +135,17 @@ const LECTURER_META_CHIPS = [
 ];
 
 /**
- * Internal Lecturer Portal Shell connected to React Router's MemoryRouter
+ * Lecturer Portal
  */
-function LecturerPortalShell({ user, onLogout }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Global alert toasts stack
+export default function Lecturer({ user, onLogout }) {
+  const [currentPath, setCurrentPath] = useState('dashboard');
   const [toasts, setToasts] = useState([]);
   const [selectedSubjectCode, setSelectedSubjectCode] = useState('SWT22022');
+
+  const navigate = (targetPath) => {
+    const clean = targetPath.replace(/^\//, '') || 'dashboard';
+    setCurrentPath(clean);
+  };
 
   const showToast = (message, type = 'info') => {
     const id = Date.now() + Math.random();
@@ -166,7 +160,6 @@ function LecturerPortalShell({ user, onLogout }) {
   };
 
   // Convert current path to active sidebar id
-  const currentPath = location.pathname.replace(/^\//, '') || 'dashboard';
   const activeNavId = currentPath === '' ? 'dashboard' : currentPath;
 
   const handleNavigate = (targetId) => {
@@ -250,6 +243,64 @@ function LecturerPortalShell({ user, onLogout }) {
 
   const unreadNotifCount = INITIAL_NOTIFICATIONS.filter((n) => !n.isRead).length;
 
+  const renderModuleContent = () => {
+    switch (activeNavId) {
+      case 'subjects':
+        return (
+          <MySubjects
+            onNavigateModule={(modId, params) => {
+              if (params?.subjectCode) {
+                setSelectedSubjectCode(params.subjectCode);
+              }
+              navigate(`/${modId}`);
+            }}
+            onShowToast={showToast}
+          />
+        );
+      case 'attendance':
+        return (
+          <Attendance
+            initialSubjectCode={selectedSubjectCode}
+            onShowToast={showToast}
+          />
+        );
+      case 'ca-esa':
+        return (
+          <CAESA
+            initialSubjectCode={selectedSubjectCode}
+            onShowToast={showToast}
+          />
+        );
+      case 'results':
+        return (
+          <Results
+            initialSubjectCode={selectedSubjectCode}
+            onShowToast={showToast}
+          />
+        );
+      case 'announcements':
+        return <Announcements onShowToast={showToast} />;
+      case 'notifications':
+        return <Notifications onShowToast={showToast} />;
+      case 'profile':
+        return <LecturerProfile onShowToast={showToast} />;
+      case 'dashboard':
+      default:
+        return (
+          <LecturerDashboard
+            user={user}
+            onNavigateModule={(modId, params) => {
+              if (params?.subjectCode) {
+                setSelectedSubjectCode(params.subjectCode);
+              }
+              navigate(`/${modId}`);
+            }}
+            onShowToast={showToast}
+          />
+        );
+    }
+  };
+
   return (
     <div className="lecturer-module-root">
       {/* Global Toast Stack */}
@@ -278,105 +329,8 @@ function LecturerPortalShell({ user, onLogout }) {
         searchPlaceholder="Quick search modules (e.g. 'Attendance', 'CA', 'Results', 'Announcements')..."
         onSearch={handleDynamicSearch}
       >
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <LecturerDashboard
-                user={user}
-                onNavigateModule={(modId, params) => {
-                  if (params?.subjectCode) {
-                    setSelectedSubjectCode(params.subjectCode);
-                  }
-                  navigate(`/${modId}`);
-                }}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <LecturerDashboard
-                user={user}
-                onNavigateModule={(modId, params) => {
-                  if (params?.subjectCode) {
-                    setSelectedSubjectCode(params.subjectCode);
-                  }
-                  navigate(`/${modId}`);
-                }}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/subjects"
-            element={
-              <MySubjects
-                onNavigateModule={(modId, params) => {
-                  if (params?.subjectCode) {
-                    setSelectedSubjectCode(params.subjectCode);
-                  }
-                  navigate(`/${modId}`);
-                }}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/attendance"
-            element={
-              <Attendance
-                initialSubjectCode={selectedSubjectCode}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/ca-esa"
-            element={
-              <CAESA
-                initialSubjectCode={selectedSubjectCode}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/results"
-            element={
-              <Results
-                initialSubjectCode={selectedSubjectCode}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/announcements"
-            element={<Announcements onShowToast={showToast} />}
-          />
-          <Route
-            path="/notifications"
-            element={<Notifications onShowToast={showToast} />}
-          />
-          <Route
-            path="/profile"
-            element={<LecturerProfile onShowToast={showToast} />}
-          />
-        </Routes>
+        {renderModuleContent()}
       </DashboardTemplate>
     </div>
-  );
-}
-
-/**
- * Lecturer Component Entry Point
- * Wraps the portal in MemoryRouter to guarantee Isolated Internal Routing
- * without modifying or overriding the primary window URL hash (#lecturer).
- */
-export default function Lecturer({ user, onLogout }) {
-  return (
-    <MemoryRouter initialEntries={['/']}>
-      <LecturerPortalShell user={user} onLogout={onLogout} />
-    </MemoryRouter>
   );
 }
