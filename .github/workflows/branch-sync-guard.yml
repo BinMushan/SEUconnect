@@ -6,6 +6,7 @@ on:
       - main
       - development
       - Development
+      - Development
   pull_request:
     branches:
       - main
@@ -163,8 +164,7 @@ jobs:
 
   development_pr_sync_guard:
     if: |
-      (github.event_name == 'pull_request' && (github.base_ref == 'development' || github.base_ref == 'Development')) ||
-      (github.event_name == 'push' && github.ref_name != 'main' && github.ref_name != 'development' && github.ref_name != 'Development')
+      github.event_name == 'pull_request' && (github.base_ref == 'development' || github.base_ref == 'Development')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -181,7 +181,7 @@ jobs:
           set -euo pipefail
 
           DEV_REF='refs/remotes/origin/Development'
-          git fetch --no-tags --prune origin +refs/heads/development:${DEV_REF}
+          git fetch --no-tags --prune origin +refs/heads/Development:${DEV_REF}
 
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             SOURCE_REF='refs/remotes/origin/pr-head'
