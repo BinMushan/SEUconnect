@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import './dashboard_template.css';
+import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
 
 /**
  * Standard Navigation Sections matching the SEUConnect portal design
  */
-const DEFAULT_NAV_SECTIONS = [
+export const DEFAULT_NAV_SECTIONS = [
   {
     title: 'MAIN',
     items: [
@@ -197,19 +198,24 @@ export default function DashboardTemplate({
   showHeroBanner,
   onNavigate,
   onLogout,
-  navSections = DEFAULT_NAV_SECTIONS,
+  navSections,
   actionButtons,
   heroActions,
   className = '',
   greetingText,
   metaItems,
-  facultyPillText = 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
+  facultyPillText,
   notificationCount = 3,
-  searchPlaceholder = 'Search portal resources, subjects, or forms...',
+  searchPlaceholder,
   onSearch,
   onAiAssistantClick,
   children
 }) {
+  const roleKey = (user?.roleKey || user?.role || 'student').toLowerCase();
+  const roleMeta = getRoleMetaData(user);
+
+  // Automatically resolve role-tailored navSections when not explicitly passed
+  const effectiveNavSections = navSections || getNavSectionsForRole(roleKey) || DEFAULT_NAV_SECTIONS;
   const [currentActive, setCurrentActive] = useState(activeItem);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -246,18 +252,21 @@ export default function DashboardTemplate({
     ? showHeroBanner
     : (currentActive === 'dashboard');
 
-  // Default values matching the screenshot exactly
-  const userName = user?.name || 'M.N.M. Afnan';
-  const userEmail = user?.email || '22ict085@seu.ac.lk';
+  // Role-tailored dynamic values
+  const userName = user?.name || (roleKey === 'student' ? 'M.N.M. Afnan' : 'Portal User');
+  const userEmail = user?.email || (roleKey === 'student' ? '22ict085@seu.ac.lk' : `${roleKey}@seu.ac.lk`);
   const userRegNo = user?.regNo || '22ICT085';
   const userProgramme = user?.programme || 'BICT';
   const userSemester = user?.semester || 'Semester 05';
   const userSpecialization = user?.specialization || 'Software Systems';
-  const userRole = user?.role || 'STUDENT';
-  const greeting = greetingText || `Good Morning, ${userName}`;
+  const userRole = (user?.role ? user.role : (roleMeta.rolePill || 'STUDENT')).toUpperCase();
+  const greeting = greetingText || roleMeta.greeting || `Good Morning, ${userName}`;
+  const effectiveFacultyPill = facultyPillText || roleMeta.facultyPill || 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY';
+  const effectiveMetaItems = metaItems || roleMeta.metaItems;
+  const effectiveSearchPlaceholder = searchPlaceholder || (roleKey === 'student' ? 'Search portal resources, subjects, or forms...' : `Search ${userRole.toLowerCase()} resources, records, or files...`);
 
-  // Avatar initial: 'M.' as shown in screenshot
-  const userInitial = user?.avatarInitial || (userName ? userName.charAt(0).toUpperCase() + '.' : 'M.');
+  // Avatar initial: dynamic based on role/user
+  const userInitial = user?.avatarInitial || (userName ? userName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() : 'U');
 
   const handleItemClick = (id) => {
     setCurrentActive(id);
@@ -322,7 +331,7 @@ export default function DashboardTemplate({
 
         {/* Scrollable Navigation Sections */}
         <nav className="seu-sidebar-nav-container">
-          {navSections.map((section) => (
+          {effectiveNavSections.map((section) => (
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
@@ -462,7 +471,7 @@ export default function DashboardTemplate({
             <input
               type="text"
               className="seu-topbar-search-input"
-              placeholder={searchPlaceholder}
+              placeholder={effectiveSearchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -523,7 +532,7 @@ export default function DashboardTemplate({
           <section className="seu-dash-hero-banner">
             <div className="seu-hero-banner-top-row">
               <span className="seu-hero-institution-pill">
-                {facultyPillText}
+                {effectiveFacultyPill}
               </span>
 
               {/* Top Right Action Buttons */}
@@ -531,7 +540,9 @@ export default function DashboardTemplate({
                 <div className="seu-hero-banner-actions">
                   {actionButtons ? (
                     actionButtons
-                  ) : (
+                  ) : heroActions ? (
+                    heroActions
+                  ) : roleKey === 'student' ? (
                     <>
                       <button type="button" className="seu-btn-gpa-report">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -551,7 +562,7 @@ export default function DashboardTemplate({
                         Faculty Forms
                       </button>
                     </>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
@@ -561,11 +572,11 @@ export default function DashboardTemplate({
 
             {/* Meta Info Line */}
             <div className="seu-hero-meta-row">
-              {metaItems && metaItems.length > 0 ? (
-                metaItems.map((meta, idx) => (
+              {effectiveMetaItems && effectiveMetaItems.length > 0 ? (
+                effectiveMetaItems.map((meta, idx) => (
                   <React.Fragment key={idx}>
                     <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
-                    {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
+                    {idx < effectiveMetaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
                   </React.Fragment>
                 ))
               ) : (
