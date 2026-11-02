@@ -137,3 +137,450 @@
   color: #94a3b8;
   margin-bottom: 2rem;
 }
+
+
+.std-stats-grid .std-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid #eef1f8;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(20, 40, 90, 0.05);
+}
+ 
+/* Top row: icon left, badge right */
+.std-stats-grid .std-stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+ 
+/* Icon box */
+.std-stats-grid .std-stat-icon-wrap {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+.std-stats-grid .icon-blue    { background: #e8efff; color: #2f5fd0; }
+.std-stats-grid .icon-red     { background: #fde8e8; color: #d64545; }
+.std-stats-grid .icon-amber   { background: #fff1dc; color: #d9822b; }
+.std-stats-grid .icon-emerald { background: #e3f6ea; color: #1f9d55; }
+ 
+/* Badge */
+.std-stats-grid .std-stat-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.std-stats-grid .badge-blue  { background: #e8efff; color: #2f5fd0; }
+.std-stats-grid .badge-red   { background: #fde8e8; color: #c0392b; }
+.std-stats-grid .badge-amber { background: #fff1dc; color: #d9822b; }
+.std-stats-grid .badge-green { background: #e3f6ea; color: #1f9d55; }
+ 
+/* Text block */
+.std-stats-grid .std-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.std-stats-grid .std-stat-title {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #8a94a6;
+}
+.std-stats-grid .std-stat-number {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #0f172a;
+}
+.std-stats-grid .std-stat-target {
+  font-size: 13px;
+  color: #8a94a6;
+}
+ 
+/* Add at the END of examination.css */
+
+/* Card: plain border, no blue left stripe */
+.std-guidance-card.exam-process-card {
+  padding: 18px 22px;
+  border: 1px solid #e6eaf1;
+  border-left: 1px solid #e6eaf1;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+
+/* Header: icon and title on one line */
+.exam-process-card .std-guidance-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+.exam-process-card .std-guidance-icon {
+  display: grid;
+  place-items: center;
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  color: #1d4ed8;
+}
+.exam-process-card .std-guidance-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.exam-process-card .std-guidance-subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #5b6477;
+}
+
+/* Search row */
+.exam-process-card .std-guidance-search-bar {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+.exam-process-card .std-search-input-box {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid #e6eaf1;
+  border-radius: 10px;
+  background: #f8f9fc;
+}
+.exam-process-card .std-search-icon {
+  position: static;
+  transform: none;
+  flex-shrink: 0;
+  color: #8a94a6;
+  margin-right: 10px;
+}
+.exam-process-card .std-search-input {
+  flex: 1;
+  height: 46px;
+  padding: 0 10px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #0f172a;
+}
+.exam-process-card .std-search-input::placeholder { color: #6b7488; }
+.exam-process-card .std-search-input-box:focus-within {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+}
+
+/* Blue button */
+.exam-process-card .std-find-process-btn {
+  padding: 0 24px;
+  border: none;
+  border-radius: 10px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  
+}
+.exam-process-card .std-find-process-btn:hover { background: #1a44bd; }
+
+/* Suggested chips */
+.std-suggested-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.std-suggested-label {
+  margin-right: 2px;
+  font-size: 12px;
+  color: #7a8499;
+}
+.std-suggested-chip {
+  padding: 5px 14px;
+  border: 1px solid #e2e5ee;
+  border-radius: 999px;
+  background: #eef0f6;
+  color: #4a5368;
+  font-size: 12px;
+  cursor: pointer;
+}
+.std-suggested-chip:hover { background: #e3e7f0; }
+
+@media (max-width: 640px) {
+  .exam-process-card .std-guidance-search-bar { flex-direction: column; }
+  .exam-process-card .std-find-process-btn { height: 44px; }
+}
+
+/* Add at the END of examination.css */
+
+/* ---------- Grid: wide left card, narrow right card ---------- */
+.std-middle-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .std-middle-grid { grid-template-columns: 1fr; }
+}
+
+.std-middle-grid .std-quick-actions-card {
+  padding: 18px 20px;
+  border: 1px solid #e6eaf1;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+.std-middle-grid .std-card-heading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.std-card-sub {
+  margin: 2px 0 14px;
+  font-size: 12px;
+  color: #7a8499;
+}
+
+/* ---------- Queue list ---------- */
+.std-queue-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #eef1f6;
+}
+.std-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #eef1f6;
+}
+.std-queue-item:last-child { border-bottom: none; }
+
+.std-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+.avatar-blue   { background: #e8efff; color: #2f5fd0; }
+.avatar-red    { background: #fde8e8; color: #c0392b; }
+.avatar-purple { background: #eeeaff; color: #6b4fd8; }
+
+.std-queue-info { flex: 1; min-width: 0; }
+.std-queue-name { font-size: 13px; font-weight: 600; color: #0f172a; }
+.std-queue-detail { font-size: 12px; color: #7a8499; }
+
+/* Status labels (keep your existing success / warning; these two are extra) */
+.std-queue-item .std-status-label {
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.std-status-label.status-success { background: #e3f6ea; color: #1f9d55; }
+.std-status-label.status-warning { background: #fff1dc; color: #d9822b; }
+.std-status-label.status-danger  { background: #fde8e8; color: #c0392b; }
+.std-status-label.status-info    { background: #eeeaff; color: #6b4fd8; }
+
+/* ---------- Quick actions ---------- */
+.std-middle-grid .std-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.std-middle-grid .std-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e6eaf1;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.std-middle-grid .std-action-btn:hover { background: #f6f8fc; }
+.std-middle-grid .std-action-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.std-action-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.std-action-icon.icon-blue    { background: #e8efff; color: #2f5fd0; }
+.std-action-icon.icon-emerald { background: #e3f6ea; color: #1f9d55; }
+.std-action-icon.icon-red     { background: #fde8e8; color: #d64545; }
+.std-action-icon.icon-purple  { background: #eeeaff; color: #6b4fd8; }
+
+/* ---------- Upcoming deadlines ---------- */
+.std-middle-grid .std-dl-heading { margin-top: 22px; }
+
+.std-dl-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #eef1f6;
+}
+.std-dl-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #eef1f6;
+  font-size: 13px;
+}
+.std-dl-item:last-child { border-bottom: none; }
+
+.std-dl-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot-red   { background: #c0392b; }
+.dot-amber { background: #d9822b; }
+.dot-blue  { background: #2f5fd0; }
+
+.std-dl-text { flex: 1; color: #1f2937; }
+.std-dl-when { font-size: 12px; color: #8a94a6; white-space: nowrap; }
+
+
+
+/* ==========================================================================
+   INTERACTIVE DASHBOARD STAT CARDS & ACTIVE QUEUE FILTER
+   ========================================================================== */
+.std-stat-click {
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  width: 100%;
+}
+
+.std-stat-click:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.std-stat-click:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.std-stat-click.is-active {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 12px 24px rgba(37, 99, 235, 0.12) !important;
+  background: linear-gradient(to bottom, #ffffff, #eff6ff) !important;
+}
+
+.seu-dash-main.dark-mode .std-stat-click.is-active {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
+  background: linear-gradient(to bottom, #0f1c33, #172554) !important;
+}
+
+.std-quick-actions-card {
+  scroll-margin-top: 90px;
+}
+
+/* Active filter banner */
+.std-active-filter {
+  margin: 10px 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.seu-dash-main.dark-mode .std-active-filter {
+  background: rgba(30, 58, 138, 0.35);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #bfdbfe;
+}
+
+.std-btn-clear {
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.seu-dash-main.dark-mode .std-btn-clear {
+  color: #93c5fd;
+}
+
+.std-btn-clear:hover {
+  color: #1d4ed8;
+}
+
+.std-queue-jump-btn {
+  margin-top: 14px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.std-queue-jump-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.seu-dash-main.dark-mode .std-queue-jump-btn {
+  background: #1e293b;
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
