@@ -1,0 +1,402 @@
+/* ==========================================================================
+   Medical Absence Requests Styles
+   1:1 Exact Parity with Live Production Portal
+   ========================================================================== */
+
+.medical-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 0 40px 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.medical-container .page-header {
+  margin-bottom: 0px;
+}
+
+.medical-container .page-header h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+  line-height: 1.25;
+}
+
+.medical-container .page-header p {
+  color: #64748b;
+  font-size: 0.90rem;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Success Banner */
+.medical-success-banner {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+/* Main Cards */
+.medical-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 24px 32px;
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+}
+
+/* Stepper (Only numbered circles 1, 2, 3, 4 - Matching Screenshot 1) */
+.stepper-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 0 32px 0;
+  padding: 0 16px;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.step-circle.active {
+  background-color: #1e40af;
+  color: #ffffff;
+}
+
+.step-circle.inactive {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.step-circle.completed {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+/* Form Styles */
+.medical-step-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.form-textarea::placeholder {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.medical-help-text {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+/* Review Box */
+.medical-review-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 18px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.medical-review-box strong {
+  color: #0f172a;
+  min-width: 170px;
+  display: inline-block;
+}
+
+/* Actions */
+.medical-form-actions-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.medical-form-actions-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #0b1f3a;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background-color: #1e3a8a;
+}
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-secondary:hover {
+  background-color: #f1f5f9;
+}
+
+/* Table Responsive */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.medical-table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.medical-table th {
+  background-color: #f8fafc;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.medical-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.medical-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.medical-id-cell {
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.medical-period-cell {
+  line-height: 1.4;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.medical-remarks-cell {
+  color: #64748b;
+  line-height: 1.45;
+  font-size: 13px;
+  max-width: 320px;
+}
+
+/* Badges (Exact parity with Screenshot 2) */
+.badge-submitted {
+  background-color: #fffbeb;
+  color: #d97706;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge-approved {
+  background-color: #ecfdf5;
+  color: #10b981;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+.dark-mode .medical-card {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .medical-container .page-header h1,
+.dark-mode .card-title,
+.dark-mode .medical-id-cell {
+  color: #f8fafc;
+}
+
+.dark-mode .medical-container .page-header p,
+.dark-mode .medical-table th,
+.dark-mode .medical-remarks-cell {
+  color: #94a3b8;
+}
+
+.dark-mode .form-label {
+  color: #cbd5e1;
+}
+
+.dark-mode .form-input,
+.dark-mode .form-select,
+.dark-mode .form-textarea {
+  background-color: #0b1320;
+  border-color: #1e293b;
+  color: #f8fafc;
+}
+
+.dark-mode .form-input:focus,
+.dark-mode .form-select:focus,
+.dark-mode .form-textarea:focus {
+  border-color: #2563eb;
+}
+
+.dark-mode .step-circle.inactive {
+  background-color: #162234;
+  border-color: #1e293b;
+  color: #94a3b8;
+}
+
+.dark-mode .medical-table td {
+  border-bottom-color: #1e293b;
+  color: #cbd5e1;
+}
+
+.dark-mode .medical-table th {
+  background-color: #162234;
+  border-bottom-color: #1e293b;
+}
+
+.dark-mode .medical-table tbody tr:hover {
+  background-color: #162234;
+}
+
+.dark-mode .btn-secondary {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark-mode .btn-secondary:hover {
+  background-color: #334155;
+}

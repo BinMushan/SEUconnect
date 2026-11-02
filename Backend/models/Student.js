@@ -1,0 +1,225 @@
+const mongoose = require('mongoose');
+
+// Schema for Course Registration in a semester
+const EnrolledCourseSchema = new mongoose.Schema({
+  courseCode: { type: String, required: true },
+  courseName: { type: String, required: true },
+  credits: { type: Number, required: true },
+  type: { type: String, enum: ['Core', 'Elective', 'Optional'], default: 'Core' },
+  status: { type: String, enum: ['Registered', 'Pending', 'Dropped'], default: 'Registered' }
+}, { _id: false });
+
+// Schema for Subject Attendance record
+const SubjectAttendanceSchema = new mongoose.Schema({
+  courseCode: { type: String, required: true },
+  courseName: { type: String, required: true },
+  totalClasses: { type: Number, default: 0 },
+  attendedClasses: { type: Number, default: 0 },
+  percentage: { type: Number, default: 100 },
+  status: { type: String, enum: ['Eligible', 'Borderline', 'At Risk', 'Ineligible'], default: 'Eligible' }
+}, { _id: false });
+
+// Schema for Medical Submissions
+const MedicalRequestSchema = new mongoose.Schema({
+  referenceNo: { type: String, required: true },
+  reason: { type: String, required: true },
+  startDate: { type: String, required: true },
+  endDate: { type: String, required: true },
+  durationDays: { type: Number, default: 1 },
+  doctorName: { type: String, default: 'Dr. University Medical Center' },
+  hospitalOrClinic: { type: String, default: 'University Medical Center (UMC)' },
+  affectedLectures: [{ type: String }],
+  status: { type: String, enum: ['Approved', 'Pending', 'Under Review', 'Rejected'], default: 'Pending' },
+  submissionDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
+  remarks: { type: String, default: '' }
+});
+
+// Schema for Exam Timetable entry
+const ExamScheduleSchema = new mongoose.Schema({
+  courseCode: { type: String, required: true },
+  courseName: { type: String, required: true },
+  date: { type: String, required: true },
+  time: { type: String, required: true },
+  hall: { type: String, default: 'Faculty Examination Hall A' },
+  seatNo: { type: String, default: 'A-01' }
+}, { _id: false });
+
+// Schema for Exam Results
+const CourseResultSchema = new mongoose.Schema({
+  courseCode: { type: String, required: true },
+  courseName: { type: String, required: true },
+  credits: { type: Number, required: true },
+  grade: { type: String, required: true },
+  gradePoint: { type: Number, required: true }
+}, { _id: false });
+
+// Main Student Schema - Each student has a complete, isolated section in MongoDB
+const StudentSchema = new mongoose.Schema({
+  // Unique Student Identifiers
+  studentId: {
+    type: String,
+    required: [true, 'Student Registration Number is required'],
+    unique: true,
+    trim: true,
+    index: true // e.g. "2021/ICT/85"
+  },
+  indexNo: {
+    type: String,
+    required: [true, 'Index Number is required'],
+    unique: true,
+    trim: true,
+    index: true // e.g. "ICT21085"
+  },
+  fullName: {
+    type: String,
+    required: [true, 'Full name is required'],
+    trim: true
+  },
+  email: {
+    type: String,
+    required: [true, 'University email is required'],
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  faculty: {
+    type: String,
+    default: 'Faculty of Technology'
+  },
+  department: {
+    type: String,
+    default: 'Department of Information and Communication Technology'
+  },
+  degreeProgramme: {
+    type: String,
+    default: 'Bachelor of Information and Communication Technology (BICT)'
+  },
+  batch: {
+    type: String,
+    default: '2021/2022'
+  },
+  currentSemester: {
+    type: String,
+    default: 'Year 3 Semester 1'
+  },
+  academicYear: {
+    type: String,
+    default: '2025/2026'
+  },
+  academicStatus: {
+    type: String,
+    default: 'Good Standing'
+  },
+  avatarUrl: {
+    type: String,
+    default: ''
+  },
+
+  // 1. ACADEMIC PROFILE SECTION
+  academicProfile: {
+    personalEmail: { type: String, default: '' },
+    personalPhone: { type: String, default: '+94 77 123 4567' },
+    dob: { type: String, default: '2001-05-15' },
+    nic: { type: String, default: '200113601234' },
+    gender: { type: String, enum: ['Male', 'Female', 'Other'], default: 'Male' },
+    permanentAddress: { type: String, default: 'Oluvil, South Eastern University Campus, Sri Lanka' },
+    guardianName: { type: String, default: 'M.N.M. Farook' },
+    guardianRelationship: { type: String, default: 'Father' },
+    guardianPhone: { type: String, default: '+94 71 987 6543' },
+    alQualifications: {
+      stream: { type: String, default: 'Technology Stream' },
+      zScore: { type: Number, default: 1.8452 },
+      indexNumber: { type: String, default: '6128491' }
+    },
+    bio: { type: String, default: 'Undergraduate student at Faculty of Technology, SEUSL.' }
+  },
+
+  // 2. SEMESTER REGISTRATIONS SECTION
+  semesterRegistrations: [
+    {
+      semester: { type: String, required: true },
+      academicYear: { type: String, default: '2025/2026' },
+      registrationDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
+      status: { type: String, enum: ['Open', 'Active', 'Confirmed', 'Closed'], default: 'Confirmed' },
+      totalCredits: { type: Number, default: 0 },
+      courses: [EnrolledCourseSchema]
+    }
+  ],
+
+  // 3. ATTENDANCE SECTION
+  attendance: {
+    overallAttendancePercentage: { type: Number, default: 85.0 },
+    totalLectures: { type: Number, default: 120 },
+    attendedLectures: { type: Number, default: 102 },
+    eligibilityStatus: { type: String, enum: ['Eligible', 'Ineligible', 'Borderline'], default: 'Eligible' },
+    subjectRecords: [SubjectAttendanceSchema]
+  },
+
+  // 4. MEDICAL REQUESTS SECTION
+  medicalRequests: [MedicalRequestSchema],
+
+  // 5. EXAMINATIONS SECTION
+  examinations: [
+    {
+      semester: { type: String, default: 'Year 3 Semester 1' },
+      academicYear: { type: String, default: '2025/2026' },
+      admissionCardNo: { type: String, default: 'ADM-2026-ICT-085' },
+      eligibility: { type: Boolean, default: true },
+      remarks: { type: String, default: 'Eligible for all enrolled examination modules.' },
+      timetable: [ExamScheduleSchema]
+    }
+  ],
+
+  // 6. RESULTS SECTION
+  results: [
+    {
+      semester: { type: String, required: true },
+      sgpa: { type: Number, required: true },
+      totalCredits: { type: Number, default: 0 },
+      courses: [CourseResultSchema]
+    }
+  ],
+
+  // 7. GPA / CGPA SECTION
+  gpaCgpa: {
+    currentSgpa: { type: Number, default: 3.50 },
+    cgpa: { type: Number, default: 3.42 },
+    academicStanding: { type: String, default: 'Good Standing' },
+    targetClass: { type: String, default: 'First Class (≥ 3.70)' },
+    totalCreditsEarned: { type: Number, default: 78 },
+    totalCreditsRequired: { type: Number, default: 120 },
+    semesterHistory: [
+      {
+        semester: { type: String, required: true },
+        sgpa: { type: Number, required: true },
+        credits: { type: Number, required: true }
+      }
+    ]
+  },
+
+  // 8. ACADEMIC PROGRESS SECTION
+  academicProgress: {
+    completionPercentage: { type: Number, default: 65 },
+    totalCreditsRequired: { type: Number, default: 120 },
+    totalCreditsCompleted: { type: Number, default: 78 },
+    coreCreditsCompleted: { type: Number, default: 60 },
+    coreCreditsRequired: { type: Number, default: 90 },
+    electiveCreditsCompleted: { type: Number, default: 18 },
+    electiveCreditsRequired: { type: Number, default: 30 },
+    industrialTrainingStatus: { type: String, default: 'Pending Semester 6' },
+    finalYearProjectStatus: { type: String, default: 'Scheduled Year 4' }
+  }
+}, {
+  timestamps: true,
+  collection: 'students' // Explicitly stores in 'students' collection in MongoDB
+});
+
+// Helper virtual to return URL-safe student identifier
+StudentSchema.virtual('id').get(function() {
+  return this._id.toHexString();
+});
+
+StudentSchema.set('toJSON', { virtuals: true });
+StudentSchema.set('toObject', { virtuals: true });
+
+module.exports = mongoose.model('Student', StudentSchema);

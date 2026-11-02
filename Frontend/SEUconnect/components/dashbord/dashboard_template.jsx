@@ -151,6 +151,12 @@ const DEFAULT_NAV_SECTIONS = [
         id: 'faculty_forms',
         label: 'Faculty Forms & Instructions',
         hasSubmenu: true,
+        subItems: [
+          { id: 'forms_all', label: 'All Forms & Circulars' },
+          { id: 'forms_exam', label: 'Examination Forms' },
+          { id: 'forms_medical', label: 'Medical & Attendance' },
+          { id: 'forms_piv', label: "People's Bank PIV Voucher" }
+        ],
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -188,10 +194,13 @@ const DEFAULT_NAV_SECTIONS = [
 export default function DashboardTemplate({
   user,
   activeItem = 'dashboard',
+  showHeroBanner,
   onNavigate,
   onLogout,
   navSections = DEFAULT_NAV_SECTIONS,
   actionButtons,
+  heroActions,
+  className = '',
   greetingText,
   metaItems,
   facultyPillText = 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
@@ -205,6 +214,38 @@ export default function DashboardTemplate({
   const [currentActive, setCurrentActive] = useState(activeItem);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState({ faculty_forms: true });
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem('seu_sidebar_collapsed') === 'true';
+      } catch (_) {}
+    }
+    return false;
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('seu_sidebar_collapsed', String(next));
+        } catch (_) {}
+      }
+      return next;
+    });
+  };
+
+  // Keep currentActive in sync with activeItem prop
+  React.useEffect(() => {
+    setCurrentActive(activeItem);
+  }, [activeItem]);
+
+  // Determine if hero banner should display (hidden on pages like academic_profile)
+  const shouldShowHero = showHeroBanner !== undefined
+    ? showHeroBanner
+    : (currentActive === 'dashboard');
 
   // Default values matching the screenshot exactly
   const userName = user?.name || 'M.N.M. Afnan';
@@ -221,17 +262,43 @@ export default function DashboardTemplate({
 
   const handleItemClick = (id) => {
     setCurrentActive(id);
+    setMobileNavOpen(false);
     if (typeof onNavigate === 'function') {
       onNavigate(id);
     }
   };
 
   return (
-    <div className="seu-dash-layout">
+    <div className={`seu-dash-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${className}`.trim()}>
+      {/* Small Toggle on the Right Edge of the Left Sidebar */}
+      <button
+        type="button"
+        className={`seu-sidebar-edge-toggle ${isSidebarCollapsed ? 'collapsed' : ''}`}
+        onClick={toggleSidebarCollapse}
+        title={isSidebarCollapsed ? "Open sidebar" : "Minimize sidebar (Full screen)"}
+        aria-label="Toggle sidebar"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+          {isSidebarCollapsed ? (
+            <polyline points="9 18 15 12 9 6" />
+          ) : (
+            <polyline points="15 18 9 12 15 6" />
+          )}
+        </svg>
+      </button>
+      {/* Mobile Backdrop Overlay */}
+      {mobileNavOpen && (
+        <div
+          className="seu-sidebar-backdrop"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ====================================================================
           LEFT SIDEBAR (Dark Navy Portal Menu)
           ==================================================================== */}
-      <aside className="seu-dash-sidebar">
+      <aside className={`seu-dash-sidebar ${mobileNavOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         {/* Brand Header */}
         <div className="seu-sidebar-brand">
           <div className="seu-sidebar-logo-box">
@@ -241,6 +308,17 @@ export default function DashboardTemplate({
             <span className="seu-sidebar-brand-name">SEUConnect</span>
             <span className="seu-sidebar-brand-faculty">FACULTY OF TECHNOLOGY</span>
           </div>
+          <button
+            type="button"
+            className="seu-sidebar-mobile-close"
+            onClick={() => setMobileNavOpen(false)}
+            aria-label="Close menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
 
         {/* Scrollable Navigation Sections */}
@@ -249,26 +327,65 @@ export default function DashboardTemplate({
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
-                const isActive = currentActive === item.id;
+                const isSubmenuOpen = !!openSubmenus[item.id];
+                const isDirectActive = currentActive === item.id;
+                const isSubActive = item.subItems && item.subItems.some((s) => s.id === currentActive);
+                const isActive = isDirectActive || (!isSubmenuOpen && isSubActive);
+
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`seu-nav-item-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => handleItemClick(item.id)}
-                  >
-                    <div className="seu-nav-item-left">
-                      <span className="seu-nav-item-icon">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </div>
-                    {item.hasSubmenu && (
-                      <span className="seu-nav-chevron">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </span>
+                  <div key={item.id} className="seu-nav-item-container">
+                    <button
+                      type="button"
+                      className={`seu-nav-item-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        if (item.hasSubmenu) {
+                          setOpenSubmenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
+                          handleItemClick(item.subItems ? item.subItems[0].id : item.id);
+                        } else {
+                          handleItemClick(item.id);
+                        }
+                      }}
+                    >
+                      <div className="seu-nav-item-left">
+                        <span className="seu-nav-item-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </div>
+                      {item.hasSubmenu && (
+                        <span className="seu-nav-chevron">
+                          {isSubmenuOpen ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          )}
+                        </span>
+                      )}
+                    </button>
+
+                    {item.hasSubmenu && isSubmenuOpen && item.subItems && (
+                      <div className="seu-nav-submenu-list">
+                        {item.subItems.map((sub) => {
+                          const isThisSubActive = currentActive === sub.id;
+                          return (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              className={`seu-nav-subitem-btn ${isThisSubActive ? 'active' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleItemClick(sub.id);
+                              }}
+                            >
+                              {sub.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -315,6 +432,20 @@ export default function DashboardTemplate({
       <div className={`seu-dash-main ${isDarkMode ? 'dark-mode' : ''}`}>
         {/* 1. TOP NAVIGATION BAR */}
         <header className="seu-dash-topbar">
+          {/* Mobile Menu Hamburger Button */}
+          <button
+            type="button"
+            className="seu-mobile-menu-btn"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
           {/* Topbar Search positioned on the left */}
           <form
             className="seu-topbar-search-wrapper"
@@ -355,7 +486,7 @@ export default function DashboardTemplate({
             </button>
 
             {/* Notifications */}
-            <button type="button" className="seu-icon-action-btn" title="Notifications">
+            <button type="button" className="seu-icon-action-btn" title="Notifications" onClick={() => handleItemClick('notifications')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -366,7 +497,12 @@ export default function DashboardTemplate({
             </button>
 
             {/* User Profile */}
-            <div className="seu-topbar-user-profile" title={`Signed in as ${userName}`}>
+            <div
+              className="seu-topbar-user-profile"
+              title={`Signed in as ${userName}`}
+              onClick={() => handleItemClick('academic_profile')}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="seu-user-avatar-circle">
                 {userInitial}
               </div>
@@ -384,65 +520,76 @@ export default function DashboardTemplate({
         </header>
 
         {/* 2. DISPLAY NAME SECTION / HERO BANNER */}
-        <section className="seu-dash-hero-banner">
-          <div className="seu-hero-banner-top-row">
-            <span className="seu-hero-institution-pill">
-              {facultyPillText}
-            </span>
+        {shouldShowHero && (
+          <section className="seu-dash-hero-banner">
+            <div className="seu-hero-banner-top-row">
+              <span className="seu-hero-institution-pill">
+                {facultyPillText}
+              </span>
 
-            {/* Top Right Action Buttons */}
-            <div className="seu-hero-banner-actions">
-              {actionButtons ? (
-                actionButtons
+              {/* Top Right Action Buttons */}
+              {actionButtons !== null && (
+                <div className="seu-hero-banner-actions">
+                  {actionButtons ? (
+                    actionButtons
+                  ) : (
+                    <>
+                      <button type="button" className="seu-btn-gpa-report">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="8" r="6" />
+                          <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                        </svg>
+                        View GPA Report
+                      </button>
+
+                      <button type="button" className="seu-btn-faculty-forms" onClick={() => handleItemClick('forms_all')}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        Faculty Forms
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Main Greeting & Display Name */}
+            <h1 className="seu-hero-greeting-title">{greeting}</h1>
+
+            {/* Meta Info Line */}
+            <div className="seu-hero-meta-row">
+              {metaItems && metaItems.length > 0 ? (
+                metaItems.map((meta, idx) => (
+                  <React.Fragment key={idx}>
+                    <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
+                    {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
+                  </React.Fragment>
+                ))
               ) : (
                 <>
-                  <button type="button" className="seu-btn-gpa-report">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="8" r="6" />
-                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-                    </svg>
-                    View GPA Report
-                  </button>
-
-                  <button type="button" className="seu-btn-faculty-forms">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                    Faculty Forms
-                  </button>
+                  <span>Reg No: <span className="seu-hero-meta-strong">{userRegNo}</span></span>
+                  <span className="seu-hero-meta-divider">•</span>
+                  <span>Programme: <span className="seu-hero-meta-strong">{userProgramme}</span></span>
+                  <span className="seu-hero-meta-divider">•</span>
+                  <span>Current: <span className="seu-hero-meta-strong">{userSemester}</span></span>
+                  <span className="seu-hero-meta-divider">•</span>
+                  <span>Specialization: <span className="seu-hero-meta-strong">{userSpecialization}</span></span>
                 </>
               )}
             </div>
-          </div>
 
-          {/* Main Greeting & Display Name */}
-          <h1 className="seu-hero-greeting-title">{greeting}</h1>
-
-          {/* Meta Info Line */}
-          <div className="seu-hero-meta-row">
-            {metaItems && metaItems.length > 0 ? (
-              metaItems.map((meta, idx) => (
-                <React.Fragment key={idx}>
-                  <span>{meta.label} <span className="seu-hero-meta-strong">{meta.value}</span></span>
-                  {idx < metaItems.length - 1 && <span className="seu-hero-meta-divider">•</span>}
-                </React.Fragment>
-              ))
-            ) : (
-              <>
-                <span>Reg No: <span className="seu-hero-meta-strong">{userRegNo}</span></span>
-                <span className="seu-hero-meta-divider">•</span>
-                <span>Programme: <span className="seu-hero-meta-strong">{userProgramme}</span></span>
-                <span className="seu-hero-meta-divider">•</span>
-                <span>Current: <span className="seu-hero-meta-strong">{userSemester}</span></span>
-                <span className="seu-hero-meta-divider">•</span>
-                <span>Specialization: <span className="seu-hero-meta-strong">{userSpecialization}</span></span>
-              </>
+            {/* Bottom Hero Actions (e.g. Mark Attendance, Upload CA Marks) */}
+            {heroActions && (
+              <div className="seu-hero-bottom-actions">
+                {heroActions}
+              </div>
             )}
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* 3. MAIN DASHBOARD BODY (Where team members inject their role content) */}
         <main className="seu-dash-body-content">

@@ -1,8 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import AcademicProfile from './academic_profile.jsx';
+import SemesterRegistration from './semester_registration.jsx';
+import Attendance from './attendance.jsx';
+import MedicalRequests from './medical_requests.jsx';
+import StudentExamination from './examination.jsx';
+import StudentResults from './results.jsx';
+import StudentGpaCgpa from './gpa_cgpa.jsx';
+import StudentAcademicProgress from './academic_progress.jsx';
+import StudentProcessGuidance from './process_guidance.jsx';
+import StudentWelfare from './welfare_scholarships.jsx';
+import StudentSocieties from './societies_clubs.jsx';
+import FacultyForms from './faculty_forms.jsx';
+import StudentNotifications from './notifications.jsx';
+import StudentPenalties from './penalties_disciplinary.jsx';
 import './student.css';
 
 export default function Student({ user, onLogout }) {
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
+      if (hash.includes('notification')) return 'notifications';
+      if (hash.includes('penalt') || hash.includes('disciplin')) return 'penalties_disciplinary';
+      if (hash.includes('dashboard') || hash === 'student' || hash === '/student' || hash === '') return 'dashboard'; else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
+        if (hash.includes('exam')) return 'forms_exam';
+        if (hash.includes('med')) return 'forms_medical';
+        if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank')) return 'forms_piv';
+        return 'forms_all';
+      }
+      if (hash.includes('welfare') || hash.includes('scholarship')) return 'welfare_scholarships';
+      if (hash.includes('societ') || hash.includes('club')) return 'societies_clubs';
+      if (hash.includes('process') || hash.includes('guidance')) return 'process_guidance';
+      if (hash.includes('examination')) return 'examinations';
+      if (hash.includes('result')) return 'results';
+      if (hash.includes('progress')) return 'academic_progress';
+      if (hash.includes('gpa') || hash.includes('cgpa')) return 'gpa_cgpa';
+      if (hash.includes('medical')) return 'medical_requests';
+      if (hash.includes('attendance')) return 'attendance';
+      if (hash.includes('registration')) return 'semester_registration';
+      if (hash.includes('profile')) return 'academic_profile';
+    }
+    return 'attendance';
+  });
+
+  // Listen for hash changes to sync navigation
+  useEffect(() => {
+    const handleHashSync = () => {
+      const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
+      if (hash.includes('notification')) {
+        setActiveTab('notifications');
+      } else if (hash.includes('penalt') || hash.includes('disciplin')) {
+        setActiveTab('penalties_disciplinary');
+      } else if (hash.includes('dashboard') || hash === 'student' || hash === '/student' || hash === '') {
+        setActiveTab('dashboard');
+      } else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
+        if (hash.includes('exam')) setActiveTab('forms_exam');
+        else if (hash.includes('med')) setActiveTab('forms_medical');
+        else if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank')) setActiveTab('forms_piv');
+        else setActiveTab('forms_all');
+      } else if (hash.includes('welfare') || hash.includes('scholarship')) {
+        setActiveTab('welfare_scholarships');
+      } else if (hash.includes('societ') || hash.includes('club')) {
+        setActiveTab('societies_clubs');
+      } else if (hash.includes('process') || hash.includes('guidance')) {
+        setActiveTab('process_guidance');
+      } else if (hash.includes('examination')) {
+        setActiveTab('examinations');
+      } else if (hash.includes('result')) {
+        setActiveTab('results');
+      } else if (hash.includes('progress')) {
+        setActiveTab('academic_progress');
+      } else if (hash.includes('gpa') || hash.includes('cgpa')) {
+        setActiveTab('gpa_cgpa');
+      } else if (hash.includes('medical')) {
+        setActiveTab('medical_requests');
+      } else if (hash.includes('attendance')) {
+        setActiveTab('attendance');
+      } else if (hash.includes('registration')) {
+        setActiveTab('semester_registration');
+      } else if (hash.includes('profile')) {
+        setActiveTab('academic_profile');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashSync);
+    return () => window.removeEventListener('hashchange', handleHashSync);
+  }, []);
+  const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
 
   const suggestedChips = [
@@ -15,6 +99,7 @@ export default function Student({ user, onLogout }) {
   const quickActions = [  
     { 
       label: 'Register Subjects',
+      actionId: 'semester_registration',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -26,6 +111,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Check Attendance',
+      actionId: 'attendance',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
@@ -36,6 +122,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Exam Registration',
+      actionId: 'examinations',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="8" r="6"/>
@@ -45,6 +132,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'View Results',
+      actionId: 'results',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="18" y1="20" x2="18" y2="10"/>
@@ -55,6 +143,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Submit Medical Request',
+      actionId: 'medical_requests',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -66,6 +155,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Calculate GPA Report',
+      actionId: 'gpa_cgpa',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
@@ -75,6 +165,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Degree Progress',
+      actionId: 'academic_progress',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="5" y1="12" x2="19" y2="12"/>
@@ -84,6 +175,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Find a Faculty Form',
+      actionId: 'forms_all',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -101,21 +193,24 @@ export default function Student({ user, onLogout }) {
       status: 'Open',
       statusType: 'open',
       title: 'Semester Subject Registration (Add/Drop)',
-      deadline: 'Deadline: 2026-10-15'
+      deadline: 'Deadline: 2026-10-15',
+      actionId: 'semester_registration'
     },
     {
       category: 'Examination',
       status: 'Upcoming',
       statusType: 'upcoming',
       title: 'ESA Examination Entry Submission',
-      deadline: 'Deadline: 2026-10-30'
+      deadline: 'Deadline: 2026-10-30',
+      actionId: 'examinations'
     },
     {
       category: 'Medical',
       status: 'Active',
       statusType: 'active',
       title: 'Medical Certificate Submission Deadline',
-      deadline: 'Deadline: Within 7 days of absence'
+      deadline: 'Deadline: Within 7 days of absence',
+      actionId: 'medical_requests'
     },
     {
       category: 'Welfare',
@@ -127,8 +222,107 @@ export default function Student({ user, onLogout }) {
   ];
 
   return (
-    <DashboardTemplate user={user} onLogout={onLogout} activeItem="dashboard">
-      <div className="std-dashboard-container">
+    <DashboardTemplate
+      user={studentUser || user}
+      onLogout={onLogout}
+      activeItem={
+        activeTab === 'examination' ? 'examinations' :
+        activeTab === 'processes' ? 'process_guidance' :
+        activeTab === 'welfare' ? 'welfare_scholarships' :
+        activeTab === 'societies' ? 'societies_clubs' :
+        activeTab === 'penalties' ? 'penalties_disciplinary' :
+        activeTab
+      }
+      onNavigate={(id) => {
+        setActiveTab(id);
+        if (typeof window !== 'undefined') {
+          window.location.hash = `#student/${id}`;
+        }
+      }}
+    >
+      {activeTab === 'academic_profile' ? (
+        <AcademicProfile
+          user={studentUser || user}
+          onProfileUpdate={(updated) => setStudentUser(updated)}
+        />
+      ) : activeTab === 'semester_registration' ? (
+        <SemesterRegistration
+          user={studentUser || user}
+        />
+      ) : activeTab === 'attendance' ? (
+        <Attendance
+          onNavigateMedical={() => {
+            setActiveTab('medical_requests');
+            if (typeof window !== 'undefined') {
+              window.location.hash = '#student/medical_requests';
+            }
+          }}
+        />
+      ) : activeTab === 'medical_requests' ? (
+        <MedicalRequests
+          user={studentUser || user}
+        />
+      ) : activeTab === 'examinations' || activeTab === 'examination' ? (
+        <StudentExamination
+          user={studentUser || user}
+        />
+      ) : activeTab === 'results' || activeTab === 'result' ? (
+        <StudentResults
+          user={studentUser || user}
+        />
+      ) : activeTab === 'gpa_cgpa' || activeTab === 'gpa' ? (
+        <StudentGpaCgpa
+          user={studentUser || user}
+        />
+      ) : activeTab === 'academic_progress' || activeTab === 'progress' ? (
+        <StudentAcademicProgress
+          user={studentUser || user}
+        />
+      ) : activeTab === 'process_guidance' || activeTab === 'processes' ? (
+        <StudentProcessGuidance
+          user={studentUser || user}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+        />
+      ) : activeTab === 'welfare_scholarships' || activeTab === 'welfare' ? (
+        <StudentWelfare
+          user={studentUser || user}
+        />
+      ) : activeTab === 'societies_clubs' || activeTab === 'societies' ? (
+        <StudentSocieties
+          user={studentUser || user}
+        />
+      ) : activeTab === 'faculty_forms' || activeTab === 'forms_all' || activeTab === 'forms_exam' || activeTab === 'forms_medical' || activeTab === 'forms_piv' || activeTab.startsWith('forms') ? (
+        <FacultyForms
+          user={studentUser || user}
+          activeSubTab={activeTab}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+        />
+      ) : activeTab === 'notifications' ? (
+        <StudentNotifications
+          user={studentUser || user}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+        />
+      ) : activeTab === 'penalties_disciplinary' || activeTab === 'penalties' ? (
+        <StudentPenalties
+          user={studentUser || user}
+        />
+      ) : (
+        <div className="std-dashboard-container">
         
         {/* =========================================================
             1. TOP 4 METRIC STAT CARDS
@@ -244,7 +438,16 @@ export default function Student({ user, onLogout }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button type="button" className="std-find-process-btn">
+            <button
+              type="button"
+              className="std-find-process-btn"
+              onClick={() => {
+                setActiveTab('process_guidance');
+                if (typeof window !== 'undefined') {
+                  window.location.hash = '#student/process_guidance';
+                }
+              }}
+            >
               Find Process
             </button>
           </div>
@@ -256,7 +459,12 @@ export default function Student({ user, onLogout }) {
                 key={chip}
                 type="button"
                 className="std-suggested-chip"
-                onClick={() => setSearchQuery(chip)}
+                onClick={() => {
+                  setActiveTab('process_guidance');
+                  if (typeof window !== 'undefined') {
+                    window.location.hash = '#student/process_guidance';
+                  }
+                }}
               >
                 {chip}
               </button>
@@ -338,7 +546,14 @@ export default function Student({ user, onLogout }) {
             <h3 className="std-card-heading">Quick Actions</h3>
             <div className="std-actions-list">
               {quickActions.map((action, idx) => (
-                <button key={idx} type="button" className="std-action-btn">
+                <button
+                  key={idx}
+                  type="button"
+                  className="std-action-btn"
+                  onClick={() => {
+                    if (action.actionId) setActiveTab(action.actionId);
+                  }}
+                >
                   <span className="std-action-icon">{action.icon}</span>
                   <span className="std-action-label">{action.label}</span>
                 </button>
@@ -367,15 +582,26 @@ export default function Student({ user, onLogout }) {
                   </svg>
                   <span>{item.deadline}</span>
                 </div>
-                <button type="button" className="std-view-details-btn">
+                <button
+                  type="button"
+                  className="std-view-details-btn"
+                  onClick={() => {
+                    if (item.actionId) {
+                      setActiveTab(item.actionId);
+                      if (typeof window !== 'undefined') {
+                        window.location.hash = `#student/${item.actionId}`;
+                      }
+                    }
+                  }}
+                >
                   View Details
                 </button>
               </div>
             ))}
           </div>
         </section>
-
       </div>
+    )}
     </DashboardTemplate>
   );
 }

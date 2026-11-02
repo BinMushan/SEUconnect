@@ -172,6 +172,7 @@ SEUconnect/
 
 - **VCS:** Git & GitHub
 - **Workflow:** Feature branch & pull request methodology
+- **Branch Sync Automation:** GitHub Actions guard for `main` ⇄ `Development` synchronization and conflict checks ([docs/branch-sync-automation.md](docs/branch-sync-automation.md))
 
 ---
 
