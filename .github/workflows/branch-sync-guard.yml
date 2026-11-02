@@ -163,7 +163,7 @@ jobs:
 
   development_pr_sync_guard:
     if: |
-      (github.event_name == 'pull_request' && github.base_ref == 'development') ||
+      (github.event_name == 'pull_request' && (github.base_ref == 'development' || github.base_ref == 'Development')) ||
       (github.event_name == 'push' && github.ref_name != 'main' && github.ref_name != 'development' && github.ref_name != 'Development')
     runs-on: ubuntu-latest
     permissions:
@@ -180,7 +180,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          DEV_REF='refs/remotes/origin/development'
+          DEV_REF='refs/remotes/origin/Development'
           git fetch --no-tags --prune origin +refs/heads/development:${DEV_REF}
 
           if [ "${{ github.event_name }}" = "pull_request" ]; then
