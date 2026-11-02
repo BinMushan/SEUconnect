@@ -1,0 +1,566 @@
+/* =========================================
+   EXAM ENTRY PAGE
+   All classes start with "ee-" so they will not
+   change any other page in the project.
+========================================= */
+
+.ee-page {
+  --ee-card: #ffffff;
+  --ee-text: #0f172a;
+  --ee-muted: #64748b;
+  --ee-border: #e2e8f0;
+  --ee-soft: #f1f5f9;
+  --ee-primary: #f59e0b;
+  --ee-primary-dark: #d97706;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--ee-text);
+}
+
+/* Dark mode (the template adds .dark-mode on .seu-dash-main) */
+.seu-dash-main.dark-mode .ee-page {
+  --ee-card: #0f1c33;
+  --ee-text: #e2e8f0;
+  --ee-muted: #94a3b8;
+  --ee-border: #1e3050;
+  --ee-soft: #16253f;
+}
+
+/* ---------- Summary cards ---------- */
+.ee-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.ee-summary-card {
+  background: var(--ee-card);
+  border: 1px solid var(--ee-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Icon on the left, pill on the right, in one line */
+.ee-summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.ee-summary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ee-summary-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Clickable summary cards */
+.ee-summary-click {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ee-summary-click:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+.ee-summary-click:focus-visible {
+  outline: 2px solid var(--ee-primary);
+  outline-offset: 2px;
+}
+
+/* The card that is currently filtering the table */
+.ee-summary-click.is-active {
+  border-color: var(--ee-primary);
+  box-shadow: 0 0 0 2px var(--ee-primary), 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+/* Leaves room for the top bar when scrolling to the table */
+.ee-panel {
+  scroll-margin-top: 90px;
+}
+
+.ee-active-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--ee-muted);
+}
+
+/* Colours for the icon box and the pill */
+.ee-icon-blue { background: #dbeafe; color: #2563eb; }
+.ee-icon-green { background: #d1fae5; color: #059669; }
+.ee-icon-red { background: #fee2e2; color: #dc2626; }
+.ee-icon-purple { background: #ede9fe; color: #7c3aed; }
+.ee-icon-amber { background: #fef3c7; color: #d97706; }
+
+.ee-pill-blue { background: #dbeafe; color: #1d4ed8; }
+.ee-pill-green { background: #d1fae5; color: #047857; }
+.ee-pill-red { background: #fee2e2; color: #b91c1c; }
+.ee-pill-purple { background: #ede9fe; color: #6d28d9; }
+.ee-pill-amber { background: #fef3c7; color: #b45309; }
+
+.ee-summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ee-summary-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ee-muted);
+}
+
+.ee-summary-number {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.ee-summary-caption {
+  font-size: 13px;
+  color: var(--ee-muted);
+}
+
+/* ---------- Main panel ---------- */
+.ee-panel {
+  background: var(--ee-card);
+  border: 1px solid var(--ee-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.ee-heading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ee-subheading {
+  margin: 18px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ee-sub {
+  margin: 4px 0 16px;
+  font-size: 13px;
+  color: var(--ee-muted);
+}
+
+/* ---------- Filters ---------- */
+.ee-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ee-input {
+  padding: 9px 12px;
+  border: 1px solid var(--ee-border);
+  border-radius: 8px;
+  background: var(--ee-card);
+  color: var(--ee-text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.ee-input:focus {
+  outline: 2px solid var(--ee-primary);
+  outline-offset: 1px;
+}
+
+.ee-search {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.ee-textarea {
+  width: 100%;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+/* ---------- Buttons ---------- */
+.ee-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ee-btn-primary {
+  background: var(--ee-primary);
+  color: #1f1300;
+}
+
+.ee-btn-primary:hover:not(:disabled) {
+  background: var(--ee-primary-dark);
+}
+
+.ee-btn-light {
+  background: var(--ee-soft);
+  color: var(--ee-text);
+  border-color: var(--ee-border);
+}
+
+.ee-btn-light:hover {
+  border-color: var(--ee-muted);
+}
+
+.ee-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ee-btn:focus-visible,
+.ee-close:focus-visible {
+  outline: 2px solid var(--ee-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Table ---------- */
+.ee-table-wrap {
+  overflow-x: auto;
+}
+
+.ee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ee-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--ee-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--ee-border);
+  white-space: nowrap;
+}
+
+.ee-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--ee-border);
+  vertical-align: middle;
+}
+
+.ee-table tbody tr:hover {
+  background: var(--ee-soft);
+}
+
+.ee-empty {
+  text-align: center;
+  color: var(--ee-muted);
+  padding: 28px 12px !important;
+}
+
+.ee-action-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.ee-text-red {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* ---------- Badges ---------- */
+.ee-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ee-badge-green { background: #d1fae5; color: #047857; }
+.ee-badge-red { background: #fee2e2; color: #b91c1c; }
+.ee-badge-amber { background: #fef3c7; color: #b45309; }
+.ee-badge-blue { background: #dbeafe; color: #1d4ed8; }
+.ee-badge-grey { background: #e2e8f0; color: #475569; }
+
+/* ---------- Popups ---------- */
+.ee-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 8, 23, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.ee-modal {
+  background: var(--ee-card);
+  color: var(--ee-text);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px;
+  box-sizing: border-box;
+}
+
+.ee-modal-card {
+  max-width: 780px;
+}
+
+.ee-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.ee-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--ee-muted);
+  cursor: pointer;
+}
+
+.ee-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.ee-hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--ee-muted);
+  text-align: right;
+}
+
+/* ---------- Student detail ---------- */
+.ee-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.ee-info-label {
+  display: block;
+  font-size: 12px;
+  color: var(--ee-muted);
+  margin-bottom: 2px;
+}
+
+.ee-info-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ee-reason {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ee-reason-red { background: #fee2e2; color: #991b1b; }
+.ee-reason-amber { background: #fef3c7; color: #92400e; }
+
+/* ---------- Admission card ---------- */
+.ee-admit-card {
+  background: #ffffff;
+  color: #0f172a;
+  border: 2px solid #0f172a;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.ee-admit-card .ee-info-label { color: #64748b; }
+.ee-admit-card .ee-table th { color: #475569; border-bottom-color: #cbd5e1; }
+.ee-admit-card .ee-table td { border-bottom-color: #e2e8f0; }
+.ee-admit-card .ee-table tbody tr:hover { background: transparent; }
+
+.ee-admit-header {
+  text-align: center;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.ee-admit-uni {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ee-admit-faculty {
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.ee-admit-title {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.ee-admit-student {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ee-admit-photo {
+  width: 90px;
+  height: 110px;
+  border: 1px solid #94a3b8;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.ee-admit-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 24px;
+  flex: 1;
+}
+
+.ee-admit-table {
+  margin-bottom: 14px;
+}
+
+.ee-admit-instructions {
+  font-size: 13px;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.ee-admit-instructions ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.ee-admit-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.ee-admit-stamp {
+  border: 2px solid #0f172a;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ---------- Message ---------- */
+.ee-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 1100;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 1280px) {
+  .ee-summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .ee-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ee-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ee-admit-student {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ---------- Print: only the admission card ---------- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .ee-print-area,
+  .ee-print-area * {
+    visibility: visible;
+  }
+
+  .ee-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .ee-overlay {
+    background: none;
+  }
+
+  .ee-no-print {
+    display: none !important;
+  }
+}

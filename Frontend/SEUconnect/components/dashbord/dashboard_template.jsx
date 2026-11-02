@@ -200,6 +200,7 @@ export default function DashboardTemplate({
   onSearch,
   onAiAssistantClick,
   children
+  
 }) {
   const [currentActive, setCurrentActive] = useState(activeItem);
   const [searchQuery, setSearchQuery] = useState('');
