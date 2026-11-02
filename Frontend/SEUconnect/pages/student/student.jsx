@@ -11,15 +11,23 @@ import StudentAcademicProgress from './academic_progress.jsx';
 import StudentProcessGuidance from './process_guidance.jsx';
 import StudentWelfare from './welfare_scholarships.jsx';
 import StudentSocieties from './societies_clubs.jsx';
-import ProcessTrackerModal from '../../components/workflow/ProcessTrackerModal.jsx';
-import SubmitMedicalModal from '../../components/workflow/SubmitMedicalModal.jsx';
-import api from '../../src/services/api.js';
+import FacultyForms from './faculty_forms.jsx';
+import StudentNotifications from './notifications.jsx';
+import StudentPenalties from './penalties_disciplinary.jsx';
 import './student.css';
 
 export default function Student({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
+      if (hash.includes('notification')) return 'notifications';
+      if (hash.includes('penalt') || hash.includes('disciplin')) return 'penalties_disciplinary';
+      if (hash.includes('dashboard') || hash === 'student' || hash === '/student' || hash === '') return 'dashboard'; else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
+        if (hash.includes('exam')) return 'forms_exam';
+        if (hash.includes('med')) return 'forms_medical';
+        if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank')) return 'forms_piv';
+        return 'forms_all';
+      }
       if (hash.includes('welfare') || hash.includes('scholarship')) return 'welfare_scholarships';
       if (hash.includes('societ') || hash.includes('club')) return 'societies_clubs';
       if (hash.includes('process') || hash.includes('guidance')) return 'process_guidance';
@@ -39,7 +47,18 @@ export default function Student({ user, onLogout }) {
   useEffect(() => {
     const handleHashSync = () => {
       const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
-      if (hash.includes('welfare') || hash.includes('scholarship')) {
+      if (hash.includes('notification')) {
+        setActiveTab('notifications');
+      } else if (hash.includes('penalt') || hash.includes('disciplin')) {
+        setActiveTab('penalties_disciplinary');
+      } else if (hash.includes('dashboard') || hash === 'student' || hash === '/student' || hash === '') {
+        setActiveTab('dashboard');
+      } else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
+        if (hash.includes('exam')) setActiveTab('forms_exam');
+        else if (hash.includes('med')) setActiveTab('forms_medical');
+        else if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank')) setActiveTab('forms_piv');
+        else setActiveTab('forms_all');
+      } else if (hash.includes('welfare') || hash.includes('scholarship')) {
         setActiveTab('welfare_scholarships');
       } else if (hash.includes('societ') || hash.includes('club')) {
         setActiveTab('societies_clubs');
@@ -200,7 +219,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Find a Faculty Form',
-      actionId: 'process_guidance',
+      actionId: 'forms_all',
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -275,6 +294,7 @@ export default function Student({ user, onLogout }) {
         activeTab === 'processes' ? 'process_guidance' :
         activeTab === 'welfare' ? 'welfare_scholarships' :
         activeTab === 'societies' ? 'societies_clubs' :
+        activeTab === 'penalties' ? 'penalties_disciplinary' :
         activeTab
       }
       onNavigate={handleNavigate}
@@ -323,6 +343,31 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'societies_clubs' || activeTab === 'societies' ? (
         <StudentSocieties
+          user={studentUser || user}
+        />
+      ) : activeTab === 'faculty_forms' || activeTab === 'forms_all' || activeTab === 'forms_exam' || activeTab === 'forms_medical' || activeTab === 'forms_piv' || activeTab.startsWith('forms') ? (
+        <FacultyForms
+          user={studentUser || user}
+          activeSubTab={activeTab}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+        />
+      ) : activeTab === 'notifications' ? (
+        <StudentNotifications
+          user={studentUser || user}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+        />
+      ) : activeTab === 'penalties_disciplinary' || activeTab === 'penalties' ? (
+        <StudentPenalties
           user={studentUser || user}
         />
       ) : (
