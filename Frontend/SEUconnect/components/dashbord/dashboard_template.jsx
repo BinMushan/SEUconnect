@@ -2,196 +2,6 @@ import React, { useState } from 'react';
 import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
 import './dashboard_template.css';
 
-/**
- * Standard Navigation Sections matching the SEUConnect portal design
- */
-const DEFAULT_NAV_SECTIONS = [
-  {
-    title: 'MAIN',
-    items: [
-      {
-        id: 'dashboard',
-        label: 'Dashboard',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>
-        )
-      }
-    ]
-  },
-  {
-    title: 'ACADEMIC',
-    items: [
-      {
-        id: 'academic_profile',
-        label: 'Academic Profile',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        )
-      },
-      {
-        id: 'semester_registration',
-        label: 'Semester Registration',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        )
-      },
-      {
-        id: 'attendance',
-        label: 'Attendance',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-            <path d="m9 14 2 2 4-4" />
-          </svg>
-        )
-      },
-      {
-        id: 'medical_requests',
-        label: 'Medical Requests',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="12" y1="18" x2="12" y2="12" />
-            <line x1="9" y1="15" x2="15" y2="15" />
-          </svg>
-        )
-      },
-      {
-        id: 'examinations',
-        label: 'Examinations',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="6" />
-            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
-          </svg>
-        )
-      },
-      {
-        id: 'results',
-        label: 'Results',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-        )
-      },
-      {
-        id: 'gpa_cgpa',
-        label: 'GPA / CGPA',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
-        )
-      },
-      {
-        id: 'academic_progress',
-        label: 'Academic Progress',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-            <polyline points="17 6 23 6 23 12" />
-          </svg>
-        )
-      }
-    ]
-  },
-  {
-    title: 'STUDENT SERVICES',
-    items: [
-      {
-        id: 'process_guidance',
-        label: 'Process Guidance',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-        )
-      },
-      {
-        id: 'welfare_scholarships',
-        label: 'Welfare & Scholarships',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
-        )
-      },
-      {
-        id: 'societies_clubs',
-        label: 'Societies & Clubs',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        )
-      },
-      {
-        id: 'faculty_forms',
-        label: 'Faculty Forms & Instructions',
-        hasSubmenu: true,
-        subItems: [
-          { id: 'forms_all', label: 'All Forms & Circulars' },
-          { id: 'forms_exam', label: 'Examination Forms' },
-          { id: 'forms_medical', label: 'Medical & Attendance' },
-          { id: 'forms_piv', label: "People's Bank PIV Voucher" }
-        ],
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-        )
-      },
-      {
-        id: 'notifications',
-        label: 'Notifications',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        )
-      },
-      {
-        id: 'penalties_disciplinary',
-        label: 'Penalties / Disciplinary',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2.5" />
-          </svg>
-        )
-      }
-    ]
-  }
-];
-
 export default function DashboardTemplate({
   user,
   activeItem = 'dashboard',
@@ -218,28 +28,6 @@ export default function DashboardTemplate({
   const currentActive = activeItem !== undefined ? activeItem : internalActive;
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [openSubmenus, setOpenSubmenus] = useState({ faculty_forms: true });
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return localStorage.getItem('seu_sidebar_collapsed') === 'true';
-      } catch (_) {}
-    }
-    return false;
-  });
-
-  const toggleSidebarCollapse = () => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem('seu_sidebar_collapsed', String(next));
-        } catch (_) {}
-      }
-      return next;
-    });
-  };
 
   // Keep internalActive in sync with activeItem prop
   React.useEffect(() => {
@@ -262,44 +50,18 @@ export default function DashboardTemplate({
   const userInitial = user?.avatarInitial || (userName ? userName.charAt(0).toUpperCase() + '.' : 'U.');
 
   const handleItemClick = (id) => {
-    setCurrentActive(id);
-    setMobileNavOpen(false);
+    setInternalActive(id);
     if (typeof onNavigate === 'function') {
       onNavigate(id);
     }
   };
 
   return (
-    <div className={`seu-dash-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${className}`.trim()}>
-      {/* Small Toggle on the Right Edge of the Left Sidebar */}
-      <button
-        type="button"
-        className={`seu-sidebar-edge-toggle ${isSidebarCollapsed ? 'collapsed' : ''}`}
-        onClick={toggleSidebarCollapse}
-        title={isSidebarCollapsed ? "Open sidebar" : "Minimize sidebar (Full screen)"}
-        aria-label="Toggle sidebar"
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-          {isSidebarCollapsed ? (
-            <polyline points="9 18 15 12 9 6" />
-          ) : (
-            <polyline points="15 18 9 12 15 6" />
-          )}
-        </svg>
-      </button>
-      {/* Mobile Backdrop Overlay */}
-      {mobileNavOpen && (
-        <div
-          className="seu-sidebar-backdrop"
-          onClick={() => setMobileNavOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
+    <div className={`seu-dash-layout ${className}`.trim()}>
       {/* ====================================================================
           LEFT SIDEBAR (Dark Navy Portal Menu - Changes by Role)
           ==================================================================== */}
-      <aside className={`seu-dash-sidebar ${mobileNavOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className="seu-dash-sidebar">
         {/* Brand Header */}
         <div className="seu-sidebar-brand">
           <div className="seu-sidebar-logo-box">
@@ -309,17 +71,6 @@ export default function DashboardTemplate({
             <span className="seu-sidebar-brand-name">SEUConnect</span>
             <span className="seu-sidebar-brand-faculty">FACULTY OF TECHNOLOGY</span>
           </div>
-          <button
-            type="button"
-            className="seu-sidebar-mobile-close"
-            onClick={() => setMobileNavOpen(false)}
-            aria-label="Close menu"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
         </div>
 
         {/* Scrollable Navigation Sections - Dynamically tailored to user's role */}
@@ -328,65 +79,26 @@ export default function DashboardTemplate({
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
-                const isSubmenuOpen = !!openSubmenus[item.id];
-                const isDirectActive = currentActive === item.id;
-                const isSubActive = item.subItems && item.subItems.some((s) => s.id === currentActive);
-                const isActive = isDirectActive || (!isSubmenuOpen && isSubActive);
-
+                const isActive = currentActive === item.id;
                 return (
-                  <div key={item.id} className="seu-nav-item-container">
-                    <button
-                      type="button"
-                      className={`seu-nav-item-btn ${isActive ? 'active' : ''}`}
-                      onClick={() => {
-                        if (item.hasSubmenu) {
-                          setOpenSubmenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
-                          handleItemClick(item.subItems ? item.subItems[0].id : item.id);
-                        } else {
-                          handleItemClick(item.id);
-                        }
-                      }}
-                    >
-                      <div className="seu-nav-item-left">
-                        <span className="seu-nav-item-icon">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </div>
-                      {item.hasSubmenu && (
-                        <span className="seu-nav-chevron">
-                          {isSubmenuOpen ? (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                          ) : (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          )}
-                        </span>
-                      )}
-                    </button>
-
-                    {item.hasSubmenu && isSubmenuOpen && item.subItems && (
-                      <div className="seu-nav-submenu-list">
-                        {item.subItems.map((sub) => {
-                          const isThisSubActive = currentActive === sub.id;
-                          return (
-                            <button
-                              key={sub.id}
-                              type="button"
-                              className={`seu-nav-subitem-btn ${isThisSubActive ? 'active' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleItemClick(sub.id);
-                              }}
-                            >
-                              {sub.label}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`seu-nav-item-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => handleItemClick(item.id)}
+                  >
+                    <div className="seu-nav-item-left">
+                      <span className="seu-nav-item-icon">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </div>
+                    {item.hasSubmenu && (
+                      <span className="seu-nav-chevron">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -433,20 +145,6 @@ export default function DashboardTemplate({
       <div className={`seu-dash-main ${isDarkMode ? 'dark-mode' : ''}`}>
         {/* 1. TOP NAVIGATION BAR */}
         <header className="seu-dash-topbar">
-          {/* Mobile Menu Hamburger Button */}
-          <button
-            type="button"
-            className="seu-mobile-menu-btn"
-            onClick={() => setMobileNavOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-
           {/* Topbar Search positioned on the left */}
           <form
             className="seu-topbar-search-wrapper"
@@ -487,7 +185,7 @@ export default function DashboardTemplate({
             </button>
 
             {/* Notifications */}
-            <button type="button" className="seu-icon-action-btn" title="Notifications" onClick={() => handleItemClick('notifications')}>
+            <button type="button" className="seu-icon-action-btn" title="Notifications">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -543,7 +241,7 @@ export default function DashboardTemplate({
                         {user?.role === 'student' ? 'View GPA Report' : 'Department Reports'}
                       </button>
 
-                      <button type="button" className="seu-btn-faculty-forms" onClick={() => handleItemClick('forms_all')}>
+                      <button type="button" className="seu-btn-faculty-forms">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
