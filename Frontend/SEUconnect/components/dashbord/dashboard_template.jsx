@@ -210,6 +210,7 @@ export default function DashboardTemplate({
   onSearch,
   onAiAssistantClick,
   children
+  
 }) {
   const roleKey = (user?.roleKey || user?.role || 'student').toLowerCase();
   const roleMeta = getRoleMetaData(user);
