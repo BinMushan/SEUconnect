@@ -1,0 +1,239 @@
+/**
+ * lecturerMockData.js
+ * Comprehensive mock data backing the Lecturer Portal for SEUconnect.
+ */
+
+export const INITIAL_LECTURER_INFO = {
+  fullName: 'Dr. K. Perera',
+  avatarInitial: 'KP',
+  lecturerId: 'LEC/ICT/024',
+  department: 'Department of ICT',
+  faculty: 'Faculty of Technology',
+  email: 'lecturer@seu.ac.lk',
+  loginEmail: 'Lecturer@gmail.com',
+  phone: '+94 77 123 4567',
+  assignedSubjectsCount: 3,
+  designation: 'Senior Lecturer Gr. II & Course Coordinator',
+  office: 'Technology Faculty Complex, Block B - Room 204',
+  specialization: 'Software Architecture & Cloud Application Systems',
+  joinedDate: 'January 2019',
+};
+
+export const INITIAL_SUBJECTS = [
+  {
+    id: 'SWT22022',
+    code: 'SWT22022',
+    name: 'Software Engineering & Architecture',
+    semester: 'Semester 4',
+    semesterNumber: 4,
+    batch: '2021/2022',
+    studentsCount: 45,
+    schedule: 'Monday 08:30 AM - 10:30 AM',
+    classroom: 'ICT Lab 02',
+    attendanceRate: 88.5,
+    credits: 3,
+    status: 'Active',
+    caWeight: 40,
+    esaWeight: 60,
+  },
+  {
+    id: 'SWT21032',
+    code: 'SWT21032',
+    name: 'Web Application Development',
+    semester: 'Semester 3',
+    semesterNumber: 3,
+    batch: '2022/2023',
+    studentsCount: 40,
+    schedule: 'Wednesday 10:00 AM - 12:00 PM',
+    classroom: 'LT-01 (Lecture Theatre 1)',
+    attendanceRate: 82.0,
+    credits: 3,
+    status: 'Active',
+    caWeight: 40,
+    esaWeight: 60,
+  },
+  {
+    id: 'SWT21022',
+    code: 'SWT21022',
+    name: 'Data Structures and Algorithms',
+    semester: 'Semester 3',
+    semesterNumber: 3,
+    batch: '2022/2023',
+    studentsCount: 35,
+    schedule: 'Friday 01:30 PM - 03:30 PM',
+    classroom: 'Lab 01 (Computer Systems)',
+    attendanceRate: 74.2,
+    credits: 3,
+    status: 'Active',
+    caWeight: 40,
+    esaWeight: 60,
+  },
+];
+
+export const INITIAL_TODAY_CLASSES = [
+  {
+    id: 'cls-1',
+    subjectCode: 'SWT21032',
+    subjectName: 'Web Application Development',
+    timeslot: '10:00 AM - 12:00 PM',
+    startHour: 10,
+    startMinute: 0,
+    endHour: 12,
+    endMinute: 0,
+    location: 'LT-01 (Lecture Theatre 1)',
+    enrolledCount: 40,
+    sessionType: 'Lecture & Live Demo',
+    batch: '2022/2023',
+  },
+  {
+    id: 'cls-2',
+    subjectCode: 'SWT22022',
+    subjectName: 'Software Engineering & Architecture',
+    timeslot: '02:00 PM - 04:00 PM',
+    startHour: 14,
+    startMinute: 0,
+    endHour: 16,
+    endMinute: 0,
+    location: 'ICT Lab 02',
+    enrolledCount: 45,
+    sessionType: 'Hands-on Lab Session',
+    batch: '2021/2022',
+  },
+];
+
+export const INITIAL_STATS = {
+  totalStudents: 120,
+  totalStudentsGrowth: '+8 this semester',
+  assignedSubjects: 3,
+  assignedSubjectsSub: 'Current Semester',
+  todayClasses: 2,
+  todayClassesSub: 'Next: 10:00 AM',
+  pendingAttendance: 3,
+  pendingAttendanceSub: 'Requires attention',
+  medicalRequests: 5,
+  medicalRequestsSub: 'Pending review',
+  pendingCAESA: 2,
+  pendingCAESASub: 'Needs completion',
+};
+
+// Realistic enrolled student cohort
+export const ENROLLED_STUDENTS = [
+  { regNo: '22ICT001', name: 'A.B.M. Rifnas', attendanceRate: 92, ca1: 85, ca2: 88, esa: 82, present: true },
+  { regNo: '22ICT005', name: 'M.N.F. Nuha', attendanceRate: 88, ca1: 78, ca2: 82, esa: 80, present: true },
+  { regNo: '22ICT012', name: 'S. Kaveen', attendanceRate: 76, ca1: 65, ca2: 70, esa: 68, present: false },
+  { regNo: '22ICT018', name: 'R. Mohamed Akram', attendanceRate: 84, ca1: 72, ca2: 75, esa: 74, present: true },
+  { regNo: '22ICT024', name: 'P. Danushan', attendanceRate: 68, ca1: 52, ca2: 58, esa: 55, present: false },
+  { regNo: '22ICT031', name: 'T. Nilaxshan', attendanceRate: 94, ca1: 91, ca2: 95, esa: 92, present: true },
+  { regNo: '22ICT041', name: 'A.R. Fathima', attendanceRate: 72, ca1: 60, ca2: 64, esa: 62, present: true },
+  { regNo: '22ICT053', name: 'K. Logesh', attendanceRate: 80, ca1: 70, ca2: 74, esa: 71, present: true },
+  { regNo: '22ICT062', name: 'H.M. Ashfaq', attendanceRate: 64, ca1: 45, ca2: 50, esa: 48, present: false },
+  { regNo: '22ICT075', name: 'V. Keerthana', attendanceRate: 90, ca1: 86, ca2: 90, esa: 88, present: true },
+  { regNo: '22ICT085', name: 'M.N.M. Afnan', attendanceRate: 96, ca1: 94, ca2: 96, esa: 95, present: true },
+  { regNo: '22ICT091', name: 'Bin Mushan', attendanceRate: 92, ca1: 89, ca2: 92, esa: 90, present: true },
+];
+
+export const INITIAL_ANNOUNCEMENTS = [
+  {
+    id: 'ann-1',
+    title: 'Mid-Semester CA 02 Assessment Schedule & Submission Guidelines',
+    message: 'Please take note that CA 02 Project Demonstrations for SWT22022 will be held during the laboratory session next Monday. Ensure your Git repository links and architectural diagrams are updated before 8:00 AM.',
+    targetAudience: 'SWT22022',
+    priority: 'High',
+    isDraft: false,
+    author: 'Dr. K. Perera',
+    date: '2026-10-28',
+    timestamp: '2 days ago',
+  },
+  {
+    id: 'ann-2',
+    title: 'Faculty Guidelines on Medical Submissions for Missed Lab Sessions',
+    message: 'Students who missed mandatory lab sessions due to illness must submit their certified medical slips through the SEUconnect portal within 7 days of absence. Offline submissions will no longer be considered by the department.',
+    targetAudience: 'All Students',
+    priority: 'Normal',
+    isDraft: false,
+    author: 'Dr. K. Perera',
+    date: '2026-10-25',
+    timestamp: '5 days ago',
+  },
+  {
+    id: 'ann-3',
+    title: 'Draft - Revision Lecture for Data Structures & Algorithms',
+    message: 'Revision lecture will cover AVL trees, graph traversal algorithms, and dynamic programming examples. Classroom LT-01 reserved.',
+    targetAudience: 'SWT21022',
+    priority: 'Normal',
+    isDraft: true,
+    author: 'Dr. K. Perera',
+    date: '2026-10-30',
+    timestamp: 'Draft saved today',
+  },
+];
+
+export const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'notif-1',
+    category: 'Medical requests',
+    title: '5 Student Medical Submissions Pending Verification',
+    message: 'Medical certificates submitted for SWT22022 and SWT21032 lecture absences await your verification before forwarding to the HOD.',
+    timestamp: '15 mins ago',
+    isRead: false,
+    priority: 'High',
+  },
+  {
+    id: 'notif-2',
+    category: 'Missing CA marks',
+    title: 'CA 02 Submission Deadline Approaching',
+    message: 'Continuous assessment CA 02 marks for SWT21032 (Web Application Development) are due within 48 hours for moderation.',
+    timestamp: '2 hours ago',
+    isRead: false,
+    priority: 'High',
+  },
+  {
+    id: 'notif-3',
+    category: 'Attendance reminders',
+    title: 'Pending Attendance Submission',
+    message: 'Attendance record for SWT21022 (Data Structures & Algorithms - Friday Lab) has not been confirmed yet.',
+    timestamp: '1 day ago',
+    isRead: false,
+    priority: 'Normal',
+  },
+  {
+    id: 'notif-4',
+    category: 'Student requests',
+    title: 'Repeat Examination Verification Request',
+    message: 'Student A.R. Fathima (22ICT041) has filed a candidacy recommendation for SWT22022 repeat examination.',
+    timestamp: '2 days ago',
+    isRead: true,
+    priority: 'Normal',
+  },
+  {
+    id: 'notif-5',
+    category: 'Departmental',
+    title: 'Curriculum Moderation Meeting Notice',
+    message: 'Department of ICT quarterly academic staff meeting scheduled for Thursday at 02:00 PM in the Faculty Boardroom.',
+    timestamp: '3 days ago',
+    isRead: true,
+    priority: 'Normal',
+  },
+];
+
+/**
+ * Grade Calculator according to SEUSL Official Scale:
+ * A+ (85+), A (78+), A- (72+), B+ (67+), B (61+), B- (56+),
+ * C+ (51+), C (47+), C- (42+), D (37+), E (<37)
+ */
+export const calculateSEUSLGrade = (score) => {
+  const num = Number(score);
+  if (isNaN(num)) return '-';
+  if (num >= 85) return { grade: 'A+', gpa: 4.0, remark: 'Distinction' };
+  if (num >= 78) return { grade: 'A', gpa: 4.0, remark: 'Excellent' };
+  if (num >= 72) return { grade: 'A-', gpa: 3.7, remark: 'Very Good' };
+  if (num >= 67) return { grade: 'B+', gpa: 3.3, remark: 'Good' };
+  if (num >= 61) return { grade: 'B', gpa: 3.0, remark: 'Satisfactory' };
+  if (num >= 56) return { grade: 'B-', gpa: 2.7, remark: 'Pass' };
+  if (num >= 51) return { grade: 'C+', gpa: 2.3, remark: 'Pass' };
+  if (num >= 47) return { grade: 'C', gpa: 2.0, remark: 'Pass' };
+  if (num >= 42) return { grade: 'C-', gpa: 1.7, remark: 'Conditional Pass' };
+  if (num >= 37) return { grade: 'D', gpa: 1.0, remark: 'Poor Pass' };
+  return { grade: 'E', gpa: 0.0, remark: 'Fail' };
+};
+
