@@ -198,6 +198,9 @@ export default function HODDashboardOverview({
           <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem', color: '#1e40af', borderColor: '#93c5fd', background: '#eff6ff' }} onClick={() => onNavigate('department_calendar')}>
             📅 Department Academic Calendar (5 Batches)
           </button>
+          <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem', color: '#047857', borderColor: '#a7f3d0', background: '#ecfdf5' }} onClick={() => onNavigate('department_timetable')}>
+            ⏰ Batch Timetable
+          </button>
           <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem' }} onClick={() => onNavigate('attendance_audit')}>
             📊 Attendance Audit
           </button>
