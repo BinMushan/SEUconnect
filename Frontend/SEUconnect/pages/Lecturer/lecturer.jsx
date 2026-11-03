@@ -363,7 +363,7 @@ export default function Lecturer({ user, onLogout }) {
         greetingText={`Good Morning, ${INITIAL_LECTURER_INFO.fullName}`}
         metaItems={LECTURER_META_CHIPS}
         navSections={LECTURER_NAV_SECTIONS}
-        heroActions={lecturerHeroActions}
+        actionButtons={lecturerHeroActions}
         notificationCount={unreadNotifCount}
         searchPlaceholder="Quick search modules (e.g. 'Attendance', 'CA', 'Results', 'Announcements')..."
         onSearch={handleDynamicSearch}
