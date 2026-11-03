@@ -112,6 +112,10 @@ export default function MySubjects({ onNavigateModule, onShowToast }) {
               onViewAssessments={(code) => {
                 onNavigateModule('ca-esa', { subjectCode: code });
               }}
+              onViewStudentDetails={(code) => {
+                if (onShowToast) onShowToast(`Opening registered student list for ${code}`, 'info');
+                onNavigateModule('enrollment', { subjectCode: code });
+              }}
             />
           ))
         )}
@@ -131,4 +135,3 @@ export default function MySubjects({ onNavigateModule, onShowToast }) {
     </div>
   );
 }
-

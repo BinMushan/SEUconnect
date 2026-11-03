@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ConfirmModal from './components/ConfirmModal.jsx';
-import { INITIAL_SUBJECTS, ENROLLED_STUDENTS, calculateSEUSLGrade } from './lecturerMockData.js';
+import { INITIAL_SUBJECTS, ENROLLED_STUDENTS, calculateSEUSLGrade, getStoredCustomCAs, getStoredMarks } from './lecturerMockData.js';
 
 /**
  * Results component
@@ -66,15 +66,29 @@ export default function Results({ initialSubjectCode = 'SWT22022', onShowToast }
   const [lifecycleStatus, setLifecycleStatus] = useState('Draft'); // 'Draft', 'Submitted', 'Finalized'
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Student scores table
+  // Student scores table (dynamically incorporates all default and custom CAs)
   const [studentGrades, setStudentGrades] = useState(() => {
+    const customCAs = getStoredCustomCAs();
+    const storedMarks = getStoredMarks();
     return ENROLLED_STUDENTS.map((st) => {
-      // Calculate composite mark: 40% CA average + 60% ESA
-      const caAvg = ((st.ca1 || 0) + (st.ca2 || 0)) / 2;
-      const compositeMark = Math.round(caAvg * 0.4 + (st.esa || 0) * 0.6);
+      const caKeys = ['ca1', 'ca2', ...customCAs.map((c) => c.id)];
+      let caSum = 0;
+      let caCount = 0;
+      caKeys.forEach((k) => {
+        const val = storedMarks?.[st.regNo]?.[k] ?? st[k];
+        if (val !== undefined && val !== '' && !isNaN(Number(val))) {
+          caSum += Number(val);
+          caCount++;
+        }
+      });
+      const caAvg = caCount > 0 ? caSum / caCount : ((st.ca1 || 0) + (st.ca2 || 0)) / 2;
+      const esaVal = Number(storedMarks?.[st.regNo]?.esa ?? st.esa ?? 0);
+      const compositeMark = Math.round(caAvg * 0.4 + esaVal * 0.6);
       const gradeObj = calculateSEUSLGrade(compositeMark);
       return {
         ...st,
+        caAvg: Math.round(caAvg * 10) / 10,
+        esa: esaVal,
         compositeMark,
         grade: gradeObj.grade,
         gpa: gradeObj.gpa,
@@ -423,7 +437,7 @@ export default function Results({ initialSubjectCode = 'SWT22022', onShowToast }
                     <td>
                       <span className="lec-student-name">{st.name}</span>
                     </td>
-                    <td>{Math.round(((st.ca1 || 0) + (st.ca2 || 0)) / 2)} / 100</td>
+                    <td>{st.caAvg !== undefined ? st.caAvg : Math.round(((st.ca1 || 0) + (st.ca2 || 0)) / 2)} / 100</td>
                     <td>{st.esa} / 100</td>
                     <td>
                       <div className="lec-score-input-wrap">
