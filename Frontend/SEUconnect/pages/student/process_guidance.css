@@ -152,16 +152,9 @@
    ========================================================================== */
 .proc-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.35rem;
   align-items: stretch;
-}
-
-@media (max-width: 960px) {
-  .proc-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
 }
 
 .proc-card {
@@ -188,6 +181,25 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.85rem;
+  gap: 0.5rem;
+}
+
+.proc-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.proc-card-code-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-family: monospace;
 }
 
 .proc-category-badge {
@@ -253,12 +265,13 @@
 .proc-card-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.15rem;
+  gap: 0.65rem;
+  padding: 0.9rem 1.1rem;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #f1f5f9;
   border-radius: 10px;
-  margin-bottom: 1.35rem;
+  margin-top: auto;
+  margin-bottom: 1.15rem;
 }
 
 .proc-meta-row {

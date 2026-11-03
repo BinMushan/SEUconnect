@@ -86,6 +86,10 @@ export default function Student({ user, onLogout }) {
     window.addEventListener('hashchange', handleHashSync);
     return () => window.removeEventListener('hashchange', handleHashSync);
   }, []);
+    // Scroll to top whenever active tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeTab]);
   const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(4); // Default to Semester 5 (current)
