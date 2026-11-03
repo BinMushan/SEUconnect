@@ -60,8 +60,10 @@ export default function StudentManagement({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Active Batch for Modal Operations
-  const activeBatch = batches.find((b) => b.id === (targetBatchId || selectedBatch?.id)) || selectedBatch || batches[batches.length - 1] || {
+  // Active Target Batch for Modal Operations (default to Freshers intake e.g. Batch 05)
+  const defaultBatch = selectedBatch || batches.find((b) => b.status?.includes('Freshers')) || batches[batches.length - 1] || batches[0];
+  const activeTargetBatchId = targetBatchId || defaultBatch?.id || 'BATCH-05';
+  const activeBatch = batches.find((b) => b.id === activeTargetBatchId) || defaultBatch || {
     id: 'BATCH-05',
     code: 'B05',
     name: 'Batch 05 (2024/2025)',
@@ -230,10 +232,10 @@ export default function StudentManagement({
         programme: 'BICT (Hons)',
         department: 'Department of Information & Communication Technology',
         semester: startingSem,
-        cgpa: 3.50,
-        sgpa: 3.50,
+        cgpa: 0.00,
+        sgpa: 0.00,
         credits: 0,
-        attendance: 100,
+        attendance: 0,
         email: `seu${prefix}ict${numStr}@seu.ac.lk`,
         phone: `+94 77 ${Math.floor(1000000 + (i * 71329) % 9000000)}`,
         status: 'Active',
@@ -258,10 +260,10 @@ export default function StudentManagement({
         programme: 'BST (Hons)',
         department: 'Department of Bio Systems Technology',
         semester: startingSem,
-        cgpa: 3.50,
-        sgpa: 3.50,
+        cgpa: 0.00,
+        sgpa: 0.00,
         credits: 0,
-        attendance: 100,
+        attendance: 0,
         email: `seu${prefix}bst${numStr}@seu.ac.lk`,
         phone: `+94 71 ${Math.floor(1000000 + (i * 84913) % 9000000)}`,
         status: 'Active',
@@ -273,7 +275,7 @@ export default function StudentManagement({
 
     setBulkParsedStudents(roster);
     setBulkError('');
-    setBulkSuccessMsg(`Generated official intake roster: 240 undergraduates (120 BICT + 120 BST) for ${currentBatch.name}.`);
+    setBulkSuccessMsg(`Generated official intake roster: 240 undergraduates (120 BICT + 120 BST) with initial Freshers GPA 0.00 for ${currentBatch.name}.`);
   };
 
   // Process File Upload (CSV, TXT, Excel Comma Separated)
@@ -358,10 +360,10 @@ export default function StudentManagement({
             programme,
             department,
             semester,
-            cgpa: 3.50,
-            sgpa: 3.50,
+            cgpa: 0.00,
+            sgpa: 0.00,
             credits: 0,
-            attendance: 100,
+            attendance: 0,
             email: email.toLowerCase(),
             phone,
             status: 'Active',
@@ -455,10 +457,10 @@ export default function StudentManagement({
       programme: newProgramme,
       department: newDepartment,
       semester: newSemester,
-      cgpa: 3.50,
-      sgpa: 3.50,
+      cgpa: 0.00,
+      sgpa: 0.00,
       credits: 0,
-      attendance: 100,
+      attendance: 0,
       email: newEmail.trim().toLowerCase(),
       phone: newPhone.trim() || '+94 77 000 0000',
       status: 'Active',
@@ -669,13 +671,14 @@ export default function StudentManagement({
                     </span>
                   </div>
 
-                  <div className="adm-batch-dept-tags">
-                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Departments:</span>
-                    {batch.departments.map((dept) => (
-                      <span key={dept} className="adm-batch-dept-pill">
-                        {dept}
-                      </span>
-                    ))}
+                  <div className="adm-batch-dept-tags" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>2 Departments:</span>
+                    <span className="adm-batch-dept-pill" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                      BICT ({batch.ictStudents || 120})
+                    </span>
+                    <span className="adm-batch-dept-pill" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
+                      BST ({batch.bstStudents || 120})
+                    </span>
                   </div>
 
                   <div className="adm-batch-metrics">
@@ -684,8 +687,14 @@ export default function StudentManagement({
                       <span className="adm-batch-metric-lbl">Students</span>
                     </div>
                     <div className="adm-batch-metric-box">
-                      <span className="adm-batch-metric-val">{batch.avgCgpa > 0 ? batch.avgCgpa.toFixed(2) : '3.35'}</span>
-                      <span className="adm-batch-metric-lbl">Avg CGPA</span>
+                      <span className="adm-batch-metric-val">
+                        {batch.currentSemester?.includes('Freshers') || batch.avgCgpa === 0
+                          ? '0.00'
+                          : (batch.avgCgpa ? batch.avgCgpa.toFixed(2) : '0.00')}
+                      </span>
+                      <span className="adm-batch-metric-lbl">
+                        {batch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
+                      </span>
                     </div>
                     <div className="adm-batch-metric-box">
                       <span className="adm-batch-metric-val">{batch.attendanceRate}%</span>
@@ -784,6 +793,8 @@ export default function StudentManagement({
                 <span>Current Term: <strong>{selectedBatch.currentSemester}</strong></span>
                 <span>•</span>
                 <span>Coordinator: <strong>{selectedBatch.coordinator}</strong></span>
+                <span>•</span>
+                <span style={{ color: '#f59e0b', fontWeight: 600 }}>2 Departments: 120 BICT + 120 BST (240 Capacity)</span>
               </div>
             </div>
 
@@ -794,9 +805,13 @@ export default function StudentManagement({
               </div>
               <div className="adm-batch-hero-stat-box">
                 <div className="adm-batch-hero-stat-val">
-                  {selectedBatch.avgCgpa > 0 ? selectedBatch.avgCgpa.toFixed(2) : '3.35'}
+                  {selectedBatch.currentSemester?.includes('Freshers') || selectedBatch.avgCgpa === 0
+                    ? '0.00'
+                    : (selectedBatch.avgCgpa ? selectedBatch.avgCgpa.toFixed(2) : '0.00')}
                 </div>
-                <div className="adm-batch-hero-stat-lbl">Avg CGPA</div>
+                <div className="adm-batch-hero-stat-lbl">
+                  {selectedBatch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
+                </div>
               </div>
               <div className="adm-batch-hero-stat-box">
                 <div className="adm-batch-hero-stat-val">{selectedBatch.attendanceRate}%</div>
@@ -1474,12 +1489,12 @@ export default function StudentManagement({
                       <label className="adm-label">Target Intake Batch *</label>
                       <select
                         className="adm-input"
-                        value={targetBatchId || activeBatch.id}
+                        value={activeTargetBatchId}
                         onChange={(e) => setTargetBatchId(e.target.value)}
                       >
                         {batches.map((b) => (
                           <option key={b.id} value={b.id}>
-                            {b.name} ({b.academicYear}) &bull; {b.currentSemester} &bull; Capacity: 240 Students
+                            {b.name} &bull; {b.currentSemester} &bull; 2 Depts: 120 BICT + 120 BST (240 Students)
                           </option>
                         ))}
                       </select>
@@ -1630,7 +1645,7 @@ export default function StudentManagement({
                     <select
                       className="adm-input"
                       style={{ padding: '0.4rem 0.65rem', fontSize: '0.8rem', height: 'auto' }}
-                      value={targetBatchId || activeBatch.id}
+                      value={activeTargetBatchId}
                       onChange={(e) => {
                         const newId = e.target.value;
                         setTargetBatchId(newId);
@@ -1644,7 +1659,7 @@ export default function StudentManagement({
                     >
                       {batches.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.name} ({b.academicYear}) &bull; {b.currentSemester}
+                          {b.name} &bull; {b.currentSemester} &bull; 2 Depts: 120 BICT + 120 BST (240 Students)
                         </option>
                       ))}
                     </select>
@@ -1717,7 +1732,7 @@ export default function StudentManagement({
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2">
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                     </svg>
-                    Load 240 Students Roster (120 BICT + 120 BST)
+                    Load 240 Freshers Roster (120 BICT + 120 BST • GPA 0.00)
                   </button>
                 </div>
 
@@ -1819,13 +1834,13 @@ export default function StudentManagement({
                         Total Ready: {bulkParsedStudents.length} Students
                       </span>
                       <span className="adm-bulk-chip" style={{ background: '#eff6ff', color: '#2563eb' }}>
-                        BICT Department: {bulkParsedStudents.filter((s) => s.department.includes('Information') || s.programme.includes('BICT')).length} Undergraduates
+                        Dept 1 (BICT): {bulkParsedStudents.filter((s) => s.department.includes('Information') || s.programme.includes('BICT')).length} Undergraduates
                       </span>
                       <span className="adm-bulk-chip" style={{ background: '#f0fdf4', color: '#15803d' }}>
-                        BST Department: {bulkParsedStudents.filter((s) => s.department.includes('Bio') || s.programme.includes('BST')).length} Undergraduates
+                        Dept 2 (BST): {bulkParsedStudents.filter((s) => s.department.includes('Bio') || s.programme.includes('BST')).length} Undergraduates
                       </span>
                       <span className="adm-bulk-chip" style={{ background: '#fef3c7', color: '#92400e' }}>
-                        Format: SEU/IS/YY/DEPT/XXX
+                        Freshers Metrics: GPA 0.00 &bull; Credits: 0
                       </span>
                     </div>
 
@@ -1860,6 +1875,8 @@ export default function StudentManagement({
                             <th>Programme</th>
                             <th>Email Address</th>
                             <th>Starting Sem</th>
+                            <th>GPA</th>
+                            <th>Credits</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1891,6 +1908,12 @@ export default function StudentManagement({
                                 <td style={{ color: '#64748b' }}>{stu.programme}</td>
                                 <td style={{ color: '#64748b' }}>{stu.email}</td>
                                 <td>{stu.semester}</td>
+                                <td>
+                                  <span style={{ fontWeight: 700, color: '#0f172a' }}>
+                                    {stu.cgpa.toFixed(2)}
+                                  </span>
+                                </td>
+                                <td style={{ color: '#64748b' }}>{stu.credits}</td>
                               </tr>
                             ))}
                         </tbody>
