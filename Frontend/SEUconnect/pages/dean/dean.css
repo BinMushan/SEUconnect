@@ -1511,3 +1511,87 @@
   color: #16a34a;
   font-weight: 700;
 }
+
+/* Batch Breakdown Card in Dean Executive Office */
+.dean-batch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dean-batch-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.dean-batch-item-row:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.dean-batch-item-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.dean-batch-item-name {
+  font-weight: 700;
+  color: #0f2b5c;
+  font-size: 0.82rem;
+}
+
+.dean-batch-item-year {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.dean-batch-counts-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dean-batch-dept-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.dean-batch-dept-chip.ict {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.dean-batch-dept-chip.bst {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.dean-batch-total-chip {
+  font-weight: 800;
+  color: #0f172a;
+  min-width: 28px;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.dean-batch-card-summary {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: #eff6ff;
+  border: 1px dashed #93c5fd;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
