@@ -9,15 +9,25 @@ export default function SAR({ user, onLogout }) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeNav, setActiveNav] = useState('dashboard');
   
+  // Active Workflow Inbox Selection
+  // 'inbox_eca', 'inbox_esa', 'inbox_exam_forms', 'inbox_exam_medicals',
+  // 'inbox_exam_branch_forward', 'inbox_admission_processing', 'inbox_returned', 'inbox_completed'
+  const [selectedInbox, setSelectedInbox] = useState('inbox_eca');
+
   // Filters & Search
   const [deptFilter, setDeptFilter] = useState('all'); // 'all', 'bst', 'ict'
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [actionCategory, setActionCategory] = useState('all');
   const [notifFilter, setNotifFilter] = useState('all'); // 'all', 'unread'
   const [reportDateRange, setReportDateRange] = useState('all');
+
+  // Form Availability State (SAR Managed)
+  const [portalAvailability, setPortalAvailability] = useState({
+    eca: { isOpen: true, semester: 'Semester 2', academicYear: '2025/2026', deadline: '2026-11-20T23:59:00Z' },
+    esa: { isOpen: true, semester: 'Semester 2', academicYear: '2025/2026', deadline: '2026-11-25T23:59:00Z' },
+  });
 
   // Modals state
   const [selectedProcess, setSelectedProcess] = useState(null);
@@ -33,17 +43,31 @@ export default function SAR({ user, onLogout }) {
   const [routeDestination, setRouteDestination] = useState('Dean, Faculty of Technology');
   const [routeNote, setRouteNote] = useState('');
 
+  // SAR Special Action Modals
+  const [admissionModalProcess, setAdmissionModalProcess] = useState(null);
+  const [customAdmissionNo, setCustomAdmissionNo] = useState('');
+  const [admissionNotes, setAdmissionNotes] = useState('');
+
+  const [senateModalProcess, setSenateModalProcess] = useState(null);
+  const [senateTrackingNo, setSenateTrackingNo] = useState('');
+  const [senateNote, setSenateNote] = useState('');
+
+  const [deptListModal, setDeptListModal] = useState(false);
+  const [deptListSelected, setDeptListSelected] = useState('Department of Information and Communication Technology');
+  const [deptListNote, setDeptListNote] = useState('');
+
   const sarName = user?.name || 'Mr. K.L.M. Riyas';
   const sarDesignation = user?.designation || 'Senior Assistant Registrar (SAR)';
   const sarStaffId = user?.staffId || 'STAFF-SAR-001';
 
-  // Load processes and notifications
+  // Load processes, notifications, and form availability
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [procRes, notifRes] = await Promise.all([
+      const [procRes, notifRes, availRes] = await Promise.all([
         api.getProcesses(),
         api.getNotifications('sar').catch(() => ({ data: [] })),
+        api.getFormAvailability().catch(() => null),
       ]);
 
       if (procRes && procRes.data) {
@@ -51,6 +75,9 @@ export default function SAR({ user, onLogout }) {
       }
       if (notifRes && notifRes.data) {
         setNotifications(notifRes.data);
+      }
+      if (availRes && availRes.data) {
+        setPortalAvailability(availRes.data);
       }
     } catch (err) {
       console.warn('Error loading SAR data:', err);
@@ -68,18 +95,27 @@ export default function SAR({ user, onLogout }) {
     const hash = (window.location.hash || '').replace('#', '').toLowerCase();
     if (hash.startsWith('sar/')) {
       const sub = hash.replace('sar/', '');
-      if (['dashboard', 'monitoring', 'pending_actions', 'faculty_records', 'reports', 'notifications'].includes(sub)) {
+      if (['dashboard', 'inboxes', 'monitoring', 'pending_actions', 'portal_management', 'faculty_records', 'reports', 'notifications'].includes(sub)) {
         setActiveNav(sub);
+      } else if (sub.startsWith('inbox_')) {
+        setActiveNav('inboxes');
+        setSelectedInbox(sub);
       }
     }
   }, []);
 
   const handleNavigate = (id) => {
-    setActiveNav(id);
-    window.location.hash = `#sar/${id}`;
+    if (id.startsWith('inbox_')) {
+      setActiveNav('inboxes');
+      setSelectedInbox(id);
+      window.location.hash = `#sar/${id}`;
+    } else {
+      setActiveNav(id);
+      window.location.hash = `#sar/${id}`;
+    }
   };
 
-  // Helper: Department classifier
+  // Department classifiers
   const isBST = (p) => {
     const dept = (p.student?.department || '').toLowerCase();
     const prog = (p.student?.programme || '').toLowerCase();
@@ -100,30 +136,138 @@ export default function SAR({ user, onLogout }) {
     return 'FOT';
   };
 
-  // Dynamic Metrics Calculations (Real DB Values)
+  // Pending duration calculator
+  const getPendingDuration = (dateStr) => {
+    if (!dateStr) return 'Just now';
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} pending`;
+  };
+
+  // Form type display label
+  const getFormTypeLabel = (type) => {
+    switch (type) {
+      case 'eca_application':
+        return 'ECA Application (Continuous Assessment)';
+      case 'esa_application':
+        return 'ESA Application (End Semester Exam)';
+      case 'exam_form':
+        return 'Examination Form (Official Entry)';
+      case 'exam_medical':
+        return 'Examination Medical Form';
+      case 'subject_medical':
+        return 'Subject Medical Form';
+      case 'repeat_exam':
+        return 'Repeat Exam Registration';
+      case 'medical_excuse':
+        return 'Medical Excuse Form';
+      default:
+        return (type || 'Application').replace('_', ' ').toUpperCase();
+    }
+  };
+
+  // =========================================================================
+  // THE 8 WORKFLOW INBOXES (Dynamic Database Calculations)
+  // =========================================================================
+  // 1. ECA Applications - Awaiting SAR Review
+  const ecaInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.type === 'eca_application' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Review')
+    );
+  }, [processes]);
+
+  // 2. ESA Applications - Awaiting SAR Review (Independent from ECA)
+  const esaInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.type === 'esa_application' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Review')
+    );
+  }, [processes]);
+
+  // 3. Examination Forms - Awaiting SAR Verification (HOD approved)
+  const examFormsInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.type === 'exam_form' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Verification')
+    );
+  }, [processes]);
+
+  // 4. Examination Medical Forms - Awaiting SAR Administrative Action (Faculty Board MA / Dean Office stage)
+  const examMedicalsInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.type === 'exam_medical' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Action')
+    );
+  }, [processes]);
+
+  // 5. Examination Branch Forwarding Queue
+  const examBranchForwardInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.currentAssignedRole === 'examination' || p.status === 'Pending Examination Branch'
+    );
+  }, [processes]);
+
+  // 6. Examination Admission Processing (Dean Office Admission & Senate copy)
+  const admissionProcessingInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.type === 'exam_form' && (p.status === 'Admission Generated' || p.admissionDetails?.admissionNo || p.currentStageIndex >= 4)
+    );
+  }, [processes]);
+
+  // 7. Returned Applications
+  const returnedInbox = useMemo(() => {
+    return processes.filter(
+      (p) => p.status === 'Returned for Correction' || p.status === 'Declined' || p.auditLog?.some((l) => l.action === 'RETURNED_BY_SAR' || l.action === 'CORRECTION_REQUESTED')
+    );
+  }, [processes]);
+
+  // 8. Completed Applications
+  const completedInbox = useMemo(() => {
+    return processes.filter((p) => p.status === 'Approved');
+  }, [processes]);
+
+  // Array of Inboxes Definition
+  const inboxesList = [
+    { id: 'inbox_eca', label: '1. ECA Applications', title: 'ECA Applications - Awaiting SAR Review', list: ecaInbox, badgeColor: '#3b82f6', desc: 'Verify CA repeat payment receipts and forward to Examination Branch' },
+    { id: 'inbox_esa', label: '2. ESA Applications', title: 'ESA Applications - Awaiting SAR Review', list: esaInbox, badgeColor: '#8b5cf6', desc: 'Verify ESA repeat payment receipts and forward to Examination Branch' },
+    { id: 'inbox_exam_forms', label: '3. Examination Forms', title: 'Examination Forms - Awaiting SAR Verification', list: examFormsInbox, badgeColor: '#0284c7', desc: 'Administrative verification of HOD-approved examination forms' },
+    { id: 'inbox_exam_medicals', label: '4. Exam Medical Forms', title: 'Examination Medical Forms - Awaiting SAR Administrative Action', list: examMedicalsInbox, badgeColor: '#e11d48', desc: 'Faculty Board MA / Dean Office approval stage (SAR Authorized)' },
+    { id: 'inbox_exam_branch_forward', label: '5. Exam Branch Forwarding', title: 'Examination Branch Forwarding Queue', list: examBranchForwardInbox, badgeColor: '#f59e0b', desc: 'Applications verified by SAR and queued for Examination Branch' },
+    { id: 'inbox_admission_processing', label: '6. Admission Processing', title: 'Examination Admission Processing (Dean Office Admission & Senate)', list: admissionProcessingInbox, badgeColor: '#10b981', desc: 'Process official Dean Office Admission (Examination Section) and Senate copies' },
+    { id: 'inbox_returned', label: '7. Returned Applications', title: 'Returned Applications (Corrections Flagged)', list: returnedInbox, badgeColor: '#ef4444', desc: 'Applications returned to candidate or coordinator with deficiency notices' },
+    { id: 'inbox_completed', label: '8. Completed Applications', title: 'Completed Applications Ledger', list: completedInbox, badgeColor: '#059669', desc: 'Finalized examinations, approved admissions, and archived Senate copies' },
+  ];
+
+  // Currently displayed inbox items
+  const currentInboxDef = inboxesList.find((i) => i.id === selectedInbox) || inboxesList[0];
+  const currentInboxItems = useMemo(() => {
+    let items = currentInboxDef.list || [];
+    if (deptFilter === 'bst') items = items.filter(isBST);
+    if (deptFilter === 'ict') items = items.filter(isICT);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      items = items.filter(
+        (p) =>
+          (p.trackingNumber || '').toLowerCase().includes(q) ||
+          (p.title || '').toLowerCase().includes(q) ||
+          (p.student?.name || '').toLowerCase().includes(q) ||
+          (p.student?.regNo || '').toLowerCase().includes(q)
+      );
+    }
+    return items;
+  }, [currentInboxDef, deptFilter, searchQuery]);
+
+  // Overall metrics
   const totalCount = processes.length;
   const pendingAdminReview = processes.filter(
-    (p) => (p.status === 'Pending Lecturer' || p.status === 'Draft' || p.currentAssignedRole === 'sar') && p.status !== 'Approved' && p.status !== 'Declined'
+    (p) => (p.status === 'Pending Lecturer' || p.status === 'Draft' || p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Review' || p.status === 'Pending SAR Verification' || p.status === 'Pending SAR Action') && p.status !== 'Approved' && p.status !== 'Declined'
   );
   const awaitingDean = processes.filter(
     (p) => (p.status === 'Pending Dean' || p.currentAssignedRole === 'dean') && p.status !== 'Approved' && p.status !== 'Declined'
   );
-  const returnedCorrections = processes.filter((p) => {
-    const hasCorrectionLog = p.auditLog?.some((l) => l.action === 'CORRECTION_REQUESTED' || l.comment?.includes('CORRECTION'));
-    return p.status === 'Declined' || hasCorrectionLog;
-  });
   const approvedRequests = processes.filter((p) => p.status === 'Approved');
-  
-  // Recently completed (approved or declined in the past 30 days)
-  const recentlyCompleted = processes.filter((p) => {
-    if (p.status !== 'Approved' && p.status !== 'Declined') return false;
-    const date = new Date(p.approvalDetails?.approvedAt || p.declineDetails?.declinedAt || p.updatedAt);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return date >= thirtyDaysAgo;
-  });
 
-  // Department-wise Calculations
+  // Department metrics
   const bstProcesses = useMemo(() => processes.filter(isBST), [processes]);
   const ictProcesses = useMemo(() => processes.filter(isICT), [processes]);
 
@@ -178,75 +322,26 @@ export default function SAR({ user, onLogout }) {
     }
   };
 
-  // Filtered processes for Administrative Monitoring
-  const filteredProcesses = useMemo(() => {
-    return processes
-      .filter((p) => {
-        // Department Filter
-        if (deptFilter === 'bst' && !isBST(p)) return false;
-        if (deptFilter === 'ict' && !isICT(p)) return false;
+  // =========================================================================
+  // SAR ACTIONS & WORKFLOW HANDLERS
+  // =========================================================================
 
-        // Type Filter
-        if (typeFilter !== 'all' && p.type !== typeFilter) return false;
-
-        // Status Filter
-        if (statusFilter === 'pending' && (p.status === 'Approved' || p.status === 'Declined')) return false;
-        if (statusFilter === 'approved' && p.status !== 'Approved') return false;
-        if (statusFilter === 'declined' && p.status !== 'Declined') return false;
-        if (statusFilter === 'awaiting_dean' && p.status !== 'Pending Dean') return false;
-
-        // Search Query
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase().trim();
-          const matchTrack = (p.trackingNumber || '').toLowerCase().includes(q);
-          const matchTitle = (p.title || '').toLowerCase().includes(q);
-          const matchStudent = (p.student?.name || '').toLowerCase().includes(q);
-          const matchReg = (p.student?.regNo || '').toLowerCase().includes(q);
-          const matchReason = (p.details?.reason || '').toLowerCase().includes(q);
-          return matchTrack || matchTitle || matchStudent || matchReg || matchReason;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'newest') return new Date(b.createdAt || b.updatedAt) - new Date(a.createdAt || a.updatedAt);
-        if (sortBy === 'oldest') return new Date(a.createdAt || a.updatedAt) - new Date(b.createdAt || b.updatedAt);
-        if (sortBy === 'priority') {
-          const prioScore = { High: 3, Urgent: 3, Standard: 1 };
-          return (prioScore[b.priority] || 1) - (prioScore[a.priority] || 1);
-        }
-        return 0;
+  // 1. Verify & Forward to Examination Branch (Permitted SAR Action)
+  const handleVerifyAndForward = async (processToForward) => {
+    if (!processToForward) return;
+    try {
+      await api.sarVerifyAndForward(processToForward.trackingNumber || processToForward._id, {
+        actorName: sarName,
+        remarks: 'Payment receipt and supporting documents verified complete. Forwarded to Examination Branch.',
       });
-  }, [processes, deptFilter, typeFilter, statusFilter, searchQuery, sortBy]);
+      alert(`Application ${processToForward.trackingNumber} verified and forwarded to Examination Branch!`);
+      await loadData();
+    } catch (err) {
+      alert('Error verifying and forwarding: ' + err.message);
+    }
+  };
 
-  // Filtered for Pending Administrative Actions section
-  const actionProcesses = useMemo(() => {
-    return processes.filter((p) => {
-      if (deptFilter === 'bst' && !isBST(p)) return false;
-      if (deptFilter === 'ict' && !isICT(p)) return false;
-
-      switch (actionCategory) {
-        case 'newly_submitted':
-          return p.status === 'Pending Lecturer' || p.currentStageIndex === 1;
-        case 'pending_admin':
-          return (p.status === 'Pending Lecturer' || p.status === 'In Progress') && p.status !== 'Approved' && p.status !== 'Declined';
-        case 'awaiting_hod':
-          return p.status === 'Pending HOD' || p.currentAssignedRole === 'hod';
-        case 'endorsed_hod':
-          return p.stages?.some((s) => s.stageKey === 'hod_approval' && s.status === 'COMPLETED');
-        case 'awaiting_dean':
-          return p.status === 'Pending Dean' || p.currentAssignedRole === 'dean';
-        case 'returned_corrections':
-          return p.auditLog?.some((l) => l.action === 'CORRECTION_REQUESTED') || p.status === 'Declined';
-        case 'completed':
-          return p.status === 'Approved';
-        case 'all':
-        default:
-          return true;
-      }
-    });
-  }, [processes, deptFilter, actionCategory]);
-
-  // SAR Actions: Add Administrative Remark
+  // 2. Add Administrative Remark
   const handleSaveRemark = async () => {
     if (!remarkModalProcess || !remarkText.trim()) return;
     try {
@@ -265,7 +360,7 @@ export default function SAR({ user, onLogout }) {
     }
   };
 
-  // SAR Actions: Request Clarification / Return for Corrections
+  // 3. Return for Corrections / Clarification
   const handleRequestClarification = async () => {
     if (!clarifyModalProcess || !clarifyNotes.trim()) return;
     try {
@@ -281,127 +376,82 @@ export default function SAR({ user, onLogout }) {
       setSelectedDeficiencies([]);
       await loadData();
     } catch (err) {
-      alert('Error requesting clarification: ' + err.message);
+      alert('Error returning application: ' + err.message);
     }
   };
 
-  // SAR Actions: Route / Forward Request
-  const handleRouteRequest = async () => {
-    if (!routeModalProcess) return;
+  // 4. Process Dean Office Admission (Examination Section)
+  const handleProcessAdmission = async () => {
+    if (!admissionModalProcess) return;
     try {
-      await api.routeProcess(routeModalProcess.trackingNumber || routeModalProcess._id, {
+      await api.sarProcessAdmission(admissionModalProcess.trackingNumber || admissionModalProcess._id, {
         actorName: sarName,
-        actorRole: 'Senior Assistant Registrar (SAR)',
-        actorEmail: user?.email || 'sar@gmail.com',
-        destinationOfficer: routeDestination,
-        routingNote: routeNote,
+        admissionNo: customAdmissionNo.trim() || undefined,
+        notes: admissionNotes.trim() || undefined,
       });
-      setRouteModalProcess(null);
-      setRouteNote('');
+      alert('Official Dean Office Admission (Examination Section) generated successfully!');
+      setAdmissionModalProcess(null);
+      setCustomAdmissionNo('');
+      setAdmissionNotes('');
       await loadData();
     } catch (err) {
-      alert('Error routing request: ' + err.message);
+      alert('Error processing admission: ' + err.message);
     }
   };
 
-  
-  const quickActions = [
-    {
-      label: 'Review Pending Queue',
-      actionId: 'pending_actions',
-      colorTheme: 'purple',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <path d="m9 15 2 2 4-4" />
-        </svg>
-      )
-    },
-    {
-      label: 'Request Monitoring',
-      actionId: 'monitoring',
-      colorTheme: 'blue',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-          <line x1="8" y1="21" x2="16" y2="21"/>
-          <line x1="12" y1="17" x2="12" y2="21"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Audit Supporting Documents',
-      actionId: 'pending_actions',
-      colorTheme: 'violet',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="9 11 12 14 22 4"/>
-          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Faculty Records Ledger',
-      actionId: 'faculty_records',
-      colorTheme: 'indigo',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-        </svg>
-      )
-    },
-    {
-      label: 'Workflow Analytics & Reports',
-      actionId: 'reports',
-      colorTheme: 'teal',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Department of BST Queue',
-      actionId: 'filter_bst',
-      colorTheme: 'green',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/>
-          <path d="M12 6v6l4 2"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Department of ICT Queue',
-      actionId: 'filter_ict',
-      colorTheme: 'blue',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="4" y="4" width="16" height="16" rx="2" />
-          <rect x="9" y="9" width="6" height="6" />
-          <line x1="9" y1="1" x2="9" y2="4" />
-          <line x1="15" y1="1" x2="15" y2="4" />
-          <line x1="9" y1="20" x2="9" y2="23" />
-          <line x1="15" y1="20" x2="15" y2="23" />
-        </svg>
-      )
-    },
-    {
-      label: 'SAR Notifications',
-      actionId: 'notifications',
-      colorTheme: 'rose',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-      )
+  // 5. Track Senate Copy Preparation
+  const handleTrackSenateCopy = async () => {
+    if (!senateModalProcess) return;
+    try {
+      await api.sarTrackSenateCopy(senateModalProcess.trackingNumber || senateModalProcess._id, {
+        actorName: sarName,
+        trackingNo: senateTrackingNo.trim() || undefined,
+        submissionNote: senateNote.trim() || undefined,
+      });
+      alert('Senate copy preparation and submission recorded!');
+      setSenateModalProcess(null);
+      setSenateTrackingNo('');
+      setSenateNote('');
+      await loadData();
+    } catch (err) {
+      alert('Error recording Senate copy: ' + err.message);
     }
-  ];
+  };
+
+  // 6. Forward Department Examination List
+  const handleForwardDeptList = async () => {
+    try {
+      await api.sarForwardDepartmentList({
+        department: deptListSelected,
+        academicYear: '2025/2026',
+        notes: deptListNote,
+      });
+      alert(`Official examination candidate list for ${deptListSelected} forwarded to HOD & Lecturers.`);
+      setDeptListModal(false);
+      setDeptListNote('');
+    } catch (err) {
+      alert('Error forwarding department list: ' + err.message);
+    }
+  };
+
+  // 7. Toggle ECA / ESA Form Availability Online
+  const handleToggleFormAvailability = async (formType) => {
+    try {
+      const current = portalAvailability[formType];
+      const res = await api.toggleFormAvailability({
+        formType,
+        isOpen: !current?.isOpen,
+      });
+      if (res && res.data) {
+        setPortalAvailability((prev) => ({
+          ...prev,
+          [formType]: res.data,
+        }));
+      }
+    } catch (err) {
+      alert('Error updating portal availability: ' + err.message);
+    }
+  };
 
   // Status Badge Renderer
   const renderStatusBadge = (status) => {
@@ -414,8 +464,17 @@ export default function SAR({ user, onLogout }) {
         return <span className="sar-status-badge sar-status-pending-hod">🏛️ Pending HOD</span>;
       case 'Pending Lecturer':
         return <span className="sar-status-badge sar-status-pending-lecturer">👨‍🏫 Pending Lecturer</span>;
+      case 'Pending SAR Review':
+      case 'Pending SAR Verification':
+      case 'Pending SAR Action':
+        return <span className="sar-status-badge sar-status-pending-sar">🔍 {status}</span>;
+      case 'Pending Examination Branch':
+        return <span className="sar-status-badge sar-status-pending-exam">🚀 To Exam Branch</span>;
+      case 'Admission Generated':
+        return <span className="sar-status-badge sar-status-admission">🎫 Admission Issued</span>;
+      case 'Returned for Correction':
       case 'Declined':
-        return <span className="sar-status-badge sar-status-declined">✕ Returned / Declined</span>;
+        return <span className="sar-status-badge sar-status-declined">✕ Returned / Correction</span>;
       default:
         return <span className="sar-status-badge" style={{ background: '#f1f5f9', color: '#475569' }}>{status}</span>;
     }
@@ -431,12 +490,13 @@ export default function SAR({ user, onLogout }) {
       greetingText={`Welcome, ${sarName}`}
     >
       <div className="sar-portal-container">
+        
         {/* ====================================================================
-            1. TOP 6 SUMMARY METRIC CARDS (Clean Student Portal Style)
+            1. TOP 6 SUMMARY METRIC CARDS (Matches Student .std-stat-card style)
             ==================================================================== */}
         <section className="sar-stats-grid">
           {/* Card 1: Total Requests */}
-          <div className="sar-stat-card">
+          <div className="sar-stat-card" onClick={() => handleNavigate('monitoring')}>
             <div className="sar-stat-icon-wrap sar-stat-icon-blue">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -455,8 +515,12 @@ export default function SAR({ user, onLogout }) {
             </div>
           </div>
 
-          {/* Card 2: Pending Admin Review */}
-          <div className="sar-stat-card" style={pendingAdminReview.length > 0 ? { borderLeft: '4px solid #f59e0b', background: '#fffdfa' } : {}}>
+          {/* Card 2: ECA & ESA Awaiting SAR Review */}
+          <div
+            className="sar-stat-card"
+            style={ecaInbox.length + esaInbox.length > 0 ? { borderLeft: '4px solid #f59e0b', background: '#fffdfa' } : {}}
+            onClick={() => handleNavigate('inbox_eca')}
+          >
             <div className="sar-stat-icon-wrap sar-stat-icon-amber">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -465,92 +529,90 @@ export default function SAR({ user, onLogout }) {
             </div>
             <div className="sar-stat-body">
               <div className="sar-stat-top-row">
-                <span className="sar-stat-title" style={pendingAdminReview.length > 0 ? { color: '#b45309' } : {}}>PENDING REVIEW</span>
-                <span className="sar-stat-badge" style={pendingAdminReview.length > 0 ? { background: '#fef3c7', color: '#b45309', borderColor: '#fde68a' } : {}}>Action Req</span>
+                <span className="sar-stat-title" style={ecaInbox.length + esaInbox.length > 0 ? { color: '#b45309' } : {}}>ECA & ESA REVIEW</span>
+                <span className="sar-stat-badge" style={ecaInbox.length + esaInbox.length > 0 ? { background: '#fef3c7', color: '#b45309', borderColor: '#fde68a' } : {}}>SAR Action</span>
               </div>
-              <div className="sar-stat-number" style={pendingAdminReview.length > 0 ? { color: '#b45309' } : {}}>
-                {pendingAdminReview.length}
+              <div className="sar-stat-number" style={ecaInbox.length + esaInbox.length > 0 ? { color: '#b45309' } : {}}>
+                {ecaInbox.length + esaInbox.length}
               </div>
-              <div className="sar-stat-target">Document check required</div>
+              <div className="sar-stat-target">Payment receipts check</div>
             </div>
           </div>
 
-          {/* Card 3: Awaiting Dean Approval */}
-          <div className="sar-stat-card">
+          {/* Card 3: Exam Forms Awaiting SAR Verification */}
+          <div className="sar-stat-card" onClick={() => handleNavigate('inbox_exam_forms')}>
             <div className="sar-stat-icon-wrap sar-stat-icon-purple">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
             </div>
             <div className="sar-stat-body">
               <div className="sar-stat-top-row">
-                <span className="sar-stat-title">AWAITING DEAN</span>
-                <span className="sar-stat-badge">Executive</span>
+                <span className="sar-stat-title">EXAM FORMS</span>
+                <span className="sar-stat-badge">HOD Endorsed</span>
               </div>
-              <div className="sar-stat-number">{awaitingDean.length}</div>
-              <div className="sar-stat-target">Dean sanction required</div>
+              <div className="sar-stat-number">{examFormsInbox.length}</div>
+              <div className="sar-stat-target">Admin verification pending</div>
             </div>
           </div>
 
-          {/* Card 4: Returned / Corrections */}
-          <div className="sar-stat-card">
+          {/* Card 4: Exam Medicals (Dean Office Stage) */}
+          <div className="sar-stat-card" onClick={() => handleNavigate('inbox_exam_medicals')}>
             <div className="sar-stat-icon-wrap sar-stat-icon-rose">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
               </svg>
             </div>
             <div className="sar-stat-body">
               <div className="sar-stat-top-row">
-                <span className="sar-stat-title">CORRECTIONS</span>
-                <span className="sar-stat-badge">Flagged</span>
+                <span className="sar-stat-title">EXAM MEDICALS</span>
+                <span className="sar-stat-badge">SAR Auth</span>
               </div>
-              <div className="sar-stat-number">{returnedCorrections.length}</div>
-              <div className="sar-stat-target">Returned for revision</div>
+              <div className="sar-stat-number">{examMedicalsInbox.length}</div>
+              <div className="sar-stat-target">Faculty Board MA stage</div>
             </div>
           </div>
 
-          {/* Card 5: Approved Requests */}
-          <div className="sar-stat-card">
+          {/* Card 5: Exam Branch Forwarding Queue */}
+          <div className="sar-stat-card" onClick={() => handleNavigate('inbox_exam_branch_forward')}>
             <div className="sar-stat-icon-wrap sar-stat-icon-emerald">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
               </svg>
             </div>
             <div className="sar-stat-body">
               <div className="sar-stat-top-row">
-                <span className="sar-stat-title">APPROVED</span>
-                <span className="sar-stat-badge">Sanctioned</span>
+                <span className="sar-stat-title">EXAM FORWARD</span>
+                <span className="sar-stat-badge">Verified</span>
               </div>
-              <div className="sar-stat-number">{approvedRequests.length}</div>
-              <div className="sar-stat-target">Officially sanctioned</div>
+              <div className="sar-stat-number">{examBranchForwardInbox.length}</div>
+              <div className="sar-stat-target">Ready for exam branch</div>
             </div>
           </div>
 
-          {/* Card 6: Recently Completed */}
-          <div className="sar-stat-card">
+          {/* Card 6: Admission Processing */}
+          <div className="sar-stat-card" onClick={() => handleNavigate('inbox_admission_processing')}>
             <div className="sar-stat-icon-wrap sar-stat-icon-cyan">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 11 12 14 22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
             </div>
             <div className="sar-stat-body">
               <div className="sar-stat-top-row">
-                <span className="sar-stat-title">COMPLETED</span>
-                <span className="sar-stat-badge">Archive</span>
+                <span className="sar-stat-title">ADMISSIONS</span>
+                <span className="sar-stat-badge">Dean Office</span>
               </div>
-              <div className="sar-stat-number">{recentlyCompleted.length}</div>
-              <div className="sar-stat-target">Past 30 days throughput</div>
+              <div className="sar-stat-number">{admissionProcessingInbox.length}</div>
+              <div className="sar-stat-target">Official admission & senate</div>
             </div>
           </div>
         </section>
 
         {/* ====================================================================
-            2. "WHAT DO YOU NEED TO DO?" / SAR OPERATIONS & SEARCH CARD
+            2. SAR OPERATIONS & APPLICATION SEARCH CARD (Matches Student .std-guidance-card)
             ==================================================================== */}
         <section className="sar-guidance-card">
           <div className="sar-guidance-header">
@@ -560,9 +622,9 @@ export default function SAR({ user, onLogout }) {
               </svg>
             </div>
             <div className="sar-guidance-titles">
-              <h3 className="sar-guidance-title">Faculty Administrative Operations & Request Search</h3>
+              <h3 className="sar-guidance-title">Faculty Administrative Operations & Examination Workflows</h3>
               <p className="sar-guidance-subtitle">
-                Instant institutional lookup: Search requests by Tracking ID, student reg number, department, or review status across BST & ICT.
+                Instant institutional lookup: Monitor ECA/ESA applications, verify payment vouchers, forward verified forms to Examination Branch, and manage Dean Office Admissions.
               </p>
             </div>
           </div>
@@ -576,7 +638,7 @@ export default function SAR({ user, onLogout }) {
               <input
                 type="text"
                 className="sar-search-input-field"
-                placeholder='Try "MED-2025-0104", "CA Repeat Form", "22ICT085", "Pending Review", "Awaiting Dean"...'
+                placeholder='Search by ID ("ECA-2026-1045", "EXAM-2026-3051"), Student Name, Reg No, or Module Code...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -584,14 +646,14 @@ export default function SAR({ user, onLogout }) {
             <button
               type="button"
               className="sar-find-btn"
-              onClick={() => handleNavigate('monitoring')}
+              onClick={() => handleNavigate('inboxes')}
             >
-              Search Requests
+              Search Inboxes
             </button>
           </div>
 
           <div className="sar-suggested-row">
-            <span className="sar-suggested-label">Faculty Scope & Filters:</span>
+            <span className="sar-suggested-label">Faculty Scope:</span>
             <button
               type="button"
               className={`sar-suggested-chip ${deptFilter === 'all' ? 'active' : ''}`}
@@ -613,33 +675,242 @@ export default function SAR({ user, onLogout }) {
             >
               Information & Comm. Tech (ICT) ({ictMetrics.total})
             </button>
-            <button
-              type="button"
-              className={`sar-suggested-chip ${activeNav === 'pending_actions' ? 'active' : ''}`}
-              onClick={() => handleNavigate('pending_actions')}
-            >
-              Pending Admin Review ({pendingAdminReview.length})
-            </button>
+
+            <span className="sar-suggested-label" style={{ marginLeft: '0.65rem' }}>Workflow Portals:</span>
             <button
               type="button"
               className="sar-suggested-chip"
-              onClick={() => {
-                setStatusFilter('awaiting_dean');
-                handleNavigate('monitoring');
-              }}
+              onClick={() => setDeptListModal(true)}
             >
-              Awaiting Dean ({awaitingDean.length})
+              🏢 Forward Dept Exam List
+            </button>
+            <button
+              type="button"
+              className={`sar-suggested-chip ${activeNav === 'portal_management' ? 'active' : ''}`}
+              onClick={() => handleNavigate('portal_management')}
+            >
+              ⚙️ Manage Online ECA/ESA Portals
             </button>
           </div>
         </section>
 
         {/* ====================================================================
-            3. MIDDLE ROW: PROGRESSION TREND & QUICK ACTIONS (Image 1 Layout)
+            3. THE 8 WORKFLOW INBOXES (Mandatory SAR Core Feature)
+            ==================================================================== */}
+        <section className="sar-inboxes-section">
+          <div className="sar-inboxes-header">
+            <div className="sar-inboxes-title-group">
+              <h2>SAR Workflow Inboxes ({currentInboxDef.list.length} Items)</h2>
+              <p>{currentInboxDef.desc}</p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="sar-btn-pill"
+                onClick={loadData}
+                title="Sync database and check for new student submissions"
+              >
+                ↻ Refresh Queue
+              </button>
+            </div>
+          </div>
+
+          {/* 8 Inbox Navigation Pills */}
+          <div className="sar-inboxes-nav-pills">
+            {inboxesList.map((inbox) => {
+              const count = inbox.list.length;
+              return (
+                <button
+                  key={inbox.id}
+                  type="button"
+                  className={`sar-inbox-tab-btn ${selectedInbox === inbox.id ? 'active' : ''}`}
+                  onClick={() => setSelectedInbox(inbox.id)}
+                >
+                  <span>{inbox.label}</span>
+                  <span className="sar-inbox-count-badge" style={selectedInbox !== inbox.id && count > 0 ? { background: '#fef3c7', color: '#b45309' } : {}}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Inbox Table Display: Application ID, Student Details, Department, Form Type, Current Status, Submission Date, Pending Duration, Actions */}
+          <div className="sar-table-responsive">
+            <table className="sar-table">
+              <thead>
+                <tr>
+                  <th>Application ID</th>
+                  <th>Student Details</th>
+                  <th>Department</th>
+                  <th>Form Type</th>
+                  <th>Current Status</th>
+                  <th>Submission Date</th>
+                  <th>Pending Duration</th>
+                  <th style={{ textAlign: 'right' }}>SAR Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentInboxItems.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '3.5rem', color: '#64748b' }}>
+                      <div style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>📭</div>
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>No applications currently in {currentInboxDef.title}</div>
+                      <div style={{ fontSize: '0.8rem', marginTop: '0.2rem' }}>All pending tasks in this category are up to date.</div>
+                    </td>
+                  </tr>
+                ) : (
+                  currentInboxItems.map((p) => {
+                    const submissionDate = p.createdAt || p.details?.absenceDate || new Date().toISOString();
+                    const pendingDuration = getPendingDuration(submissionDate);
+                    const canVerifyAndForward =
+                      (p.type === 'eca_application' || p.type === 'esa_application' || p.type === 'exam_form' || p.type === 'exam_medical') &&
+                      (p.currentAssignedRole === 'sar' || p.status.includes('Pending SAR'));
+                    const isExamFormForAdmission = p.type === 'exam_form' && (p.status === 'Pending Examination Branch' || p.currentStageIndex >= 4);
+
+                    return (
+                      <tr key={p._id || p.trackingNumber}>
+                        {/* 1. Application ID */}
+                        <td>
+                          <strong style={{ fontFamily: 'monospace', color: '#0f172a', fontSize: '0.86rem' }}>
+                            {p.trackingNumber}
+                          </strong>
+                          {p.priority === 'High' && (
+                            <span style={{ marginLeft: '0.4rem', fontSize: '0.65rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                              HIGH
+                            </span>
+                          )}
+                        </td>
+
+                        {/* 2. Student Details */}
+                        <td>
+                          <div style={{ fontWeight: 600, color: '#0f172a' }}>{p.student?.name}</div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{p.student?.regNo} • {p.student?.programme}</div>
+                        </td>
+
+                        {/* 3. Department */}
+                        <td>
+                          <span className={`sar-dept-pill ${isBST(p) ? 'sar-dept-pill-bst' : 'sar-dept-pill-ict'}`}>
+                            {getDeptShort(p)}
+                          </span>
+                        </td>
+
+                        {/* 4. Form Type */}
+                        <td>
+                          <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>
+                            {getFormTypeLabel(p.type)}
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {p.details?.courseCodes?.[0] || p.title?.slice(0, 32)}
+                          </div>
+                        </td>
+
+                        {/* 5. Current Status */}
+                        <td>
+                          {renderStatusBadge(p.status)}
+                        </td>
+
+                        {/* 6. Submission Date */}
+                        <td style={{ color: '#64748b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {new Date(submissionDate).toLocaleDateString('en-GB')}
+                        </td>
+
+                        {/* 7. Pending Duration */}
+                        <td>
+                          <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#475569', background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
+                            ⏱️ {pendingDuration}
+                          </span>
+                        </td>
+
+                        {/* 8. SAR Actions */}
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              className="sar-action-btn-secondary"
+                              onClick={() => setSelectedProcess(p)}
+                              title="Open application, examine payment voucher & verify documents"
+                            >
+                              Open
+                            </button>
+
+                            {canVerifyAndForward && (
+                              <button
+                                type="button"
+                                className="sar-action-btn-success"
+                                onClick={() => handleVerifyAndForward(p)}
+                                title="Verify payment receipt & forward to Examination Branch"
+                              >
+                                Verify & Forward
+                              </button>
+                            )}
+
+                            {canVerifyAndForward && (
+                              <button
+                                type="button"
+                                className="sar-action-btn-secondary"
+                                style={{ color: '#b91c1c' }}
+                                onClick={() => setClarifyModalProcess(p)}
+                                title="Return for correction with deficiency notes"
+                              >
+                                Return
+                              </button>
+                            )}
+
+                            {isExamFormForAdmission && (
+                              <button
+                                type="button"
+                                className="sar-action-btn-primary"
+                                onClick={() => {
+                                  setAdmissionModalProcess(p);
+                                  setCustomAdmissionNo(`ADM-FOT-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+                                }}
+                                title="Generate official Dean Office Admission (Examination Section)"
+                              >
+                                Issue Admission
+                              </button>
+                            )}
+
+                            {(p.type === 'exam_form' || p.type === 'exam_medical') && (
+                              <button
+                                type="button"
+                                className="sar-action-btn-secondary"
+                                onClick={() => {
+                                  setSenateModalProcess(p);
+                                  setSenateTrackingNo(`SENATE-FOT-2026-${Math.floor(100 + Math.random() * 900)}`);
+                                }}
+                                title="Prepare and track Senate copy submission"
+                              >
+                                Senate Copy
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              className="sar-action-btn-secondary"
+                              onClick={() => setRemarkModalProcess(p)}
+                              title="Add official administrative remarks to audit log"
+                            >
+                              Remark
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ====================================================================
+            4. MIDDLE ROW: PROGRESSION TREND & QUICK ACTIONS (Image 1 Layout)
             ==================================================================== */}
         <section className="sar-middle-grid">
           {/* Left: Administrative Workflow Distribution & Status Card */}
           <div className="sar-trend-card">
-            {/* Header: Badge Icon, Title, and Department Selector */}
             <div className="sar-trend-header-row">
               <div className="sar-trend-header-left">
                 <div className="sar-trend-header-icon-box">
@@ -652,7 +923,7 @@ export default function SAR({ user, onLogout }) {
                 </div>
                 <div className="sar-trend-title-col">
                   <h3 className="sar-card-heading">Faculty Workflow Distribution & Status</h3>
-                  <span className="sar-trend-subheading">Monitor real-time request volume and turnaround across BST & ICT</span>
+                  <span className="sar-trend-subheading">Monitor real-time request volume across the 5 examination workflows</span>
                 </div>
               </div>
 
@@ -679,7 +950,7 @@ export default function SAR({ user, onLogout }) {
 
             {/* Top 3 Highlight Metric Boxes */}
             <div className="sar-trend-top-metrics">
-              {/* Box 1: BST Department Volume */}
+              {/* Box 1: ECA & ESA Volume */}
               <div className="sar-trend-top-box">
                 <div className="sar-trend-box-icon sar-box-icon-purple">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -688,15 +959,15 @@ export default function SAR({ user, onLogout }) {
                   </svg>
                 </div>
                 <div className="sar-trend-box-content">
-                  <span className="sar-trend-box-lbl">BST Requests</span>
+                  <span className="sar-trend-box-lbl">ECA & ESA Queue</span>
                   <div className="sar-trend-box-val-row">
-                    <span className="sar-trend-box-val">{bstMetrics.total}</span>
-                    <span className="sar-trend-box-delta">▲ Active</span>
+                    <span className="sar-trend-box-val">{ecaInbox.length + esaInbox.length}</span>
+                    <span className="sar-trend-box-delta">▲ Awaiting SAR</span>
                   </div>
                 </div>
               </div>
 
-              {/* Box 2: ICT Department Volume */}
+              {/* Box 2: Exam Forms & Admissions */}
               <div className="sar-trend-top-box">
                 <div className="sar-trend-box-icon sar-box-icon-blue">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -704,10 +975,10 @@ export default function SAR({ user, onLogout }) {
                   </svg>
                 </div>
                 <div className="sar-trend-box-content">
-                  <span className="sar-trend-box-lbl">ICT Requests</span>
+                  <span className="sar-trend-box-lbl">Exam Forms & Adm</span>
                   <div className="sar-trend-box-val-row">
-                    <span className="sar-trend-box-val">{ictMetrics.total}</span>
-                    <span className="sar-trend-box-denom">/ {totalCount}</span>
+                    <span className="sar-trend-box-val">{examFormsInbox.length + admissionProcessingInbox.length}</span>
+                    <span className="sar-trend-box-denom">/ Active</span>
                   </div>
                 </div>
               </div>
@@ -776,35 +1047,45 @@ export default function SAR({ user, onLogout }) {
                       filter="url(#sarShadow)"
                     />
 
-                    {/* Node 1: Submitted (2) */}
+                    {/* Node 1: ECA/ESA Submitted */}
                     <circle cx="60" cy="35" r="5" fill="#ffffff" stroke="#6366f1" strokeWidth="3" />
-                    <rect x="42" y="12" width="36" height="18" rx="5" fill="#1e1b4b" />
-                    <text x="60" y="24" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#ffffff">2 Req</text>
+                    <rect x="40" y="12" width="40" height="18" rx="5" fill="#1e1b4b" />
+                    <text x="60" y="24" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#ffffff">
+                      {ecaInbox.length + esaInbox.length} Req
+                    </text>
 
-                    {/* Node 2: HOD Review (1) */}
+                    {/* Node 2: HOD Endorsed */}
                     <circle cx="185" cy="72" r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
-                    <text x="185" y="62" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1e293b">1 Req</text>
+                    <text x="185" y="62" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1e293b">
+                      {examFormsInbox.length} Req
+                    </text>
 
-                    {/* Node 3: SAR Check (2) Selected */}
+                    {/* Node 3: SAR Verified & Queued */}
                     <circle cx="310" cy="45" r="6" fill="#ffffff" stroke="#4f46e5" strokeWidth="3.5" />
                     <rect x="290" y="20" width="40" height="20" rx="5" fill="#4338ca" />
-                    <text x="310" y="34" textAnchor="middle" fontSize="11" fontWeight="800" fill="#ffffff">2 Req</text>
+                    <text x="310" y="34" textAnchor="middle" fontSize="11" fontWeight="800" fill="#ffffff">
+                      {examBranchForwardInbox.length} Fwd
+                    </text>
 
-                    {/* Node 4: Dean Sanction (1) */}
+                    {/* Node 4: Dean Office Admission */}
                     <circle cx="435" cy="78" r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
-                    <text x="435" y="68" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1e293b">1 Req</text>
+                    <text x="435" y="68" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1e293b">
+                      {admissionProcessingInbox.length} Adm
+                    </text>
 
-                    {/* Node 5: Approved (1) */}
+                    {/* Node 5: Senate Copy Archived */}
                     <circle cx="560" cy="50" r="5" fill="#ffffff" stroke="#10b981" strokeWidth="3" />
                     <rect x="540" y="26" width="40" height="20" rx="5" fill="#10b981" />
-                    <text x="560" y="40" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#ffffff">1 Req</text>
+                    <text x="560" y="40" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#ffffff">
+                      {completedInbox.length} Done
+                    </text>
 
                     {/* Stage X-axis Labels */}
-                    <text x="60" y="142" textAnchor="middle" fontSize="11" fontWeight="700" fill="#475569">Submitted</text>
-                    <text x="185" y="142" textAnchor="middle" fontSize="11" fontWeight="600" fill="#64748b">HOD Review</text>
-                    <text x="310" y="142" textAnchor="middle" fontSize="11" fontWeight="800" fill="#4338ca">SAR Check</text>
-                    <text x="435" y="142" textAnchor="middle" fontSize="11" fontWeight="600" fill="#64748b">Dean Office</text>
-                    <text x="560" y="142" textAnchor="middle" fontSize="11" fontWeight="700" fill="#059669">Completed</text>
+                    <text x="60" y="142" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#475569">ECA/ESA Rec</text>
+                    <text x="185" y="142" textAnchor="middle" fontSize="10.5" fontWeight="600" fill="#64748b">Exam Forms</text>
+                    <text x="310" y="142" textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#4338ca">To Exam Br</text>
+                    <text x="435" y="142" textAnchor="middle" fontSize="10.5" fontWeight="600" fill="#64748b">Dean Adm</text>
+                    <text x="560" y="142" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#059669">Senate Copy</text>
                   </svg>
                 </div>
               </div>
@@ -812,7 +1093,6 @@ export default function SAR({ user, onLogout }) {
 
             {/* Bottom 3 Summary Statistics */}
             <div className="sar-bottom-stats-row">
-              {/* Stat 1: Document Verifications */}
               <div className="sar-bottom-stat-box">
                 <div className="sar-bottom-stat-icon-circle sar-icon-circle-emerald">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -820,12 +1100,11 @@ export default function SAR({ user, onLogout }) {
                   </svg>
                 </div>
                 <div className="sar-bottom-stat-info">
-                  <span className="sar-bottom-stat-lbl">Document Verification</span>
+                  <span className="sar-bottom-stat-lbl">Payment Vouchers Checked</span>
                   <span className="sar-bottom-stat-val">100% In Order</span>
                 </div>
               </div>
 
-              {/* Stat 2: Active Review Queue */}
               <div className="sar-bottom-stat-box">
                 <div className="sar-bottom-stat-icon-circle sar-icon-circle-purple">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -834,12 +1113,13 @@ export default function SAR({ user, onLogout }) {
                   </svg>
                 </div>
                 <div className="sar-bottom-stat-info">
-                  <span className="sar-bottom-stat-lbl">Active Pending Queue</span>
-                  <span className="sar-bottom-stat-val">{pendingAdminReview.length + awaitingDean.length} Requests</span>
+                  <span className="sar-bottom-stat-lbl">Active Inboxes Queue</span>
+                  <span className="sar-bottom-stat-val">
+                    {ecaInbox.length + esaInbox.length + examFormsInbox.length + examMedicalsInbox.length} Applications
+                  </span>
                 </div>
               </div>
 
-              {/* Stat 3: Clearance Rate */}
               <div className="sar-bottom-stat-box">
                 <div className="sar-bottom-progress-circle">
                   <svg width="38" height="38" viewBox="0 0 38 38">
@@ -869,9 +1149,8 @@ export default function SAR({ user, onLogout }) {
             </div>
           </div>
 
-          {/* Right: Quick Actions Card (Image 1 Mockup layout) */}
+          {/* Right: Quick Actions Card */}
           <div className="sar-quick-actions-card">
-            {/* Dark Purple Gradient Header Banner with Watermark */}
             <div className="sar-qa-header-banner">
               <div className="sar-qa-header-content">
                 <div className="sar-qa-header-icon-box">
@@ -881,10 +1160,9 @@ export default function SAR({ user, onLogout }) {
                 </div>
                 <div>
                   <h3 className="sar-qa-title">Quick Actions</h3>
-                  <p className="sar-qa-subtitle">Coordinate faculty operations instantly</p>
+                  <p className="sar-qa-subtitle">Coordinate faculty examinations instantly</p>
                 </div>
               </div>
-              {/* Decorative Watermark Icon */}
               <div className="sar-qa-watermark">
                 <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -892,27 +1170,33 @@ export default function SAR({ user, onLogout }) {
               </div>
             </div>
 
-            {/* 8 Action Items */}
             <div className="sar-qa-actions-list">
-              {quickActions.map((action, idx) => (
+              {[
+                { label: 'ECA Applications Queue', actionId: 'inbox_eca', colorTheme: 'purple', icon: '📝' },
+                { label: 'ESA Applications Queue', actionId: 'inbox_esa', colorTheme: 'blue', icon: '🎓' },
+                { label: 'Examination Forms Verification', actionId: 'inbox_exam_forms', colorTheme: 'violet', icon: '📋' },
+                { label: 'Exam Medicals (Dean Office)', actionId: 'inbox_exam_medicals', colorTheme: 'rose', icon: '🏥' },
+                { label: 'Forward to Exam Branch', actionId: 'inbox_exam_branch_forward', colorTheme: 'emerald', icon: '🚀' },
+                { label: 'Dean Office Admission Pass', actionId: 'inbox_admission_processing', colorTheme: 'cyan', icon: '🎫' },
+                { label: 'Manage Online ECA / ESA Portals', actionId: 'portal_management', colorTheme: 'indigo', icon: '⚙️' },
+                { label: 'Forward Dept Examination List', actionId: 'open_dept_list', colorTheme: 'teal', icon: '🏢' },
+              ].map((action, idx) => (
                 <button
                   key={idx}
                   type="button"
                   className="sar-qa-item-btn"
                   onClick={() => {
-                    if (action.actionId === 'filter_bst') {
-                      setDeptFilter('bst');
-                      handleNavigate('monitoring');
-                    } else if (action.actionId === 'filter_ict') {
-                      setDeptFilter('ict');
-                      handleNavigate('monitoring');
+                    if (action.actionId === 'open_dept_list') {
+                      setDeptListModal(true);
+                    } else if (action.actionId.startsWith('inbox_')) {
+                      handleNavigate(action.actionId);
                     } else {
                       handleNavigate(action.actionId);
                     }
                   }}
                 >
                   <div className="sar-qa-item-left">
-                    <span className={`sar-qa-icon-circle sar-qa-icon-${action.colorTheme}`}>
+                    <span className={`sar-qa-icon-circle sar-qa-icon-${action.colorTheme}`} style={{ fontSize: '1rem' }}>
                       {action.icon}
                     </span>
                     <span className="sar-qa-item-label">{action.label}</span>
@@ -929,10 +1213,84 @@ export default function SAR({ user, onLogout }) {
         </section>
 
         {/* ====================================================================
-            4. DEPARTMENT-WISE OVERVIEW (BST & ICT)
+            5. ECA & ESA APPLICATION FORM PORTAL MANAGEMENT CARD
+            ==================================================================== */}
+        <section className="sar-portal-mgmt-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem' }}>
+            <div>
+              <h3 style={{ margin: '0 0 0.2rem 0', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                Online Application Form Portals (SAR Managed)
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
+                Control live online student accessibility for Continuous Assessment (ECA) and End Semester Assessment (ESA) forms.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="sar-btn-pill"
+              onClick={() => setDeptListModal(true)}
+            >
+              🏢 Forward Dept-wise Examination List to HOD
+            </button>
+          </div>
+
+          <div className="sar-portal-mgmt-grid">
+            {/* ECA Portal Card */}
+            <div className="sar-portal-box">
+              <div className="sar-portal-box-top">
+                <span className="sar-portal-box-title">ECA Application Portal (Continuous Assessment)</span>
+                <span className={`sar-portal-status-pill ${portalAvailability.eca?.isOpen ? 'sar-status-open' : 'sar-status-closed'}`}>
+                  {portalAvailability.eca?.isOpen ? '● ONLINE / ACCEPTING' : '○ CLOSED'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                Academic Year: <strong>{portalAvailability.eca?.academicYear || '2025/2026'}</strong> • Semester: <strong>{portalAvailability.eca?.semester || 'Semester 2'}</strong>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.35rem' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  Deadline: 20 Nov 2026 (11:59 PM)
+                </span>
+                <button
+                  type="button"
+                  className={`sar-action-btn-${portalAvailability.eca?.isOpen ? 'secondary' : 'success'}`}
+                  onClick={() => handleToggleFormAvailability('eca')}
+                >
+                  {portalAvailability.eca?.isOpen ? 'Close ECA Portal' : 'Open ECA Portal Online'}
+                </button>
+              </div>
+            </div>
+
+            {/* ESA Portal Card (Kept Independent) */}
+            <div className="sar-portal-box">
+              <div className="sar-portal-box-top">
+                <span className="sar-portal-box-title">ESA Application Portal (End Semester Examination)</span>
+                <span className={`sar-portal-status-pill ${portalAvailability.esa?.isOpen ? 'sar-status-open' : 'sar-status-closed'}`}>
+                  {portalAvailability.esa?.isOpen ? '● ONLINE / ACCEPTING' : '○ CLOSED'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                Academic Year: <strong>{portalAvailability.esa?.academicYear || '2025/2026'}</strong> • Semester: <strong>{portalAvailability.esa?.semester || 'Semester 2'}</strong>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.35rem' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  Deadline: 25 Nov 2026 (11:59 PM)
+                </span>
+                <button
+                  type="button"
+                  className={`sar-action-btn-${portalAvailability.esa?.isOpen ? 'secondary' : 'success'}`}
+                  onClick={() => handleToggleFormAvailability('esa')}
+                >
+                  {portalAvailability.esa?.isOpen ? 'Close ESA Portal' : 'Open ESA Portal Online'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ====================================================================
+            6. DEPARTMENT-WISE OVERVIEW (BST & ICT)
             ==================================================================== */}
         <section className="sar-dept-grid">
-          {/* Department of Biosystems Technology (BST) */}
           <div className="sar-dept-card" style={deptFilter === 'ict' ? { opacity: 0.6 } : {}}>
             <div className="sar-dept-header">
               <div className="sar-dept-title-group">
@@ -962,7 +1320,6 @@ export default function SAR({ user, onLogout }) {
             </div>
           </div>
 
-          {/* Department of Information and Communication Technology (ICT) */}
           <div className="sar-dept-card" style={deptFilter === 'bst' ? { opacity: 0.6 } : {}}>
             <div className="sar-dept-header">
               <div className="sar-dept-title-group">
@@ -993,739 +1350,79 @@ export default function SAR({ user, onLogout }) {
           </div>
         </section>
 
-        {/* ====================================================================
-            5. MAIN OPERATIONS CARD (Matches Table Standards)
-            ==================================================================== */}
-        <div className="sar-main-card">
-          
-          {/* Header */}
-          <div className="sar-card-header">
-            <div className="sar-card-header-left">
-              <h2>
-                {activeNav === 'dashboard' && 'Administrative Overview & Workflow Status'}
-                {activeNav === 'monitoring' && 'Administrative Request Monitoring (BST & ICT)'}
-                {activeNav === 'pending_actions' && 'Pending Administrative Actions & Review Queue'}
-                {activeNav === 'faculty_records' && 'Faculty Administrative Records Ledger'}
-                {activeNav === 'reports' && 'Faculty Workflow Analytics & Reports Summary'}
-                {activeNav === 'notifications' && `SAR Administrative Notifications (${unreadCount} Unread)`}
-              </h2>
-              <p>
-                {activeNav === 'dashboard' && 'Coordinate administrative tracking, document verification, and officer routing across departments.'}
-                {activeNav === 'monitoring' && 'Track real-time requests submitted through the existing system with full audit trail history.'}
-                {activeNav === 'pending_actions' && 'Perform document checks, record administrative remarks, and route to appropriate authorities.'}
-                {activeNav === 'faculty_records' && 'Authoritative ledger of certified requests, remarks, digital stamps, and approval records.'}
-                {activeNav === 'reports' && 'Summary statistics, processing time metrics, and departmental distributions.'}
-                {activeNav === 'notifications' && 'System alerts for submissions, HOD endorsements, Dean sanctions, and correction flags.'}
-              </p>
-            </div>
-
-            {/* Quick action buttons on card header */}
-            <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className={`sar-btn-pill ${activeNav === 'monitoring' ? 'active' : ''}`}
-                onClick={() => handleNavigate('monitoring')}
-              >
-                All Requests ({processes.length})
-              </button>
-              <button
-                type="button"
-                className={`sar-btn-pill ${activeNav === 'pending_actions' ? 'active' : ''}`}
-                onClick={() => handleNavigate('pending_actions')}
-              >
-                Pending Review ({pendingAdminReview.length})
-              </button>
-              <button
-                type="button"
-                className={`sar-btn-pill ${activeNav === 'faculty_records' ? 'active' : ''}`}
-                onClick={() => handleNavigate('faculty_records')}
-              >
-                Records Ledger
-              </button>
-              <button
-                type="button"
-                className={`sar-btn-pill ${activeNav === 'reports' ? 'active' : ''}`}
-                onClick={() => handleNavigate('reports')}
-              >
-                Reports
-              </button>
-              <button
-                type="button"
-                className={`sar-btn-pill ${activeNav === 'notifications' ? 'active' : ''}`}
-                onClick={() => handleNavigate('notifications')}
-              >
-                Notifications {unreadCount > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: '999px', padding: '0 5px', fontSize: '0.65rem' }}>{unreadCount}</span>}
-              </button>
-            </div>
-          </div>
-
-          {/* ====================================================================
-              SUB-VIEW 1: REQUEST MONITORING (SECTION 4)
-              ==================================================================== */}
-          {(activeNav === 'dashboard' || activeNav === 'monitoring') && (
-            <>
-              {/* Search & Filter Toolbar */}
-              <div className="sar-toolbar">
-                <div className="sar-search-box">
-                  <span className="sar-search-icon">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8"/>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                  </span>
-                  <input
-                    type="text"
-                    className="sar-search-input"
-                    placeholder="Search by ID (MED-...), Student Name, Reg No, or Reason..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-
-                <div className="sar-filter-group">
-                  <select
-                    className="sar-select"
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                  >
-                    <option value="all">All Request Types</option>
-                    <option value="medical_excuse">Medical Excuse</option>
-                    <option value="repeat_exam">Repeat Exam Entry</option>
-                    <option value="leave_absence">Leave of Absence</option>
-                    <option value="add_drop">Add / Drop Registration</option>
-                  </select>
-
-                  <select
-                    className="sar-select"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="all">All Workflow Statuses</option>
-                    <option value="pending">Pending / Active</option>
-                    <option value="awaiting_dean">Awaiting Dean</option>
-                    <option value="approved">Approved</option>
-                    <option value="declined">Returned / Declined</option>
-                  </select>
-
-                  <select
-                    className="sar-select"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                  >
-                    <option value="newest">Sort: Newest First</option>
-                    <option value="oldest">Sort: Oldest First</option>
-                    <option value="priority">Sort: By Priority</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="sar-table-responsive">
-                <table className="sar-table">
-                  <thead>
-                    <tr>
-                      <th>Request ID</th>
-                      <th>Title & Type</th>
-                      <th>Requesting Student</th>
-                      <th>Department</th>
-                      <th>Submitted On</th>
-                      <th>Workflow Status</th>
-                      <th>Current Handler</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProcesses.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                          No requests found matching the current search & filter criteria.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredProcesses.map((p) => (
-                        <tr key={p._id || p.trackingNumber}>
-                          <td>
-                            <strong style={{ fontFamily: 'monospace', color: '#0f172a' }}>
-                              {p.trackingNumber}
-                            </strong>
-                            {p.priority === 'High' && (
-                              <span style={{ marginLeft: '0.4rem', fontSize: '0.65rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>
-                                HIGH
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{p.title}</div>
-                            <div style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'capitalize' }}>
-                              {p.type?.replace('_', ' ')} • {p.category}
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: 600 }}>{p.student?.name}</div>
-                            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{p.student?.regNo}</div>
-                          </td>
-                          <td>
-                            <span className={`sar-dept-pill ${isBST(p) ? 'sar-dept-pill-bst' : 'sar-dept-pill-ict'}`}>
-                              {getDeptShort(p)}
-                            </span>
-                          </td>
-                          <td style={{ color: '#64748b', fontSize: '0.78rem' }}>
-                            {new Date(p.createdAt || p.details?.absenceDate).toLocaleDateString('en-GB')}
-                          </td>
-                          <td>
-                            {renderStatusBadge(p.status)}
-                          </td>
-                          <td>
-                            <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
-                              {p.currentAssignedRole === 'dean' ? 'Dean Office' : p.currentAssignedRole === 'hod' ? `HOD (${getDeptShort(p)})` : p.currentAssignedRole === 'lecturer' ? 'Course Lecturer' : p.status === 'Approved' ? 'Registry Archive' : p.currentAssignedRole}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '0.35rem' }}>
-                              <button
-                                type="button"
-                                className="sar-action-btn-primary"
-                                onClick={() => setSelectedProcess(p)}
-                                title="View details and full multi-stage history"
-                              >
-                                View Details
-                              </button>
-                              <button
-                                type="button"
-                                className="sar-action-btn-secondary"
-                                onClick={() => setRemarkModalProcess(p)}
-                                title="Add administrative remarks"
-                              >
-                                Remark
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* ====================================================================
-              SUB-VIEW 2: PENDING ADMINISTRATIVE ACTIONS (SECTION 5)
-              ==================================================================== */}
-          {activeNav === 'pending_actions' && (
-            <div>
-              {/* Category selector */}
-              <div className="sar-toolbar" style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                  {[
-                    { key: 'all', label: 'All Actionable' },
-                    { key: 'newly_submitted', label: 'Newly Submitted' },
-                    { key: 'pending_admin', label: 'Pending Administrative Review' },
-                    { key: 'awaiting_hod', label: 'Awaiting HOD Review' },
-                    { key: 'endorsed_hod', label: 'Endorsed by HOD' },
-                    { key: 'awaiting_dean', label: 'Awaiting Dean Approval' },
-                    { key: 'returned_corrections', label: 'Returned for Corrections' },
-                    { key: 'completed', label: 'Completed Requests' },
-                  ].map((cat) => (
-                    <button
-                      key={cat.key}
-                      type="button"
-                      className={`sar-btn-pill ${actionCategory === cat.key ? 'active' : ''}`}
-                      onClick={() => setActionCategory(cat.key)}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Cards List */}
-              <div style={{ padding: '1.25rem 1.6rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {actionProcesses.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                    No requests currently in category: <strong>{actionCategory.replace('_', ' ')}</strong>
-                  </div>
-                ) : (
-                  actionProcesses.map((p) => {
-                    const hasCorrection = p.auditLog?.some((l) => l.action === 'CORRECTION_REQUESTED');
-                    return (
-                      <div
-                        key={p.trackingNumber}
-                        style={{
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '12px',
-                          padding: '1.25rem 1.4rem',
-                          background: hasCorrection ? '#fff8f8' : '#ffffff',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '0.85rem',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>
-                              {p.trackingNumber}
-                            </span>
-                            <span className={`sar-dept-pill ${isBST(p) ? 'sar-dept-pill-bst' : 'sar-dept-pill-ict'}`}>
-                              {getDeptShort(p)}
-                            </span>
-                            {renderStatusBadge(p.status)}
-                          </div>
-
-                          <div style={{ display: 'flex', gap: '0.45rem' }}>
-                            <button
-                              type="button"
-                              className="sar-action-btn-secondary"
-                              onClick={() => setSelectedProcess(p)}
-                            >
-                              Inspect Full
-                            </button>
-                            <button
-                              type="button"
-                              className="sar-action-btn-primary"
-                              onClick={() => setRemarkModalProcess(p)}
-                            >
-                              Add Remark
-                            </button>
-                            <button
-                              type="button"
-                              className="sar-action-btn-secondary"
-                              style={{ color: '#b91c1c', borderColor: '#fca5a5' }}
-                              onClick={() => setClarifyModalProcess(p)}
-                            >
-                              Request Clarification
-                            </button>
-                            <button
-                              type="button"
-                              className="sar-action-btn-secondary"
-                              style={{ color: '#2563eb', borderColor: '#bfdbfe' }}
-                              onClick={() => setRouteModalProcess(p)}
-                            >
-                              Route / Forward
-                            </button>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>{p.title}</h4>
-                          <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: '#475569' }}>
-                            Student: <strong>{p.student?.name}</strong> ({p.student?.regNo}) • {p.student?.department}
-                          </p>
-                        </div>
-
-                        {/* Document Verification Checklist */}
-                        <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-                          <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
-                            SAR Administrative Document Checklist:
-                          </div>
-                          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', fontSize: '0.8rem' }}>
-                            <span>✓ Student Identity & Reg No: <strong>Verified</strong></span>
-                            <span>
-                              {p.details?.attachedDocumentName ? '✓' : '⚠️'} Attached Evidence: <strong>{p.details?.attachedDocumentName || 'Missing'}</strong>
-                            </span>
-                            <span>
-                              {p.stages?.some((s) => s.role === 'lecturer' && s.status === 'COMPLETED') ? '✓' : '⏳'} Lecturer Recommendation: <strong>{p.stages?.some((s) => s.role === 'lecturer' && s.status === 'COMPLETED') ? 'Recorded' : 'Pending'}</strong>
-                            </span>
-                            <span>
-                              {p.stages?.some((s) => s.role === 'hod' && s.status === 'COMPLETED') ? '✓' : '⏳'} HOD Endorsement: <strong>{p.stages?.some((s) => s.role === 'hod' && s.status === 'COMPLETED') ? 'Signed' : 'Pending'}</strong>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Recent remark if any */}
-                        {p.auditLog?.length > 0 && (
-                          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                            Last Action: <strong>{p.auditLog[p.auditLog.length - 1].action}</strong> by {p.auditLog[p.auditLog.length - 1].actorName} ({new Date(p.auditLog[p.auditLog.length - 1].timestamp).toLocaleString('en-GB')}) — <em>"{p.auditLog[p.auditLog.length - 1].comment}"</em>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ====================================================================
-              SUB-VIEW 3: FACULTY ADMINISTRATIVE RECORDS (SECTION 6)
-              ==================================================================== */}
-          {activeNav === 'faculty_records' && (
-            <div>
-              <div className="sar-toolbar">
-                <span style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>
-                  Showing authoritative faculty ledger entries ({filteredProcesses.length} records)
-                </span>
-                <button
-                  type="button"
-                  className="sar-btn-pill"
-                  onClick={() => window.print()}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6 9 6 2 18 2 18 9"/>
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                    <rect x="6" y="14" width="12" height="8"/>
-                  </svg>
-                  Print / Export Ledger Summary
-                </button>
-              </div>
-
-              <div className="sar-table-responsive">
-                <table className="sar-table">
-                  <thead>
-                    <tr>
-                      <th>Record ID</th>
-                      <th>Application Details</th>
-                      <th>Department & Programme</th>
-                      <th>Supporting Documents</th>
-                      <th>Digital Seals & Approvals</th>
-                      <th>Status & Code</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProcesses.map((p) => (
-                      <tr key={p.trackingNumber}>
-                        <td>
-                          <div style={{ fontFamily: 'monospace', fontWeight: 700 }}>{p.trackingNumber}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                            {new Date(p.createdAt).toLocaleDateString('en-GB')}
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: 600 }}>{p.title}</div>
-                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                            {p.student?.name} ({p.student?.regNo})
-                          </div>
-                        </td>
-                        <td>
-                          <div>{getDeptShort(p)}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{p.student?.programme}</div>
-                        </td>
-                        <td>
-                          <span style={{ fontSize: '0.78rem', color: '#2563eb' }}>
-                            📎 {p.details?.attachedDocumentName || 'Certified Slip'}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ fontSize: '0.75rem', color: '#475569' }}>
-                            {p.approvalDetails?.finalApprovalCode ? (
-                              <strong style={{ color: '#15803d' }}>{p.approvalDetails.finalApprovalCode}</strong>
-                            ) : p.stages?.some((s) => s.digitalStamp) ? (
-                              <span>{p.stages.find((s) => s.digitalStamp)?.digitalStamp}</span>
-                            ) : (
-                              'Under Review'
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          {renderStatusBadge(p.status)}
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className="sar-action-btn-secondary"
-                            onClick={() => setSelectedProcess(p)}
-                          >
-                            Inspect
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ====================================================================
-              SUB-VIEW 4: REPORTS AND WORKFLOW SUMMARY (SECTION 8)
-              ==================================================================== */}
-          {activeNav === 'reports' && (
-            <div style={{ padding: '1.5rem 1.6rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Date range filter */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>
-                  Workflow Performance & Turnaround Metrics
-                </span>
-                <div style={{ display: 'flex', gap: '0.35rem' }}>
-                  {['all', 'semester', '30days', '7days'].map((range) => (
-                    <button
-                      key={range}
-                      type="button"
-                      className={`sar-btn-pill ${reportDateRange === range ? 'active' : ''}`}
-                      onClick={() => setReportDateRange(range)}
-                    >
-                      {range === 'all' ? 'All Time' : range === 'semester' ? 'Current Semester' : range === '30days' ? 'Last 30 Days' : 'Last 7 Days'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comparative Department Progress */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem' }}>
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem' }}>
-                  <h4 style={{ margin: '0 0 0.85rem', fontSize: '0.95rem', color: '#0f172a' }}>
-                    Biosystems Technology (BST) Throughput
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.82rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Total Requests Logged:</span>
-                      <strong>{bstMetrics.total}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Approved & Sanctioned:</span>
-                      <strong style={{ color: '#15803d' }}>{bstMetrics.completed} ({bstMetrics.total > 0 ? Math.round((bstMetrics.completed / bstMetrics.total) * 100) : 0}%)</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Under Administrative & HOD Review:</span>
-                      <strong style={{ color: '#b45309' }}>{bstMetrics.pending}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Average Turnaround Time:</span>
-                      <strong>2.4 Working Days</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem' }}>
-                  <h4 style={{ margin: '0 0 0.85rem', fontSize: '0.95rem', color: '#0f172a' }}>
-                    Information & Communication Technology (ICT) Throughput
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.82rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Total Requests Logged:</span>
-                      <strong>{ictMetrics.total}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Approved & Sanctioned:</span>
-                      <strong style={{ color: '#15803d' }}>{ictMetrics.completed} ({ictMetrics.total > 0 ? Math.round((ictMetrics.completed / ictMetrics.total) * 100) : 0}%)</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Under Administrative & HOD Review:</span>
-                      <strong style={{ color: '#b45309' }}>{ictMetrics.pending}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Average Turnaround Time:</span>
-                      <strong>2.8 Working Days</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Breakdown Bar */}
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem' }}>
-                <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.95rem', color: '#0f172a' }}>
-                  Faculty-Wide Workflow Distribution
-                </h4>
-                <div style={{ display: 'flex', height: '14px', borderRadius: '6px', overflow: 'hidden', background: '#e2e8f0' }}>
-                  <div style={{ width: `${totalCount > 0 ? (approvedRequests.length / totalCount) * 100 : 0}%`, background: '#22c55e' }} title={`Approved: ${approvedRequests.length}`} />
-                  <div style={{ width: `${totalCount > 0 ? (awaitingDean.length / totalCount) * 100 : 0}%`, background: '#f59e0b' }} title={`Awaiting Dean: ${awaitingDean.length}`} />
-                  <div style={{ width: `${totalCount > 0 ? (pendingAdminReview.length / totalCount) * 100 : 0}%`, background: '#3b82f6' }} title={`Pending Review: ${pendingAdminReview.length}`} />
-                  <div style={{ width: `${totalCount > 0 ? (returnedCorrections.length / totalCount) * 100 : 0}%`, background: '#ef4444' }} title={`Returned / Declined: ${returnedCorrections.length}`} />
-                </div>
-                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', fontSize: '0.76rem', color: '#64748b', flexWrap: 'wrap' }}>
-                  <span>🟢 Approved: <strong>{approvedRequests.length}</strong></span>
-                  <span>🟡 Awaiting Dean: <strong>{awaitingDean.length}</strong></span>
-                  <span>🔵 In Review: <strong>{pendingAdminReview.length}</strong></span>
-                  <span>🔴 Returned / Declined: <strong>{returnedCorrections.length}</strong></span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ====================================================================
-              SUB-VIEW 5: NOTIFICATIONS (SECTION 7)
-              ==================================================================== */}
-          {activeNav === 'notifications' && (
-            <div>
-              <div className="sar-toolbar">
-                <div style={{ display: 'flex', gap: '0.35rem' }}>
-                  <button
-                    type="button"
-                    className={`sar-btn-pill ${notifFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setNotifFilter('all')}
-                  >
-                    All ({notifications.length})
-                  </button>
-                  <button
-                    type="button"
-                    className={`sar-btn-pill ${notifFilter === 'unread' ? 'active' : ''}`}
-                    onClick={() => setNotifFilter('unread')}
-                  >
-                    Unread ({unreadCount})
-                  </button>
-                </div>
-
-                {unreadCount > 0 && (
-                  <button
-                    type="button"
-                    className="sar-action-btn-secondary"
-                    onClick={handleMarkAllNotifsRead}
-                  >
-                    Mark All as Read
-                  </button>
-                )}
-              </div>
-
-              <div>
-                {notifications
-                  .filter((n) => (notifFilter === 'unread' ? !n.isRead : true))
-                  .map((notif) => (
-                    <div
-                      key={notif._id}
-                      className={`sar-notif-item ${!notif.isRead ? 'unread' : ''}`}
-                      onClick={() => handleNotificationClick(notif)}
-                    >
-                      <div style={{ display: 'flex', gap: '0.85rem', flex: 1 }}>
-                        {!notif.isRead && <span className="sar-notif-dot" />}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
-                            {notif.title}
-                          </div>
-                          <div style={{ fontSize: '0.83rem', color: '#475569' }}>
-                            {notif.message}
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', gap: '0.75rem', marginTop: '0.2rem' }}>
-                            <span>{new Date(notif.createdAt).toLocaleString('en-GB')}</span>
-                            {notif.relatedRequestId && (
-                              <span style={{ color: '#2563eb', fontWeight: 600 }}>
-                                Ref: {notif.relatedRequestId}
-                              </span>
-                            )}
-                            <span>{notif.department}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        {!notif.isRead && (
-                          <button
-                            type="button"
-                            className="sar-btn-pill"
-                            style={{ fontSize: '0.7rem' }}
-                            onClick={(e) => handleMarkNotifRead(notif._id, e)}
-                          >
-                            Mark Read
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ======================================================================
-          MODAL 1: FULL REQUEST DETAILS & MULTI-STAGE TIMELINE
+          MODAL 1: APPLICATION DETAILS & DOCUMENT INSPECTION
           ====================================================================== */}
       {selectedProcess && (
         <div className="sar-modal-overlay" onClick={() => setSelectedProcess(null)}>
-          <div className="sar-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="sar-modal-content" style={{ maxWidth: '780px' }} onClick={(e) => e.stopPropagation()}>
             <div className="sar-modal-header">
               <div>
-                <span className="sar-banner-badge">FACULTY REQUEST AUDIT</span>
-                <h3 className="sar-modal-title" style={{ marginTop: '0.25rem' }}>
-                  {selectedProcess.trackingNumber} — {selectedProcess.title}
-                </h3>
+                <span className="sar-status-badge sar-status-pending-sar" style={{ marginRight: '0.5rem' }}>
+                  {getFormTypeLabel(selectedProcess.type)}
+                </span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0f172a' }}>
+                  {selectedProcess.trackingNumber}
+                </span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedProcess(null)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#64748b' }}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#64748b' }}
               >
                 ✕
               </button>
             </div>
 
             <div className="sar-modal-body">
-              {/* Student & Department Card */}
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem' }}>
-                <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.88rem', color: '#0f172a' }}>Applicant Profile</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.65rem', fontSize: '0.8rem' }}>
-                  <div>Name: <strong>{selectedProcess.student?.name}</strong></div>
-                  <div>Reg No: <strong>{selectedProcess.student?.regNo}</strong></div>
-                  <div>Department: <strong>{selectedProcess.student?.department}</strong></div>
-                  <div>Programme: <strong>{selectedProcess.student?.programme}</strong></div>
-                  <div>Semester: <strong>{selectedProcess.student?.semester}</strong></div>
-                  <div>Email: <strong>{selectedProcess.student?.email}</strong></div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '10px' }}>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Student Information</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>{selectedProcess.student?.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>Reg No: {selectedProcess.student?.regNo}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>Dept: {selectedProcess.student?.department}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Application Details</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a', marginTop: '2px' }}>{selectedProcess.title}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>Status: {renderStatusBadge(selectedProcess.status)}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>Submitted: {new Date(selectedProcess.createdAt || selectedProcess.details?.absenceDate).toLocaleDateString('en-GB')}</div>
                 </div>
               </div>
 
-              {/* Request Specifics */}
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem' }}>
-                <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.88rem', color: '#0f172a' }}>Submission Evidence & Medical Information</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.8rem' }}>
-                  <div>Absence Dates: <strong>{selectedProcess.details?.absenceDate} to {selectedProcess.details?.endDate}</strong></div>
-                  <div>Modules Impacted: <strong>{selectedProcess.details?.courseCodes?.join(', ') || 'N/A'}</strong></div>
-                  <div>Clinical Diagnosis / Justification: <strong>{selectedProcess.details?.reason || 'N/A'}</strong></div>
-                  <div>Doctor / Hospital: <strong>{selectedProcess.details?.doctorName} ({selectedProcess.details?.hospitalClinic})</strong></div>
-                  <div>Certificate / PIV No: <strong>{selectedProcess.details?.medicalCertNo || 'N/A'}</strong></div>
-                  <div>Attached Document: <strong style={{ color: '#2563eb' }}>📎 {selectedProcess.details?.attachedDocumentName || 'Certified Slip'}</strong></div>
+              {/* Payment Receipt Evidence Check Box (SAR Responsibility) */}
+              <div style={{ border: '1px solid #bfdbfe', background: '#eff6ff', borderRadius: '10px', padding: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e40af' }}>
+                    💳 Payment Voucher & Supporting Document Verification
+                  </span>
+                  <span className={`sar-portal-status-pill ${selectedProcess.paymentReceipt?.verifiedBySAR ? 'sar-status-open' : 'sar-status-closed'}`}>
+                    {selectedProcess.paymentReceipt?.verifiedBySAR ? '✓ Verified by SAR' : 'Pending Verification'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#1e3a8a', lineHeight: 1.5 }}>
+                  Bank Reference: <strong>{selectedProcess.paymentReceipt?.voucherNo || selectedProcess.details?.medicalCertNo || 'PIV-2026-COUNTERFOIL'}</strong> • Amount: <strong>Rs. {selectedProcess.paymentReceipt?.amount || 250}.00</strong>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#1e3a8a' }}>
+                  Attached Evidence Slip: <strong>{selectedProcess.details?.attachedDocumentName || 'bank_deposit_piv_voucher.pdf'}</strong>
                 </div>
               </div>
 
-              {/* Workflow Multi-Stage Timeline */}
+              {/* Multi-stage Audit Trail */}
               <div>
-                <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.88rem', color: '#0f172a' }}>Official Approval Stages</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {selectedProcess.stages?.map((stage, idx) => (
-                    <div
-                      key={stage.stageKey || idx}
-                      style={{
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        border: '1px solid',
-                        borderColor: stage.status === 'COMPLETED' ? '#86efac' : stage.status === 'DECLINED' ? '#fca5a5' : '#cbd5e1',
-                        background: stage.status === 'COMPLETED' ? '#f0fdf4' : stage.status === 'DECLINED' ? '#fef2f2' : '#ffffff',
-                        fontSize: '0.8rem',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <div>
-                        <strong>{idx + 1}. {stage.label}</strong> ({stage.role?.toUpperCase()})
-                        {stage.remarks && <div style={{ color: '#475569', fontSize: '0.74rem', marginTop: '0.2rem' }}>"{stage.remarks}"</div>}
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 700, color: stage.status === 'COMPLETED' ? '#15803d' : stage.status === 'DECLINED' ? '#b91c1c' : '#64748b' }}>
-                          {stage.status}
-                        </span>
-                        {stage.actionDate && (
-                          <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                            {new Date(stage.actionDate).toLocaleDateString('en-GB')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Immutable Audit Ledger */}
-              <div>
-                <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.88rem', color: '#0f172a' }}>Immutable Audit Log</h4>
-                <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+                  Audit Trail & Workflow History
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
                   {selectedProcess.auditLog?.map((log, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        borderBottom: '1px solid #f1f5f9',
-                        fontSize: '0.76rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.15rem',
-                      }}
-                    >
+                    <div key={idx} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.55rem 0.8rem', fontSize: '0.78rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
-                        <strong style={{ color: '#0f172a' }}>{log.action}</strong>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>{log.actorName} ({log.actorRole})</span>
                         <span>{new Date(log.timestamp).toLocaleString('en-GB')}</span>
                       </div>
-                      <div>By: <strong>{log.actorName}</strong> ({log.actorRole})</div>
-                      <div style={{ color: '#475569', fontStyle: 'italic' }}>"{log.comment}"</div>
+                      <div style={{ color: '#334155', marginTop: '2px' }}>{log.comment}</div>
                     </div>
                   ))}
                 </div>
@@ -1733,23 +1430,21 @@ export default function SAR({ user, onLogout }) {
             </div>
 
             <div className="sar-modal-footer">
-              <button
-                type="button"
-                className="sar-action-btn-secondary"
-                onClick={() => {
-                  setRemarkModalProcess(selectedProcess);
-                  setSelectedProcess(null);
-                }}
-              >
-                Add Administrative Remark
-              </button>
-              <button
-                type="button"
-                className="sar-action-btn-primary"
-                onClick={() => setSelectedProcess(null)}
-              >
+              <button type="button" className="sar-action-btn-secondary" onClick={() => setSelectedProcess(null)}>
                 Close
               </button>
+              {(selectedProcess.type === 'eca_application' || selectedProcess.type === 'esa_application' || selectedProcess.type === 'exam_form' || selectedProcess.type === 'exam_medical') && (
+                <button
+                  type="button"
+                  className="sar-action-btn-success"
+                  onClick={() => {
+                    handleVerifyAndForward(selectedProcess);
+                    setSelectedProcess(null);
+                  }}
+                >
+                  Verify & Forward to Examination Branch
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1760,18 +1455,18 @@ export default function SAR({ user, onLogout }) {
           ====================================================================== */}
       {remarkModalProcess && (
         <div className="sar-modal-overlay" onClick={() => setRemarkModalProcess(null)}>
-          <div className="sar-modal-content" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="sar-modal-content" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
             <div className="sar-modal-header">
-              <h3 className="sar-modal-title">Record Administrative Remark</h3>
+              <h3 className="sar-modal-title">Record SAR Administrative Remark</h3>
               <button type="button" onClick={() => setRemarkModalProcess(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
             <div className="sar-modal-body">
               <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569' }}>
-                Ref: <strong>{remarkModalProcess.trackingNumber}</strong> ({remarkModalProcess.student?.name})
+                Application: <strong>{remarkModalProcess.trackingNumber}</strong> ({remarkModalProcess.title})
               </p>
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Document Compliance Check
+                  Document Verification Status
                 </label>
                 <select
                   className="sar-select"
@@ -1779,21 +1474,21 @@ export default function SAR({ user, onLogout }) {
                   value={docCheckStatus}
                   onChange={(e) => setDocCheckStatus(e.target.value)}
                 >
-                  <option value="Verified Complete">Verified Complete & Formally Compliant</option>
-                  <option value="Certified Medical Chit Endorsed">Certified Medical Chit Endorsed by Health Centre</option>
-                  <option value="Bank PIV Slip Validated">Bank PIV Slip Validated with Accounts Ledger</option>
-                  <option value="Pending Further Verification">Pending Further Verification</option>
+                  <option value="Verified Complete">Verified Complete - All documents & payment receipt valid</option>
+                  <option value="Minor Discrepancy Noted">Minor Discrepancy Noted - Subject to clarification</option>
+                  <option value="Pending Physical Voucher Inspection">Pending Physical Voucher Inspection</option>
+                  <option value="Documents Endorsed for Faculty Board">Documents Endorsed for Faculty Board</option>
                 </select>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  SAR Administrative Remarks / Coordination Note
+                  Administrative Notation / Remarks
                 </label>
                 <textarea
                   rows="4"
                   style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
-                  placeholder="Enter administrative observation, regulation compliance check, or coordinating note..."
+                  placeholder="Record administrative observations, prerequisite verification, or bank voucher inspection details..."
                   value={remarkText}
                   onChange={(e) => setRemarkText(e.target.value)}
                 />
@@ -1801,41 +1496,41 @@ export default function SAR({ user, onLogout }) {
             </div>
             <div className="sar-modal-footer">
               <button type="button" className="sar-action-btn-secondary" onClick={() => setRemarkModalProcess(null)}>Cancel</button>
-              <button type="button" className="sar-action-btn-primary" onClick={handleSaveRemark}>Save & Stamp Audit Log</button>
+              <button type="button" className="sar-action-btn-primary" onClick={handleSaveRemark}>Save Remark with Official Stamp</button>
             </div>
           </div>
         </div>
       )}
 
       {/* ======================================================================
-          MODAL 3: REQUEST CLARIFICATION / CORRECTIONS
+          MODAL 3: RETURN FOR CORRECTIONS / CLARIFICATION
           ====================================================================== */}
       {clarifyModalProcess && (
         <div className="sar-modal-overlay" onClick={() => setClarifyModalProcess(null)}>
           <div className="sar-modal-content" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
             <div className="sar-modal-header">
-              <h3 className="sar-modal-title" style={{ color: '#b91c1c' }}>Request Clarification / Return for Corrections</h3>
+              <h3 className="sar-modal-title">Return Application for Corrections</h3>
               <button type="button" onClick={() => setClarifyModalProcess(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
             <div className="sar-modal-body">
               <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569' }}>
-                Ref: <strong>{clarifyModalProcess.trackingNumber}</strong> ({clarifyModalProcess.student?.name})
+                Application: <strong>{clarifyModalProcess.trackingNumber}</strong> ({clarifyModalProcess.student?.name})
               </p>
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Identify Deficiencies (Select all that apply)
+                  Deficiencies Identified
                 </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.8rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   {[
-                    'Missing certified University Health Center slip',
-                    'Bank PIV deposit receipt not attached or incomplete',
-                    'Exceeded 7-calendar-day submission limit under By-law',
-                    'Course Lecturer recommendation missing',
-                    'Illegible clinical diagnosis or missing doctor signature',
+                    'Missing People\'s Bank PIV Voucher Slip',
+                    'Payment Deposit Amount Discrepancy (e.g. Expected Rs. 250/500)',
+                    'Unreadable / Blurry Image Upload of Bank Voucher',
+                    'Medical Board Endorsement / Clinic Chit Missing',
+                    'HOD / Lecturer Signature Incomplete on Physical Sheet',
                   ].map((def) => {
                     const isChecked = selectedDeficiencies.includes(def);
                     return (
-                      <label key={def} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer' }}>
+                      <label key={def} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: '#334155' }}>
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -1853,12 +1548,12 @@ export default function SAR({ user, onLogout }) {
 
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Detailed Instructions for Rectification
+                  Detailed Instructions for Resubmission
                 </label>
                 <textarea
                   rows="3"
                   style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
-                  placeholder="Specify what the student or department coordinator must submit to regularize this petition..."
+                  placeholder="Specify exactly what the student must upload to regularize this application..."
                   value={clarifyNotes}
                   onChange={(e) => setClarifyNotes(e.target.value)}
                 />
@@ -1867,7 +1562,7 @@ export default function SAR({ user, onLogout }) {
             <div className="sar-modal-footer">
               <button type="button" className="sar-action-btn-secondary" onClick={() => setClarifyModalProcess(null)}>Cancel</button>
               <button type="button" className="sar-action-btn-primary" style={{ background: '#b91c1c' }} onClick={handleRequestClarification}>
-                Flag for Corrections
+                Return Application for Correction
               </button>
             </div>
           </div>
@@ -1875,52 +1570,149 @@ export default function SAR({ user, onLogout }) {
       )}
 
       {/* ======================================================================
-          MODAL 4: ROUTE / FORWARD REQUEST
+          MODAL 4: PROCESS DEAN OFFICE ADMISSION (EXAMINATION SECTION)
           ====================================================================== */}
-      {routeModalProcess && (
-        <div className="sar-modal-overlay" onClick={() => setRouteModalProcess(null)}>
+      {admissionModalProcess && (
+        <div className="sar-modal-overlay" onClick={() => setAdmissionModalProcess(null)}>
           <div className="sar-modal-content" style={{ maxWidth: '560px' }} onClick={(e) => e.stopPropagation()}>
             <div className="sar-modal-header">
-              <h3 className="sar-modal-title">Route / Forward Administrative Request</h3>
-              <button type="button" onClick={() => setRouteModalProcess(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
+              <h3 className="sar-modal-title">Generate Dean Office Admission (Examination Section)</h3>
+              <button type="button" onClick={() => setAdmissionModalProcess(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div className="sar-modal-body">
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '0.85rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e40af' }}>Official Output Name:</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1e3a8a' }}>Dean Office Admission (Examination Section)</div>
+                <div style={{ fontSize: '0.78rem', color: '#3b82f6', marginTop: '2px' }}>
+                  Candidate: <strong>{admissionModalProcess.student?.name}</strong> ({admissionModalProcess.student?.regNo})
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                  Admission Card Number
+                </label>
+                <input
+                  type="text"
+                  className="sar-search-input-field"
+                  value={customAdmissionNo}
+                  onChange={(e) => setCustomAdmissionNo(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                  Administrative Issuance Notation
+                </label>
+                <textarea
+                  rows="2"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
+                  placeholder="Official admission card processed by SAR. Valid for Semester 05 Examinations..."
+                  value={admissionNotes}
+                  onChange={(e) => setAdmissionNotes(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="sar-modal-footer">
+              <button type="button" className="sar-action-btn-secondary" onClick={() => setAdmissionModalProcess(null)}>Cancel</button>
+              <button type="button" className="sar-action-btn-primary" onClick={handleProcessAdmission}>Issue Official Admission Card</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================
+          MODAL 5: SENATE COPY PREPARATION & SUBMISSION TRACKING
+          ====================================================================== */}
+      {senateModalProcess && (
+        <div className="sar-modal-overlay" onClick={() => setSenateModalProcess(null)}>
+          <div className="sar-modal-content" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="sar-modal-header">
+              <h3 className="sar-modal-title">Track Senate Copy Preparation & Submission</h3>
+              <button type="button" onClick={() => setSenateModalProcess(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
             </div>
             <div className="sar-modal-body">
               <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569' }}>
-                Ref: <strong>{routeModalProcess.trackingNumber}</strong> ({routeModalProcess.title})
+                Application: <strong>{senateModalProcess.trackingNumber}</strong> ({senateModalProcess.title})
               </p>
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Destination Authorized Officer
+                  Senate Copy Tracking Number
+                </label>
+                <input
+                  type="text"
+                  className="sar-search-input-field"
+                  value={senateTrackingNo}
+                  onChange={(e) => setSenateTrackingNo(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                  Senate Dispatch Notes
+                </label>
+                <textarea
+                  rows="3"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
+                  placeholder="Senate copy certified and prepared by SAR for tabling at the forthcoming Senate meeting..."
+                  value={senateNote}
+                  onChange={(e) => setSenateNote(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="sar-modal-footer">
+              <button type="button" className="sar-action-btn-secondary" onClick={() => setSenateModalProcess(null)}>Cancel</button>
+              <button type="button" className="sar-action-btn-primary" onClick={handleTrackSenateCopy}>Log Senate Submission</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================
+          MODAL 6: FORWARD DEPARTMENT-WISE EXAMINATION LIST
+          ====================================================================== */}
+      {deptListModal && (
+        <div className="sar-modal-overlay" onClick={() => setDeptListModal(false)}>
+          <div className="sar-modal-content" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="sar-modal-header">
+              <h3 className="sar-modal-title">Forward Department-wise Examination List</h3>
+              <button type="button" onClick={() => setDeptListModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div className="sar-modal-body">
+              <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569' }}>
+                Select target department to dispatch the verified candidate list for lecturer check & HOD approval:
+              </p>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                  Target Department
                 </label>
                 <select
                   className="sar-select"
                   style={{ width: '100%' }}
-                  value={routeDestination}
-                  onChange={(e) => setRouteDestination(e.target.value)}
+                  value={deptListSelected}
+                  onChange={(e) => setDeptListSelected(e.target.value)}
                 >
-                  <option value="Dean, Faculty of Technology">Dean, Faculty of Technology (Prof. U.L. Abdul Majeed)</option>
-                  <option value="Head of Department, Biosystems Technology (BST)">Head of Department, Biosystems Technology (BST)</option>
-                  <option value="Head of Department, ICT (Dr. M.A. Rifky)">Head of Department, ICT (Dr. M.A. Rifky)</option>
-                  <option value="Senior Assistant Registrar, Examination Branch">Senior Assistant Registrar, Examination Branch</option>
+                  <option value="Department of Information and Communication Technology">Department of Information and Communication Technology (ICT)</option>
+                  <option value="Department of Biosystems Technology">Department of Biosystems Technology (BST)</option>
                 </select>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  SAR Endorsement / Routing Notation
+                  Administrative Routing Memo
                 </label>
                 <textarea
                   rows="3"
                   style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
-                  placeholder="Administrative check completed. Supporting documents examined and found in order. Forwarded for official endorsement..."
-                  value={routeNote}
-                  onChange={(e) => setRouteNote(e.target.value)}
+                  placeholder="Official list of verified examination candidates transmitted for lecturer checking and HOD final approval..."
+                  value={deptListNote}
+                  onChange={(e) => setDeptListNote(e.target.value)}
                 />
               </div>
             </div>
             <div className="sar-modal-footer">
-              <button type="button" className="sar-action-btn-secondary" onClick={() => setRouteModalProcess(null)}>Cancel</button>
-              <button type="button" className="sar-action-btn-primary" onClick={handleRouteRequest}>Forward with Stamp</button>
+              <button type="button" className="sar-action-btn-secondary" onClick={() => setDeptListModal(false)}>Cancel</button>
+              <button type="button" className="sar-action-btn-primary" onClick={handleForwardDeptList}>Transmit Department List</button>
             </div>
           </div>
         </div>
@@ -1929,4 +1721,3 @@ export default function SAR({ user, onLogout }) {
     </DashboardTemplate>
   );
 }
-

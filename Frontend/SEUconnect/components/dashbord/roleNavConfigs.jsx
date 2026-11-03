@@ -262,10 +262,23 @@ export const SAR_NAV_SECTIONS = [
     ],
   },
   {
+    title: 'WORKFLOW INBOXES',
+    items: [
+      { id: 'inboxes', label: '8 Workflow Inboxes', icon: Icons.checkSquare },
+      { id: 'inbox_eca', label: 'ECA Applications Queue', icon: Icons.clipboardCheck },
+      { id: 'inbox_esa', label: 'ESA Applications Queue', icon: Icons.award },
+      { id: 'inbox_exam_forms', label: 'Examination Forms Verification', icon: Icons.fileText },
+      { id: 'inbox_exam_medicals', label: 'Exam Medicals (Dean Office)', icon: Icons.medical },
+      { id: 'inbox_exam_branch_forward', label: 'Exam Branch Forwarding Queue', icon: Icons.trendingUp },
+      { id: 'inbox_admission_processing', label: 'Admission Processing & Senate', icon: Icons.stamp },
+    ],
+  },
+  {
     title: 'ADMINISTRATIVE OPERATIONS',
     items: [
       { id: 'monitoring', label: 'Administrative Request Monitoring', icon: Icons.clipboardCheck },
       { id: 'pending_actions', label: 'Pending Administrative Actions', icon: Icons.checkSquare },
+      { id: 'portal_management', label: 'ECA / ESA Portal Management', icon: Icons.building },
       { id: 'faculty_records', label: 'Faculty Administrative Records', icon: Icons.fileText },
     ],
   },
