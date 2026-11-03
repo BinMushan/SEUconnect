@@ -1219,3 +1219,100 @@
   letter-spacing: 0.05em;
   margin-top: 0.15rem;
 }
+
+/* Bulk Enrolment Component Styles */
+.adm-bulk-dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.adm-bulk-dropzone:hover,
+.adm-bulk-dropzone.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.adm-bulk-dropzone-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.2rem;
+}
+
+.adm-bulk-stats-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  flex-wrap: wrap;
+}
+
+.adm-bulk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.adm-bulk-table-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.adm-bulk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.77rem;
+  text-align: left;
+}
+
+.adm-bulk-table th {
+  background: #f1f5f9;
+  padding: 0.55rem 0.75rem;
+  font-weight: 700;
+  color: #334155;
+  border-bottom: 1px solid #cbd5e1;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.adm-bulk-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.adm-bulk-table tr:hover td {
+  background: #f8fafc;
+}
+
