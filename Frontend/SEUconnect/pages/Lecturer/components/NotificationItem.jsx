@@ -2,9 +2,9 @@ import React from 'react';
 
 /**
  * NotificationItem component
- * Category-specific alerts for lecturer tasks with quick-read toggle.
+ * Category-specific alerts for lecturer tasks with interactive navigation & quick-read toggle.
  */
-export default function NotificationItem({ notification, onToggleRead }) {
+export default function NotificationItem({ notification, onToggleRead, onClick }) {
   const getCategoryTheme = (category) => {
     switch (category) {
       case 'Medical requests':
@@ -60,7 +60,19 @@ export default function NotificationItem({ notification, onToggleRead }) {
   const theme = getCategoryTheme(notification.category);
 
   return (
-    <div className={`lec-notif-item ${notification.isRead ? 'is-read' : 'is-unread'} category-${theme.color}`}>
+    <div
+      className={`lec-notif-item ${notification.isRead ? 'is-read' : 'is-unread'} category-${theme.color} is-clickable`}
+      onClick={() => onClick && onClick(notification)}
+      role="button"
+      tabIndex={0}
+      title={`Click to open ${notification.actionLabel || 'relevant action'}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick && onClick(notification);
+        }
+      }}
+    >
       <div className="lec-notif-left">
         <div className={`lec-notif-cat-icon theme-${theme.color}`}>
           {theme.icon}
@@ -81,13 +93,32 @@ export default function NotificationItem({ notification, onToggleRead }) {
       </div>
 
       <div className="lec-notif-right">
+        <button
+          type="button"
+          className="lec-notif-action-chip"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onClick) onClick(notification);
+          }}
+          title={`Click to open ${notification.actionLabel || 'action'}`}
+        >
+          <span>{notification.actionLabel || 'Open Action'}</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
         {!notification.isRead && (
           <span className="lec-unread-indicator-dot" title="Unread Alert"></span>
         )}
+
         <button
           type="button"
           className="lec-notif-read-btn"
-          onClick={() => onToggleRead(notification.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleRead(notification.id);
+          }}
           title={notification.isRead ? 'Mark as Unread' : 'Mark as Read'}
         >
           {notification.isRead ? (
@@ -104,4 +135,3 @@ export default function NotificationItem({ notification, onToggleRead }) {
     </div>
   );
 }
-
