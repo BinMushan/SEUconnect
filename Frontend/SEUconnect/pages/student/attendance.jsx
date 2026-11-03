@@ -635,7 +635,7 @@ export default function Attendance({ onNavigateMedical }) {
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
   const [matrixPeriod, setMatrixPeriod] = useState('1week'); // Default to Current Week (Monday to Friday)
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'missed' | 'attended'
+  const [statusFilter, setStatusFilter] = useState('missed'); // Default to missed lectures only!
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -855,7 +855,11 @@ export default function Attendance({ onNavigateMedical }) {
         <button
           type="button"
           className={`attendance-tab-btn ${activeTab === 'datewise' ? 'active' : ''}`}
-          onClick={() => setActiveTab('datewise')}
+          onClick={() => {
+            setActiveTab('datewise');
+            setStatusFilter('missed');
+            setSelectedSubjectFilter('all');
+          }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -863,7 +867,7 @@ export default function Attendance({ onNavigateMedical }) {
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          Date-wise Attendance & Missed List
+          Date-wise Missed List
           <span className="attendance-tab-count-badge">{totalMissedCount} Missed</span>
         </button>
 
@@ -1224,10 +1228,10 @@ export default function Attendance({ onNavigateMedical }) {
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                Date-wise Lecture Attendance & Missed Session Records
+                Date-wise Missed Lectures Log
               </h3>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-                Each lecture and practical session recorded date-by-date with venue, lecturer, and attendance confirmation.
+                Review all missed lecture and practical sessions requiring medical excuse submission.
               </p>
             </div>
             <button
@@ -1244,18 +1248,18 @@ export default function Attendance({ onNavigateMedical }) {
             <div className="attendance-filter-pills">
               <button
                 type="button"
+                className={`attendance-pill-btn ${statusFilter === 'missed' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('missed')}
+                style={statusFilter === 'missed' ? { backgroundColor: '#dc2626', borderColor: '#dc2626', color: '#ffffff' } : {}}
+              >
+                ⚠️ Missed Lectures Only ({totalMissedCount})
+              </button>
+              <button
+                type="button"
                 className={`attendance-pill-btn ${statusFilter === 'all' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('all')}
               >
                 All Sessions ({DATE_WISE_SESSIONS.length})
-              </button>
-              <button
-                type="button"
-                className={`attendance-pill-btn ${statusFilter === 'missed' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('missed')}
-                style={statusFilter === 'missed' ? { backgroundColor: '#dc2626', borderColor: '#dc2626' } : {}}
-              >
-                ⚠️ Missed Lectures Only ({totalMissedCount})
               </button>
               <button
                 type="button"
