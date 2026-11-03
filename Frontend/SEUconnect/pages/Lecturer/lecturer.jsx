@@ -1,12 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import {
-  MemoryRouter,
-  Routes,
-  Route,
-  useNavigate,
-  useLocation,
-} from 'react-router-dom';
-
+import { useState } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import ToastStack from './components/ToastStack.jsx';
 
@@ -134,13 +126,10 @@ const LECTURER_META_CHIPS = [
 ];
 
 /**
- * Internal Lecturer Portal Shell connected to React Router's MemoryRouter
+ * Lecturer Portal
  */
-function LecturerPortalShell({ user, onLogout }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Global alert toasts stack
+export default function Lecturer({ user, onLogout }) {
+  const [currentPath, setCurrentPath] = useState('dashboard');
   const [toasts, setToasts] = useState([]);
   const [selectedSubjectCode, setSelectedSubjectCode] = useState('SWT22022');
 
@@ -148,6 +137,11 @@ function LecturerPortalShell({ user, onLogout }) {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
 
   const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
+
+  const navigate = (targetPath) => {
+    const clean = targetPath.replace(/^\//, '') || 'dashboard';
+    setCurrentPath(clean);
+  };
 
   const handleToggleNotificationRead = (id) => {
     setNotifications((prev) =>
@@ -170,8 +164,7 @@ function LecturerPortalShell({ user, onLogout }) {
     if (params?.subjectCode) {
       setSelectedSubjectCode(params.subjectCode);
     }
-    const cleanRoute = targetRoute.startsWith('/') ? targetRoute : `/${targetRoute}`;
-    navigate(cleanRoute);
+    navigate(targetRoute);
   };
 
   const showToast = (message, type = 'info') => {
@@ -187,15 +180,16 @@ function LecturerPortalShell({ user, onLogout }) {
   };
 
   // Convert current path to active sidebar id
-  const currentPath = location.pathname.replace(/^\//, '') || 'dashboard';
-  const activeNavId = (currentPath === '' || currentPath === 'dashboard') ? 'dashboard' : (currentPath === 'medical-verification' ? 'notifications' : currentPath);
+  const activeNavId = (currentPath === '' || currentPath === 'dashboard')
+    ? 'dashboard'
+    : (currentPath === 'medical-verification' ? 'notifications' : currentPath);
 
   const handleNavigate = (targetId) => {
     if (targetId === 'academic_profile') {
-      navigate('/profile');
+      navigate('profile');
       return;
     }
-    const clean = targetId === 'dashboard' ? '/' : `/${targetId}`;
+    const clean = targetId === 'dashboard' ? 'dashboard' : targetId;
     navigate(clean);
   };
 
@@ -205,31 +199,31 @@ function LecturerPortalShell({ user, onLogout }) {
     const q = query.toLowerCase().trim();
 
     if (q.includes('attend') || q.includes('roster')) {
-      navigate('/attendance');
+      navigate('attendance');
       showToast('Navigated to Student Attendance System', 'info');
     } else if (q.includes('subject') || q.includes('course') || q.includes('module') || q.includes('swt')) {
-      navigate('/subjects');
+      navigate('subjects');
       showToast('Navigated to My Subjects', 'info');
     } else if (q.includes('ca') || q.includes('esa') || q.includes('mark') || q.includes('eval')) {
-      navigate('/ca-esa');
+      navigate('ca-esa');
       showToast('Navigated to CA / ESA Assessment Marks', 'info');
     } else if (q.includes('result') || q.includes('grade') || q.includes('scale')) {
-      navigate('/results');
+      navigate('results');
       showToast('Navigated to Results & Grading', 'info');
     } else if (q.includes('announc') || q.includes('notice') || q.includes('publish') || q.includes('circ')) {
-      navigate('/announcements');
+      navigate('announcements');
       showToast('Navigated to Announcements Feed', 'info');
     } else if (q.includes('medic') || q.includes('mc') || q.includes('concession') || q.includes('doctor') || q.includes('sick')) {
-      navigate('/medical-verification');
+      navigate('medical-verification');
       showToast('Navigated to Student Medical Approval & Verification', 'info');
     } else if (q.includes('notif') || q.includes('inbox') || q.includes('alert')) {
-      navigate('/notifications');
+      navigate('notifications');
       showToast('Navigated to Notification Inbox', 'info');
     } else if (q.includes('prof') || q.includes('ident') || q.includes('password') || q.includes('contact')) {
-      navigate('/profile');
+      navigate('profile');
       showToast('Navigated to Lecturer Profile', 'info');
     } else if (q.includes('dash') || q.includes('home') || q.includes('overv')) {
-      navigate('/');
+      navigate('dashboard');
       showToast('Navigated to Academic Overview Dashboard', 'info');
     } else {
       showToast(`No specific module matching "${query}". Showing dashboard.`, 'info');
@@ -243,7 +237,7 @@ function LecturerPortalShell({ user, onLogout }) {
         type="button"
         className="seu-btn-attendance"
         onClick={() => {
-          navigate('/attendance');
+          navigate('attendance');
           showToast('Navigating to Mark Attendance', 'info');
         }}
       >
@@ -259,7 +253,7 @@ function LecturerPortalShell({ user, onLogout }) {
         type="button"
         className="seu-btn-create-announcement"
         onClick={() => {
-          navigate('/announcements');
+          navigate('announcements');
           showToast('Navigating to Create Announcement', 'info');
         }}
       >
@@ -272,6 +266,79 @@ function LecturerPortalShell({ user, onLogout }) {
     </>
   );
 
+  const renderModuleContent = () => {
+    switch (currentPath) {
+      case 'subjects':
+        return (
+          <MySubjects
+            onNavigateModule={(modId, params) => {
+              if (params?.subjectCode) {
+                setSelectedSubjectCode(params.subjectCode);
+              }
+              navigate(modId);
+            }}
+            onShowToast={showToast}
+          />
+        );
+      case 'attendance':
+        return (
+          <Attendance
+            initialSubjectCode={selectedSubjectCode}
+            onShowToast={showToast}
+          />
+        );
+      case 'ca-esa':
+        return (
+          <CAESA
+            initialSubjectCode={selectedSubjectCode}
+            onShowToast={showToast}
+          />
+        );
+      case 'results':
+        return (
+          <Results
+            initialSubjectCode={selectedSubjectCode}
+            onShowToast={showToast}
+          />
+        );
+      case 'announcements':
+        return <Announcements onShowToast={showToast} />;
+      case 'notifications':
+        return (
+          <Notifications
+            notifications={notifications}
+            onToggleRead={handleToggleNotificationRead}
+            onMarkSingleRead={handleMarkSingleRead}
+            onMarkAllAsRead={handleMarkAllNotificationsRead}
+            onNavigateNotification={handleNotificationNavigate}
+            onShowToast={showToast}
+          />
+        );
+      case 'medical-verification':
+        return (
+          <MedicalVerification
+            onShowToast={showToast}
+            onNavigateBack={() => navigate('notifications')}
+          />
+        );
+      case 'profile':
+        return <LecturerProfile onShowToast={showToast} />;
+      case 'dashboard':
+      default:
+        return (
+          <LecturerDashboard
+            user={user}
+            onNavigateModule={(modId, params) => {
+              if (params?.subjectCode) {
+                setSelectedSubjectCode(params.subjectCode);
+              }
+              navigate(modId);
+            }}
+            onShowToast={showToast}
+          />
+        );
+    }
+  };
 
   return (
     <div className="lecturer-module-root">
@@ -301,123 +368,8 @@ function LecturerPortalShell({ user, onLogout }) {
         searchPlaceholder="Quick search modules (e.g. 'Attendance', 'CA', 'Results', 'Announcements')..."
         onSearch={handleDynamicSearch}
       >
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <LecturerDashboard
-                user={user}
-                onNavigateModule={(modId, params) => {
-                  if (params?.subjectCode) {
-                    setSelectedSubjectCode(params.subjectCode);
-                  }
-                  navigate(`/${modId}`);
-                }}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <LecturerDashboard
-                user={user}
-                onNavigateModule={(modId, params) => {
-                  if (params?.subjectCode) {
-                    setSelectedSubjectCode(params.subjectCode);
-                  }
-                  navigate(`/${modId}`);
-                }}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/subjects"
-            element={
-              <MySubjects
-                onNavigateModule={(modId, params) => {
-                  if (params?.subjectCode) {
-                    setSelectedSubjectCode(params.subjectCode);
-                  }
-                  navigate(`/${modId}`);
-                }}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/attendance"
-            element={
-              <Attendance
-                initialSubjectCode={selectedSubjectCode}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/ca-esa"
-            element={
-              <CAESA
-                initialSubjectCode={selectedSubjectCode}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/results"
-            element={
-              <Results
-                initialSubjectCode={selectedSubjectCode}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/announcements"
-            element={<Announcements onShowToast={showToast} />}
-          />
-          <Route
-            path="/notifications"
-            element={
-              <Notifications
-                notifications={notifications}
-                onToggleRead={handleToggleNotificationRead}
-                onMarkSingleRead={handleMarkSingleRead}
-                onMarkAllAsRead={handleMarkAllNotificationsRead}
-                onNavigateNotification={handleNotificationNavigate}
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route
-            path="/medical-verification"
-            element={
-              <MedicalVerification
-                onShowToast={showToast}
-                onNavigateBack={() => navigate('/notifications')}
-              />
-            }
-          />
-          <Route
-            path="/profile"
-            element={<LecturerProfile onShowToast={showToast} />}
-          />
-        </Routes>
+        {renderModuleContent()}
       </DashboardTemplate>
     </div>
-  );
-}
-
-/**
- * Lecturer Component Entry Point
- * Wraps the portal in MemoryRouter to guarantee Isolated Internal Routing
- * without modifying or overriding the primary window URL hash (#lecturer).
- */
-export default function Lecturer({ user, onLogout }) {
-  return (
-    <MemoryRouter initialEntries={['/']}>
-      <LecturerPortalShell user={user} onLogout={onLogout} />
-    </MemoryRouter>
   );
 }
