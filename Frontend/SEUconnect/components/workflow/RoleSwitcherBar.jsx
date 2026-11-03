@@ -5,8 +5,9 @@ export default function RoleSwitcherBar({ currentUser, onSwitchRole }) {
   const roles = [
     { key: 'student', label: '🎓 Student (Afnan)', email: 'student@gmail.com' },
     { key: 'lecturer', label: '👨‍🏫 Lecturer (Dr. Kirushanth)', email: 'lecturer@gmail.com' },
-    { key: 'hod', label: '🏛️ HOD (Ahamed Sabani)', email: 'hod@gmail.com' },
-    { key: 'dean', label: '📜 Dean (Prof. Rifai Kariapper)', email: 'dean@gmail.com' },
+    { key: 'hod', label: '🏛️ HOD (Dr. Rifky)', email: 'hod@gmail.com' },
+    { key: 'sar', label: '📋 SAR (Mr. Riyas)', email: 'sar@gmail.com' },
+    { key: 'dean', label: '📜 Dean (Prof. Majeed)', email: 'dean@gmail.com' },
     { key: 'examination', label: '📝 Exam/Medical Officer', email: 'examination@gmail.com' },
     { key: 'admin', label: '⚙️ System Admin', email: 'admin@gmail.com' },
   ];

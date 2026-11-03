@@ -4,6 +4,7 @@ import Student from '../pages/student/student.jsx';
 import Lecturer from '../pages/Lecturer/lecturer.jsx';
 import HOD from '../pages/hod/hod.jsx';
 import Dean from '../pages/dean/dean.jsx';
+import SAR from '../pages/sar/sar.jsx';
 import Admin from '../pages/admin/admin.jsx';
 import SuperAdmin from '../pages/superadmin/superadmin.jsx';
 import Examination from '../pages/examination/examination.jsx';
@@ -44,6 +45,17 @@ const DEFAULT_USERS_BY_ROLE = {
     faculty: 'Faculty of Technology',
     designation: 'Head of the Department (ICT)',
     avatarInitial: 'AS',
+  },
+  sar: {
+    name: 'Mr. K.L.M. Riyas',
+    email: 'sar@gmail.com',
+    role: 'sar',
+    roleKey: 'sar',
+    staffId: 'STAFF-SAR-001',
+    department: 'Faculty Administrative Division / Office of the SAR',
+    faculty: 'Faculty of Technology',
+    designation: 'Senior Assistant Registrar (SAR)',
+    avatarInitial: 'KR',
   },
   dean: {
     name: 'Prof. Rifai Kariapper',
@@ -166,6 +178,8 @@ function App() {
         return <Lecturer user={currentUser || DEFAULT_USERS_BY_ROLE.lecturer} onLogout={handleLogout} />;
       case 'hod':
         return <HOD user={currentUser || DEFAULT_USERS_BY_ROLE.hod} onLogout={handleLogout} />;
+      case 'sar':
+        return <SAR user={currentUser || DEFAULT_USERS_BY_ROLE.sar} onLogout={handleLogout} />;
       case 'dean':
         return <Dean user={currentUser || DEFAULT_USERS_BY_ROLE.dean} onLogout={handleLogout} />;
       case 'admin':

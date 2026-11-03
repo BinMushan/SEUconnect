@@ -8,7 +8,6 @@ const authRoutes = require('./routes/authRoutes');
 const processRoutes = require('./routes/processRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-const academicCalendarRoutes = require('./routes/academicCalendarRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,7 +42,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/processes', processRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/academic-calendar', academicCalendarRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

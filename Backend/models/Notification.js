@@ -2,19 +2,6 @@ const mongoose = require('mongoose');
 
 const NotificationSchema = new mongoose.Schema(
   {
-    recipientRole: {
-      type: String,
-      required: true,
-      enum: ['student', 'lecturer', 'medical_officer', 'hod', 'dean', 'examination', 'admin', 'all'],
-    },
-    recipientDepartment: {
-      type: String,
-      default: 'ALL', // e.g., 'Department of Information and Communication Technology', 'Department of Biosystems Technology', 'ALL'
-    },
-    recipientEmail: {
-      type: String,
-      default: '',
-    },
     title: {
       type: String,
       required: true,
@@ -27,34 +14,31 @@ const NotificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['workload', 'approval_request', 'endorsement', 'correction', 'returned', 'approved', 'declined', 'announcement', 'general'],
-      default: 'approval_request',
+      enum: ['NEW_SUBMISSION', 'ADMIN_REVIEW', 'CORRECTION', 'HOD_ENDORSED', 'DEAN_APPROVED', 'DEAN_REJECTED', 'ACTION_REQUIRED', 'GENERAL'],
+      default: 'ADMIN_REVIEW',
     },
-    priority: {
+    recipientRole: {
       type: String,
-      enum: ['normal', 'urgent', 'high'],
-      default: 'normal',
+      required: true, // e.g. 'sar', 'dean', 'hod'
     },
-    processId: {
-      type: String,
-      default: '',
-    },
-    trackingNumber: {
+    relatedRequestId: {
       type: String,
       default: '',
     },
-    targetTab: {
+    department: {
       type: String,
-      default: 'approvals', // tab to navigate to when clicked, e.g., 'approvals', 'hod_command', 'faculty_approval'
+      default: 'Faculty of Technology',
     },
     isRead: {
       type: Boolean,
       default: false,
     },
+    readAt: {
+      type: Date,
+      default: null,
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model('Notification', NotificationSchema);
