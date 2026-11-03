@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { INITIAL_SUBJECTS, ENROLLED_STUDENTS } from './lecturerMockData.js';
 
 /**

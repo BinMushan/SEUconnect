@@ -31,7 +31,7 @@ export default function StudentManagement({
   const [newBatchYear, setNewBatchYear] = useState('');
   const [newBatchSemester, setNewBatchSemester] = useState('Semester 1 (Freshers)');
   const [newBatchCoordinator, setNewBatchCoordinator] = useState('');
-  const [newBatchCapacity, setNewBatchCapacity] = useState('280');
+  const [newBatchCapacity, setNewBatchCapacity] = useState('240');
   const [batchFormError, setBatchFormError] = useState('');
 
   // Register New Student Modal State
@@ -106,9 +106,9 @@ export default function StudentManagement({
       academicYear: newBatchYear.trim(),
       currentSemester: newBatchSemester,
       status: 'Active (Freshers)',
-      totalStudents: parseInt(newBatchCapacity, 10) || 280,
+      totalStudents: parseInt(newBatchCapacity, 10) || 240,
       coordinator: newBatchCoordinator.trim() || 'Assigned by Faculty Board',
-      departments: ['ICT', 'BST', 'ET'],
+      departments: ['BICT', 'BST'],
       avgCgpa: 0.0,
       attendanceRate: 100,
       enrollmentDate: new Date().toISOString().split('T')[0],
@@ -233,8 +233,8 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Total Undergraduates</span>
                   <span className="adm-badge badge-active">Faculty-Wide</span>
                 </div>
-                <div className="adm-stat-value">1,482</div>
-                <div className="adm-stat-sub">BICT, BST & ET Students</div>
+                <div className="adm-stat-value">1,200</div>
+                <div className="adm-stat-sub">BICT & BST Undergraduates (5 Batches)</div>
               </div>
             </div>
 
@@ -520,10 +520,9 @@ export default function StudentManagement({
                   setCurrentPage(1);
                 }}
               >
-                <option value="ALL">All Departments</option>
-                <option value="ICT">Information & Communication Tech</option>
-                <option value="Biosystems">Biosystems Technology</option>
-                <option value="Engineering">Engineering Technology</option>
+                <option value="ALL">All Departments (BICT & BST)</option>
+                <option value="ICT">Department of ICT (BICT)</option>
+                <option value="Biosystems">Department of Biosystems Technology (BST)</option>
               </select>
 
               {/* Semester Filter */}
@@ -827,7 +826,7 @@ export default function StudentManagement({
                     <input
                       type="number"
                       className="adm-input"
-                      placeholder="280"
+                      placeholder="240 (120 ICT + 120 BST)"
                       value={newBatchCapacity}
                       onChange={(e) => setNewBatchCapacity(e.target.value)}
                     />
@@ -1001,11 +1000,11 @@ export default function StudentManagement({
 
                 <div className="adm-form-grid">
                   <div className="adm-form-group">
-                    <label className="adm-label">Registration No (e.g. 24ICT001) *</label>
+                    <label className="adm-label">Registration No (e.g. SEU/IS/22/ICT/091) *</label>
                     <input
                       type="text"
                       className="adm-input"
-                      placeholder="24ICT001"
+                      placeholder="SEU/IS/22/ICT/091"
                       value={newRegNo}
                       onChange={(e) => setNewRegNo(e.target.value)}
                       required
@@ -1013,11 +1012,11 @@ export default function StudentManagement({
                   </div>
 
                   <div className="adm-form-group">
-                    <label className="adm-label">Index No (e.g. SEU/IS/24/ICT/001)</label>
+                    <label className="adm-label">Index No (e.g. SEU/IS/22/ICT/091)</label>
                     <input
                       type="text"
                       className="adm-input"
-                      placeholder="SEU/IS/24/ICT/001"
+                      placeholder="SEU/IS/22/ICT/091"
                       value={newIndexNo}
                       onChange={(e) => setNewIndexNo(e.target.value)}
                     />
@@ -1042,9 +1041,8 @@ export default function StudentManagement({
                       value={newProgramme}
                       onChange={(e) => setNewProgramme(e.target.value)}
                     >
-                      <option value="BICT (Hons)">BICT (Hons) - Information & Communication Tech</option>
-                      <option value="BST (Hons)">BST (Hons) - Biosystems Technology</option>
-                      <option value="ET (Hons)">ET (Hons) - Engineering Technology</option>
+                      <option value="BICT (Hons)">BICT (Hons) - Bachelor of Information Communication Technology</option>
+                      <option value="BST (Hons)">BST (Hons) - Bachelor of Bio System Technology</option>
                     </select>
                   </div>
 
@@ -1055,9 +1053,8 @@ export default function StudentManagement({
                       value={newDepartment}
                       onChange={(e) => setNewDepartment(e.target.value)}
                     >
-                      <option value="Information & Communication Technology">Department of ICT</option>
-                      <option value="Biosystems Technology">Department of Biosystems Technology</option>
-                      <option value="Engineering Technology">Department of Engineering Technology</option>
+                      <option value="Information & Communication Technology">Department of Information & Communication Technology</option>
+                      <option value="Biosystems Technology">Department of Bio Systems Technology</option>
                     </select>
                   </div>
 

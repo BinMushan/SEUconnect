@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import NotificationItem from './components/NotificationItem.jsx';
 import { INITIAL_NOTIFICATIONS } from './lecturerMockData.js';
 
@@ -20,7 +19,6 @@ export default function Notifications({
   onNavigateNotification,
   onShowToast,
 }) {
-  const navigate = useNavigate();
   const [localNotifications, setLocalNotifications] = useState(INITIAL_NOTIFICATIONS);
   const notifications = propNotifications || localNotifications;
   const setNotifications = setLocalNotifications;
@@ -69,30 +67,28 @@ export default function Notifications({
     let targetRoute = notif.actionRoute;
     if (!targetRoute) {
       if (notif.category === 'Medical requests' || notif.title.toLowerCase().includes('medical')) {
-        targetRoute = '/medical-verification';
+        targetRoute = 'medical-verification';
       } else if (notif.category === 'Missing CA marks' || notif.title.toLowerCase().includes('ca')) {
-        targetRoute = '/ca-esa';
+        targetRoute = 'ca-esa';
       } else if (notif.category === 'Attendance reminders' || notif.title.toLowerCase().includes('attendance')) {
-        targetRoute = '/attendance';
+        targetRoute = 'attendance';
       } else if (notif.category === 'Student requests' || notif.title.toLowerCase().includes('repeat')) {
-        targetRoute = '/results';
+        targetRoute = 'results';
       } else {
-        targetRoute = '/announcements';
+        targetRoute = 'announcements';
       }
     }
 
     // 3. Show notification toast feedback
     if (onShowToast) {
-      if (targetRoute === '/medical-verification') {
+      if (targetRoute.includes('medical')) {
         onShowToast('Navigating to Student Medical Approval & Verification', 'info');
       }
     }
 
-    // 4. Navigate
+    // 4. Navigate via parent handler
     if (onNavigateNotification) {
       onNavigateNotification(targetRoute, notif.actionParams);
-    } else {
-      navigate(targetRoute);
     }
   };
 
@@ -113,9 +109,9 @@ export default function Notifications({
   ];
 
   return (
-    <div className="lec-notifications-container">
-      {/* 1. Header Card */}
-      <div className="lec-module-header-card">
+    <div className="lec-notifications-page">
+      {/* 1. Header with Stats & Mark All as Read */}
+      <div className="lec-notif-header-card">
         <div>
           <h2 className="lec-module-title">Academic Notification Inbox & Action Items</h2>
           <p className="lec-module-sub">
@@ -123,16 +119,16 @@ export default function Notifications({
           </p>
         </div>
         <div className="lec-notif-header-stats">
-          <span className="notif-pill">
+          <div className="lec-unread-badge-pill">
             Unread: <strong>{unreadCount} Alerts</strong>
-          </span>
+          </div>
           <button
             type="button"
-            className="lec-btn-mark-all-read"
+            className="lec-btn-mark-all"
             onClick={handleMarkAllAsRead}
             disabled={unreadCount === 0}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
             Mark all as read
@@ -140,25 +136,25 @@ export default function Notifications({
         </div>
       </div>
 
-      {/* 2. Controls & Categories Bar */}
-      <div className="lec-notif-controls-bar">
-        <div className="lec-category-tabs">
+      {/* 2. Controls & Categories Row */}
+      <div className="lec-notif-controls-row">
+        {/* Category Pills */}
+        <div className="lec-notif-cat-pills">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
-              className={`lec-category-tab-btn ${selectedCategory === cat ? 'active' : ''}`}
+              className={`lec-cat-pill ${selectedCategory === cat ? 'active' : ''}`}
               onClick={() => setSelectedCategory(cat)}
             >
               {cat}
-              {cat === 'All' && (
-                <span className="tab-counter-badge">{notifications.length}</span>
-              )}
+              {cat === 'All' && ` ${notifications.length}`}
             </button>
           ))}
         </div>
 
-        <div className="lec-toggle-unread-wrap">
+        {/* Unread Toggle */}
+        <div className="lec-notif-filter-toggle">
           <label className="lec-toggle-switch-label">
             <input
               type="checkbox"
@@ -174,13 +170,13 @@ export default function Notifications({
       {/* 3. Notifications Feed List */}
       <div className="lec-notif-items-list">
         {filteredList.length === 0 ? (
-          <div className="lec-empty-feed-card">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          <div className="lec-empty-notif-card">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <h4>All Caught Up!</h4>
-            <p>There are no notifications matching your filter criteria.</p>
+            <p>No notifications found matching your filter criteria.</p>
           </div>
         ) : (
           filteredList.map((notif) => (
@@ -194,9 +190,9 @@ export default function Notifications({
         )}
       </div>
 
-      {/* 4. Helpdesk Support Footer Notice */}
-      <div className="lec-info-notice-banner">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      {/* 4. Automated Digest Footnote */}
+      <div className="lec-notif-footnote">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
