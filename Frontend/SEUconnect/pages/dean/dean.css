@@ -1,27 +1,1619 @@
-/* Dean Portal Custom Styles */
+/* ==========================================================================
+   DEAN EXECUTIVE OFFICE PORTAL - SEUCONNECT ENTERPRISE DESIGN
+   Faculty of Technology, South Eastern University of Sri Lanka (SEUSL)
+   Executive Dean: Prof. Rifai Kariapper
+   ========================================================================== */
+
 .dean-portal-container {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
-.dean-header-banner {
+.dean-dashboard-content,
+.dean-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   1. VIEW HEADER BANNERS (Sub-pages)
+   ========================================================================== */
+.dean-view-header-banner {
   background: linear-gradient(135deg, #071733 0%, #0f2b5c 50%, #1e3a8a 100%);
   border-radius: 14px;
-  padding: 1.5rem 1.75rem;
+  padding: 1.35rem 1.6rem;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 3px solid #f59e0b;
-  box-shadow: 0 4px 15px rgba(15, 43, 92, 0.2);
+  box-shadow: 0 4px 15px rgba(7, 23, 51, 0.15);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.dean-card {
+.dean-header-banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dean-banner-tag {
+  background: #f59e0b;
+  color: #071733;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.dean-view-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.dean-view-subtitle {
+  margin: 0;
+  color: #93c5fd;
+  font-size: 0.85rem;
+}
+
+.dean-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dean-banner-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+}
+
+.dean-banner-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dean-banner-btn.primary {
+  background: #f59e0b;
+  color: #071733;
+  border-color: #f59e0b;
+  font-weight: 700;
+}
+
+.dean-banner-btn.primary:hover {
+  background: #d97706;
+}
+
+/* ==========================================================================
+   2. KPI STATS GRIDS & STRIPS
+   ========================================================================== */
+.dean-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  .dean-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .dean-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dean-stat-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.dean-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.dean-stat-card.pulse-border {
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.dean-stat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-blue { background: #eff6ff; color: #2563eb; }
+.icon-amber { background: #fef3c7; color: #d97706; }
+.icon-emerald { background: #dcfce7; color: #16a34a; }
+.icon-rose { background: #ffe4e6; color: #e11d48; }
+
+.dean-stat-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.dean-stat-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.dean-stat-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dean-stat-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.badge-blue { background: #eff6ff; color: #1d4ed8; }
+.badge-amber { background: #f59e0b; color: #ffffff; }
+.badge-emerald { background: #dcfce7; color: #15803d; }
+.badge-rose { background: #fee2e2; color: #be123c; }
+
+.dean-stat-number {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.dean-stat-target {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Stats Strip (Compact horizontal metric bar) */
+.dean-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.dean-strip-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
+}
+
+.dean-strip-card:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.dean-strip-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  line-height: 1;
+}
+
+.dean-strip-lbl {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   3. DEAN EXECUTIVE QUICK DISPATCH BAR
+   ========================================================================== */
+.dean-quick-actions-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.dean-quick-actions-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-pulse-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+  animation: pulse-dean 2s infinite;
+}
+
+@keyframes pulse-dean {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.dean-quick-actions-btns {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dean-quick-action-btn {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.dean-quick-action-btn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.dean-quick-action-btn.primary {
+  background: #0f2b5c;
+  color: #ffffff;
+  border-color: #0f2b5c;
+}
+
+.dean-quick-action-btn.primary:hover {
+  background: #1e3a8a;
+}
+
+.dean-quick-action-btn.warning {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.dean-quick-action-btn.warning:hover {
+  background: #fef3c7;
+}
+
+.dean-count-pill {
+  background: #f59e0b;
+  color: #071733;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   4. TWO-COLUMN SPLIT LAYOUTS
+   ========================================================================== */
+.dean-dual-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  .dean-dual-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dean-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .dean-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dean-sidebar-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   5. TABLE CARDS & LISTINGS
+   ========================================================================== */
+.dean-card,
+.dean-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dean-table-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dean-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.dean-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.dean-card-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.2rem 0 0;
+}
+
+.dean-card-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dean-live-tag {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Filter Toolbars */
+.dean-toolbar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dean-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dean-filter-tabs {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.dean-tab-btn {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dean-tab-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.dean-tab-btn.active {
+  background: #0f2b5c;
+  color: #ffffff;
+  border-color: #0f2b5c;
+}
+
+.dean-table-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  width: 100%;
+  max-width: 250px;
+}
+
+.dean-table-search-box input {
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  color: #0f172a;
+  outline: none;
+  width: 100%;
+}
+
+/* ==========================================================================
+   6. TABLE FORMATTING & CELLS
+   ========================================================================== */
+.dean-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dean-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.82rem;
+}
+
+.dean-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dean-table td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.dean-table tr:hover td {
+  background: #f8fafc;
+}
+
+.dean-tracking-badge {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 700;
+  color: #0f2b5c;
+  background: #f1f5f9;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  display: inline-block;
+}
+
+.dean-student-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.dean-student-reg {
+  font-size: 0.73rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.dean-proc-title {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dean-subject-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+.dean-endorsement-pill {
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.dean-endorsement-pill.lec { background: #dcfce7; color: #15803d; }
+.dean-endorsement-pill.hod { background: #dbeafe; color: #1d4ed8; }
+.dean-endorsement-pill.direct { background: #f1f5f9; color: #64748b; }
+
+.dean-date-text {
+  color: #64748b;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.dean-status-pill {
+  padding: 0.22rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+[class*="status-pending"] {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+[class*="status-approved"],
+[class*="status-cleared"] {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+[class*="status-declined"],
+[class*="status-returned"] {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Actions cell */
+.dean-actions-cell {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.dean-btn-approve {
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dean-btn-approve:hover {
+  background: #059669;
+}
+
+.dean-btn-return {
+  background: #f59e0b;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dean-btn-return:hover {
+  background: #d97706;
+}
+
+.dean-btn-decline {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dean-btn-decline:hover {
+  background: #dc2626;
+}
+
+.dean-btn-audit {
+  background: #f1f5f9;
+  color: #0f2b5c;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dean-btn-audit:hover {
+  background: #e2e8f0;
+}
+
+.dean-btn-outline {
+  background: #ffffff;
+  color: #0f2b5c;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dean-btn-outline:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* ==========================================================================
+   7. WIDGETS: VITAL STATS & MEETING PREVIEW
+   ========================================================================== */
+.dean-vital-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dean-vital-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dean-vital-lbl {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dean-vital-val {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.dean-meeting-num {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-meeting-meta,
+.dean-meeting-venue {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.dean-meeting-agenda-preview {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+}
+
+.dean-meeting-agenda-preview ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  color: #334155;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   8. ACADEMIC CALENDAR TIMELINE
+   ========================================================================== */
+.dean-calendar-pulse-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.dean-pulse-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.dean-pulse-lead {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.dean-pulse-highlight {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f2b5c;
+}
+
+.dean-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  position: relative;
+}
+
+.dean-timeline-item {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.dean-timeline-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.dean-marker-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.dean-marker-dot.completed {
+  background: #dcfce7;
+  color: #15803d;
+  border: 2px solid #86efac;
+}
+
+.dean-marker-dot.active {
+  background: #fef3c7;
+  color: #b45309;
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+}
+
+.dean-marker-dot.upcoming {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 2px solid #cbd5e1;
+}
+
+.dean-marker-line {
+  width: 2px;
+  flex-grow: 1;
+  background: #e2e8f0;
+  margin: 4px 0;
+}
+
+.dean-timeline-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  flex-grow: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
+}
+
+.dean-timeline-item.active-milestone .dean-timeline-card {
+  border-left: 4px solid #f59e0b;
+  background: #fffefb;
+}
+
+.dean-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.dean-timeline-date {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f2b5c;
+}
+
+.dean-timeline-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-timeline-desc {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   9. DEPARTMENTS & INITIATIVES
+   ========================================================================== */
+.dean-dept-nav-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 800px) {
+  .dean-dept-nav-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dean-dept-tab-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dean-dept-tab-card:hover {
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+}
+
+.dean-dept-tab-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.dean-tab-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.dean-dept-tab-name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-dept-tab-meta {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.dean-departments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.1rem;
+}
+
+.dean-dept-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.dean-dept-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.dean-dept-code {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.dean-dept-name {
+  margin: 0.3rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-dept-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.dean-dept-lead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.dean-dept-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  background: #ffffff;
+  padding: 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.dean-metric-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  display: block;
+}
+
+.dean-metric-lbl {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dean-dept-degree {
+  font-size: 0.76rem;
+  color: #334155;
+  background: #ffffff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.dean-dept-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Lead Profile */
+.dean-lead-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dean-lead-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #0f2b5c;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  border: 2px solid #f59e0b;
+  flex-shrink: 0;
+}
+
+.dean-lead-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dean-lead-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-lead-desig {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dean-lead-qual {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: #334155;
+}
+
+.dean-lead-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  background: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 8px;
+}
+
+.dean-lead-row {
+  display: flex;
+  font-size: 0.8rem;
+}
+
+.dean-lead-label {
+  width: 80px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dean-lead-val {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.dean-lead-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dean-statutory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dean-statutory-item {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #1e293b;
+  background: #f8fafc;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ==========================================================================
+   10. MINUTES, CONCESSIONS & SEALS
+   ========================================================================== */
+.dean-minutes-stack,
+.dean-concessions-stack,
+.dean-initiatives-stack,
+.dean-seals-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.dean-minute-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+@media (max-width: 800px) {
+  .dean-minute-body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dean-minute-subheading {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+
+.dean-agenda-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.dean-resolutions-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dean-res-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.dean-res-bullet {
+  font-size: 1rem;
+}
+
+.dean-res-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.dean-minute-quote {
+  background: #eff6ff;
+  border-left: 3px solid #2563eb;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+  color: #1e3a8a;
+  margin-top: 0.65rem;
+}
+
+.dean-hash-box {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dean-hash-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: #0f2b5c;
+  word-break: break-all;
+  font-weight: 700;
+}
+
+.dean-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dean-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ==========================================================================
+   11. FORMS & MODALS
+   ========================================================================== */
+.dean-form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.dean-input,
+.dean-textarea {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.dean-input:focus,
+.dean-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.dean-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.dean-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.dean-modal-header {
+  padding: 1.15rem 1.35rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.dean-modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dean-modal-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.dean-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.dean-modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.dean-modal-body {
+  padding: 1.35rem;
+  overflow-y: auto;
+}
+
+.dean-modal-footer {
+  padding: 0.85rem 1.35rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  background: #f8fafc;
+}
+
+.dean-staff-dossier-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.dean-dossier-item label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.dean-dossier-item div {
+  font-size: 0.85rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   12. ALERTS, BADGES & EMPTY STATES
+   ========================================================================== */
+.dean-alert-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.dean-alert-banner.success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.dean-alert-banner button {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+.dean-empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dean-empty-state h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.dean-empty-state p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  max-width: 400px;
+}
+
+.dean-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin-dean 0.8s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin-dean {
+  to { transform: rotate(360deg); }
+}
+
+.dean-badge-green { background: #dcfce7; color: #15803d; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.dean-badge-amber { background: #fef3c7; color: #b45309; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.dean-badge-blue { background: #eff6ff; color: #1d4ed8; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.dean-badge-rose { background: #fee2e2; color: #be123c; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+.dean-badge-gray { background: #f1f5f9; color: #475569; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+
+.dean-gpa-badge {
+  font-weight: 700;
+  color: #0f2b5c;
+  background: #eff6ff;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.dean-class-badge {
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.dean-class-badge.first { background: #dcfce7; color: #15803d; }
+.dean-class-badge.upper { background: #eff6ff; color: #1d4ed8; }
+
+.dean-board-pill {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.dean-dept-badge {
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.dean-status-dot {
+  font-size: 0.7rem;
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* Batch Breakdown Card in Dean Executive Office */
+.dean-batch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dean-batch-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.dean-batch-item-row:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.dean-batch-item-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.dean-batch-item-name {
+  font-weight: 700;
+  color: #0f2b5c;
+  font-size: 0.82rem;
+}
+
+.dean-batch-item-year {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.dean-batch-counts-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dean-batch-dept-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.dean-batch-dept-chip.ict {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.dean-batch-dept-chip.bst {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.dean-batch-total-chip {
+  font-weight: 800;
+  color: #0f172a;
+  min-width: 28px;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.dean-batch-card-summary {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: #eff6ff;
+  border: 1px dashed #93c5fd;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
 }

@@ -149,11 +149,11 @@ export default function PenaltiesManagement({
               <div className="adm-modal-body">
                 <div className="adm-form-grid">
                   <div className="adm-form-group">
-                    <label className="adm-label">Student Reg No (e.g. 21ET032) *</label>
+                    <label className="adm-label">Student Reg No (e.g. SEU/IS/22/ICT/091) *</label>
                     <input
                       type="text"
                       className="adm-input"
-                      placeholder="21ET032"
+                      placeholder="SEU/IS/22/ICT/091"
                       value={newRegNo}
                       onChange={(e) => setNewRegNo(e.target.value)}
                       required

@@ -8,12 +8,12 @@ export const ICT_DEPARTMENT_INFO = {
   campus: 'Oluvil Main Campus',
   established: '2016',
   hod: {
-    name: 'Dr. M.A. Rifky',
-    title: 'Senior Lecturer Gr. I & Head of Department',
-    email: 'rifky@seu.ac.lk',
+    name: 'M.J Ahamed Sabani',
+    title: 'Senior Lecturer & Head of Department',
+    email: 'sabani@seu.ac.lk',
     phone: '+94 67 2255444 / Ext. 310',
     office: 'HOD Office, Department of ICT, Technology Complex',
-    qualification: 'Ph.D. in Distributed Systems (NUS), M.Sc. (Comp Sci), B.Sc. Hons (First Class)',
+    qualification: 'M.Phil., M.Sc. (Comp Sci), B.Sc. Hons in IT (First Class)',
   },
   vision: 'To be a premier center of excellence in Information and Communication Technology education, research, and innovation in the South Asian region.',
   mission: 'To produce highly skilled, ethically grounded, and innovative ICT professionals who can lead technological advancement and contribute to national and global socio-economic development through rigorous education, impactful research, and community engagement.',
@@ -24,11 +24,11 @@ export const ICT_DEPARTMENT_INFO = {
       duration: '4 Years (Full-Time)',
       slqfLevel: 'SLQF Level 10 (120 Credits)',
       specializations: ['Software Systems Development', 'Network & Cloud Security', 'Data Science & Artificial Intelligence'],
-      enrolledStudents: 420,
+      enrolledStudents: 337,
     },
   ],
   stats: {
-    totalUndergraduates: 420,
+    totalUndergraduates: 337,
     academicCadre: 18,
     fullTimeLecturers: 12,
     demonstrators: 6,
@@ -72,7 +72,7 @@ export const ICT_DEPARTMENT_INFO = {
     },
   ],
   committees: [
-    { name: 'Department Curriculum & Academic Development Board', chair: 'Dr. M.A. Rifky (HOD)', meets: 'Bi-monthly' },
+    { name: 'Department Curriculum & Academic Development Board', chair: 'M.J Ahamed Sabani (HOD)', meets: 'Bi-monthly' },
     { name: 'Internal Quality Assurance Cell (IQAC - ICT)', chair: 'Dr. S. Kirushanth', meets: 'Monthly' },
     { name: 'Industrial Training & Career Placement Unit', coordinator: 'Eng. K. Thanushan', meets: 'Quarterly' },
     { name: 'Undergraduate Mentoring & Student Welfare Cell', coordinator: 'Mrs. N. Fathima', meets: 'Fortnightly' },
@@ -83,12 +83,12 @@ export const ICT_DEPARTMENT_INFO = {
 export const ACADEMIC_STAFF_LIST = [
   {
     id: 'STAFF-ICT-001',
-    name: 'Dr. M.A. Rifky',
-    designation: 'Head of Department / Senior Lecturer Gr. I',
+    name: 'M.J Ahamed Sabani',
+    designation: 'Head of Department / Senior Lecturer',
     cadre: 'Senior Lecturer',
-    email: 'rifky@seu.ac.lk',
+    email: 'sabani@seu.ac.lk',
     phone: '+94 67 2255444 / Ext. 310',
-    qualification: 'Ph.D. (NUS, Singapore), M.Sc. (Colombo), B.Sc. Hons (SEUSL)',
+    qualification: 'M.Phil. (SEUSL), M.Sc. (Peradeniya), B.Sc. Hons in IT (First Class)',
     researchAreas: 'Distributed Systems, Cloud Architecture, Fault Tolerance',
     assignedModules: ['ICT 4113 - Cloud Computing & Distributed Systems', 'ICT 4126 - Capstone Project'],
     officeRoom: 'Tech Complex Room 201 (HOD Office)',
@@ -209,13 +209,76 @@ export const ACADEMIC_STAFF_LIST = [
   },
 ];
 
-export const DEPARTMENT_STUDENTS_LIST = [
+export const HOD_BATCH_CONFIG = [
+  { batchKey: '2025/2024', label: '1st Year (2025/2024)', year: '1st Year', count: 76, color: '#2563eb' },
+  { batchKey: '2024/2023', label: '2nd Year (2024/2023)', year: '2nd Year', count: 70, color: '#059669' },
+  { batchKey: '2023/2022', label: '3rd Year (2023/2022)', year: '3rd Year', count: 66, color: '#d97706' },
+  { batchKey: '2022/2021', label: '4th Year (2022/2021)', year: '4th Year', count: 64, color: '#7c3aed' },
+  { batchKey: '2021/2020', label: '2021/2020', year: '2021/2020', count: 61, color: '#0d9488' },
+];
+
+export const getCalculatedHodTotal = () => HOD_BATCH_CONFIG.reduce((acc, b) => acc + b.count, 0);
+
+// Deterministic generator to seed realistic Sri Lankan student profiles matching batch quotas
+const FIRST_INITIALS = ['A.M.', 'K.L.', 'M.R.', 'S.K.', 'T.', 'R.M.', 'N.F.', 'B.M.', 'H.A.', 'P.K.', 'J.M.', 'W.A.', 'G.H.', 'F.S.', 'D.S.', 'M.I.', 'A.R.', 'S.T.', 'K.P.', 'U.L.'];
+const SURNAMES = [
+  'Perera', 'Silva', 'Mohamed', 'Fernando', 'Jayawardena', 'Bandara', 'Karunaratne', 'Dissanayake',
+  'Rasheed', 'Subasinghe', 'Weerasinghe', 'Thanabalasingham', 'Gnanasekaram', 'Wijesinghe',
+  'Wickramasinghe', 'Nazeer', 'Farhan', 'Rifaz', 'Sithara', 'Karthik', 'Nisal', 'Aashik',
+  'Danushika', 'Senanayake', 'Illiyas', 'Majeed', 'Tharaka', 'Priyantha', 'Madushan', 'Hansani',
+  'Kavindi', 'Shamal', 'Imran', 'Haleem', 'Navod'
+];
+const SPECIALIZATIONS = ['Software Systems', 'Network & Cloud', 'Data Science & AI'];
+
+function generateSampleStudents(batchKey, yearLabel, regYearPrefix, targetCount, existingStudents = []) {
+  const result = [...existingStudents];
+  let seq = 1;
+  while (result.length < targetCount) {
+    const formattedReg = `${regYearPrefix}/ICT/${String(seq).padStart(3, '0')}`;
+    if (result.some(s => s.regNo === formattedReg)) {
+      seq++;
+      continue;
+    }
+    const idx = result.length;
+    const name = `${FIRST_INITIALS[idx % FIRST_INITIALS.length]} ${SURNAMES[(idx * 7) % SURNAMES.length]}`;
+    const regNo = formattedReg;
+    const indexNo = `ICT${regYearPrefix.slice(-2)}${String(seq).padStart(2, '0')}`;
+    const spec = SPECIALIZATIONS[idx % SPECIALIZATIONS.length];
+    const cgpa = Number((2.4 + ((idx * 17) % 150) / 100).toFixed(2));
+    const att = 68 + ((idx * 23) % 31);
+    const attStatus = att >= 80 ? 'Eligible' : att >= 70 ? 'Borderline Warning' : 'Barred Risk (<70%)';
+    const acadStatus = cgpa >= 3.7 ? "Dean's List" : cgpa >= 2.5 ? 'Good Standing' : 'Academic Warning';
+    const email = `stu${regYearPrefix.slice(-2)}ict${String(seq).padStart(3, '0')}@seu.ac.lk`;
+
+    result.push({
+      regNo,
+      indexNo,
+      name,
+      batch: `${yearLabel} (${batchKey})`,
+      year: yearLabel,
+      batchKey,
+      specialization: spec,
+      cgpa,
+      attendanceRate: att,
+      attendanceStatus: attStatus,
+      academicStatus: acadStatus,
+      pendingRequests: idx % 11 === 0 ? 'Medical Excuse' : idx % 19 === 0 ? 'Repeat CA Form' : 'None',
+      email,
+    });
+    seq++;
+  }
+  return result;
+}
+
+// 1. 3rd Year (2023/2022) Core Students (Must preserve regNo, name, CGPA, attendance, status, requests)
+const core3rdYearStudents = [
   {
     regNo: '2021/ICT/085',
     indexNo: 'ICT2185',
     name: 'M.N.M. Afnan',
-    batch: '3rd Year (2021/22)',
+    batch: '3rd Year (2023/2022)',
     year: '3rd Year',
+    batchKey: '2023/2022',
     specialization: 'Software Systems',
     cgpa: 3.58,
     attendanceRate: 88,
@@ -228,8 +291,9 @@ export const DEPARTMENT_STUDENTS_LIST = [
     regNo: '2021/ICT/042',
     indexNo: 'ICT2142',
     name: 'K.D. Thilini Sanduni',
-    batch: '3rd Year (2021/22)',
+    batch: '3rd Year (2023/2022)',
     year: '3rd Year',
+    batchKey: '2023/2022',
     specialization: 'Software Systems',
     cgpa: 3.82,
     attendanceRate: 94,
@@ -242,8 +306,9 @@ export const DEPARTMENT_STUDENTS_LIST = [
     regNo: '2021/ICT/019',
     indexNo: 'ICT2119',
     name: 'A.H. Mohamed Bilal',
-    batch: '3rd Year (2021/22)',
+    batch: '3rd Year (2023/2022)',
     year: '3rd Year',
+    batchKey: '2023/2022',
     specialization: 'Network & Cloud',
     cgpa: 2.89,
     attendanceRate: 78,
@@ -256,8 +321,9 @@ export const DEPARTMENT_STUDENTS_LIST = [
     regNo: '2021/ICT/103',
     indexNo: 'ICT2103',
     name: 'P. Ravindranathan',
-    batch: '3rd Year (2021/22)',
+    batch: '3rd Year (2023/2022)',
     year: '3rd Year',
+    batchKey: '2023/2022',
     specialization: 'Network & Cloud',
     cgpa: 2.34,
     attendanceRate: 68,
@@ -266,12 +332,17 @@ export const DEPARTMENT_STUDENTS_LIST = [
     pendingRequests: 'Repeat CA Form',
     email: 'ravindra21@seu.ac.lk',
   },
+];
+
+// 2. 4th Year (2022/2021) Core Students
+const core4thYearStudents = [
   {
     regNo: '2020/ICT/012',
     indexNo: 'ICT2012',
     name: 'S. Fathima Sajana',
-    batch: '4th Year (2020/21)',
+    batch: '4th Year (2022/2021)',
     year: '4th Year',
+    batchKey: '2022/2021',
     specialization: 'Software Systems',
     cgpa: 3.75,
     attendanceRate: 96,
@@ -284,8 +355,9 @@ export const DEPARTMENT_STUDENTS_LIST = [
     regNo: '2020/ICT/055',
     indexNo: 'ICT2055',
     name: 'M.I. Ahmed Niyas',
-    batch: '4th Year (2020/21)',
+    batch: '4th Year (2022/2021)',
     year: '4th Year',
+    batchKey: '2022/2021',
     specialization: 'Data Science & AI',
     cgpa: 3.42,
     attendanceRate: 85,
@@ -294,12 +366,17 @@ export const DEPARTMENT_STUDENTS_LIST = [
     pendingRequests: 'None',
     email: 'niyas20@seu.ac.lk',
   },
+];
+
+// 3. 2nd Year (2024/2023) Core Students
+const core2ndYearStudents = [
   {
     regNo: '2022/ICT/008',
     indexNo: 'ICT2208',
     name: 'H.M. Dilshan Senarath',
-    batch: '2nd Year (2022/23)',
+    batch: '2nd Year (2024/2023)',
     year: '2nd Year',
+    batchKey: '2024/2023',
     specialization: 'General ICT',
     cgpa: 3.15,
     attendanceRate: 82,
@@ -312,8 +389,9 @@ export const DEPARTMENT_STUDENTS_LIST = [
     regNo: '2022/ICT/067',
     indexNo: 'ICT2267',
     name: 'T. Kowshik',
-    batch: '2nd Year (2022/23)',
+    batch: '2nd Year (2024/2023)',
     year: '2nd Year',
+    batchKey: '2024/2023',
     specialization: 'General ICT',
     cgpa: 2.15,
     attendanceRate: 64,
@@ -322,12 +400,17 @@ export const DEPARTMENT_STUDENTS_LIST = [
     pendingRequests: 'Medical Board Appeal',
     email: 'kowshik22@seu.ac.lk',
   },
+];
+
+// 4. 1st Year (2025/2024) Core Students
+const core1stYearStudents = [
   {
     regNo: '2023/ICT/001',
     indexNo: 'ICT2301',
     name: 'F. Zahra',
-    batch: '1st Year (2023/24)',
+    batch: '1st Year (2025/2024)',
     year: '1st Year',
+    batchKey: '2025/2024',
     specialization: 'Foundation Technology',
     cgpa: 3.65,
     attendanceRate: 92,
@@ -340,8 +423,9 @@ export const DEPARTMENT_STUDENTS_LIST = [
     regNo: '2023/ICT/089',
     indexNo: 'ICT2389',
     name: 'B. Mithuran',
-    batch: '1st Year (2023/24)',
+    batch: '1st Year (2025/2024)',
     year: '1st Year',
+    batchKey: '2025/2024',
     specialization: 'Foundation Technology',
     cgpa: 3.22,
     attendanceRate: 89,
@@ -350,6 +434,39 @@ export const DEPARTMENT_STUDENTS_LIST = [
     pendingRequests: 'None',
     email: 'mithuran23@seu.ac.lk',
   },
+];
+
+// 5. 2021/2020 Batch Core Students
+const core2020Students = [
+  {
+    regNo: '2019/ICT/005',
+    indexNo: 'ICT1905',
+    name: 'R.M. Rasmy',
+    batch: '2021/2020',
+    year: '2021/2020',
+    batchKey: '2021/2020',
+    specialization: 'Software Systems',
+    cgpa: 3.48,
+    attendanceRate: 90,
+    attendanceStatus: 'Eligible',
+    academicStatus: 'Good Standing',
+    pendingRequests: 'None',
+    email: 'rasmy19@seu.ac.lk',
+  },
+];
+
+const batch1Students = generateSampleStudents('2025/2024', '1st Year', '2024', 76, core1stYearStudents);
+const batch2Students = generateSampleStudents('2024/2023', '2nd Year', '2023', 70, core2ndYearStudents);
+const batch3Students = generateSampleStudents('2023/2022', '3rd Year', '2022', 66, core3rdYearStudents);
+const batch4Students = generateSampleStudents('2022/2021', '4th Year', '2021', 64, core4thYearStudents);
+const batch5Students = generateSampleStudents('2021/2020', '2021/2020', '2020', 61, core2020Students);
+
+export const DEPARTMENT_STUDENTS_LIST = [
+  ...batch1Students,
+  ...batch2Students,
+  ...batch3Students,
+  ...batch4Students,
+  ...batch5Students,
 ];
 
 export const COURSE_ALLOCATION_MATRIX = [
@@ -450,7 +567,7 @@ export const COURSE_ALLOCATION_MATRIX = [
     credits: 3,
     year: '4th Year',
     semester: 'Semester 1',
-    lecturerInCharge: 'Dr. M.A. Rifky (HOD)',
+    lecturerInCharge: 'M.J Ahamed Sabani (HOD)',
     demonstrators: ['Eng. T. Vignesh (Visiting)'],
     enrolledStudents: 105,
     syllabusProgress: 88,
@@ -543,7 +660,7 @@ export const REPEAT_EXAM_CANDIDATES = [
     subjectTitle: 'Data Structures and Algorithms',
     previousGrade: 'E',
     attempt: '2nd Attempt (Repeat)',
-    reason: 'Failed End Semester Examination in 2024/25',
+    reason: 'Failed End Semester Examination in 2025/2024',
     caCarriedOver: '42/50 (CA Valid)',
     medicalCovered: 'No',
     hodStatus: 'Endorsed for ESA',
@@ -679,8 +796,8 @@ export const DEPARTMENT_BOARD_MINUTES = [
     date: '2026-10-24',
     time: '10:00 AM - 12:30 PM',
     venue: 'Department Conference Room, Tech Complex Level 2',
-    chair: 'Dr. M.A. Rifky (HOD)',
-    attendees: ['Dr. M.A. Rifky', 'Dr. S. Kirushanth', 'Dr. A.M. Aslam', 'Eng. K. Thanushan', 'Mrs. N. Fathima', 'Mr. R. Jeyanth'],
+    chair: 'M.J Ahamed Sabani (HOD)',
+    attendees: ['M.J Ahamed Sabani', 'Dr. S. Kirushanth', 'Dr. A.M. Aslam', 'Eng. K. Thanushan', 'Mrs. N. Fathima', 'Mr. R. Jeyanth'],
     agendaItems: [
       'Confirmation of the Minutes of the 57th Department Board Meeting',
       'Matters arising from the Minutes: Progress on Lab 2 Cisco equipment calibration',
@@ -700,8 +817,8 @@ export const DEPARTMENT_BOARD_MINUTES = [
     date: '2026-09-20',
     time: '02:00 PM - 04:15 PM',
     venue: 'Department Conference Room',
-    chair: 'Dr. M.A. Rifky (HOD)',
-    attendees: ['Dr. M.A. Rifky', 'Dr. S. Kirushanth', 'Dr. A.M. Aslam', 'Eng. K. Thanushan', 'Mrs. N. Fathima', 'Mr. R. Jeyanth'],
+    chair: 'M.J Ahamed Sabani (HOD)',
+    attendees: ['M.J Ahamed Sabani', 'Dr. S. Kirushanth', 'Dr. A.M. Aslam', 'Eng. K. Thanushan', 'Mrs. N. Fathima', 'Mr. R. Jeyanth'],
     agendaItems: [
       'Course Allocation for Semester 1 of Academic Year 2025/2026',
       'Demonstrator teaching load distribution',

@@ -27,8 +27,8 @@ export default function UserRoleManagement({
   // Find leadership holders
   const currentDean = users.find((u) => u.role === 'Faculty Dean');
   const hodIct = users.find((u) => u.role === 'Head of Department (HOD)' && u.department.includes('ICT'));
-  const hodBst = users.find((u) => u.role === 'Head of Department (HOD)' && u.department.includes('Biosystems'));
-  const hodEt = users.find((u) => u.role === 'Head of Department (HOD)' && u.department.includes('Engineering'));
+  const hodBst = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('Biosystems') || u.department.includes('BST')));
+
   const examOfficer = users.find((u) => u.role === 'Examination Officer');
 
   // Filter users
@@ -109,7 +109,7 @@ export default function UserRoleManagement({
         <div className="adm-section-title-wrap">
           <h2 className="adm-section-title">User Roles, Appointments & Access Delegation</h2>
           <p className="adm-section-subtitle">
-            Assign and reassign faculty leadership roles: appoint the Faculty Dean, Heads of Department (HODs), Examination Officers, Lecturers, and manage entire website user credentials.
+            Faculty of Technology Leadership: One Faculty Dean and Two Heads of Department (BICT: Department of Information & Communication Technology and BST: Department of Bio Systems Technology), alongside Examination Officers and Academic Staff.
           </p>
         </div>
         <div className="adm-section-actions">
@@ -129,7 +129,7 @@ export default function UserRoleManagement({
       </div>
 
       {/* Leadership Appointments Executive Strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.85rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
         {/* Dean Card */}
         <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #0f2b5c' }}>
           <div style={{ fontSize: '0.68rem', color: '#0f2b5c', fontWeight: 700, textTransform: 'uppercase' }}>FACULTY DEAN</div>
@@ -176,23 +176,6 @@ export default function UserRoleManagement({
             className="adm-btn-xs-secondary"
             style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
             onClick={() => hodBst && openAssignModal(hodBst)}
-          >
-            Reassign HOD
-          </button>
-        </div>
-
-        {/* HOD ET Card */}
-        <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #d97706' }}>
-          <div style={{ fontSize: '0.68rem', color: '#d97706', fontWeight: 700, textTransform: 'uppercase' }}>HOD (ENGINEERING)</div>
-          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {hodEt ? hodEt.name : 'Unassigned'}
-          </div>
-          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Dept. of Engineering</div>
-          <button
-            type="button"
-            className="adm-btn-xs-secondary"
-            style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
-            onClick={() => hodEt && openAssignModal(hodEt)}
           >
             Reassign HOD
           </button>
@@ -433,7 +416,6 @@ export default function UserRoleManagement({
                     >
                       <option value="Department of ICT">Department of ICT</option>
                       <option value="Department of Biosystems Technology">Department of Biosystems Technology</option>
-                      <option value="Department of Engineering Technology">Department of Engineering Technology</option>
                       <option value="Dean's Secretariat">Dean&apos;s Secretariat</option>
                       <option value="Examination Branch">Examination Branch</option>
                       <option value="Faculty Administration Office">Faculty Administration Office</option>
@@ -554,7 +536,6 @@ export default function UserRoleManagement({
                     >
                       <option value="Department of ICT">Department of ICT</option>
                       <option value="Department of Biosystems Technology">Department of Biosystems Technology</option>
-                      <option value="Department of Engineering Technology">Department of Engineering Technology</option>
                       <option value="Dean's Secretariat">Dean&apos;s Secretariat</option>
                       <option value="Examination Branch">Examination Branch</option>
                       <option value="Faculty Administration Office">Faculty Administration Office</option>

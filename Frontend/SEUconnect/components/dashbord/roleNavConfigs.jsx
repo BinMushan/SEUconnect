@@ -34,6 +34,12 @@ const Icons = {
       <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
+  clock: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
   clipboardCheck: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -231,6 +237,8 @@ export const HOD_NAV_SECTIONS = [
       { id: 'academic_staff', label: 'Department Academic Staff', icon: Icons.users },
       { id: 'student_roster', label: 'Department Students', icon: Icons.user },
       { id: 'course_coordination', label: 'Course Allocations', icon: Icons.book },
+      { id: 'department_calendar', label: 'Department Academic Calendar', icon: Icons.calendar },
+      { id: 'department_timetable', label: 'Department Timetable', icon: Icons.clock },
     ],
   },
   {
@@ -309,7 +317,7 @@ export const DEAN_NAV_SECTIONS = [
     title: 'FACULTY GOVERNANCE',
     items: [
       { id: 'faculty_overview', label: 'Faculty of Technology View', icon: Icons.building },
-      { id: 'departments', label: 'Departments (ICT, BST, ET)', icon: Icons.book },
+      { id: 'departments', label: 'Departments (ICT, BST)', icon: Icons.book },
       { id: 'faculty_board', label: 'Faculty Board & Senate', icon: Icons.shield },
       { id: 'academic_calendar', label: 'Faculty Academic Calendar', icon: Icons.calendar },
     ],
@@ -468,7 +476,7 @@ export function getRoleMetaData(user) {
     case 'hod':
       return {
         rolePill: 'HOD',
-        greeting: `Welcome, ${user?.name || 'Dr. M.A. Rifky'}`,
+        greeting: `Welcome, ${user?.name || 'M.J Ahamed Sabani'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • HOD COMMAND',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-ICT-001' },
@@ -492,7 +500,7 @@ export function getRoleMetaData(user) {
     case 'dean':
       return {
         rolePill: 'DEAN',
-        greeting: `Welcome, ${user?.name || 'Prof. U.L. Abdul Majeed'}`,
+        greeting: `Welcome, ${user?.name || 'Prof. Rifai Kariapper'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • DEAN EXECUTIVE',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-FOT-001' },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import ProcessTrackerModal from '../../components/workflow/ProcessTrackerModal.jsx';
 import api from '../../src/services/api.js';
@@ -10,24 +10,32 @@ export default function SuperAdmin({ user, onLogout }) {
   const [selectedProcess, setSelectedProcess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      const [procRes, userRes] = await Promise.all([
-        api.getProcesses().catch(() => ({ data: [] })),
-        api.getUsers().catch(() => ({ data: [] })),
-      ]);
-      if (procRes.data) setProcesses(procRes.data);
-      if (userRes.data) setUsers(userRes.data);
-    } catch (err) {
-      console.warn('SuperAdmin loadData:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      try {
+        const [procRes, userRes] = await Promise.all([
+          api.getProcesses().catch(() => ({ data: [] })),
+          api.getUsers().catch(() => ({ data: [] })),
+        ]);
+        if (!isMounted) return;
+        if (procRes?.data) setProcesses(procRes.data);
+        if (userRes?.data) setUsers(userRes.data);
+      } catch (err) {
+        console.warn('SuperAdmin loadData:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
     loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -115,56 +123,67 @@ export default function SuperAdmin({ user, onLogout }) {
             Master Faculty & Department Workflow Ledger
           </h3>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table className="lec-table">
-              <thead>
-                <tr>
-                  <th>Tracking Ref</th>
-                  <th>Student & Reg No</th>
-                  <th>Process Title</th>
-                  <th>Current Station</th>
-                  <th>Decision Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processes.map((proc) => (
-                  <tr key={proc._id || proc.trackingNumber}>
-                    <td><span className="wf-tracking-badge">{proc.trackingNumber}</span></td>
-                    <td>
-                      <strong>{proc.student?.name}</strong>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{proc.student?.regNo}</div>
-                    </td>
-                    <td>
-                      <div>{proc.title}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#0284c7' }}>{proc.category}</div>
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 600, color: '#0f2b5c' }}>
-                        {proc.currentAssignedRole?.toUpperCase()}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`wf-status-badge ${
-                        proc.status === 'Approved' ? 'badge-approved' : proc.status === 'Declined' ? 'badge-declined' : 'badge-pending'
-                      }`}>
-                        {proc.status}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="wf-process-action-btn"
-                        onClick={() => setSelectedProcess(proc)}
-                      >
-                        Inspect Audit Trail
-                      </button>
-                    </td>
+          {isLoading ? (
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>Loading workflow pipelines and security ledger...</div>
+            </div>
+          ) : processes.length === 0 ? (
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8' }}>
+              <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>No workflow processes found</p>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem' }}>Active student workflow submissions will appear here for audit inspection.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="lec-table">
+                <thead>
+                  <tr>
+                    <th>Tracking Ref</th>
+                    <th>Student & Reg No</th>
+                    <th>Process Title</th>
+                    <th>Current Station</th>
+                    <th>Decision Status</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {processes.map((proc) => (
+                    <tr key={proc._id || proc.trackingNumber}>
+                      <td><span className="wf-tracking-badge">{proc.trackingNumber}</span></td>
+                      <td>
+                        <strong>{proc.student?.name}</strong>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{proc.student?.regNo}</div>
+                      </td>
+                      <td>
+                        <div>{proc.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#0284c7' }}>{proc.category}</div>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 600, color: '#0f2b5c' }}>
+                          {proc.currentAssignedRole?.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`wf-status-badge ${
+                          proc.status === 'Approved' ? 'badge-approved' : proc.status === 'Declined' ? 'badge-declined' : 'badge-pending'
+                        }`}>
+                          {proc.status}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="wf-process-action-btn"
+                          onClick={() => setSelectedProcess(proc)}
+                        >
+                          Inspect Audit Trail
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {selectedProcess && (

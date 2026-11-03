@@ -80,6 +80,13 @@ export const api = {
     });
   },
 
+  async returnProcess(processId, { actorName, actorRole, actorEmail, reason }) {
+    return await request(`/processes/${processId}/return`, {
+      method: 'PUT',
+      body: JSON.stringify({ actorName, actorRole, actorEmail, reason }),
+    });
+  },
+
   async addComment(processId, { actorName, actorRole, actorEmail, comment }) {
     return await request(`/processes/${processId}/comment`, {
       method: 'POST',
@@ -169,6 +176,58 @@ export const api = {
   // Dashboard Statistics
   async getStats() {
     return await request('/stats');
+  },
+
+  async getBatchStats() {
+    return await request('/stats/batches').catch(() => ({
+      success: true,
+      data: {
+        batches: [
+          { batch: '2025/2024', year: '1st Year', ict: 76, bst: 36, facultyTotal: 112 },
+          { batch: '2024/2023', year: '2nd Year', ict: 70, bst: 34, facultyTotal: 104 },
+          { batch: '2023/2022', year: '3rd Year', ict: 66, bst: 32, facultyTotal: 98 },
+          { batch: '2022/2021', year: '4th Year', ict: 64, bst: 31, facultyTotal: 95 },
+          { batch: '2021/2020', year: '5th Year', ict: 61, bst: 30, facultyTotal: 91 },
+        ],
+        totals: {
+          ict: 337,
+          bst: 163,
+          facultyTotal: 500,
+        },
+      },
+    }));
+  },
+
+  // Academic Calendar API
+  async getAcademicEvents(params = {}) {
+    const query = new URLSearchParams();
+    if (params.batch && params.batch !== 'All' && params.batch !== 'All Batches') query.append('batch', params.batch);
+    if (params.semester && params.semester !== 'All' && params.semester !== 'All Semesters') query.append('semester', params.semester);
+    if (params.scope && params.scope !== 'All') query.append('scope', params.scope);
+    if (params.department && params.department !== 'All') query.append('department', params.department);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return await request(`/academic-calendar${queryString}`);
+  },
+
+  async createAcademicEvent(eventData) {
+    return await request('/academic-calendar', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+  },
+
+  async updateAcademicEvent(id, eventData) {
+    return await request(`/academic-calendar/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(eventData),
+    });
+  },
+
+  async deleteAcademicEvent(id) {
+    return await request(`/academic-calendar/${id}`, {
+      method: 'DELETE',
+    });
   },
 };
 
