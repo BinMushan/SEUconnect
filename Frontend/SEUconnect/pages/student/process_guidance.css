@@ -41,11 +41,12 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.35rem 1.6rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.1rem;
+  margin-bottom: 0.5rem;
 }
 
 .proc-search-input-wrapper {
@@ -122,11 +123,11 @@
 }
 
 .proc-chip {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
   border-radius: 20px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8rem;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: #475569;
   cursor: pointer;
@@ -151,19 +152,15 @@
    ========================================================================== */
 .proc-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  align-items: stretch;
 }
 
-@media (max-width: 1200px) {
-  .proc-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .proc-cards-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 
@@ -171,18 +168,18 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 1.5rem;
+  padding: 1.6rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
+  height: 100%;
 }
 
 .proc-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(15, 43, 84, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(15, 43, 84, 0.1), 0 8px 10px -6px rgba(15, 43, 84, 0.06);
   border-color: #cbd5e1;
 }
 
@@ -230,72 +227,78 @@
 .proc-card-steps-count {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 0.25rem 0.65rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .proc-card-title {
-  font-size: 1.08rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1.35;
+  line-height: 1.4;
   margin: 0 0 0.5rem 0;
-  min-height: 2.7rem;
 }
 
 .proc-card-desc {
-  font-size: 0.85rem;
-  color: #64748b;
-  line-height: 1.45;
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.5;
   margin: 0 0 1.25rem 0;
-  flex: 1;
 }
 
 /* Card Meta Details */
 .proc-card-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  padding: 0.9rem 0;
-  border-top: 1px solid #f1f5f9;
-  border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  padding: 1rem 1.15rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 1.35rem;
 }
 
 .proc-meta-row {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  gap: 0.75rem;
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .proc-meta-icon {
-  color: #94a3b8;
+  color: #64748b;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .proc-meta-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .proc-meta-inline-label {
   font-size: 0.72rem;
-  font-weight: 600;
-  color: #94a3b8;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .proc-meta-inline-value {
-  color: #334155;
+  color: #1e293b;
   font-weight: 500;
 }
 
 .proc-meta-inline-value.urgent {
-  color: #d97706;
+  color: #b45309;
   font-weight: 600;
 }
 
