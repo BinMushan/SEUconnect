@@ -104,13 +104,12 @@
 }
 
 .sar-stat-badge {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #475569;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  padding: 2px 8px;
-  border-radius: 9999px;
+  color: #64748b;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -268,22 +267,23 @@
 }
 
 .sar-portal-status-pill {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
   font-weight: 700;
+  white-space: nowrap;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .sar-status-open {
-  background: #dcfce7;
   color: #16a34a;
-  border: 1px solid #86efac;
 }
 
 .sar-status-closed {
-  background: #fee2e2;
   color: #dc2626;
-  border: 1px solid #fca5a5;
 }
 
 /* ==========================================================================
@@ -439,16 +439,15 @@
 }
 
 .sar-dept-pill {
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
-  background: #eff6ff;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
   color: #1d4ed8;
-  border: 1px solid #bfdbfe;
 }
 
 .sar-action-btn-primary {
@@ -678,12 +677,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: #f0fdf4;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
   color: #16a34a;
-  border: 1px solid #bbf7d0;
   text-transform: uppercase;
 }
