@@ -1607,10 +1607,12 @@ const seedDatabase = async () => {
       console.log(` Seeded ${SEED_USERS.length} initial demo users.`);
     }
 
-    const processCount = await ProcessRequest.countDocuments();
-    if (processCount === 0) {
-      await ProcessRequest.insertMany(SEED_PROCESSES);
-      console.log(` Seeded ${SEED_PROCESSES.length} initial process workflow requests.`);
+    for (const proc of SEED_PROCESSES) {
+      await ProcessRequest.findOneAndUpdate(
+        { trackingNumber: proc.trackingNumber },
+        { $setOnInsert: proc },
+        { upsert: true }
+      );
     }
   } catch (error) {
     console.warn(' Seed database note:', error.message);

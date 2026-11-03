@@ -9,7 +9,7 @@
 .sar-portal-container {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.35rem;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -23,27 +23,21 @@
 }
 
 /* ==========================================================================
-   1. TOP 6 METRIC STAT CARDS (Matches Student .std-stat-card style)
+   1. STATS GRID - SPACIOUS 3x2 OR 4x1 (No Text Truncation, No Overflow)
    ========================================================================== */
 .sar-stats-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.15rem;
 }
 
-@media (max-width: 1300px) {
-  .sar-stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sar-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .sar-stats-grid {
     grid-template-columns: 1fr;
   }
@@ -53,15 +47,15 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 1.15rem;
+  padding: 1.25rem 1.4rem;
   display: flex;
   align-items: flex-start;
-  gap: 0.85rem;
+  gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
   position: relative;
-  overflow: hidden;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .sar-stat-card:hover {
@@ -70,9 +64,9 @@
 }
 
 .sar-stat-icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,190 +96,44 @@
 }
 
 .sar-stat-title {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: #64748b;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .sar-stat-badge {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 9999px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .sar-stat-number {
-  font-size: 1.85rem;
+  font-size: 1.95rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  margin: 0.1rem 0 0.2rem 0;
+  margin: 0.15rem 0 0.3rem 0;
 }
 
 .sar-stat-target {
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   color: #64748b;
   font-weight: 500;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
+  white-space: normal;
 }
 
 /* ==========================================================================
-   2. SAR GUIDANCE & SEARCH CARD (Matches Student .std-guidance-card)
-   ========================================================================== */
-.sar-guidance-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #1d4ed8;
-  border-radius: 14px;
-  padding: 1.35rem 1.6rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.sar-guidance-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.sar-guidance-icon {
-  width: 32px;
-  height: 32px;
-  color: #1d4ed8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.sar-guidance-titles {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sar-guidance-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.01em;
-}
-
-.sar-guidance-subtitle {
-  margin: 0;
-  font-size: 0.82rem;
-  color: #64748b;
-  line-height: 1.45;
-}
-
-.sar-guidance-search-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sar-search-input-box {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.sar-search-input-box svg {
-  position: absolute;
-  left: 1rem;
-  color: #94a3b8;
-  pointer-events: none;
-}
-
-.sar-search-input-field {
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 0.65rem 1rem 0.65rem 2.6rem;
-  font-size: 0.85rem;
-  color: #0f172a;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.sar-search-input-field:focus {
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
-}
-
-.sar-find-btn {
-  background: #0f172a;
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: 0.65rem 1.4rem;
-  font-size: 0.84rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s ease;
-}
-
-.sar-find-btn:hover {
-  background: #1e293b;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
-}
-
-.sar-suggested-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.sar-suggested-label {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.sar-suggested-chip {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #334155;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.sar-suggested-chip:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-.sar-suggested-chip.active {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
-  color: #ffffff;
-}
-
-/* ==========================================================================
-   3. THE 8 WORKFLOW INBOXES SECTION (Core SAR Requirement)
+   2. THE 8 WORKFLOW INBOXES (Mandatory SAR Core Desk)
    ========================================================================== */
 .sar-inboxes-section {
   background: #ffffff;
@@ -307,7 +155,7 @@
 }
 
 .sar-inboxes-title-group h2 {
-  margin: 0 0 0.2rem 0;
+  margin: 0 0 0.25rem 0;
   font-size: 1.15rem;
   font-weight: 700;
   color: #0f172a;
@@ -324,7 +172,7 @@
   gap: 0.45rem;
   flex-wrap: wrap;
   background: #f8fafc;
-  padding: 0.4rem;
+  padding: 0.45rem;
   border-radius: 12px;
   border: 1px solid #f1f5f9;
 }
@@ -332,15 +180,15 @@
 .sar-inbox-tab-btn {
   background: transparent;
   border: none;
-  padding: 0.45rem 0.85rem;
+  padding: 0.5rem 0.95rem;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
@@ -358,9 +206,9 @@
 }
 
 .sar-inbox-count-badge {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 9999px;
   background: rgba(100, 116, 139, 0.15);
   color: inherit;
@@ -372,461 +220,17 @@
 }
 
 /* ==========================================================================
-   4. MIDDLE GRID: WORKFLOW STATUS & QUICK ACTIONS (Image 1 Mockup)
-   ========================================================================== */
-.sar-middle-grid {
-  display: grid;
-  grid-template-columns: 1.8fr 1.2fr;
-  gap: 1.25rem;
-  align-items: stretch;
-}
-
-@media (max-width: 1024px) {
-  .sar-middle-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.sar-trend-card {
-  background: #ffffff;
-  border: 1px solid #eef2f6;
-  border-radius: 18px;
-  padding: 1.5rem 1.6rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 0.85rem;
-  box-sizing: border-box;
-}
-
-.sar-trend-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sar-trend-header-left {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.sar-trend-header-icon-box {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #1e1035 0%, #2e1065 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(46, 16, 101, 0.22);
-  flex-shrink: 0;
-}
-
-.sar-trend-title-col {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sar-card-heading {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.01em;
-}
-
-.sar-trend-subheading {
-  font-size: 0.78rem;
-  color: #64748b;
-  line-height: 1.4;
-}
-
-.sar-select-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.4rem 0.8rem;
-  transition: all 0.2s ease;
-}
-
-.sar-select-wrapper:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}
-
-.sar-dropdown-select {
-  border: none;
-  background: transparent;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #1e293b;
-  cursor: pointer;
-  outline: none;
-  padding-right: 0.2rem;
-}
-
-.sar-trend-top-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.85rem;
-}
-
-@media (max-width: 640px) {
-  .sar-trend-top-metrics {
-    grid-template-columns: 1fr;
-  }
-}
-
-.sar-trend-top-box {
-  background: #fbfcfe;
-  border: 1px solid #f1f5f9;
-  border-radius: 12px;
-  padding: 0.75rem 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.sar-trend-top-box:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.sar-trend-box-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.sar-box-icon-purple { background: #ede9fe; color: #6366f1; }
-.sar-box-icon-blue { background: #e0f2fe; color: #0284c7; }
-.sar-box-icon-amber { background: #fef3c7; color: #f59e0b; }
-
-.sar-trend-box-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.sar-trend-box-lbl {
-  font-size: 0.72rem;
-  color: #64748b;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.sar-trend-box-val-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-
-.sar-trend-box-val {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.1;
-}
-
-.sar-trend-box-delta {
-  font-size: 0.72rem;
-  color: #16a34a;
-  font-weight: 700;
-}
-
-.sar-trend-box-denom {
-  font-size: 0.82rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.sar-trend-chart-area {
-  margin: 0.6rem 0;
-  position: relative;
-  width: 100%;
-}
-
-.sar-chart-container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.sar-y-axis-labels {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 130px;
-  padding: 10px 0;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #94a3b8;
-  text-align: right;
-  min-width: 24px;
-}
-
-.sar-chart-svg-wrap {
-  flex: 1;
-  width: 100%;
-  overflow: visible;
-}
-
-.sar-spline-svg {
-  width: 100%;
-  height: 155px;
-  overflow: visible;
-  display: block;
-}
-
-.sar-bottom-stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.85rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid #f1f5f9;
-}
-
-@media (max-width: 640px) {
-  .sar-bottom-stats-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.sar-bottom-stat-box {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sar-bottom-stat-icon-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.sar-icon-circle-emerald { background: #dcfce7; color: #16a34a; }
-.sar-icon-circle-purple { background: #ede9fe; color: #7c3aed; }
-
-.sar-bottom-progress-circle {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-}
-
-.sar-bottom-stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.sar-bottom-stat-lbl {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #64748b;
-  white-space: nowrap;
-}
-
-.sar-bottom-stat-val {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.sar-mini-progress-track {
-  width: 110px;
-  height: 6px;
-  background: #f1f5f9;
-  border-radius: 9999px;
-  overflow: hidden;
-  margin-top: 4px;
-}
-
-.sar-mini-progress-bar-fill {
-  height: 100%;
-  background: #10b981;
-  border-radius: 9999px;
-  transition: width 0.3s ease;
-}
-
-/* Quick Actions Card */
-.sar-quick-actions-card {
-  background: #ffffff;
-  border: 1px solid #eef2f6;
-  border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.sar-qa-header-banner {
-  background: linear-gradient(135deg, #1e1035 0%, #2e1065 60%, #3b0764 100%);
-  padding: 1.15rem 1.4rem;
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.sar-qa-header-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  position: relative;
-  z-index: 2;
-}
-
-.sar-qa-header-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #fbbf24;
-}
-
-.sar-qa-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-}
-
-.sar-qa-subtitle {
-  margin: 0;
-  font-size: 0.74rem;
-  color: #c4b5fd;
-  line-height: 1.35;
-}
-
-.sar-qa-watermark {
-  position: absolute;
-  right: -8px;
-  bottom: -15px;
-  color: rgba(255, 255, 255, 0.07);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.sar-qa-actions-list {
-  padding: 0.85rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  flex: 1;
-  justify-content: space-around;
-}
-
-.sar-qa-item-btn {
-  background: #ffffff;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.sar-qa-item-btn:hover {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  transform: translateX(2px);
-}
-
-.sar-qa-item-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sar-qa-icon-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.18s ease;
-}
-
-.sar-qa-item-btn:hover .sar-qa-icon-circle {
-  transform: scale(1.08);
-}
-
-.sar-qa-icon-purple { background: #ede9fe; color: #7c3aed; }
-.sar-qa-icon-blue { background: #e0f2fe; color: #0284c7; }
-.sar-qa-icon-violet { background: #f3e8ff; color: #9333ea; }
-.sar-qa-icon-indigo { background: #e0e7ff; color: #4f46e5; }
-.sar-qa-icon-teal { background: #ccfbf1; color: #0d9488; }
-.sar-qa-icon-green { background: #dcfce7; color: #16a34a; }
-.sar-qa-icon-rose { background: #ffe4e6; color: #e11d48; }
-
-.sar-qa-item-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1e293b;
-  text-align: left;
-}
-
-.sar-qa-item-chevron {
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  transition: transform 0.18s ease, color 0.18s ease;
-}
-
-.sar-qa-item-btn:hover .sar-qa-item-chevron {
-  transform: translateX(2px);
-  color: #0f172a;
-}
-
-/* ==========================================================================
-   5. PORTAL AVAILABILITY MANAGEMENT CARD (ECA / ESA Management)
+   3. PORTAL MANAGEMENT (ECA / ESA Live Availability)
    ========================================================================== */
 .sar-portal-mgmt-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1.35rem 1.6rem;
+  border-radius: 16px;
+  padding: 1.5rem 1.6rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .sar-portal-mgmt-grid {
@@ -845,10 +249,10 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1.15rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 .sar-portal-box-top {
@@ -864,7 +268,7 @@
 }
 
 .sar-portal-status-pill {
-  padding: 0.2rem 0.65rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -882,113 +286,13 @@
   border: 1px solid #fca5a5;
 }
 
-/* Department Grid */
-.sar-dept-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-}
-
-@media (max-width: 840px) {
-  .sar-dept-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.sar-dept-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1.35rem 1.6rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease;
-}
-
-.sar-dept-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-}
-
-.sar-dept-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.sar-dept-title-group h3 {
-  margin: 0 0 0.2rem 0;
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.sar-dept-title-group p {
-  margin: 0;
-  font-size: 0.78rem;
-  color: #64748b;
-}
-
-.sar-dept-pill {
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.sar-dept-pill-bst {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
-}
-
-.sar-dept-pill-ict {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-}
-
-.sar-dept-metrics-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.65rem;
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
-  border-radius: 10px;
-  padding: 0.85rem;
-}
-
-.sar-dept-metric-box {
-  text-align: center;
-}
-
-.sar-dept-metric-val {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.2;
-}
-
-.sar-dept-metric-lbl {
-  font-size: 0.7rem;
-  color: #64748b;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
 /* ==========================================================================
-   6. MAIN TABLE & LIST VIEW
+   4. MAIN TABLES, TOOLBARS & SUB-PAGE CARDS
    ========================================================================== */
 .sar-main-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   display: flex;
@@ -1007,14 +311,14 @@
 
 .sar-card-header-left h2 {
   margin: 0 0 0.25rem 0;
-  font-size: 1.12rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #0f172a;
 }
 
 .sar-card-header-left p {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: #64748b;
 }
 
@@ -1022,15 +326,15 @@
   background: #f1f5f9;
   color: #334155;
   border: 1px solid #e2e8f0;
-  padding: 0.4rem 0.85rem;
+  padding: 0.45rem 0.95rem;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .sar-btn-pill:hover {
@@ -1055,31 +359,15 @@
   flex-wrap: wrap;
 }
 
-.sar-search-box {
-  position: relative;
-  flex: 1;
-  min-width: 260px;
-}
-
-.sar-search-icon {
-  position: absolute;
-  left: 0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-}
-
 .sar-search-input {
-  width: 100%;
   box-sizing: border-box;
-  padding: 0.55rem 0.85rem 0.55rem 2.3rem;
+  padding: 0.55rem 0.85rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.82rem;
   background: #ffffff;
   outline: none;
+  width: 100%;
 }
 
 .sar-search-input:focus {
@@ -1149,11 +437,24 @@
   white-space: nowrap;
 }
 
+.sar-dept-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 .sar-action-btn-primary {
   background: #1d4ed8;
   color: #ffffff;
   border: none;
-  padding: 0.35rem 0.65rem;
+  padding: 0.38rem 0.75rem;
   border-radius: 6px;
   font-size: 0.74rem;
   font-weight: 600;
@@ -1170,7 +471,7 @@
   background: #f1f5f9;
   color: #334155;
   border: 1px solid #cbd5e1;
-  padding: 0.35rem 0.65rem;
+  padding: 0.38rem 0.75rem;
   border-radius: 6px;
   font-size: 0.74rem;
   font-weight: 600;
@@ -1188,7 +489,7 @@
   background: #10b981;
   color: #ffffff;
   border: none;
-  padding: 0.35rem 0.65rem;
+  padding: 0.38rem 0.75rem;
   border-radius: 6px;
   font-size: 0.74rem;
   font-weight: 600;
@@ -1256,4 +557,132 @@
   justify-content: flex-end;
   gap: 0.65rem;
   border-radius: 0 0 14px 14px;
+}
+
+/* ==========================================================================
+   5. DEDICATED SUBPAGE & BANNER LAYOUTS
+   ========================================================================== */
+.sar-page-banner {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.sar-page-banner-title h1,
+.sar-page-banner-title h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.sar-page-banner-title p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.sar-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.15rem;
+}
+
+.sar-action-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.35rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sar-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.sar-action-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sar-action-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sar-notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sar-notif-item:hover {
+  background: #f8fafc;
+}
+
+.sar-notif-item.unread {
+  background: #eff6ff;
+}
+
+.sar-notif-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: #2563eb;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.sar-reports-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.15rem;
+}
+
+.sar-report-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.sar-ledger-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  text-transform: uppercase;
 }
