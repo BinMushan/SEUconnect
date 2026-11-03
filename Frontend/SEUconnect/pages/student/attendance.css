@@ -1108,7 +1108,7 @@
 }
 
 /* ==========================================================================
-   Attendance Dropdown with Hover & Click (1 Week, 2 Weeks, 3 Weeks, 1 Month)
+   Attendance Dropdown with Hover & Click (1 Week, 2 Weeks, 3 Weeks, 1 Month & Sorting)
    ========================================================================== */
 .attendance-dropdown {
   position: relative;
@@ -1119,9 +1119,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #0f2b54;
-  color: #ffffff;
-  border: 1px solid #0f2b54;
+  background-color: #ffffff;
+  color: #0f2b54;
+  border: 1px solid #cbd5e1;
   padding: 5px 14px;
   border-radius: 20px;
   font-size: 0.78rem;
@@ -1129,17 +1129,28 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.attendance-dropdown-btn:hover {
-  background-color: #1a427d;
-  border-color: #1a427d;
+.attendance-dropdown-btn:hover,
+.attendance-dropdown:hover .attendance-dropdown-btn,
+.attendance-dropdown.open .attendance-dropdown-btn {
+  background-color: #0f2b54;
+  color: #ffffff;
+  border-color: #0f2b54;
   box-shadow: 0 2px 6px rgba(15, 43, 84, 0.25);
+}
+
+.attendance-dropdown-btn.active {
+  background-color: #0f2b54;
+  color: #ffffff;
+  border-color: #0f2b54;
 }
 
 .attendance-dropdown-arrow {
   transition: transform 0.2s ease;
-  font-size: 0.70rem;
+  font-size: 0.65rem;
+  opacity: 0.85;
 }
 
 .attendance-dropdown:hover .attendance-dropdown-arrow,
@@ -1156,7 +1167,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
-  min-width: 230px;
+  min-width: 220px;
   z-index: 50;
   padding: 6px 0;
   display: none;
@@ -1230,13 +1241,23 @@
 
 /* Dark mode for dropdown */
 .dark-mode .attendance-dropdown-btn {
+  background-color: #162234;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark-mode .attendance-dropdown-btn:hover,
+.dark-mode .attendance-dropdown:hover .attendance-dropdown-btn,
+.dark-mode .attendance-dropdown.open .attendance-dropdown-btn {
   background-color: #2563eb;
   border-color: #2563eb;
   color: #ffffff;
 }
 
-.dark-mode .attendance-dropdown-btn:hover {
-  background-color: #1d4ed8;
+.dark-mode .attendance-dropdown-btn.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
 }
 
 .dark-mode .attendance-dropdown-menu {
