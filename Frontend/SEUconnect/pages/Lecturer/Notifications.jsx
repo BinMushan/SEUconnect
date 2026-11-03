@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NotificationItem from './components/NotificationItem.jsx';
 import { INITIAL_NOTIFICATIONS } from './lecturerMockData.js';
 
@@ -8,24 +9,90 @@ import { INITIAL_NOTIFICATIONS } from './lecturerMockData.js';
  * - Categories: Medical requests, Missing CA marks, Attendance reminders, Student requests
  * - Toggle switch for "Unread only"
  * - "Mark all as read" button
+ * - Interactive navigation: Clicking a notification automatically marks it as read and redirects
+ *   to the relevant section (e.g. Student Medical Verification, CA/ESA, Attendance, Results).
  */
-export default function Notifications({ onShowToast }) {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+export default function Notifications({
+  notifications: propNotifications,
+  onToggleRead,
+  onMarkSingleRead,
+  onMarkAllAsRead,
+  onNavigateNotification,
+  onShowToast,
+}) {
+  const navigate = useNavigate();
+  const [localNotifications, setLocalNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const notifications = propNotifications || localNotifications;
+  const setNotifications = setLocalNotifications;
+
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleToggleRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n))
-    );
+    if (onToggleRead) {
+      onToggleRead(id);
+    } else {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n))
+      );
+    }
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    if (onMarkAllAsRead) {
+      onMarkAllAsRead();
+    } else {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      if (onShowToast) {
+        onShowToast('All notifications marked as read', 'info');
+      }
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    // 1. Automatically mark as read if currently unread
+    if (!notif.isRead) {
+      if (onMarkSingleRead) {
+        onMarkSingleRead(notif.id);
+      } else if (onToggleRead) {
+        onToggleRead(notif.id);
+      } else {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
+        );
+      }
+    }
+
+    // 2. Resolve destination route
+    let targetRoute = notif.actionRoute;
+    if (!targetRoute) {
+      if (notif.category === 'Medical requests' || notif.title.toLowerCase().includes('medical')) {
+        targetRoute = '/medical-verification';
+      } else if (notif.category === 'Missing CA marks' || notif.title.toLowerCase().includes('ca')) {
+        targetRoute = '/ca-esa';
+      } else if (notif.category === 'Attendance reminders' || notif.title.toLowerCase().includes('attendance')) {
+        targetRoute = '/attendance';
+      } else if (notif.category === 'Student requests' || notif.title.toLowerCase().includes('repeat')) {
+        targetRoute = '/results';
+      } else {
+        targetRoute = '/announcements';
+      }
+    }
+
+    // 3. Show notification toast feedback
     if (onShowToast) {
-      onShowToast('All notifications marked as read', 'info');
+      if (targetRoute === '/medical-verification') {
+        onShowToast('Navigating to Student Medical Approval & Verification', 'info');
+      }
+    }
+
+    // 4. Navigate
+    if (onNavigateNotification) {
+      onNavigateNotification(targetRoute, notif.actionParams);
+    } else {
+      navigate(targetRoute);
     }
   };
 
@@ -52,7 +119,7 @@ export default function Notifications({ onShowToast }) {
         <div>
           <h2 className="lec-module-title">Academic Notification Inbox & Action Items</h2>
           <p className="lec-module-sub">
-            Review critical faculty notifications, student requests, and assessment submission milestones.
+            Review critical faculty notifications, student requests, and assessment submission milestones. Click any notification to open its corresponding task.
           </p>
         </div>
         <div className="lec-notif-header-stats">
@@ -121,6 +188,7 @@ export default function Notifications({ onShowToast }) {
               key={notif.id}
               notification={notif}
               onToggleRead={handleToggleRead}
+              onClick={handleNotificationClick}
             />
           ))
         )}
@@ -134,10 +202,9 @@ export default function Notifications({ onShowToast }) {
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
         <div>
-          Automated alerts are triggered by student submissions and administrative deadlines. To adjust notification digest preferences, contact the faculty systems admin.
+          Automated alerts are triggered by student submissions and administrative deadlines. Clicking a notification automatically opens the relevant interface and marks the item as read.
         </div>
       </div>
     </div>
   );
 }
-

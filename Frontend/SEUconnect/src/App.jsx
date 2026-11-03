@@ -24,15 +24,15 @@ const DEFAULT_USERS_BY_ROLE = {
     avatarInitial: 'M.',
   },
   lecturer: {
-    name: 'Dr. S. Kirushanth',
+    name: 'Dr. K. Perera',
     email: 'lecturer@gmail.com',
     role: 'lecturer',
     roleKey: 'lecturer',
-    staffId: 'STAFF-ICT-104',
+    staffId: 'LEC/ICT/024',
     department: 'Department of Information and Communication Technology',
     faculty: 'Faculty of Technology',
     designation: 'Senior Lecturer Gr. II & Course Coordinator',
-    avatarInitial: 'SK',
+    avatarInitial: 'KP',
   },
   hod: {
     name: 'Dr. M.A. Rifky',
@@ -179,3 +179,4 @@ function App() {
 }
 
 export default App;
+

@@ -175,7 +175,7 @@ export default function LecturerDashboard({
                 <line x1="9" y1="15" x2="15" y2="15" />
               </svg>
             }
-            onClick={() => onNavigateModule('notifications')}
+            onClick={() => onNavigateModule('medical-verification')}
           />
 
           {/* 6. Pending CA / ESA */}
