@@ -635,7 +635,6 @@ export default function Attendance({ onNavigateMedical }) {
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
   const [matrixPeriod, setMatrixPeriod] = useState('1week'); // Default to Current Week (Monday to Friday)
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('missed'); // Default to missed lectures only!
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -692,10 +691,9 @@ export default function Attendance({ onNavigateMedical }) {
     }
   };
 
-  // Filtered sessions for the date-wise list
+  // Filtered sessions strictly for Missed Lectures only
   const filteredSessions = DATE_WISE_SESSIONS.filter((session) => {
-    if (statusFilter === 'missed' && session.status !== 'missed') return false;
-    if (statusFilter === 'attended' && session.status !== 'attended') return false;
+    if (session.status !== 'missed') return false;
     if (selectedSubjectFilter !== 'all' && session.code !== selectedSubjectFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -707,7 +705,6 @@ export default function Attendance({ onNavigateMedical }) {
 
   const handleSelectSubjectDates = (code) => {
     setSelectedSubjectFilter(code);
-    setStatusFilter('all');
     setActiveTab('datewise');
   };
 
@@ -795,8 +792,8 @@ export default function Attendance({ onNavigateMedical }) {
           className={`attendance-tab-btn ${activeTab === 'datewise' ? 'active' : ''}`}
           onClick={() => {
             setActiveTab('datewise');
-            setStatusFilter('missed');
             setSelectedSubjectFilter('all');
+            setSearchQuery('');
           }}
         >
           Date-wise Missed List
@@ -1157,31 +1154,10 @@ export default function Attendance({ onNavigateMedical }) {
             </button>
           </div>
 
-          {/* Filter Row: Quick status pills & subject dropdown & search */}
+          {/* Filter Row: Subject dropdown & search */}
           <div className="attendance-filter-row">
-            <div className="attendance-filter-pills">
-              <button
-                type="button"
-                className={`attendance-pill-btn ${statusFilter === 'missed' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('missed')}
-                style={statusFilter === 'missed' ? { backgroundColor: '#0f2b54', borderColor: '#0f2b54', color: '#ffffff' } : {}}
-              >
-                Missed Lectures Only ({totalMissedCount})
-              </button>
-              <button
-                type="button"
-                className={`attendance-pill-btn ${statusFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('all')}
-              >
-                All Sessions ({DATE_WISE_SESSIONS.length})
-              </button>
-              <button
-                type="button"
-                className={`attendance-pill-btn ${statusFilter === 'attended' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('attended')}
-              >
-                Attended Sessions ({DATE_WISE_SESSIONS.length - totalMissedCount})
-              </button>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>
+              Showing {filteredSessions.length} Missed Lecture{filteredSessions.length === 1 ? '' : 's'}
             </div>
 
             <div className="attendance-filter-controls">
@@ -1208,14 +1184,13 @@ export default function Attendance({ onNavigateMedical }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
 
-              {(selectedSubjectFilter !== 'all' || statusFilter !== 'all' || searchQuery) && (
+              {(selectedSubjectFilter !== 'all' || searchQuery) && (
                 <button
                   type="button"
                   className="btn btn-sm"
                   style={{ backgroundColor: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1' }}
                   onClick={() => {
                     setSelectedSubjectFilter('all');
-                    setStatusFilter('all');
                     setSearchQuery('');
                   }}
                 >
