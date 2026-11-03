@@ -10,7 +10,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px 0 40px 0;
+  padding: 0 0 40px 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
 }
@@ -399,4 +399,105 @@
 
 .dark-mode .btn-secondary:hover {
   background-color: #334155;
+}
+
+/* Interactive Date Picker & Calendar Button */
+.date-picker-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.date-input-field {
+  padding-right: 42px !important;
+  cursor: pointer;
+}
+
+.date-input-field::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.18s ease;
+}
+
+.date-input-field::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.calendar-icon-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.18s ease;
+}
+
+.calendar-icon-btn:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+  transform: scale(1.08);
+}
+
+.date-selected-hint {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #2563eb;
+  margin-top: 4px;
+}
+
+/* Date Presets Row */
+.date-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.presets-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.preset-pill-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.preset-pill-btn:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.leave-duration-badge {
+  margin-left: auto;
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 600;
 }
