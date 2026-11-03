@@ -252,6 +252,37 @@ export const HOD_NAV_SECTIONS = [
 ];
 
 // 4. DEAN (FACULTY EXECUTIVE OFFICE) NAVIGATION
+
+// 4b. SAR NAVIGATION
+export const SAR_NAV_SECTIONS = [
+  {
+    title: 'MAIN',
+    items: [
+      { id: 'dashboard', label: 'SAR Administrative Dashboard', icon: Icons.dashboard },
+    ],
+  },
+  {
+    title: 'ADMINISTRATIVE OPERATIONS',
+    items: [
+      { id: 'monitoring', label: 'Administrative Request Monitoring', icon: Icons.clipboardCheck },
+      { id: 'pending_actions', label: 'Pending Administrative Actions', icon: Icons.checkSquare },
+      { id: 'faculty_records', label: 'Faculty Administrative Records', icon: Icons.fileText },
+    ],
+  },
+  {
+    title: 'ANALYTICS & REPORTS',
+    items: [
+      { id: 'reports', label: 'Reports & Workflow Summary', icon: Icons.chart },
+    ],
+  },
+  {
+    title: 'COMMUNICATION',
+    items: [
+      { id: 'notifications', label: 'SAR Notifications', icon: Icons.bell },
+    ],
+  },
+];
+
 export const DEAN_NAV_SECTIONS = [
   {
     title: 'MAIN',
@@ -384,6 +415,20 @@ export function getNavSectionsForRole(roleKey) {
       return LECTURER_NAV_SECTIONS;
     case 'hod':
       return HOD_NAV_SECTIONS;
+    case 'sar':
+      return SAR_NAV_SECTIONS;
+    case 'sar':
+      return {
+        rolePill: 'SAR',
+        greeting: `Welcome, ${user?.name || 'Mr. K.L.M. Riyas'}`,
+        facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • SAR ADMINISTRATIVE DESK',
+        metaItems: [
+          { label: 'Staff ID:', value: user?.staffId || 'STAFF-SAR-001' },
+          { label: 'Division:', value: 'Faculty Administrative Division' },
+          { label: 'Designation:', value: 'Senior Assistant Registrar' },
+          { label: 'Scope:', value: 'BST & ICT Coordination' },
+        ],
+      };
     case 'dean':
       return DEAN_NAV_SECTIONS;
     case 'examination':

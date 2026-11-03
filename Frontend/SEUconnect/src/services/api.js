@@ -87,6 +87,46 @@ export const api = {
     });
   },
 
+  // SAR Administrative Operations
+  async addAdminRemark(processId, { actorName, actorRole, actorEmail, remark, documentCheckStatus }) {
+    return await request(`/processes/${processId}/remark`, {
+      method: 'POST',
+      body: JSON.stringify({ actorName, actorRole, actorEmail, remark, documentCheckStatus }),
+    });
+  },
+
+  async requestClarification(processId, { actorName, actorRole, actorEmail, issuesIdentified, notes }) {
+    return await request(`/processes/${processId}/clarification`, {
+      method: 'POST',
+      body: JSON.stringify({ actorName, actorRole, actorEmail, issuesIdentified, notes }),
+    });
+  },
+
+  async routeProcess(processId, { actorName, actorRole, actorEmail, destinationOfficer, routingNote }) {
+    return await request(`/processes/${processId}/route`, {
+      method: 'POST',
+      body: JSON.stringify({ actorName, actorRole, actorEmail, destinationOfficer, routingNote }),
+    });
+  },
+
+  // Notification Endpoints
+  async getNotifications(role = 'sar') {
+    return await request(`/notifications?role=${encodeURIComponent(role)}`);
+  },
+
+  async markNotificationRead(id) {
+    return await request(`/notifications/${id}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  async markAllNotificationsRead(role = 'sar') {
+    return await request('/notifications/mark-all-read', {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    });
+  },
+
   // Dashboard Statistics
   async getStats() {
     return await request('/stats');

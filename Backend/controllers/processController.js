@@ -1,9 +1,11 @@
 const ProcessRequest = require('../models/ProcessRequest');
 const { SEED_PROCESSES } = require('../seedData');
 const { getStatus } = require('../config/db');
+const { createNotification } = require('./notificationController');
 
 // In-memory cache fallback to ensure 100% uptime and resilience
 let memoryProcesses = JSON.parse(JSON.stringify(SEED_PROCESSES));
+exports.getMemoryProcesses = () => memoryProcesses;
 
 const generateTrackingNumber = (type = 'medical_excuse') => {
   const prefix = type === 'medical_excuse' ? 'MED' : type === 'repeat_exam' ? 'REP' : 'REQ';
