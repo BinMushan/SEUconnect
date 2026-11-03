@@ -32,6 +32,7 @@ import PenaltiesManagement from './components/PenaltiesManagement.jsx';
 import UserRoleManagement from './components/UserRoleManagement.jsx';
 import SettingsManagement from './components/SettingsManagement.jsx';
 import NotificationsManagement from './components/NotificationsManagement.jsx';
+import CourseAllocationManagement from './components/CourseAllocationManagement.jsx';
 
 /**
  * Admin Navigation Sections customized for Faculty Administration
@@ -77,6 +78,18 @@ const ADMIN_NAV_SECTIONS = [
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        )
+      },
+      {
+        id: 'course_allocation',
+        label: 'Course Allocation & Curriculum',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            <line x1="9" y1="7" x2="15" y2="7" />
+            <line x1="9" y1="11" x2="15" y2="11" />
           </svg>
         )
       },
@@ -443,6 +456,57 @@ export default function Admin({ user, onLogout }) {
     showToast(`Staff member ${newStaff.name} appointed as ${newStaff.role}.`);
   };
 
+  // 19. Promote Batch to Next Semester & Auto-Shift Enrolled Subjects
+  const handlePromoteBatch = (batchId, nextSem, allocatedCourses) => {
+    // 1. Advance the batch's currentSemester
+    setBatches((prev) =>
+      prev.map((b) => (b.id === batchId ? { ...b, currentSemester: nextSem } : b))
+    );
+
+    // 2. Automatically update all enrolled students in that batch to the next semester
+    setStudents((prev) =>
+      prev.map((s) => (s.batchId === batchId ? { ...s, semester: nextSem } : s))
+    );
+
+    // 3. Auto-populate course registrations for all students in that batch with new curriculum courses
+    const targetStudents = students.filter((s) => s.batchId === batchId);
+    if (targetStudents.length > 0 && allocatedCourses && allocatedCourses.length > 0) {
+      const newRegistrations = targetStudents.map((s) => {
+        const studentDeptCourses = allocatedCourses.filter((c) =>
+          s.programme.includes(c.department) || (s.department && s.department.includes(c.department))
+        );
+        const moduleTitles = (studentDeptCourses.length > 0 ? studentDeptCourses : allocatedCourses).map(
+          (c) => `${c.code} - ${c.name} (${c.credits} Cr)`
+        );
+        const totalCredits = (studentDeptCourses.length > 0 ? studentDeptCourses : allocatedCourses).reduce(
+          (sum, c) => sum + (c.credits || 0),
+          0
+        );
+
+        return {
+          id: `REG-AUTO-${s.regNo.replace(/\//g, '-')}-${Date.now().toString().slice(-4)}`,
+          regNo: s.regNo,
+          studentName: s.name,
+          programme: s.programme,
+          batchCode: s.batchCode,
+          semester: nextSem,
+          submissionDate: 'Today (Auto-Shifted)',
+          totalCredits,
+          modules: moduleTitles,
+          status: 'Approved',
+          approvalDate: 'Today'
+        };
+      });
+
+      setRegistrations((prev) => [...newRegistrations, ...prev]);
+    }
+
+    addAuditLog(
+      'Promoted Cohort & Auto-Shifted Curriculum',
+      `Promoted batch ${batchId} to ${nextSem}. Auto-shifted subjects for ${targetStudents.length} enrolled undergraduates.`
+    );
+  };
+
   // 16. Global Topbar Search Handler
   const handleGlobalSearch = (query) => {
     if (!query) return;
@@ -602,6 +666,16 @@ export default function Admin({ user, onLogout }) {
           onUpdateStudentStatus={handleUpdateStudentStatus}
           isAddModalOpen={isAddStudentModalOpen}
           setIsAddModalOpen={setIsAddStudentModalOpen}
+        />
+      )}
+
+      {currentSection === 'course_allocation' && (
+        <CourseAllocationManagement
+          batches={batches}
+          students={students}
+          onPromoteBatch={handlePromoteBatch}
+          onShowToast={showToast}
+          onAddAuditLog={addAuditLog}
         />
       )}
 
