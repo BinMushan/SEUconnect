@@ -1506,3 +1506,4 @@ export default function SAR({ user, onLogout }) {
     </DashboardTemplate>
   );
 }
+
