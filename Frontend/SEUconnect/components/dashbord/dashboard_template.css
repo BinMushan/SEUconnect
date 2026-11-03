@@ -665,8 +665,13 @@
    ========================================================================== */
 .seu-dash-body-content {
   flex: 1;
-  padding: 0 1.75rem 2rem 1.75rem;
+  padding: 1.5rem 1.75rem 2.5rem 1.75rem;
   box-sizing: border-box;
+}
+
+/* When hero banner is present on the main dashboard, hero banner already provides top margin */
+.seu-dash-hero-banner + .seu-dash-body-content {
+  padding-top: 0;
 }
 
 .seu-dash-placeholder-box {
@@ -811,7 +816,11 @@
   }
 
   .seu-dash-body-content {
-    padding: 0 0.85rem 1.5rem 0.85rem;
+    padding: 1.25rem 0.85rem 2rem 0.85rem;
+  }
+
+  .seu-dash-hero-banner + .seu-dash-body-content {
+    padding-top: 0;
   }
 }
 
