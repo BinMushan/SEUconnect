@@ -271,6 +271,8 @@ export const SAR_NAV_SECTIONS = [
       { id: 'inbox_exam_medicals', label: 'Exam Medicals (Dean Office)', icon: Icons.medical },
       { id: 'inbox_exam_branch_forward', label: 'Exam Branch Forwarding Queue', icon: Icons.trendingUp },
       { id: 'inbox_admission_processing', label: 'Admission Processing & Senate', icon: Icons.stamp },
+      { id: 'inbox_returned', label: 'Returned Applications', icon: Icons.alertCircle },
+      { id: 'inbox_completed', label: 'Completed Applications', icon: Icons.checkSquare },
     ],
   },
   {
