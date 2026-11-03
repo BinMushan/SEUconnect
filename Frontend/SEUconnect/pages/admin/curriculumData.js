@@ -1429,3 +1429,4 @@ export const SEMESTER_LIST = [
   'Semester 7',
   'Semester 8'
 ];
+

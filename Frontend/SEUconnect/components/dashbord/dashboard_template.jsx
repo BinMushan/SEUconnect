@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import './dashboard_template.css';
+import React, { useState, useEffect, useRef } from 'react';
 import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
+import api from '../../src/services/api.js';
+import './dashboard_template.css';
 
 /**
  * Standard Navigation Sections matching the SEUConnect portal design
@@ -253,6 +254,7 @@ export default function DashboardTemplate({
       }
     }
   }, [isDarkMode]);
+
   const [openSubmenus, setOpenSubmenus] = useState({ faculty_forms: true });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -276,10 +278,181 @@ export default function DashboardTemplate({
     });
   };
 
+  const toggleSubmenu = (menuId) => {
+    setOpenSubmenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
+  };
+
   // Keep currentActive in sync with activeItem prop
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentActive(activeItem);
   }, [activeItem]);
+
+  // Interactive Notifications State
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(notificationCount || 0);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState('all');
+  const notifRef = useRef(null);
+
+  // Outside click listener for notification dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch role-tailored notifications with polling
+  const loadNotifications = async () => {
+    try {
+      const res = await api.getNotifications({
+        role: user?.roleKey || user?.role,
+        department: user?.department,
+        email: user?.email,
+      });
+      if (res && res.data) {
+        setNotifications(res.data);
+        setUnreadCount(res.unreadCount !== undefined ? res.unreadCount : res.data.filter(n => !n.isRead).length);
+      }
+    } catch {
+      // Fallback for offline demo
+      if (notifications.length === 0) {
+        const role = (user?.roleKey || user?.role || '').toLowerCase();
+        let fallback = [];
+        if (role === 'dean') {
+          fallback = [
+            {
+              _id: 'n_d1',
+              title: 'HOD Endorsement: Credit Exemption Request',
+              message: 'HOD ICT M.J Ahamed Sabani endorsed request REQ-2026-0420 (K.M. Nuwais) for Dean Executive Ratification.',
+              type: 'endorsement',
+              trackingNumber: 'REQ-2026-0420',
+              targetTab: 'dean_sanctions',
+              isRead: false,
+              createdAt: new Date(Date.now() - 1000 * 60 * 35),
+            },
+            {
+              _id: 'n_d2',
+              title: 'Awaiting Dean Approval: BST Practicum Rescheduling',
+              message: 'Dr. M.G. Mohamed Thariq (HOD BST) forwarded special concession viva defense REQ-2026-0318 for Faculty Board sanction.',
+              type: 'approval_request',
+              trackingNumber: 'REQ-2026-0318',
+              targetTab: 'dean_sanctions',
+              isRead: false,
+              createdAt: new Date(Date.now() - 1000 * 60 * 120),
+            },
+            {
+              _id: 'n_d3',
+              title: 'Faculty Academic Calendar Notice',
+              message: 'Semester 05 Mid-Semester examination board clearance scheduling finalized for BST and ICT departments.',
+              type: 'announcement',
+              trackingNumber: '',
+              targetTab: 'academic_calendar',
+              isRead: true,
+              createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+            },
+          ];
+        } else if (role === 'hod') {
+          fallback = [
+            {
+              _id: 'n_h1',
+              title: 'Awaiting HOD Sign-Off: Repeat Exam Entry',
+              message: 'Dr. S. Kirushanth verified CA mark (24/30) for REP-2026-0105 (A.R. Fathima). Pending HOD Sign-off.',
+              type: 'approval_request',
+              trackingNumber: 'REP-2026-0105',
+              targetTab: 'dashboard',
+              isRead: false,
+              createdAt: new Date(Date.now() - 1000 * 60 * 25),
+            },
+            {
+              _id: 'n_h2',
+              title: 'Successfully Endorsed to Dean: REQ-2026-0420',
+              message: 'Your endorsement for K.M. Nuwais has been transferred to Faculty Executive Office (Dean Prof. Rifai Kariapper).',
+              type: 'endorsement',
+              trackingNumber: 'REQ-2026-0420',
+              targetTab: 'dashboard',
+              isRead: false,
+              createdAt: new Date(Date.now() - 1000 * 60 * 90),
+            },
+            {
+              _id: 'n_h3',
+              title: 'Lecturer Submission: Academic Workload Verification',
+              message: 'Semester 05 CA moderation sheets submitted by Software Technologies (SWT) module leaders for HOD audit.',
+              type: 'workload',
+              trackingNumber: '',
+              targetTab: 'ca_marks',
+              isRead: true,
+              createdAt: new Date(Date.now() - 1000 * 60 * 300),
+            },
+          ];
+        }
+        setNotifications(fallback);
+        setUnreadCount(fallback.filter(n => !n.isRead).length);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 15000);
+    return () => clearInterval(interval);
+  }, [user?.role, user?.roleKey, user?.email]);
+
+  const handleMarkSingleRead = async (notifId) => {
+    setNotifications(prev => prev.map(n => n._id === notifId || n.id === notifId ? { ...n, isRead: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    try {
+      await api.markNotificationRead(notifId);
+    } catch {
+      // offline fallback
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+    try {
+      await api.markAllNotificationsRead({
+        role: user?.roleKey || user?.role,
+        email: user?.email,
+      });
+    } catch {
+      // offline fallback
+    }
+  };
+
+  const handleNotifClick = async (notif) => {
+    if (!notif.isRead) {
+      await handleMarkSingleRead(notif._id || notif.id);
+    }
+    setIsNotifOpen(false);
+
+    // Navigate to the target page/tab if available
+    if (notif.targetTab) {
+      handleItemClick(notif.targetTab);
+    }
+  };
+
+  const formatNotifTime = (timestamp) => {
+    if (!timestamp) return 'Recently';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const displayedNotifs = notifications.filter(n => {
+    if (notifFilter === 'unread') return !n.isRead;
+    return true;
+  });
 
   // Determine if hero banner should display (hidden on pages like academic_profile)
   const shouldShowHero = showHeroBanner !== undefined
@@ -547,16 +720,134 @@ export default function DashboardTemplate({
               )}
             </button>
 
-            {/* Notifications */}
-            <button type="button" className="seu-icon-action-btn" title="Notifications" onClick={() => handleItemClick('notifications')}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              {notificationCount > 0 && (
-                <span className="seu-notif-badge">{notificationCount}</span>
+            {/* Interactive Notifications Bell & Dropdown */}
+            <div className="seu-notif-wrapper" ref={notifRef}>
+              <button
+                type="button"
+                className={`seu-icon-action-btn ${isNotifOpen ? 'active' : ''}`}
+                title="Notifications"
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                aria-expanded={isNotifOpen}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="seu-notif-badge">{unreadCount}</span>
+                )}
+              </button>
+
+              {isNotifOpen && (
+                <div className="seu-notif-dropdown">
+                  <div className="seu-notif-header">
+                    <div className="seu-notif-header-title">
+                      <span>Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="seu-notif-count-pill">{unreadCount} unread</span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        className="seu-notif-mark-all-btn"
+                        onClick={handleMarkAllAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="seu-notif-filter-bar">
+                    <button
+                      type="button"
+                      className={`seu-notif-filter-btn ${notifFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setNotifFilter('all')}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={`seu-notif-filter-btn ${notifFilter === 'unread' ? 'active' : ''}`}
+                      onClick={() => setNotifFilter('unread')}
+                    >
+                      Unread ({unreadCount})
+                    </button>
+                  </div>
+
+                  <div className="seu-notif-list">
+                    {displayedNotifs.length === 0 ? (
+                      <div className="seu-notif-empty">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" style={{ margin: '0 auto 0.5rem', display: 'block' }}>
+                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                        No {notifFilter === 'unread' ? 'unread ' : ''}notifications at this time
+                      </div>
+                    ) : (
+                      displayedNotifs.map((n) => {
+                        const iconType = n.type || 'general';
+                        return (
+                          <div
+                            key={n._id || n.id || Math.random()}
+                            className={`seu-notif-item ${!n.isRead ? 'unread' : ''}`}
+                            onClick={() => handleNotifClick(n)}
+                          >
+                            <div className="seu-notif-icon-col">
+                              <div className={`seu-notif-icon-wrap ${iconType}`}>
+                                {iconType === 'endorsement' && '🛡️'}
+                                {iconType === 'approval_request' && '⏱️'}
+                                {iconType === 'approved' && '✅'}
+                                {(iconType === 'returned' || iconType === 'declined' || iconType === 'correction') && '⚠️'}
+                                {iconType === 'workload' && '📋'}
+                                {(iconType === 'announcement' || iconType === 'general') && '📢'}
+                              </div>
+                            </div>
+
+                            <div className="seu-notif-content-col">
+                              <div className="seu-notif-item-top">
+                                <span className="seu-notif-item-title">{n.title}</span>
+                                {!n.isRead && <span className="seu-notif-item-unread-dot" title="Unread" />}
+                              </div>
+                              <p className="seu-notif-item-msg">{n.message}</p>
+                              <div className="seu-notif-item-meta">
+                                <span>{formatNotifTime(n.createdAt)}</span>
+                                {n.trackingNumber && (
+                                  <span className="seu-notif-item-badge">{n.trackingNumber}</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {!n.isRead && (
+                              <button
+                                type="button"
+                                className="seu-notif-mark-single-btn"
+                                title="Mark as Read"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkSingleRead(n._id || n.id);
+                                }}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="seu-notif-footer">
+                    <span className="seu-notif-live-badge">
+                      <span className="seu-notif-live-dot" /> Live System Feed
+                    </span>
+                    <span>Role-Synchronized</span>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* User Profile */}
             <div

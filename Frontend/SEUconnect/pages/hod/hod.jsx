@@ -3,6 +3,7 @@ import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx'
 import ProcessTrackerModal from '../../components/workflow/ProcessTrackerModal.jsx';
 import ApproveModal from '../../components/workflow/ApproveModal.jsx';
 import DeclineReasonModal from '../../components/workflow/DeclineReasonModal.jsx';
+import ReturnCorrectionModal from '../../components/workflow/ReturnCorrectionModal.jsx';
 import api from '../../src/services/api.js';
 import './hod.css';
 
@@ -26,10 +27,24 @@ export default function HOD({ user, onLogout }) {
   const [selectedProcess, setSelectedProcess] = useState(null);
   const [actionProcess, setActionProcess] = useState(null);
   const [declineProcess, setDeclineProcess] = useState(null);
+  const [returnProcessModal, setReturnProcessModal] = useState(null);
   const [activeNav, setActiveNav] = useState('dashboard');
 
-  const hodName = user?.name || 'Dr. M.A. Rifky';
-  const hodDesignation = user?.designation || 'Head of the Department (ICT)';
+  // Official HOD Persona: M.J Ahamed Sabani
+  const effectiveUser = {
+    ...user,
+    name: 'M.J Ahamed Sabani',
+    email: user?.email || 'sabani@seu.ac.lk',
+    designation: 'Head of the Department (ICT)',
+    department: 'Department of Information and Communication Technology',
+    faculty: 'Faculty of Technology, SEUSL',
+    avatarInitial: 'AS',
+    role: 'hod',
+    roleKey: 'hod',
+  };
+
+  const hodName = effectiveUser.name;
+  const hodDesignation = effectiveUser.designation;
 
   const loadProcesses = async () => {
     try {
@@ -71,7 +86,24 @@ export default function HOD({ user, onLogout }) {
     await loadProcesses();
   };
 
-  const pendingHOD = processes.filter(
+  const handleReturn = async (payload) => {
+    if (!returnProcessModal) return;
+    try {
+      await api.returnProcess(returnProcessModal.trackingNumber || returnProcessModal._id, payload);
+    } catch (err) {
+      console.warn('Failed to return process in HOD:', err);
+    }
+    setReturnProcessModal(null);
+    await loadProcesses();
+  };
+
+  // Only show ICT department processes to HOD ICT
+  const deptProcesses = (Array.isArray(processes) ? processes : []).filter((p) => {
+    const dept = p.student?.department || '';
+    return !dept || dept.toLowerCase().includes('information') || dept.toLowerCase().includes('ict');
+  });
+
+  const pendingHOD = deptProcesses.filter(
     (p) =>
       (p.currentAssignedRole === 'hod' || p.status === 'Pending HOD') &&
       p.status !== 'Approved' &&
@@ -91,11 +123,12 @@ export default function HOD({ user, onLogout }) {
       case 'pending_hod_approvals':
         return (
           <DepartmentApprovalsDesk
-            processes={processes}
+            processes={deptProcesses}
             pendingHOD={pendingHOD}
             isLoading={isLoading}
             onOpenAudit={(p) => setSelectedProcess(p)}
             onOpenEndorse={(p) => setActionProcess(p)}
+            onOpenReturn={(p) => setReturnProcessModal(p)}
             onOpenDecline={(p) => setDeclineProcess(p)}
           />
         );
@@ -110,17 +143,18 @@ export default function HOD({ user, onLogout }) {
       case 'department_reports':
         return <DepartmentBoardMinutes onNavigate={setActiveNav} />;
       case 'academic_profile':
-        return <HODProfile user={user} onNavigate={setActiveNav} />;
+        return <HODProfile user={effectiveUser} onNavigate={setActiveNav} />;
       case 'dashboard':
       default:
         return (
           <HODDashboardOverview
-            processes={processes}
+            processes={deptProcesses}
             pendingHOD={pendingHOD}
             isLoading={isLoading}
             onNavigate={setActiveNav}
             onOpenAudit={(p) => setSelectedProcess(p)}
             onOpenEndorse={(p) => setActionProcess(p)}
+            onOpenReturn={(p) => setReturnProcessModal(p)}
             onOpenDecline={(p) => setDeclineProcess(p)}
           />
         );
@@ -129,7 +163,7 @@ export default function HOD({ user, onLogout }) {
 
   return (
     <DashboardTemplate
-      user={user}
+      user={effectiveUser}
       onLogout={onLogout}
       activeItem={activeNav}
       onNavigate={(id) => setActiveNav(id)}
@@ -149,16 +183,25 @@ export default function HOD({ user, onLogout }) {
         {actionProcess && (
           <ApproveModal
             process={actionProcess}
-            user={{ ...user, name: hodName, designation: hodDesignation, role: 'hod' }}
+            user={effectiveUser}
             onClose={() => setActionProcess(null)}
             onConfirm={handleApprove}
+          />
+        )}
+
+        {returnProcessModal && (
+          <ReturnCorrectionModal
+            process={returnProcessModal}
+            user={effectiveUser}
+            onClose={() => setReturnProcessModal(null)}
+            onConfirm={handleReturn}
           />
         )}
 
         {declineProcess && (
           <DeclineReasonModal
             process={declineProcess}
-            user={{ ...user, name: hodName, designation: hodDesignation, role: 'hod' }}
+            user={effectiveUser}
             onClose={() => setDeclineProcess(null)}
             onConfirm={handleDecline}
           />
