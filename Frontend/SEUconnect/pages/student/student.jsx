@@ -25,7 +25,8 @@ export default function Student({ user, onLogout }) {
       if (hash.includes('dashboard') || hash === 'student' || hash === '/student' || hash === '') return 'dashboard'; else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
         if (hash.includes('exam')) return 'forms_exam';
         if (hash.includes('med')) return 'forms_medical';
-        if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank')) return 'forms_piv';
+        if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank') || hash.includes('finance')) return 'forms_piv';
+        if (hash.includes('acad') || hash.includes('reg_form')) return 'forms_academic';
         return 'forms_all';
       }
       if (hash.includes('welfare') || hash.includes('scholarship')) return 'welfare_scholarships';
@@ -56,7 +57,8 @@ export default function Student({ user, onLogout }) {
       } else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
         if (hash.includes('exam')) setActiveTab('forms_exam');
         else if (hash.includes('med')) setActiveTab('forms_medical');
-        else if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank')) setActiveTab('forms_piv');
+        else if (hash.includes('piv') || hash.includes('voucher') || hash.includes('bank') || hash.includes('finance')) setActiveTab('forms_piv');
+        else if (hash.includes('acad') || hash.includes('reg_form')) setActiveTab('forms_academic');
         else setActiveTab('forms_all');
       } else if (hash.includes('welfare') || hash.includes('scholarship')) {
         setActiveTab('welfare_scholarships');
