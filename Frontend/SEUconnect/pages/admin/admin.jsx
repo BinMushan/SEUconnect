@@ -488,19 +488,53 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 19. Promote Batch to Next Semester & Auto-Shift Enrolled Subjects
-  const handlePromoteBatch = (batchId, nextSem, allocatedCourses) => {
+  const handlePromoteBatch = (batchId, nextSem, allocatedCourses, departmentScope = 'BOTH') => {
     // 1. Advance the batch's currentSemester
     setBatches((prev) =>
-      prev.map((b) => (b.id === batchId ? { ...b, currentSemester: nextSem } : b))
+      prev.map((b) => {
+        if (b.id !== batchId) return b;
+        if (departmentScope === 'BOTH') {
+          return { ...b, currentSemester: nextSem };
+        } else if (departmentScope === 'BICT') {
+          return {
+            ...b,
+            currentSemester: `${nextSem} (ICT)`
+          };
+        } else if (departmentScope === 'BST') {
+          return {
+            ...b,
+            currentSemester: `${nextSem} (BST)`
+          };
+        }
+        return { ...b, currentSemester: nextSem };
+      })
     );
 
-    // 2. Automatically update all enrolled students in that batch to the next semester
+    // 2. Automatically update all enrolled students in that batch based on department scope
     setStudents((prev) =>
-      prev.map((s) => (s.batchId === batchId ? { ...s, semester: nextSem } : s))
+      prev.map((s) => {
+        if (s.batchId !== batchId) return s;
+        const isBICT = s.programme?.includes('BICT') || s.department?.includes('Information') || s.regNo?.includes('/ICT/');
+        const isBST = s.programme?.includes('BST') || s.department?.includes('Bio') || s.regNo?.includes('/BST/');
+
+        if (departmentScope === 'BICT' && !isBICT) return s;
+        if (departmentScope === 'BST' && !isBST) return s;
+
+        return { ...s, semester: nextSem };
+      })
     );
 
-    // 3. Auto-populate course registrations for all students in that batch with new curriculum courses
-    const targetStudents = students.filter((s) => s.batchId === batchId);
+    // 3. Auto-populate course registrations for all target students in that batch with new curriculum courses
+    const targetStudents = students.filter((s) => {
+      if (s.batchId !== batchId) return false;
+      const isBICT = s.programme?.includes('BICT') || s.department?.includes('Information') || s.regNo?.includes('/ICT/');
+      const isBST = s.programme?.includes('BST') || s.department?.includes('Bio') || s.regNo?.includes('/BST/');
+
+      if (departmentScope === 'BICT') return isBICT;
+      if (departmentScope === 'BST') return isBST;
+      return true;
+    });
+
     if (targetStudents.length > 0 && allocatedCourses && allocatedCourses.length > 0) {
       const newRegistrations = targetStudents.map((s) => {
         const studentDeptCourses = allocatedCourses.filter((c) =>
@@ -532,9 +566,16 @@ export default function Admin({ user, onLogout }) {
       setRegistrations((prev) => [...newRegistrations, ...prev]);
     }
 
+    const scopeLabel =
+      departmentScope === 'BICT'
+        ? 'ICT Department Only'
+        : departmentScope === 'BST'
+        ? 'BST Department Only'
+        : 'Both Departments (BICT & BST)';
+
     addAuditLog(
       'Promoted Cohort & Auto-Shifted Curriculum',
-      `Promoted batch ${batchId} to ${nextSem}. Auto-shifted subjects for ${targetStudents.length} enrolled undergraduates.`
+      `Promoted batch ${batchId} (${scopeLabel}) to ${nextSem}. Auto-shifted subjects for ${targetStudents.length} enrolled undergraduates.`
     );
   };
 

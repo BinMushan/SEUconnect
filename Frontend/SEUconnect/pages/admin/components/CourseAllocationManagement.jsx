@@ -43,6 +43,7 @@ export default function CourseAllocationManagement({
 
   // Promote Batch Modal states
   const [selectedBatchId, setSelectedBatchId] = useState(batches[3]?.id || 'BATCH-04');
+  const [promoteDeptScope, setPromoteDeptScope] = useState('BOTH'); // 'BOTH' | 'BICT' | 'BST'
   const [autoRegisterStudents, setAutoRegisterStudents] = useState(true);
 
   // Compute selected batch details
@@ -61,11 +62,16 @@ export default function CourseAllocationManagement({
     return 'Graduated / Finalized';
   }, [selectedBatch]);
 
-  // Upcoming courses for the target next semester
+  // Upcoming courses for the target next semester based on selected department scope
   const upcomingNextSemCourses = useMemo(() => {
     if (!nextSemester || nextSemester.includes('Graduated')) return [];
-    return courses.filter((c) => c.semester === nextSemester);
-  }, [courses, nextSemester]);
+    return courses.filter((c) => {
+      if (c.semester !== nextSemester) return false;
+      if (promoteDeptScope === 'BICT') return c.department === 'BICT';
+      if (promoteDeptScope === 'BST') return c.department === 'BST';
+      return true;
+    });
+  }, [courses, nextSemester, promoteDeptScope]);
 
   // Filtered courses for current view
   const currentSemesterCourses = useMemo(() => {
@@ -190,19 +196,26 @@ export default function CourseAllocationManagement({
     if (!selectedBatch || nextSemester.includes('Graduated')) return;
 
     if (onPromoteBatch) {
-      onPromoteBatch(selectedBatch.id, nextSemester, upcomingNextSemCourses);
+      onPromoteBatch(selectedBatch.id, nextSemester, upcomingNextSemCourses, promoteDeptScope);
     }
+
+    const scopeLabel =
+      promoteDeptScope === 'BICT'
+        ? 'ICT Department Only (120 BICT Students)'
+        : promoteDeptScope === 'BST'
+        ? 'BST Department Only (120 BST Students)'
+        : 'Both Departments (120 BICT + 120 BST = 240 Students)';
 
     if (onShowToast) {
       onShowToast(
-        `Cohort ${selectedBatch.name} promoted to ${nextSemester}! Curriculum subjects automatically shifted for all 240 students.`
+        `Cohort ${selectedBatch.name} (${scopeLabel}) promoted to ${nextSemester}! Curriculum subjects automatically shifted.`
       );
     }
 
     if (onAddAuditLog) {
       onAddAuditLog(
         'Executed Cohort Promotion',
-        `Promoted ${selectedBatch.name} to ${nextSemester}. Auto-shifted ${upcomingNextSemCourses.length} curriculum subjects across 240 undergraduates (120 BICT + 120 BST).`
+        `Promoted ${selectedBatch.name} (${scopeLabel}) to ${nextSemester}. Auto-shifted ${upcomingNextSemCourses.length} curriculum subjects.`
       );
     }
 
@@ -835,6 +848,129 @@ export default function CourseAllocationManagement({
                 </select>
               </div>
 
+              {/* Department Shift Scope Selector (Both, ICT Only, BST Only) */}
+              <div className="adm-form-group full-width" style={{ marginTop: '0.2rem' }}>
+                <label className="adm-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Department Progression Scope *</span>
+                  <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600 }}>
+                    {promoteDeptScope === 'BOTH'
+                      ? 'Both Departments (240 Students: 120 BICT + 120 BST)'
+                      : promoteDeptScope === 'BICT'
+                      ? 'ICT Department Only (120 BICT Students)'
+                      : 'BST Department Only (120 BST Students)'}
+                  </span>
+                </label>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '8px',
+                    background: '#f1f5f9',
+                    padding: '4px',
+                    borderRadius: '8px'
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setPromoteDeptScope('BOTH')}
+                    style={{
+                      padding: '0.55rem 0.65rem',
+                      fontSize: '0.8rem',
+                      fontWeight: promoteDeptScope === 'BOTH' ? 700 : 500,
+                      color: promoteDeptScope === 'BOTH' ? '#0f172a' : '#64748b',
+                      background: promoteDeptScope === 'BOTH' ? '#ffffff' : 'transparent',
+                      borderRadius: '6px',
+                      border: promoteDeptScope === 'BOTH' ? '1px solid #cbd5e1' : '1px solid transparent',
+                      boxShadow: promoteDeptScope === 'BOTH' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '3px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                      </svg>
+                      <span>Both Departments</span>
+                    </div>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 500 }}>
+                      BICT &amp; BST (240 Students)
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPromoteDeptScope('BICT')}
+                    style={{
+                      padding: '0.55rem 0.65rem',
+                      fontSize: '0.8rem',
+                      fontWeight: promoteDeptScope === 'BICT' ? 700 : 500,
+                      color: promoteDeptScope === 'BICT' ? '#1d4ed8' : '#64748b',
+                      background: promoteDeptScope === 'BICT' ? '#ffffff' : 'transparent',
+                      borderRadius: '6px',
+                      border: promoteDeptScope === 'BICT' ? '1px solid #bfdbfe' : '1px solid transparent',
+                      boxShadow: promoteDeptScope === 'BICT' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '3px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
+                      <span>ICT Department Only</span>
+                    </div>
+                    <span style={{ fontSize: '0.68rem', color: '#1d4ed8', fontWeight: 500 }}>
+                      BICT (120 Students)
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPromoteDeptScope('BST')}
+                    style={{
+                      padding: '0.55rem 0.65rem',
+                      fontSize: '0.8rem',
+                      fontWeight: promoteDeptScope === 'BST' ? 700 : 500,
+                      color: promoteDeptScope === 'BST' ? '#047857' : '#64748b',
+                      background: promoteDeptScope === 'BST' ? '#ffffff' : 'transparent',
+                      borderRadius: '6px',
+                      border: promoteDeptScope === 'BST' ? '1px solid #a7f3d0' : '1px solid transparent',
+                      boxShadow: promoteDeptScope === 'BST' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '3px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                      </svg>
+                      <span>BST Department Only</span>
+                    </div>
+                    <span style={{ fontSize: '0.68rem', color: '#047857', fontWeight: 500 }}>
+                      BST (120 Students)
+                    </span>
+                  </button>
+                </div>
+              </div>
+
               {/* Progression Transition Preview Card */}
               {selectedBatch && (
                 <div
@@ -876,7 +1012,11 @@ export default function CourseAllocationManagement({
                       {nextSemester}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      240 Students (120 BICT, 120 BST)
+                      {promoteDeptScope === 'BOTH'
+                        ? '240 Students (120 BICT, 120 BST)'
+                        : promoteDeptScope === 'BICT'
+                        ? '120 Students (ICT Department Only)'
+                        : '120 Students (BST Department Only)'}
                     </div>
                   </div>
                 </div>
@@ -889,7 +1029,7 @@ export default function CourseAllocationManagement({
                     Curriculum Subjects Auto-Allocated for {nextSemester}:
                   </span>
                   <span className="adm-badge badge-active">
-                    {upcomingNextSemCourses.length} Subjects Pre-configured
+                    {upcomingNextSemCourses.length} {promoteDeptScope === 'BICT' ? 'BICT Subjects' : promoteDeptScope === 'BST' ? 'BST Subjects' : 'Subjects'} Pre-configured
                   </span>
                 </div>
 
@@ -905,7 +1045,7 @@ export default function CourseAllocationManagement({
                 >
                   {upcomingNextSemCourses.length === 0 ? (
                     <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.82rem' }}>
-                      No subjects configured for {nextSemester}. Please add subjects for this semester before promoting.
+                      No subjects configured for {nextSemester} in {promoteDeptScope === 'BICT' ? 'BICT' : promoteDeptScope === 'BST' ? 'BST' : 'curriculum'}. Please add subjects for this semester before promoting.
                     </div>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
@@ -956,11 +1096,11 @@ export default function CourseAllocationManagement({
                   checked={autoRegisterStudents}
                   onChange={(e) => setAutoRegisterStudents(e.target.checked)}
                 />
-                Automatically shift academic semester and allocate these {upcomingNextSemCourses.length} subjects to all 240 enrolled undergraduates
+                Automatically shift academic semester and allocate these {upcomingNextSemCourses.length} {promoteDeptScope === 'BICT' ? 'BICT' : promoteDeptScope === 'BST' ? 'BST' : 'curriculum'} subjects to {promoteDeptScope === 'BOTH' ? 'all 240 enrolled undergraduates' : promoteDeptScope === 'BICT' ? 'all 120 enrolled ICT undergraduates' : 'all 120 enrolled BST undergraduates'}
               </label>
 
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '8px', fontSize: '0.76rem', color: '#b45309' }}>
-                <strong>Automated Action:</strong> Confirming this promotion will advance {selectedBatch?.name} to {nextSemester}, update all {students.filter((s) => s.batchId === selectedBatchId).length || 240} student records, and clear prerequisites.
+                <strong>Automated Action:</strong> Confirming this promotion will advance {selectedBatch?.name} ({promoteDeptScope === 'BOTH' ? 'Both Departments' : promoteDeptScope === 'BICT' ? 'ICT Department Only' : 'BST Department Only'}) to {nextSemester}, auto-shift curriculum for {promoteDeptScope === 'BOTH' ? (students.filter((s) => s.batchId === selectedBatchId).length || 240) : 120} student records, and clear prerequisites.
               </div>
             </div>
 
@@ -979,7 +1119,7 @@ export default function CourseAllocationManagement({
                 onClick={handleExecutePromotion}
                 disabled={nextSemester.includes('Graduated') || upcomingNextSemCourses.length === 0}
               >
-                Execute Batch Promotion & Auto-Shift
+                Execute {promoteDeptScope === 'BOTH' ? 'Batch' : promoteDeptScope === 'BICT' ? 'ICT Department' : 'BST Department'} Promotion &amp; Auto-Shift
               </button>
             </div>
           </div>
