@@ -12,7 +12,7 @@ const StageSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ['student', 'lecturer', 'medical_officer', 'hod', 'dean', 'examination', 'admin'],
+    enum: ['student', 'lecturer', 'medical_officer', 'hod', 'dean', 'examination', 'admin', 'sar'],
   },
   status: {
     type: String,

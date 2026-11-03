@@ -26,6 +26,12 @@ const DEMO_ACCOUNTS = [
     roleKey: 'hod'
   },
   {
+    role: 'Senior Assistant Registrar (SAR)',
+    email: 'sar@gmail.com',
+    password: '123456',
+    roleKey: 'sar'
+  },
+  {
     role: 'Dean',
     email: 'Dean@gmail.com',
     password: '123456',
@@ -146,7 +152,9 @@ export default function Login({ onLoginSuccess }) {
         if (matchedAccount && matchedAccount.password === password) {
           loggedUser = {
             ...matchedAccount,
-            name: matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role,
+            name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role,
+            staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : undefined,
+            designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : undefined,
             regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
             department: 'Department of Information and Communication Technology',
             faculty: 'Faculty of Technology',
@@ -216,6 +224,42 @@ export default function Login({ onLoginSuccess }) {
           <p className="seu-form-subtitle">
             Enter your registered university email and password to access your role dashboard.
           </p>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.85rem', justifyContent: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8', width: '100%', textAlign: 'center', marginBottom: '0.1rem' }}>
+              Quick Credentials (Click to fill):
+            </span>
+            {DEMO_ACCOUNTS.map((acc) => {
+              const isSelected = email.toLowerCase() === acc.email.toLowerCase();
+              return (
+                <button
+                  key={acc.roleKey}
+                  type="button"
+                  onClick={() => {
+                    setEmail(acc.email);
+                    setPassword(acc.password);
+                    setEmailError('');
+                    setPasswordError('');
+                    setAuthError('');
+                  }}
+                  style={{
+                    fontSize: '0.7rem',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '6px',
+                    border: isSelected ? '1.5px solid #f59e0b' : '1px solid #cbd5e1',
+                    background: isSelected ? '#fffbeb' : '#ffffff',
+                    color: isSelected ? '#b45309' : '#334155',
+                    cursor: 'pointer',
+                    fontWeight: isSelected ? 700 : 500,
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={`Fill ${acc.role} (${acc.email})`}
+                >
+                  {acc.roleKey.toUpperCase() === 'SAR' ? '📋 SAR (Admin)' : acc.roleKey.toUpperCase() === 'HOD' ? '🏛️ HOD' : acc.roleKey.toUpperCase() === 'DEAN' ? '📜 Dean' : acc.role}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Success Alert Banner */}
