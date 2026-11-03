@@ -88,6 +88,15 @@ export default function Student({ user, onLogout }) {
   }, []);
   const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(4); // Default to Semester 5 (current)
+
+  const progressionData = [
+    { semester: 'Sem 1', fullLabel: 'Semester 1', sgpa: 3.82, credits: 16, standing: 'First Class Standing', x: 85, y: 55.9, isFirstClass: true },
+    { semester: 'Sem 2', fullLabel: 'Semester 2', sgpa: 3.65, credits: 18, standing: 'Second Class (Upper)', x: 185, y: 69.1, isFirstClass: false },
+    { semester: 'Sem 3', fullLabel: 'Semester 3', sgpa: 3.64, credits: 16, standing: 'Second Class (Upper)', x: 285, y: 69.8, isFirstClass: false },
+    { semester: 'Sem 4', fullLabel: 'Semester 4', sgpa: 3.50, credits: 14, standing: 'Second Class (Upper)', x: 385, y: 80.7, isFirstClass: false },
+    { semester: 'Sem 5', fullLabel: 'Semester 5 (Current)', sgpa: 3.50, credits: 14, standing: 'Second Class (Upper)', x: 485, y: 80.7, isCurrent: true, isFirstClass: false },
+  ];
 
   const suggestedChips = [
     'CA Repeat Form',
@@ -189,35 +198,56 @@ export default function Student({ user, onLogout }) {
 
   const deadlines = [
     {
+      id: 'reg',
       category: 'Registration',
-      status: 'Open',
-      statusType: 'open',
+      categoryType: 'registration',
+      status: 'Open • 4 Days Left',
+      statusType: 'urgent',
       title: 'Semester Subject Registration (Add/Drop)',
-      deadline: 'Deadline: 2026-10-15',
-      actionId: 'semester_registration'
+      description: 'Department coordinator sign-off for elective additions and credit adjustments.',
+      deadline: 'Deadline: 2026-11-15',
+      countdown: '4 days remaining',
+      actionId: 'semester_registration',
+      actionText: 'Register Subjects'
     },
     {
+      id: 'exam',
       category: 'Examination',
+      categoryType: 'exam',
       status: 'Upcoming',
       statusType: 'upcoming',
       title: 'ESA Examination Entry Submission',
-      deadline: 'Deadline: 2026-10-30',
-      actionId: 'examinations'
+      description: 'Final examination registration, repeat candidate endorsements, and bank voucher clearance.',
+      deadline: 'Deadline: 2026-11-30',
+      countdown: '19 days remaining',
+      actionId: 'examinations',
+      actionText: 'Exam Registration'
     },
     {
+      id: 'medical',
       category: 'Medical',
-      status: 'Active',
-      statusType: 'active',
+      categoryType: 'medical',
+      status: 'Active Policy',
+      statusType: 'policy',
       title: 'Medical Certificate Submission Deadline',
+      description: 'Submit government/UMO certified form within 7 days of absence for ESA concessions.',
       deadline: 'Deadline: Within 7 days of absence',
-      actionId: 'medical_requests'
+      countdown: 'Strict Institutional Rule',
+      actionId: 'medical_requests',
+      actionText: 'Submit Medical'
     },
     {
+      id: 'welfare',
       category: 'Welfare',
+      categoryType: 'welfare',
       status: 'Open',
       statusType: 'open',
       title: 'Mahapola / Bursary Welfare Renewal',
-      deadline: 'Deadline: 2026-11-10'
+      description: 'Submit welfare declaration with 80% monthly attendance certification.',
+      deadline: 'Deadline: 2026-12-10',
+      countdown: '29 days remaining',
+      actionId: 'welfare_scholarships',
+      actionText: 'Renew Welfare'
     }
   ];
 
@@ -342,7 +372,7 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">Sem 5</span>
               </div>
               <div className="std-stat-number">3.50</div>
-              <div className="std-stat-target">Target: First Class (&ge; 3.70)</div>
+              <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
           </div>
 
@@ -478,49 +508,143 @@ export default function Student({ user, onLogout }) {
         <section className="std-middle-grid">
           {/* Left: Academic Progression Trend */}
           <div className="std-trend-card">
-            <h3 className="std-card-heading">Academic Progression Trend (SGPA)</h3>
+            <div className="std-trend-header-row">
+              <div className="std-trend-title-col">
+                <div className="std-trend-title-line">
+                  <h3 className="std-card-heading">Academic Progression Trend (SGPA)</h3>
+                  <span className="std-trend-cgpa-pill">CGPA: 3.58 • 2nd Class Upper</span>
+                </div>
+                <span className="std-trend-subheading">Track semester GPA performance against faculty honours criteria</span>
+              </div>
+              
+            </div>
 
-            {/* SVG Chart */}
+            {/* Compact Active Semester Strip */}
+            <div className="std-active-sem-strip">
+              <span className="sem-chip active-chip">{progressionData[selectedSemesterIdx].fullLabel}</span>
+              <span className="sem-chip-metric">SGPA: <strong>{progressionData[selectedSemesterIdx].sgpa.toFixed(2)}</strong></span>
+              <span className="sem-chip-metric">Credits: <strong>{progressionData[selectedSemesterIdx].credits}</strong></span>
+              <span className={`sem-chip-standing ${progressionData[selectedSemesterIdx].isFirstClass ? 'chip-first' : 'chip-upper'}`}>
+                {progressionData[selectedSemesterIdx].standing}
+              </span>
+            </div>
+
+            {/* SVG Chart - Clean Minimalist Styling */}
             <div className="std-chart-wrapper">
-              <svg viewBox="0 0 540 180" className="std-trend-svg">
-                {/* Dashed Horizontal Grid Lines */}
-                <line x1="50" y1="20" x2="520" y2="20" className="std-grid-line" />
-                <line x1="50" y1="65" x2="520" y2="65" className="std-grid-line" />
-                <line x1="50" y1="105" x2="520" y2="105" className="std-grid-line" />
-                <line x1="50" y1="145" x2="520" y2="145" className="std-grid-line" />
+              <svg viewBox="0 0 560 190" className="std-trend-svg" preserveAspectRatio="xMidYMid meet">
+                {/* Horizontal Reference Grid Lines */}
+                <line x1="45" y1="30" x2="525" y2="30" className="std-grid-line" />
+                <line x1="45" y1="52" x2="525" y2="52" className="std-grid-line" />
+                <line x1="45" y1="82" x2="525" y2="82" className="std-grid-line" />
+                <line x1="45" y1="106" x2="525" y2="106" className="std-grid-line" />
+                <line x1="45" y1="140" x2="525" y2="140" className="std-grid-line" />
 
                 {/* Y-Axis Labels */}
-                <text x="40" y="24" className="std-axis-text">4</text>
-                <text x="28" y="69" className="std-axis-text">3.3</text>
-                <text x="28" y="109" className="std-axis-text">2.9</text>
-                <text x="28" y="149" className="std-axis-text">2.5</text>
+                <text x="36" y="34" className="std-axis-text">4.0</text>
+                <text x="36" y="56" className="std-axis-text ">3.7</text>
+                <text x="36" y="86" className="std-axis-text ">3.3</text>
+                <text x="36" y="110" className="std-axis-text">3.0</text>
+                <text x="36" y="144" className="std-axis-text">2.5</text>
 
-                {/* Vertical Dashed Guidelines under points */}
-                <line x1="75" y1="36" x2="75" y2="145" className="std-grid-line-vert" />
-                <line x1="175" y1="58" x2="175" y2="145" className="std-grid-line-vert" />
-                <line x1="280" y1="58" x2="280" y2="145" className="std-grid-line-vert" />
-                <line x1="385" y1="75" x2="385" y2="145" className="std-grid-line-vert" />
-                <line x1="490" y1="75" x2="490" y2="145" className="std-grid-line-vert" />
+                {/* Vertical Drop Guidelines under points */}
+                {progressionData.map((p, idx) => (
+                  <line
+                    key={`v-${idx}`}
+                    x1={p.x}
+                    y1={p.y}
+                    x2={p.x}
+                    y2="140"
+                    className={`std-grid-line-vert ${selectedSemesterIdx === idx ? 'vert-active' : ''}`}
+                  />
+                ))}
 
-                {/* Blue Trend Line */}
+                {/* Clean Blue Trend Line Curve */}
                 <path
-                  d="M 75,36 C 120,48 140,58 175,58 L 280,58 C 330,58 350,75 385,75 L 490,75"
+                  d="M 85,44 C 135,46 145,57 185,57 C 235,57 245,58 285,58 C 335,58 345,69 385,69 L 485,69"
                   className="std-trend-path"
                 />
 
-                {/* Trend Points */}
-                <circle cx="75" cy="36" r="4.5" className="std-trend-dot" />
-                <circle cx="175" cy="58" r="4.5" className="std-trend-dot" />
-                <circle cx="280" cy="58" r="4.5" className="std-trend-dot" />
-                <circle cx="385" cy="75" r="4.5" className="std-trend-dot" />
-                <circle cx="490" cy="75" r="4.5" className="std-trend-dot" />
+                {/* Data Points & Clean Floating Pill Badges */}
+                {progressionData.map((p, idx) => {
+                  const isSelected = selectedSemesterIdx === idx;
+                  // Adjusted Y coordinate for more balanced curve
+                  const py = idx === 0 ? 44 : idx === 1 ? 57 : idx === 2 ? 58 : 69;
+                  return (
+                    <g
+                      key={`point-${idx}`}
+                      className="std-chart-point-group"
+                      onClick={() => setSelectedSemesterIdx(idx)}
+                      onMouseEnter={() => setSelectedSemesterIdx(idx)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {/* Refined Pill Badge above point */}
+                      <rect
+                        x={p.x - 17}
+                        y={py - 23}
+                        width="34"
+                        height="17"
+                        rx="4"
+                        fill={isSelected ? '#1d4ed8' : (p.isCurrent ? '#0284c7' : '#f1f5f9')}
+                        stroke={isSelected ? '#1e40af' : (p.isCurrent ? '#0369a1' : '#cbd5e1')}
+                        strokeWidth="1"
+                        className="std-badge-pill-rect"
+                      />
+                      <text
+                        x={p.x}
+                        y={py - 11}
+                        textAnchor="middle"
+                        fill={isSelected || p.isCurrent ? '#ffffff' : '#1e293b'}
+                        fontSize="10"
+                        fontWeight="700"
+                        className="std-badge-pill-text"
+                      >
+                        {p.sgpa.toFixed(2)}
+                      </text>
 
-                {/* X-Axis Labels */}
-                <text x="75" y="165" className="std-axis-text-x">Semester 1</text>
-                <text x="175" y="165" className="std-axis-text-x">Semester 2</text>
-                <text x="280" y="165" className="std-axis-text-x">Semester 3</text>
-                <text x="385" y="165" className="std-axis-text-x">Semester 4</text>
-                <text x="490" y="165" className="std-axis-text-x">Semester 5</text>
+                      {/* Halo ring for selected or current */}
+                      {isSelected && (
+                        <circle
+                          cx={p.x}
+                          cy={py}
+                          r={9}
+                          fill="none"
+                          stroke="#2563eb"
+                          strokeWidth="2"
+                          opacity="0.3"
+                        />
+                      )}
+
+                      {/* Outer Ring Point Dot */}
+                      <circle
+                        cx={p.x}
+                        cy={py}
+                        r={isSelected ? 5.5 : 4.5}
+                        fill="#ffffff"
+                        stroke={isSelected ? '#1d4ed8' : (p.isCurrent ? '#0284c7' : '#2563eb')}
+                        strokeWidth={isSelected ? 3 : 2.5}
+                        className={`std-trend-dot ${isSelected ? 'dot-active' : ''}`}
+                      />
+
+                      {/* X-Axis Semester Label */}
+                      <text
+                        x={p.x}
+                        y="158"
+                        className={`std-axis-text-x ${isSelected ? 'axis-x-active' : ''}`}
+                      >
+                        {p.semester}
+                      </text>
+
+                      {/* Credits Under Semester */}
+                      <text
+                        x={p.x}
+                        y="172"
+                        className="std-axis-text-sub"
+                      >
+                        {p.credits} cr
+                      </text>
+                    </g>
+                  );
+                })}
               </svg>
             </div>
 
@@ -528,7 +652,7 @@ export default function Student({ user, onLogout }) {
             <div className="std-trend-metrics">
               <div className="std-metric-col">
                 <span className="std-metric-label">Credits Completed</span>
-                <span className="std-metric-value">78</span>
+                <span className="std-metric-value">78 <span className="std-metric-denom">/ 130</span></span>
               </div>
               <div className="std-metric-col">
                 <span className="std-metric-label">Credits Remaining</span>
@@ -536,7 +660,12 @@ export default function Student({ user, onLogout }) {
               </div>
               <div className="std-metric-col">
                 <span className="std-metric-label">Degree Progress</span>
-                <span className="std-metric-value text-green">60%</span>
+                <div className="std-progress-val-row">
+                  <span className="std-metric-value text-green">60%</span>
+                  <div className="std-mini-progress-bar">
+                    <div className="std-mini-progress-fill" style={{ width: '60%' }}></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -566,22 +695,42 @@ export default function Student({ user, onLogout }) {
             4. UPCOMING INSTITUTIONAL DEADLINES
             ========================================================= */}
         <section className="std-deadlines-section">
-          <h3 className="std-deadlines-heading">Upcoming Institutional Deadlines</h3>
+          <div className="std-deadlines-header-row">
+            <div>
+              <h3 className="std-deadlines-heading">Upcoming Institutional Deadlines</h3>
+              <p className="std-deadlines-sub">Active faculty notices, examination entry periods, and compliance cutoff dates</p>
+            </div>
+            <div className="std-deadlines-counter-pill">
+              <span className="std-pulse-dot"></span>
+              4 Active Deadlines
+            </div>
+          </div>
+
           <div className="std-deadlines-grid">
-            {deadlines.map((item, idx) => (
-              <div key={idx} className="std-deadline-card">
+            {deadlines.map((item) => (
+              <div key={item.id} className={`std-deadline-card card-cat-${item.categoryType}`}>
                 <div className="std-deadline-header">
-                  <span className="std-deadline-pill">{item.category}</span>
-                  <span className={`std-status-label status-${item.statusType}`}>{item.status}</span>
+                  <span className={`std-deadline-pill pill-${item.categoryType}`}>{item.category}</span>
+                  <span className={`std-status-label status-${item.statusType}`}>
+                    <span className="std-status-bullet"></span>
+                    {item.status}
+                  </span>
                 </div>
+
                 <h4 className="std-deadline-title">{item.title}</h4>
+                <p className="std-deadline-desc">{item.description}</p>
+
                 <div className="std-deadline-time">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10"/>
                     <polyline points="12 6 12 12 16 14"/>
                   </svg>
-                  <span>{item.deadline}</span>
+                  <div className="std-deadline-time-content">
+                    <span className="deadline-date-text">{item.deadline}</span>
+                    <span className="deadline-countdown-badge">{item.countdown}</span>
+                  </div>
                 </div>
+
                 <button
                   type="button"
                   className="std-view-details-btn"
@@ -594,7 +743,11 @@ export default function Student({ user, onLogout }) {
                     }
                   }}
                 >
-                  View Details
+                  <span>{item.actionText}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
                 </button>
               </div>
             ))}

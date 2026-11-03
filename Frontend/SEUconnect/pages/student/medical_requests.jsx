@@ -168,29 +168,149 @@ export default function MedicalRequests() {
                 <label className="form-label" htmlFor="med-start-date">
                   Medical Leave Start Date *
                 </label>
-                <input
-                  id="med-start-date"
-                  type="date"
-                  className="form-input"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  required
-                />
+                <div className="date-picker-input-wrapper">
+                  <input
+                    id="med-start-date"
+                    type="date"
+                    className="form-input date-input-field"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    onClick={(e) => {
+                      try {
+                        if (e.target.showPicker) e.target.showPicker();
+                      } catch (_) {}
+                    }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="calendar-icon-btn"
+                    onClick={() => {
+                      const el = document.getElementById('med-start-date');
+                      if (el && el.showPicker) el.showPicker();
+                      else if (el) el.focus();
+                    }}
+                    title="Choose Date from Calendar"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </button>
+                </div>
+                {startDate && (
+                  <span className="date-selected-hint">
+                    Selected: {new Date(startDate + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
                 <label className="form-label" htmlFor="med-end-date">
                   Medical Leave End Date *
                 </label>
-                <input
-                  id="med-end-date"
-                  type="date"
-                  className="form-input"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  required
-                />
+                <div className="date-picker-input-wrapper">
+                  <input
+                    id="med-end-date"
+                    type="date"
+                    className="form-input date-input-field"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    onClick={(e) => {
+                      try {
+                        if (e.target.showPicker) e.target.showPicker();
+                      } catch (_) {}
+                    }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="calendar-icon-btn"
+                    onClick={() => {
+                      const el = document.getElementById('med-end-date');
+                      if (el && el.showPicker) el.showPicker();
+                      else if (el) el.focus();
+                    }}
+                    title="Choose Date from Calendar"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </button>
+                </div>
+                {endDate && (
+                  <span className="date-selected-hint">
+                    Selected: {new Date(endDate + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
               </div>
+            </div>
+
+            {/* Quick Presets & Duration Badge */}
+            <div className="date-presets-row">
+              <span className="presets-label">Quick Select:</span>
+              <button
+                type="button"
+                className="preset-pill-btn"
+                onClick={() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  setStartDate(today);
+                  setEndDate(today);
+                }}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                className="preset-pill-btn"
+                onClick={() => {
+                  const today = new Date();
+                  const yesterday = new Date(today);
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  setStartDate(yesterday.toISOString().split('T')[0]);
+                  setEndDate(today.toISOString().split('T')[0]);
+                }}
+              >
+                Yesterday &amp; Today (2 Days)
+              </button>
+              <button
+                type="button"
+                className="preset-pill-btn"
+                onClick={() => {
+                  const today = new Date();
+                  const threeDaysAgo = new Date(today);
+                  threeDaysAgo.setDate(threeDaysAgo.getDate() - 2);
+                  setStartDate(threeDaysAgo.toISOString().split('T')[0]);
+                  setEndDate(today.toISOString().split('T')[0]);
+                }}
+              >
+                Past 3 Days
+              </button>
+              <button
+                type="button"
+                className="preset-pill-btn"
+                onClick={() => {
+                  const today = new Date();
+                  const sevenDaysAgo = new Date(today);
+                  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+                  setStartDate(sevenDaysAgo.toISOString().split('T')[0]);
+                  setEndDate(today.toISOString().split('T')[0]);
+                }}
+              >
+                Past 7 Days (Max Window)
+              </button>
+
+              {startDate && endDate && (
+                <div className="leave-duration-badge">
+                  Leave Duration: <strong>{Math.max(1, Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1)} Day(s)</strong>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
