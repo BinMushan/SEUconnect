@@ -4,7 +4,8 @@
    Crisp Slate Neutrals (#f8fafc / #e2e8f0 / #0f172a)
    ========================================================================== */
 
-.welfare-container {
+.welfare-container {  padding: 0 0 40px 0;
+
   display: flex;
   flex-direction: column;
   gap: 1.35rem;

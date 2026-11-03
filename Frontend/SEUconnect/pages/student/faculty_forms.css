@@ -4,7 +4,8 @@
    Aligned with https://seuconnect-frontend.onrender.com/student/forms
    ========================================================================== */
 
-.seu-forms-container {
+.seu-forms-container {  padding: 0 0 40px 0;
+
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

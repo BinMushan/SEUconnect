@@ -86,9 +86,14 @@ export default function Student({ user, onLogout }) {
     window.addEventListener('hashchange', handleHashSync);
     return () => window.removeEventListener('hashchange', handleHashSync);
   }, []);
-    // Scroll to top whenever active tab changes
+    // Scroll to top whenever active tab changes & disable browser auto-scroll
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (typeof window !== 'undefined') {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+    }
   }, [activeTab]);
   const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
