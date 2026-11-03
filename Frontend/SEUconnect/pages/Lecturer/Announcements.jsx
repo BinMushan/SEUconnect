@@ -127,6 +127,11 @@ export default function Announcements({ onShowToast }) {
           >
             {formError && (
               <div className="lec-form-alert error-alert">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
                 <span>{formError}</span>
               </div>
             )}
@@ -147,24 +152,31 @@ export default function Announcements({ onShowToast }) {
 
             <div className="lec-form-group">
               <label className="lec-form-label">Target Audience</label>
-              <select
-                className="lec-select"
-                value={targetAudience}
-                onChange={(e) => setTargetAudience(e.target.value)}
-              >
-                <option value="All Students">All Enrolled Students (Department-wide)</option>
-                {INITIAL_SUBJECTS.map((sub) => (
-                  <option key={sub.code} value={sub.code}>
-                    {sub.code} — {sub.name}
-                  </option>
-                ))}
-              </select>
+              <div className="lec-select-wrapper">
+                <select
+                  className="lec-select"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                >
+                  <option value="All Students">All Enrolled Students (Department-wide)</option>
+                  {INITIAL_SUBJECTS.map((sub) => (
+                    <option key={sub.code} value={sub.code}>
+                      {sub.code} — {sub.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="lec-select-arrow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </span>
+              </div>
             </div>
 
             <div className="lec-form-group">
               <label className="lec-form-label">Priority Level</label>
               <div className="lec-radio-group">
-                <label className="lec-radio-label">
+                <label className={`lec-radio-label ${priority === 'Normal' ? 'is-selected normal' : ''}`}>
                   <input
                     type="radio"
                     name="priority"
@@ -172,9 +184,10 @@ export default function Announcements({ onShowToast }) {
                     checked={priority === 'Normal'}
                     onChange={() => setPriority('Normal')}
                   />
-                  <span>Normal Priority</span>
+                  <span className="lec-radio-indicator"></span>
+                  <span className="lec-radio-text">Normal Priority</span>
                 </label>
-                <label className="lec-radio-label">
+                <label className={`lec-radio-label ${priority === 'High' ? 'is-selected high' : ''}`}>
                   <input
                     type="radio"
                     name="priority"
@@ -182,7 +195,8 @@ export default function Announcements({ onShowToast }) {
                     checked={priority === 'High'}
                     onChange={() => setPriority('High')}
                   />
-                  <span className="text-red font-semibold">High / Urgent</span>
+                  <span className="lec-radio-indicator high"></span>
+                  <span className="lec-radio-text text-red">High / Urgent</span>
                 </label>
               </div>
             </div>
@@ -207,14 +221,19 @@ export default function Announcements({ onShowToast }) {
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
-                Publish Announcement
+                <span>Publish Announcement</span>
               </button>
               <button
                 type="button"
                 className="lec-btn-draft-action"
                 onClick={() => handleCreateAnnouncement(true)}
               >
-                Save Draft
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                <span>Save Draft</span>
               </button>
             </div>
           </form>
@@ -276,4 +295,3 @@ export default function Announcements({ onShowToast }) {
     </div>
   );
 }
-

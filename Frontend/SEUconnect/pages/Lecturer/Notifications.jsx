@@ -109,9 +109,9 @@ export default function Notifications({
   ];
 
   return (
-    <div className="lec-notifications-page">
+    <div className="lec-notifications-container">
       {/* 1. Header with Stats & Mark All as Read */}
-      <div className="lec-notif-header-card">
+      <div className="lec-module-header-card">
         <div>
           <h2 className="lec-module-title">Academic Notification Inbox & Action Items</h2>
           <p className="lec-module-sub">
@@ -119,12 +119,12 @@ export default function Notifications({
           </p>
         </div>
         <div className="lec-notif-header-stats">
-          <div className="lec-unread-badge-pill">
+          <div className="notif-pill">
             Unread: <strong>{unreadCount} Alerts</strong>
           </div>
           <button
             type="button"
-            className="lec-btn-mark-all"
+            className="lec-btn-mark-all-read"
             onClick={handleMarkAllAsRead}
             disabled={unreadCount === 0}
           >
@@ -137,24 +137,24 @@ export default function Notifications({
       </div>
 
       {/* 2. Controls & Categories Row */}
-      <div className="lec-notif-controls-row">
+      <div className="lec-notif-controls-bar">
         {/* Category Pills */}
-        <div className="lec-notif-cat-pills">
+        <div className="lec-category-tabs">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
-              className={`lec-cat-pill ${selectedCategory === cat ? 'active' : ''}`}
+              className={`lec-category-tab-btn ${selectedCategory === cat ? 'active' : ''}`}
               onClick={() => setSelectedCategory(cat)}
             >
-              {cat}
-              {cat === 'All' && ` ${notifications.length}`}
+              <span>{cat}</span>
+              {cat === 'All' && <span className="tab-counter-badge">{notifications.length}</span>}
             </button>
           ))}
         </div>
 
         {/* Unread Toggle */}
-        <div className="lec-notif-filter-toggle">
+        <div className="lec-toggle-unread-wrap">
           <label className="lec-toggle-switch-label">
             <input
               type="checkbox"
