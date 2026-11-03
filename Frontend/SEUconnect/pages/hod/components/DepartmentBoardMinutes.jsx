@@ -23,7 +23,7 @@ export default function DepartmentBoardMinutes({ onNavigate }) {
       date,
       time,
       venue: 'Department Conference Room, Tech Complex Level 2',
-      chair: 'Dr. M.A. Rifky (HOD)',
+      chair: 'M.J Ahamed Sabani (HOD)',
       attendees: ACADEMIC_STAFF_LIST.slice(0, 6).map((s) => s.name),
       agendaItems: agendaInput.split('\n').filter((x) => x.trim()),
       resolutions: resolutionsInput.split('\n').filter((x) => x.trim()),
