@@ -6,6 +6,7 @@ export default function DepartmentApprovalsDesk({
   isLoading,
   onOpenAudit,
   onOpenEndorse,
+  onOpenReturn,
   onOpenDecline,
 }) {
   const [filter, setFilter] = useState('pending_hod');
@@ -226,6 +227,13 @@ export default function DepartmentApprovalsDesk({
                                 onClick={() => onOpenEndorse(proc)}
                               >
                                 Endorse & Forward
+                              </button>
+                              <button
+                                type="button"
+                                className="hod-btn-return"
+                                onClick={() => onOpenReturn ? onOpenReturn(proc) : null}
+                              >
+                                Return
                               </button>
                               <button
                                 type="button"

@@ -24,7 +24,7 @@ export default function FacultyDeanEscalations({ onNavigate }) {
       subject: refStudent ? `${subject} (${refStudent})` : subject,
       priority,
       status: "Forwarded to Dean's Office",
-      deanNote: 'Awaiting formal review by Prof. U.L. Abdul Majeed (Dean, Faculty of Technology).',
+      deanNote: 'Awaiting formal review by Prof. Rifai Kariapper (Dean, Faculty of Technology).',
     };
 
     setHistory([newMemo, ...history]);
@@ -43,7 +43,7 @@ export default function FacultyDeanEscalations({ onNavigate }) {
           <span className="hod-banner-tag">FACULTY EXECUTIVE ESCALATION</span>
           <h1 className="hod-view-title">Escalate to Faculty Dean</h1>
           <p className="hod-view-subtitle">
-            Direct Inter-Office Memorandum Link between Head of Department and Dean, Faculty of Technology (Prof. U.L. Abdul Majeed)
+            Direct Inter-Office Memorandum Link between Head of Department and Dean, Faculty of Technology (Prof. Rifai Kariapper)
           </p>
         </div>
         <div className="hod-banner-actions">
