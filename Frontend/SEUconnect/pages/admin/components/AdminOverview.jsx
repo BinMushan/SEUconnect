@@ -172,7 +172,7 @@ export default function AdminOverview({
             <input
               type="text"
               className="adm-search-input"
-              placeholder='Try "Verify student medicals", "Add new student account", "22ICT085", "ESA Repeat eligibility"...'
+              placeholder='Try "Verify student medicals", "Add new student account", "SEU/IS/22/ICT/091", "ESA Repeat eligibility"...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

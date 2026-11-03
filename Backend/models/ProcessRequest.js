@@ -16,7 +16,7 @@ const StageSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['PENDING', 'CURRENT', 'COMPLETED', 'DECLINED'],
+    enum: ['PENDING', 'CURRENT', 'COMPLETED', 'DECLINED', 'RETURNED'],
     default: 'PENDING',
   },
   actionTakenBy: {
@@ -97,7 +97,7 @@ const ProcessRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Draft', 'Pending Lecturer', 'Pending Medical Verification', 'Pending HOD', 'Pending Dean', 'Approved', 'Declined'],
+      enum: ['Draft', 'Pending Lecturer', 'Pending Medical Verification', 'Pending HOD', 'Pending Dean', 'Approved', 'Declined', 'Returned for Correction'],
       default: 'Pending Lecturer',
     },
     priority: {
