@@ -860,3 +860,250 @@
 .dark-mode .timetable-directory-table tr:nth-child(even) {
   background-color: #162234;
 }
+
+/* ==========================================================================
+   Daily Attendance Matrix Table (Date x Subject Grid View)
+   ========================================================================== */
+.attendance-matrix-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.attendance-matrix-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.attendance-matrix-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attendance-matrix-subtitle {
+  font-size: 0.80rem;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.matrix-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.matrix-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.attendance-matrix-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 2px solid #0f172a;
+  border-radius: 6px;
+}
+
+.attendance-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+  text-align: center;
+  background-color: #ffffff;
+}
+
+.attendance-matrix-table th {
+  background-color: #0f2b54;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 10px 8px;
+  border: 1px solid #334155;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+}
+
+.attendance-matrix-table th.matrix-corner-th {
+  background-color: #0a1e3b;
+  min-width: 130px;
+  text-align: center;
+}
+
+.attendance-matrix-table th .matrix-th-title {
+  display: block;
+  font-size: 0.80rem;
+  font-weight: 800;
+}
+
+.attendance-matrix-table th .matrix-th-sub {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.attendance-matrix-table td {
+  border: 1px solid #cbd5e1;
+  padding: 8px 6px;
+  vertical-align: middle;
+  font-size: 0.78rem;
+  transition: background-color 0.15s ease;
+}
+
+.attendance-matrix-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.matrix-date-cell {
+  background-color: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  padding: 8px 12px !important;
+  text-align: left;
+}
+
+.matrix-date-day {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #64748b;
+  display: block;
+}
+
+.matrix-badge-attend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.matrix-badge-missed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.matrix-badge-missed:hover {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
+.matrix-cell-empty {
+  color: #94a3b8;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+/* Dark mode for Matrix Table */
+.dark-mode .attendance-matrix-card {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .attendance-matrix-header {
+  border-bottom-color: #1e293b;
+}
+
+.dark-mode .attendance-matrix-title {
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-matrix-subtitle,
+.dark-mode .matrix-legend-row {
+  color: #94a3b8;
+}
+
+.dark-mode .attendance-matrix-table-wrap {
+  border-color: #334155;
+}
+
+.dark-mode .attendance-matrix-table {
+  background-color: #111a28;
+}
+
+.dark-mode .attendance-matrix-table th {
+  background-color: #162234;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-matrix-table th.matrix-corner-th {
+  background-color: #0d1624;
+}
+
+.dark-mode .attendance-matrix-table td {
+  border-color: #1e293b;
+  color: #cbd5e1;
+}
+
+.dark-mode .attendance-matrix-table tr:hover td {
+  background-color: #162234;
+}
+
+.dark-mode .matrix-date-cell {
+  background-color: #162234;
+  color: #f8fafc;
+}
+
+.dark-mode .matrix-date-day {
+  color: #94a3b8;
+}
+
+.dark-mode .matrix-badge-attend {
+  background-color: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
+.dark-mode .matrix-badge-missed {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+
+.dark-mode .matrix-cell-empty {
+  color: #475569;
+}
+

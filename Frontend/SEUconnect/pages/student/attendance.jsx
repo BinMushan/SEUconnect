@@ -14,7 +14,170 @@ const TIMETABLE_COURSES = [
   { id: 9, code: 'UCT 22022', title: 'Practical for Microcontroller System Programming', lecturer: 'Mr. SL Abdul Haleem', type: 'Practical', credits: 2 }
 ];
 
-// 2. Subject-wise Attendance Records matching the official 9 subjects
+// 2. Matrix Columns matching the exact order in user's diagram
+const MATRIX_COLUMNS = [
+  { code: 'UCT 22022', title: 'Microcontroller (P)' },
+  { code: 'CIS 22042', title: 'Cloud Computing (P)' },
+  { code: 'SWT 22012', title: 'Internet App Dev' },
+  { code: 'CIS 22012', title: 'Distributed Systems' },
+  { code: 'CIS 22022', title: 'Info Assurance' },
+  { code: 'CIS 22032', title: 'E-commerce' },
+  { code: 'UCT 22011', title: 'Microcontroller (T)' },
+  { code: 'CMS 22012', title: 'Comm. Skills' },
+  { code: 'SWT 22022', title: 'Internet App (P)' }
+];
+
+// 3. Matrix Rows (Every day with lecture attendance status across the 9 modules)
+const MATRIX_DAILY_ROWS = [
+  {
+    date: '2026/11/03',
+    day: 'Tuesday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22012': 'Attend',
+      'CMS 22012': 'Attend'
+    }
+  },
+  {
+    date: '2026/11/02',
+    day: 'Monday',
+    records: {
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Missed'
+    }
+  },
+  {
+    date: '2026/10/30',
+    day: 'Friday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22042': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/29',
+    day: 'Thursday',
+    records: {
+      'UCT 22011': 'Attend',
+      'SWT 22012': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/28',
+    day: 'Wednesday',
+    records: {
+      'CIS 22022': 'Missed',
+      'CIS 22042': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/27',
+    day: 'Tuesday',
+    records: {
+      'UCT 22022': 'Missed',
+      'CIS 22012': 'Attend',
+      'CMS 22012': 'Missed'
+    }
+  },
+  {
+    date: '2026/10/26',
+    day: 'Monday',
+    records: {
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/23',
+    day: 'Friday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22042': 'Missed',
+      'SWT 22022': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/22',
+    day: 'Thursday',
+    records: {
+      'UCT 22011': 'Attend',
+      'SWT 22012': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/21',
+    day: 'Wednesday',
+    records: {
+      'CIS 22022': 'Attend',
+      'CIS 22042': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/20',
+    day: 'Tuesday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22012': 'Attend',
+      'CMS 22012': 'Missed'
+    }
+  },
+  {
+    date: '2026/10/19',
+    day: 'Monday',
+    records: {
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  },
+  // Dates from user reference diagram
+  {
+    date: '2026/04/06',
+    day: 'Monday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  },
+  {
+    date: '2026/04/07',
+    day: 'Tuesday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22012': 'Attend',
+      'CMS 22012': 'Attend'
+    }
+  },
+  {
+    date: '2026/04/08',
+    day: 'Wednesday',
+    records: {
+      'CIS 22012': 'Attend',
+      'CIS 22022': 'Attend',
+      'CIS 22042': 'Attend'
+    }
+  },
+  {
+    date: '2026/04/09',
+    day: 'Thursday',
+    records: {
+      'UCT 22011': 'Attend',
+      'SWT 22012': 'Attend'
+    }
+  },
+  {
+    date: '2026/04/10',
+    day: 'Friday',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22042': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  }
+];
+
+// 4. Subject-wise Attendance Records
 const SUBJECT_ATTENDANCE = [
   {
     code: 'SWT 22012',
@@ -153,7 +316,7 @@ const SUBJECT_ATTENDANCE = [
   }
 ];
 
-// 3. Date-wise Real Lecture Log showing Subject Name, Date, Day, Time, Venue & Status
+// 5. Date-wise Detailed Sessions Log
 const DATE_WISE_SESSIONS = [
   {
     id: 'SES-024',
@@ -417,7 +580,9 @@ const DATE_WISE_SESSIONS = [
 ];
 
 export default function Attendance({ onNavigateMedical }) {
-  const [activeTab, setActiveTab] = useState('subject'); // 'subject' | 'datewise' | 'timetable'
+  // Default tab set to the Daily Attendance Grid (Date x Subject Matrix) requested by the user
+  const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
+  const [matrixFilter, setMatrixFilter] = useState('all'); // 'all' | 'missed-only' | 'recent'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'missed' | 'attended'
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -429,7 +594,18 @@ export default function Attendance({ onNavigateMedical }) {
   const totalSessions = 101;
   const totalMissedCount = DATE_WISE_SESSIONS.filter((s) => s.status === 'missed').length;
 
-  // Filtered date-wise sessions
+  // Filtered rows for the Daily Attendance Matrix
+  const filteredMatrixRows = MATRIX_DAILY_ROWS.filter((row) => {
+    if (matrixFilter === 'missed-only') {
+      return Object.values(row.records).includes('Missed');
+    }
+    if (matrixFilter === 'recent') {
+      return row.date.startsWith('2026/10') || row.date.startsWith('2026/11');
+    }
+    return true;
+  });
+
+  // Filtered sessions for the date-wise list
   const filteredSessions = DATE_WISE_SESSIONS.filter((session) => {
     if (statusFilter === 'missed' && session.status !== 'missed') return false;
     if (statusFilter === 'attended' && session.status !== 'attended') return false;
@@ -449,9 +625,8 @@ export default function Attendance({ onNavigateMedical }) {
   };
 
   const handleOpenMissedOnly = () => {
-    setSelectedSubjectFilter('all');
-    setStatusFilter('missed');
-    setActiveTab('datewise');
+    setMatrixFilter('missed-only');
+    setActiveTab('matrix');
   };
 
   return (
@@ -522,7 +697,7 @@ export default function Attendance({ onNavigateMedical }) {
                 onClick={handleOpenMissedOnly}
                 style={{ background: 'none', border: 'none', padding: 0, color: '#2563eb', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.80rem' }}
               >
-                View all {totalMissedCount} missed sessions →
+                Highlight {totalMissedCount} missed sessions on grid →
               </button>
             </div>
           </div>
@@ -536,7 +711,7 @@ export default function Attendance({ onNavigateMedical }) {
             !
           </div>
           <div className="missed-lecture-callout-text">
-            <strong>Missed Lecture Notice:</strong> You have <strong>{totalMissedCount} absent sessions</strong> recorded across Semester II. You can check the exact dates and subjects below or submit an official Medical Excuse to protect your 80% ESA exam eligibility.
+            <strong>Daily Attendance Tracking:</strong> View which lectures you attended or missed on every single date in the matrix table below. Submit a medical excuse for any missed session to maintain ESA exam eligibility.
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
@@ -546,7 +721,7 @@ export default function Attendance({ onNavigateMedical }) {
             className="btn btn-sm"
             style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d', fontWeight: 600 }}
           >
-            🔍 Review Missed Lectures
+            🔍 Highlight Missed Dates
           </button>
           <button
             type="button"
@@ -558,8 +733,23 @@ export default function Attendance({ onNavigateMedical }) {
         </div>
       </section>
 
-      {/* 4. Tab Navigation (Subject-wise, Date-wise Missed Lectures, and Official Timetable) */}
+      {/* 4. Tab Navigation Bar */}
       <div className="attendance-tab-nav">
+        <button
+          type="button"
+          className={`attendance-tab-btn ${activeTab === 'matrix' ? 'active' : ''}`}
+          onClick={() => setActiveTab('matrix')}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <line x1="3" y1="9" x2="21" y2="9" />
+            <line x1="3" y1="15" x2="21" y2="15" />
+            <line x1="9" y1="3" x2="9" y2="21" />
+            <line x1="15" y1="3" x2="15" y2="21" />
+          </svg>
+          Daily Attendance Sheet (Date × Subject Grid)
+        </button>
+
         <button
           type="button"
           className={`attendance-tab-btn ${activeTab === 'subject' ? 'active' : ''}`}
@@ -585,7 +775,7 @@ export default function Attendance({ onNavigateMedical }) {
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          Date-wise Attendance & Missed Lectures
+          Date-wise Attendance & Missed List
           <span className="attendance-tab-count-badge">{totalMissedCount} Missed</span>
         </button>
 
@@ -603,7 +793,141 @@ export default function Attendance({ onNavigateMedical }) {
       </div>
 
       {/* =========================================================================
-          TAB 1: Subject-wise Attendance & Eligibility Table
+          TAB 1: DAILY ATTENDANCE MATRIX (Date x Subject Grid View)
+          Matches the exact layout user sketched in the uploaded image!
+          ========================================================================= */}
+      {activeTab === 'matrix' && (
+        <section className="attendance-matrix-card">
+          <div className="attendance-matrix-header">
+            <div>
+              <h3 className="attendance-matrix-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f2b54" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+                Daily Lecture Attendance Matrix (Date × Subject)
+              </h3>
+              <p className="attendance-matrix-subtitle">
+                Cross-reference every day with all 9 modules to immediately see which lecture was attended or missed.
+              </p>
+            </div>
+
+            {/* Quick Filter buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div className="attendance-filter-pills">
+                <button
+                  type="button"
+                  className={`attendance-pill-btn ${matrixFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setMatrixFilter('all')}
+                >
+                  All Recorded Dates ({MATRIX_DAILY_ROWS.length})
+                </button>
+                <button
+                  type="button"
+                  className={`attendance-pill-btn ${matrixFilter === 'missed-only' ? 'active' : ''}`}
+                  onClick={() => setMatrixFilter('missed-only')}
+                  style={matrixFilter === 'missed-only' ? { backgroundColor: '#dc2626', borderColor: '#dc2626' } : {}}
+                >
+                  ⚠️ Dates With Missed Lectures
+                </button>
+                <button
+                  type="button"
+                  className={`attendance-pill-btn ${matrixFilter === 'recent' ? 'active' : ''}`}
+                  onClick={() => setMatrixFilter('recent')}
+                >
+                  Current Semester (Oct - Nov)
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={onNavigateMedical || (() => alert('Redirecting to Medical Requests section...'))}
+                className="btn btn-primary btn-sm"
+              >
+                Submit Medical
+              </button>
+            </div>
+          </div>
+
+          {/* Legend Row */}
+          <div className="matrix-legend-row">
+            <span style={{ fontWeight: 700, color: '#0f172a' }}>LEGEND:</span>
+            <span className="matrix-legend-item">
+              <span className="matrix-badge-attend">✓ Attend</span> Lecture attended
+            </span>
+            <span className="matrix-legend-item">
+              <span className="matrix-badge-missed">✕ Missed</span> Lecture missed (Click to submit excuse)
+            </span>
+            <span className="matrix-legend-item">
+              <span className="matrix-cell-empty">—</span> No lecture scheduled for this module on this day
+            </span>
+          </div>
+
+          {/* Responsive Matrix Table Container */}
+          <div className="attendance-matrix-table-wrap">
+            <table className="attendance-matrix-table">
+              <thead>
+                <tr>
+                  <th className="matrix-corner-th">
+                    <span className="matrix-th-title">DATE</span>
+                    <span className="matrix-th-sub">Day of Week</span>
+                  </th>
+                  {MATRIX_COLUMNS.map((col) => (
+                    <th key={col.code}>
+                      <span className="matrix-th-title">{col.code}</span>
+                      <span className="matrix-th-sub">{col.title}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMatrixRows.map((row) => (
+                  <tr key={row.date}>
+                    <td className="matrix-date-cell">
+                      {row.date}
+                      <span className="matrix-date-day">{row.day}</span>
+                    </td>
+                    {MATRIX_COLUMNS.map((col) => {
+                      const status = row.records[col.code];
+                      if (status === 'Attend') {
+                        return (
+                          <td key={col.code}>
+                            <span className="matrix-badge-attend">
+                              ✓ Attend
+                            </span>
+                          </td>
+                        );
+                      }
+                      if (status === 'Missed') {
+                        return (
+                          <td key={col.code}>
+                            <button
+                              type="button"
+                              className="matrix-badge-missed"
+                              onClick={onNavigateMedical || (() => alert(`Submitting medical excuse for ${col.code} on ${row.date}`))}
+                              title={`Missed ${col.code} on ${row.date}. Click to submit medical excuse`}
+                            >
+                              ✕ Missed
+                            </button>
+                          </td>
+                        );
+                      }
+                      return (
+                        <td key={col.code}>
+                          <span className="matrix-cell-empty">—</span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* =========================================================================
+          TAB 2: Subject-wise Attendance & Eligibility Table
           ========================================================================= */}
       {activeTab === 'subject' && (
         <section className="seu-card">
@@ -618,11 +942,11 @@ export default function Attendance({ onNavigateMedical }) {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 type="button"
-                onClick={() => setActiveTab('timetable')}
+                onClick={() => setActiveTab('matrix')}
                 className="btn btn-sm"
                 style={{ backgroundColor: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1' }}
               >
-                📅 View Weekly Timetable
+                📊 View Date Matrix
               </button>
               <button
                 type="button"
@@ -713,7 +1037,7 @@ export default function Attendance({ onNavigateMedical }) {
       )}
 
       {/* =========================================================================
-          TAB 2: Date-wise Attendance & Missed Lecture Log
+          TAB 3: Date-wise Attendance & Missed Lecture Log
           ========================================================================= */}
       {activeTab === 'datewise' && (
         <section className="seu-card">
@@ -903,7 +1227,7 @@ export default function Attendance({ onNavigateMedical }) {
       )}
 
       {/* =========================================================================
-          TAB 3: Official Weekly Timetable (Yr 2 - Sem II) matching provided screenshot
+          TAB 4: Official Weekly Timetable (Yr 2 - Sem II) matching provided screenshot
           ========================================================================= */}
       {activeTab === 'timetable' && (
         <div className="timetable-card">
