@@ -15,10 +15,12 @@ const findProcess = async (id) => {
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
       process = await ProcessRequest.findById(id);
     }
+
     if (!process) {
       process = await ProcessRequest.findOne({ trackingNumber: id });
     }
   }
+
   if (!process) {
     const processController = require('./processController');
     if (processController.getMemoryProcesses) {
