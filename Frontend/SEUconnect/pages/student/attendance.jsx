@@ -27,11 +27,22 @@ const MATRIX_COLUMNS = [
   { code: 'SWT 22022', title: 'Internet App (P)' }
 ];
 
-// 3. Matrix Rows (Every day with lecture attendance status across the 9 modules)
+// 3. Matrix Rows organized strictly from Monday to Friday
 const MATRIX_DAILY_ROWS = [
+  // Current Academic Week (Monday to Friday)
+  {
+    date: '2026/11/02',
+    day: 'Monday',
+    weekLabel: 'Current Week',
+    records: {
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Missed'
+    }
+  },
   {
     date: '2026/11/03',
     day: 'Tuesday',
+    weekLabel: 'Current Week',
     records: {
       'UCT 22022': 'Attend',
       'CIS 22012': 'Attend',
@@ -39,41 +50,48 @@ const MATRIX_DAILY_ROWS = [
     }
   },
   {
-    date: '2026/11/02',
-    day: 'Monday',
+    date: '2026/11/04',
+    day: 'Wednesday',
+    weekLabel: 'Current Week',
     records: {
-      'CIS 22032': 'Attend',
-      'SWT 22022': 'Missed'
+      'CIS 22022': 'Attend',
+      'CIS 22042': 'Attend'
     }
   },
   {
-    date: '2026/10/30',
-    day: 'Friday',
-    records: {
-      'UCT 22022': 'Attend',
-      'CIS 22042': 'Attend',
-      'SWT 22022': 'Attend'
-    }
-  },
-  {
-    date: '2026/10/29',
+    date: '2026/11/05',
     day: 'Thursday',
+    weekLabel: 'Current Week',
     records: {
       'UCT 22011': 'Attend',
       'SWT 22012': 'Attend'
     }
   },
   {
-    date: '2026/10/28',
-    day: 'Wednesday',
+    date: '2026/11/06',
+    day: 'Friday',
+    weekLabel: 'Current Week',
     records: {
-      'CIS 22022': 'Missed',
-      'CIS 22042': 'Attend'
+      'UCT 22022': 'Attend',
+      'CIS 22042': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  },
+
+  // Previous Academic Week (Monday to Friday)
+  {
+    date: '2026/10/26',
+    day: 'Monday',
+    weekLabel: 'Week 11',
+    records: {
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Attend'
     }
   },
   {
     date: '2026/10/27',
     day: 'Tuesday',
+    weekLabel: 'Week 11',
     records: {
       'UCT 22022': 'Missed',
       'CIS 22012': 'Attend',
@@ -81,41 +99,48 @@ const MATRIX_DAILY_ROWS = [
     }
   },
   {
-    date: '2026/10/26',
-    day: 'Monday',
+    date: '2026/10/28',
+    day: 'Wednesday',
+    weekLabel: 'Week 11',
     records: {
-      'CIS 22032': 'Attend',
-      'SWT 22022': 'Attend'
+      'CIS 22022': 'Missed',
+      'CIS 22042': 'Attend'
     }
   },
   {
-    date: '2026/10/23',
-    day: 'Friday',
-    records: {
-      'UCT 22022': 'Attend',
-      'CIS 22042': 'Missed',
-      'SWT 22022': 'Attend'
-    }
-  },
-  {
-    date: '2026/10/22',
+    date: '2026/10/29',
     day: 'Thursday',
+    weekLabel: 'Week 11',
     records: {
       'UCT 22011': 'Attend',
       'SWT 22012': 'Attend'
     }
   },
   {
-    date: '2026/10/21',
-    day: 'Wednesday',
+    date: '2026/10/30',
+    day: 'Friday',
+    weekLabel: 'Week 11',
     records: {
-      'CIS 22022': 'Attend',
-      'CIS 22042': 'Attend'
+      'UCT 22022': 'Attend',
+      'CIS 22042': 'Attend',
+      'SWT 22022': 'Attend'
+    }
+  },
+
+  // Prior Academic Week (Monday to Friday)
+  {
+    date: '2026/10/19',
+    day: 'Monday',
+    weekLabel: 'Week 10',
+    records: {
+      'CIS 22032': 'Attend',
+      'SWT 22022': 'Attend'
     }
   },
   {
     date: '2026/10/20',
     day: 'Tuesday',
+    weekLabel: 'Week 10',
     records: {
       'UCT 22022': 'Attend',
       'CIS 22012': 'Attend',
@@ -123,17 +148,39 @@ const MATRIX_DAILY_ROWS = [
     }
   },
   {
-    date: '2026/10/19',
-    day: 'Monday',
+    date: '2026/10/21',
+    day: 'Wednesday',
+    weekLabel: 'Week 10',
     records: {
-      'CIS 22032': 'Attend',
+      'CIS 22022': 'Attend',
+      'CIS 22042': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/22',
+    day: 'Thursday',
+    weekLabel: 'Week 10',
+    records: {
+      'UCT 22011': 'Attend',
+      'SWT 22012': 'Attend'
+    }
+  },
+  {
+    date: '2026/10/23',
+    day: 'Friday',
+    weekLabel: 'Week 10',
+    records: {
+      'UCT 22022': 'Attend',
+      'CIS 22042': 'Missed',
       'SWT 22022': 'Attend'
     }
   },
-  // Dates from user reference diagram
+
+  // Kickoff Week (Monday to Friday - matching reference diagram)
   {
     date: '2026/04/06',
     day: 'Monday',
+    weekLabel: 'Kickoff Week',
     records: {
       'UCT 22022': 'Attend',
       'CIS 22032': 'Attend',
@@ -143,6 +190,7 @@ const MATRIX_DAILY_ROWS = [
   {
     date: '2026/04/07',
     day: 'Tuesday',
+    weekLabel: 'Kickoff Week',
     records: {
       'UCT 22022': 'Attend',
       'CIS 22012': 'Attend',
@@ -152,6 +200,7 @@ const MATRIX_DAILY_ROWS = [
   {
     date: '2026/04/08',
     day: 'Wednesday',
+    weekLabel: 'Kickoff Week',
     records: {
       'CIS 22012': 'Attend',
       'CIS 22022': 'Attend',
@@ -161,6 +210,7 @@ const MATRIX_DAILY_ROWS = [
   {
     date: '2026/04/09',
     day: 'Thursday',
+    weekLabel: 'Kickoff Week',
     records: {
       'UCT 22011': 'Attend',
       'SWT 22012': 'Attend'
@@ -169,6 +219,7 @@ const MATRIX_DAILY_ROWS = [
   {
     date: '2026/04/10',
     day: 'Friday',
+    weekLabel: 'Kickoff Week',
     records: {
       'UCT 22022': 'Attend',
       'CIS 22042': 'Attend',
@@ -582,7 +633,7 @@ const DATE_WISE_SESSIONS = [
 export default function Attendance({ onNavigateMedical }) {
   // Default tab set to the Daily Attendance Grid (Date x Subject Matrix) requested by the user
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
-  const [matrixPeriod, setMatrixPeriod] = useState('all'); // 'all' | '1week' | '2weeks' | '3weeks' | '1month' | 'kickoff'
+  const [matrixPeriod, setMatrixPeriod] = useState('1week'); // Default to Current Week (Monday to Friday)
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'missed' | 'attended'
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
@@ -608,18 +659,18 @@ export default function Attendance({ onNavigateMedical }) {
   const totalSessions = 101;
   const totalMissedCount = DATE_WISE_SESSIONS.filter((s) => s.status === 'missed').length;
 
-  // Filtered rows for the Daily Attendance Matrix (1 Week, 2 Weeks, 3 Weeks, 1 Month, All)
+  // Filtered rows for the Daily Attendance Matrix strictly from Monday to Friday
   const filteredMatrixRows = MATRIX_DAILY_ROWS.filter((row, index) => {
     if (matrixPeriod === '1week') {
-      if (index >= 5) return false; // Latest 5 lecture days (1 academic week)
+      return index < 5; // Current Week: Mon to Fri (5 days)
     } else if (matrixPeriod === '2weeks') {
-      if (index >= 10) return false; // Latest 10 lecture days (2 academic weeks)
+      return index < 10; // Last 2 Weeks: Mon to Fri (10 days)
     } else if (matrixPeriod === '3weeks') {
-      if (index >= 12) return false; // Latest 12 lecture days (3 academic weeks)
+      return index < 15; // Last 3 Weeks: Mon to Fri (15 days)
     } else if (matrixPeriod === '1month') {
-      if (!row.date.startsWith('2026/10') && !row.date.startsWith('2026/11')) return false;
+      return row.date.startsWith('2026/10') || row.date.startsWith('2026/11');
     } else if (matrixPeriod === 'kickoff') {
-      if (!row.date.startsWith('2026/04')) return false;
+      return row.date.startsWith('2026/04'); // Kickoff Week: Mon to Fri
     }
     return true;
   });
@@ -627,7 +678,7 @@ export default function Attendance({ onNavigateMedical }) {
   const getPeriodLabel = () => {
     switch (matrixPeriod) {
       case '1week':
-        return '1 Week';
+        return '1 Week (Mon - Fri)';
       case '2weeks':
         return '2 Weeks';
       case '3weeks':
@@ -635,9 +686,9 @@ export default function Attendance({ onNavigateMedical }) {
       case '1month':
         return '1 Month';
       case 'kickoff':
-        return 'Kickoff Week';
+        return 'Kickoff Week (Mon - Fri)';
       default:
-        return 'All Dates';
+        return 'All Recorded Dates';
     }
   };
 
@@ -882,7 +933,7 @@ export default function Attendance({ onNavigateMedical }) {
                     onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('1week'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('1week'); setDropdownOpen(false); }}
                   >
-                    <span>1 Week (Last 7 Days)</span>
+                    <span>1 Week (Current Week: Mon - Fri)</span>
                     <span className="attendance-dropdown-badge">5 Days</span>
                   </button>
 
@@ -892,7 +943,7 @@ export default function Attendance({ onNavigateMedical }) {
                     onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('2weeks'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('2weeks'); setDropdownOpen(false); }}
                   >
-                    <span>2 Weeks (Last 14 Days)</span>
+                    <span>2 Weeks (Last 2 Weeks)</span>
                     <span className="attendance-dropdown-badge">10 Days</span>
                   </button>
 
@@ -902,8 +953,8 @@ export default function Attendance({ onNavigateMedical }) {
                     onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('3weeks'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('3weeks'); setDropdownOpen(false); }}
                   >
-                    <span>3 Weeks (Last 21 Days)</span>
-                    <span className="attendance-dropdown-badge">12 Days</span>
+                    <span>3 Weeks (Last 3 Weeks)</span>
+                    <span className="attendance-dropdown-badge">15 Days</span>
                   </button>
 
                   <button
@@ -912,8 +963,8 @@ export default function Attendance({ onNavigateMedical }) {
                     onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('1month'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('1month'); setDropdownOpen(false); }}
                   >
-                    <span>1 Month (Oct - Nov)</span>
-                    <span className="attendance-dropdown-badge">12 Days</span>
+                    <span>1 Month (Oct - Nov Weeks)</span>
+                    <span className="attendance-dropdown-badge">15 Days</span>
                   </button>
 
                   <div className="attendance-dropdown-divider" />
@@ -924,7 +975,7 @@ export default function Attendance({ onNavigateMedical }) {
                     onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('kickoff'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('kickoff'); setDropdownOpen(false); }}
                   >
-                    <span>Kickoff Week (April 2026)</span>
+                    <span>Kickoff Week (April 2026: Mon - Fri)</span>
                     <span className="attendance-dropdown-badge">5 Days</span>
                   </button>
 
@@ -934,20 +985,20 @@ export default function Attendance({ onNavigateMedical }) {
                     onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('all'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('all'); setDropdownOpen(false); }}
                   >
-                    <span>All Recorded Dates</span>
-                    <span className="attendance-dropdown-badge">17 Days</span>
+                    <span>All Recorded Weeks</span>
+                    <span className="attendance-dropdown-badge">20 Days</span>
                   </button>
                 </div>
               </div>
 
-              {matrixPeriod !== 'all' && (
+              {matrixPeriod !== '1week' && (
                 <button
                   type="button"
                   className="attendance-pill-btn"
-                  onClick={() => setMatrixPeriod('all')}
+                  onClick={() => setMatrixPeriod('1week')}
                   style={{ backgroundColor: '#f1f5f9', color: '#64748b' }}
                 >
-                  Reset to All Dates
+                  Reset to Current Week
                 </button>
               )}
 
