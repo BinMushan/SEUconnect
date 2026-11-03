@@ -583,35 +583,32 @@ export default function StudentProcessGuidance({ user, onNavigate }) {
                   {/* Meta Details */}
                   <div className="proc-card-meta">
                     <div className="proc-meta-row">
-                      <div className="proc-meta-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                          <line x1="9" y1="22" x2="9" y2="22.01"></line>
-                          <line x1="15" y1="22" x2="15" y2="22.01"></line>
-                          <line x1="12" y1="18" x2="12" y2="18.01"></line>
-                          <line x1="8" y1="6" x2="8" y2="6.01"></line>
-                          <line x1="16" y1="6" x2="16" y2="6.01"></line>
-                          <line x1="8" y1="10" x2="8" y2="10.01"></line>
-                          <line x1="16" y1="10" x2="16" y2="10.01"></line>
-                          <line x1="8" y1="14" x2="8" y2="14.01"></line>
-                          <line x1="16" y1="14" x2="16" y2="14.01"></line>
+                      <div className="proc-meta-icon" title="Submission Office">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                          <path d="M10 6h4"/>
+                          <path d="M10 10h4"/>
+                          <path d="M10 14h4"/>
+                          <path d="M10 18h4"/>
                         </svg>
                       </div>
                       <div className="proc-meta-text">
-                        <span className="proc-meta-inline-label">Submission Office:</span>
+                        <span className="proc-meta-inline-label">Submission Office</span>
                         <span className="proc-meta-inline-value">{process.submissionOffice}</span>
                       </div>
                     </div>
 
                     <div className="proc-meta-row">
-                      <div className="proc-meta-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <polyline points="12 6 12 12 16 14"></polyline>
+                      <div className="proc-meta-icon" title="Deadline">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/>
+                          <polyline points="12 6 12 12 16 14"/>
                         </svg>
                       </div>
                       <div className="proc-meta-text">
-                        <span className="proc-meta-inline-label">Deadline:</span>
+                        <span className="proc-meta-inline-label">Deadline</span>
                         <span className={`proc-meta-inline-value ${process.deadlineUrgent ? 'urgent' : ''}`}>
                           {process.deadline}
                         </span>
