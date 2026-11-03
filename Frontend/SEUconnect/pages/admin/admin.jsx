@@ -31,6 +31,7 @@ import FormsGuidanceManagement from './components/FormsGuidanceManagement.jsx';
 import PenaltiesManagement from './components/PenaltiesManagement.jsx';
 import UserRoleManagement from './components/UserRoleManagement.jsx';
 import SettingsManagement from './components/SettingsManagement.jsx';
+import NotificationsManagement from './components/NotificationsManagement.jsx';
 
 /**
  * Admin Navigation Sections customized for Faculty Administration
@@ -48,6 +49,17 @@ const ADMIN_NAV_SECTIONS = [
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
+          </svg>
+        )
+      },
+      {
+        id: 'notifications',
+        label: 'Notifications & Alerts',
+        badge: 61,
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
         )
       }
@@ -463,13 +475,26 @@ export default function Admin({ user, onLogout }) {
   // Total pending tasks for topbar notification badge
   const pendingTotal = stats.pendingMedicals + stats.pendingRegistrations + stats.pendingExamClearance;
 
+  // Dynamically update notification badge in sidebar navigation
+  const adminNavSections = ADMIN_NAV_SECTIONS.map((section) => {
+    if (section.title === 'MAIN') {
+      return {
+        ...section,
+        items: section.items.map((item) =>
+          item.id === 'notifications' ? { ...item, badge: pendingTotal } : item
+        )
+      };
+    }
+    return section;
+  });
+
   return (
     <DashboardTemplate
       user={adminUser}
       onLogout={onLogout}
       activeItem={currentSection}
       onNavigate={(id) => setCurrentSection(id)}
-      navSections={ADMIN_NAV_SECTIONS}
+      navSections={adminNavSections}
       facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ADMIN CONSOLE"
       greetingText="Good Morning, Faculty Administrator"
       notificationCount={pendingTotal}
@@ -531,6 +556,21 @@ export default function Admin({ user, onLogout }) {
       )}
 
       {/* Render Active Administrative Section */}
+      {currentSection === 'notifications' && (
+        <NotificationsManagement
+          stats={stats}
+          medicals={medicals}
+          registrations={registrations}
+          repeatCandidates={repeatCandidates}
+          penalties={penalties}
+          onNavigate={(id) => setCurrentSection(id)}
+          onApproveMedical={handleApproveMedical}
+          onRejectMedical={handleRejectMedical}
+          onApproveRegistration={handleApproveRegistration}
+          onShowToast={showToast}
+        />
+      )}
+
       {currentSection === 'dashboard' && (
         <AdminOverview
           stats={stats}

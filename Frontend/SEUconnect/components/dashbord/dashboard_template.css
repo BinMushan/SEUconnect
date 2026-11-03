@@ -962,3 +962,17 @@
     display: none !important;
   }
 }
+
+/* Sidebar item counter badge */
+.seu-nav-item-badge {
+  margin-left: auto;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.15rem 0.45rem;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
+}
