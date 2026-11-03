@@ -508,10 +508,10 @@ export default function SAR({ user, onLogout }) {
             <div className="sar-stat-body">
               <div className="sar-stat-top-row">
                 <span className="sar-stat-title">TOTAL REQUESTS</span>
-                <span className="sar-stat-badge">BST & ICT</span>
+                <span className="sar-stat-badge">Faculty Scope</span>
               </div>
               <div className="sar-stat-number">{totalCount}</div>
-              <div className="sar-stat-target">Across both departments</div>
+              <div className="sar-stat-target">All examination entries</div>
             </div>
           </div>
 
@@ -612,89 +612,6 @@ export default function SAR({ user, onLogout }) {
         </section>
 
         {/* ====================================================================
-            2. SAR OPERATIONS & APPLICATION SEARCH CARD (Matches Student .std-guidance-card)
-            ==================================================================== */}
-        <section className="sar-guidance-card">
-          <div className="sar-guidance-header">
-            <div className="sar-guidance-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-            </div>
-            <div className="sar-guidance-titles">
-              <h3 className="sar-guidance-title">Faculty Administrative Operations & Examination Workflows</h3>
-              <p className="sar-guidance-subtitle">
-                Instant institutional lookup: Monitor ECA/ESA applications, verify payment vouchers, forward verified forms to Examination Branch, and manage Dean Office Admissions.
-              </p>
-            </div>
-          </div>
-
-          <div className="sar-guidance-search-bar">
-            <div className="sar-search-input-box">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                type="text"
-                className="sar-search-input-field"
-                placeholder='Search by ID ("ECA-2026-1045", "EXAM-2026-3051"), Student Name, Reg No, or Module Code...'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <button
-              type="button"
-              className="sar-find-btn"
-              onClick={() => handleNavigate('inboxes')}
-            >
-              Search Inboxes
-            </button>
-          </div>
-
-          <div className="sar-suggested-row">
-            <span className="sar-suggested-label">Faculty Scope:</span>
-            <button
-              type="button"
-              className={`sar-suggested-chip ${deptFilter === 'all' ? 'active' : ''}`}
-              onClick={() => setDeptFilter('all')}
-            >
-              All Departments ({totalCount})
-            </button>
-            <button
-              type="button"
-              className={`sar-suggested-chip ${deptFilter === 'bst' ? 'active' : ''}`}
-              onClick={() => setDeptFilter('bst')}
-            >
-              Biosystems Tech (BST) ({bstMetrics.total})
-            </button>
-            <button
-              type="button"
-              className={`sar-suggested-chip ${deptFilter === 'ict' ? 'active' : ''}`}
-              onClick={() => setDeptFilter('ict')}
-            >
-              Information & Comm. Tech (ICT) ({ictMetrics.total})
-            </button>
-
-            <span className="sar-suggested-label" style={{ marginLeft: '0.65rem' }}>Workflow Portals:</span>
-            <button
-              type="button"
-              className="sar-suggested-chip"
-              onClick={() => setDeptListModal(true)}
-            >
-              🏢 Forward Dept Exam List
-            </button>
-            <button
-              type="button"
-              className={`sar-suggested-chip ${activeNav === 'portal_management' ? 'active' : ''}`}
-              onClick={() => handleNavigate('portal_management')}
-            >
-              ⚙️ Manage Online ECA/ESA Portals
-            </button>
-          </div>
-        </section>
-
-        {/* ====================================================================
             3. THE 8 WORKFLOW INBOXES (Mandatory SAR Core Feature)
             ==================================================================== */}
         <section className="sar-inboxes-section">
@@ -704,7 +621,17 @@ export default function SAR({ user, onLogout }) {
               <p>{currentInboxDef.desc}</p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', minWidth: '260px' }}>
+                <input
+                  type="text"
+                  className="sar-search-input"
+                  style={{ padding: '0.45rem 0.75rem', fontSize: '0.78rem' }}
+                  placeholder="Filter inbox by ID, student, or reg no..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
               <button
                 type="button"
                 className="sar-btn-pill"
@@ -938,9 +865,8 @@ export default function SAR({ user, onLogout }) {
                   value={deptFilter}
                   onChange={(e) => setDeptFilter(e.target.value)}
                 >
-                  <option value="all">🏢 All Departments ({totalCount})</option>
-                  <option value="bst">🌱 BST Department ({bstMetrics.total})</option>
-                  <option value="ict">💻 ICT Department ({ictMetrics.total})</option>
+                  <option value="all">🏢 Faculty Scope (All Units)</option>
+                  <option value="ict">💻 Department of ICT ({ictMetrics.total})</option>
                 </select>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5">
                   <polyline points="6 9 12 15 18 9"/>
@@ -1282,69 +1208,6 @@ export default function SAR({ user, onLogout }) {
                 >
                   {portalAvailability.esa?.isOpen ? 'Close ESA Portal' : 'Open ESA Portal Online'}
                 </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ====================================================================
-            6. DEPARTMENT-WISE OVERVIEW (BST & ICT)
-            ==================================================================== */}
-        <section className="sar-dept-grid">
-          <div className="sar-dept-card" style={deptFilter === 'ict' ? { opacity: 0.6 } : {}}>
-            <div className="sar-dept-header">
-              <div className="sar-dept-title-group">
-                <h3>Department of Biosystems Technology (BST)</h3>
-                <p>Agricultural, Environmental & Food Bio-process Engineering</p>
-              </div>
-              <span className="sar-dept-pill sar-dept-pill-bst">BST Division</span>
-            </div>
-
-            <div className="sar-dept-metrics-row">
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val">{bstMetrics.total}</div>
-                <div className="sar-dept-metric-lbl">Total</div>
-              </div>
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val" style={{ color: '#d97706' }}>{bstMetrics.pending}</div>
-                <div className="sar-dept-metric-lbl">Under Review</div>
-              </div>
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val" style={{ color: '#7c3aed' }}>{bstMetrics.awaitingDean}</div>
-                <div className="sar-dept-metric-lbl">To Dean</div>
-              </div>
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val" style={{ color: '#059669' }}>{bstMetrics.completed}</div>
-                <div className="sar-dept-metric-lbl">Completed</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="sar-dept-card" style={deptFilter === 'bst' ? { opacity: 0.6 } : {}}>
-            <div className="sar-dept-header">
-              <div className="sar-dept-title-group">
-                <h3>Department of Information and Communication Technology (ICT)</h3>
-                <p>Software Engineering, Networks, AI & Enterprise Solutions</p>
-              </div>
-              <span className="sar-dept-pill sar-dept-pill-ict">ICT Division</span>
-            </div>
-
-            <div className="sar-dept-metrics-row">
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val">{ictMetrics.total}</div>
-                <div className="sar-dept-metric-lbl">Total</div>
-              </div>
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val" style={{ color: '#d97706' }}>{ictMetrics.pending}</div>
-                <div className="sar-dept-metric-lbl">Under Review</div>
-              </div>
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val" style={{ color: '#7c3aed' }}>{ictMetrics.awaitingDean}</div>
-                <div className="sar-dept-metric-lbl">To Dean</div>
-              </div>
-              <div className="sar-dept-metric-box">
-                <div className="sar-dept-metric-val" style={{ color: '#059669' }}>{ictMetrics.completed}</div>
-                <div className="sar-dept-metric-lbl">Completed</div>
               </div>
             </div>
           </div>

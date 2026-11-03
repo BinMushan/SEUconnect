@@ -484,7 +484,7 @@ export function getRoleMetaData(user) {
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-SAR-001' },
           { label: 'Division:', value: 'Faculty Administrative Division' },
           { label: 'Designation:', value: user?.designation || 'Senior Assistant Registrar' },
-          { label: 'Scope:', value: 'BST & ICT Departments' },
+          { label: 'Scope:', value: 'Faculty of Technology' },
         ],
       };
     case 'dean':
