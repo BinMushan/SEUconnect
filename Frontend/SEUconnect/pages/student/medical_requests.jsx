@@ -252,67 +252,6 @@ export default function MedicalRequests() {
               </div>
             </div>
 
-            {/* Quick Presets & Duration Badge */}
-            <div className="date-presets-row">
-              <span className="presets-label">Quick Select:</span>
-              <button
-                type="button"
-                className="preset-pill-btn"
-                onClick={() => {
-                  const today = new Date().toISOString().split('T')[0];
-                  setStartDate(today);
-                  setEndDate(today);
-                }}
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                className="preset-pill-btn"
-                onClick={() => {
-                  const today = new Date();
-                  const yesterday = new Date(today);
-                  yesterday.setDate(yesterday.getDate() - 1);
-                  setStartDate(yesterday.toISOString().split('T')[0]);
-                  setEndDate(today.toISOString().split('T')[0]);
-                }}
-              >
-                Yesterday &amp; Today (2 Days)
-              </button>
-              <button
-                type="button"
-                className="preset-pill-btn"
-                onClick={() => {
-                  const today = new Date();
-                  const threeDaysAgo = new Date(today);
-                  threeDaysAgo.setDate(threeDaysAgo.getDate() - 2);
-                  setStartDate(threeDaysAgo.toISOString().split('T')[0]);
-                  setEndDate(today.toISOString().split('T')[0]);
-                }}
-              >
-                Past 3 Days
-              </button>
-              <button
-                type="button"
-                className="preset-pill-btn"
-                onClick={() => {
-                  const today = new Date();
-                  const sevenDaysAgo = new Date(today);
-                  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-                  setStartDate(sevenDaysAgo.toISOString().split('T')[0]);
-                  setEndDate(today.toISOString().split('T')[0]);
-                }}
-              >
-                Past 7 Days (Max Window)
-              </button>
-
-              {startDate && endDate && (
-                <div className="leave-duration-badge">
-                  Leave Duration: <strong>{Math.max(1, Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1)} Day(s)</strong>
-                </div>
-              )}
-            </div>
-
             <div className="form-group">
               <label className="form-label" htmlFor="med-reason">
                 Diagnosis / Reason for Absence *
