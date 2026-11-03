@@ -583,16 +583,12 @@ export default function Attendance({ onNavigateMedical }) {
   // Default tab set to the Daily Attendance Grid (Date x Subject Matrix) requested by the user
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
   const [matrixPeriod, setMatrixPeriod] = useState('all'); // 'all' | '1week' | '2weeks' | '3weeks' | '1month' | 'kickoff'
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' | 'oldest' | 'most-missed'
-  const [onlyMissedDates, setOnlyMissedDates] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'missed' | 'attended'
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const periodTimerRef = useRef(null);
-  const sortTimerRef = useRef(null);
 
   const handlePeriodMouseEnter = () => {
     if (periodTimerRef.current) clearTimeout(periodTimerRef.current);
@@ -605,17 +601,6 @@ export default function Attendance({ onNavigateMedical }) {
     }, 250);
   };
 
-  const handleSortMouseEnter = () => {
-    if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
-    setSortDropdownOpen(true);
-  };
-
-  const handleSortMouseLeave = () => {
-    sortTimerRef.current = setTimeout(() => {
-      setSortDropdownOpen(false);
-    }, 250);
-  };
-
   const overallPercentage = 87;
   const minThreshold = 80;
   const isOverallEligible = overallPercentage >= minThreshold;
@@ -625,7 +610,6 @@ export default function Attendance({ onNavigateMedical }) {
 
   // Filtered rows for the Daily Attendance Matrix (1 Week, 2 Weeks, 3 Weeks, 1 Month, All)
   const filteredMatrixRows = MATRIX_DAILY_ROWS.filter((row, index) => {
-    // 1. Period Filter
     if (matrixPeriod === '1week') {
       if (index >= 5) return false; // Latest 5 lecture days (1 academic week)
     } else if (matrixPeriod === '2weeks') {
@@ -637,30 +621,7 @@ export default function Attendance({ onNavigateMedical }) {
     } else if (matrixPeriod === 'kickoff') {
       if (!row.date.startsWith('2026/04')) return false;
     }
-
-    // 2. Missed Only Filter
-    if (onlyMissedDates) {
-      const hasMissed = Object.values(row.records).includes('Missed');
-      if (!hasMissed) return false;
-    }
-
     return true;
-  });
-
-  // Sort rows based on sortOrder
-  const sortedMatrixRows = [...filteredMatrixRows].sort((a, b) => {
-    if (sortOrder === 'newest') {
-      return b.date.localeCompare(a.date);
-    }
-    if (sortOrder === 'oldest') {
-      return a.date.localeCompare(b.date);
-    }
-    if (sortOrder === 'most-missed') {
-      const aMissed = Object.values(a.records).filter((v) => v === 'Missed').length;
-      const bMissed = Object.values(b.records).filter((v) => v === 'Missed').length;
-      return bMissed - aMissed;
-    }
-    return 0;
   });
 
   const getPeriodLabel = () => {
@@ -677,17 +638,6 @@ export default function Attendance({ onNavigateMedical }) {
         return 'Kickoff Week';
       default:
         return 'All Dates';
-    }
-  };
-
-  const getSortLabel = () => {
-    switch (sortOrder) {
-      case 'oldest':
-        return 'Oldest First';
-      case 'most-missed':
-        return 'Most Missed';
-      default:
-        return 'Newest First';
     }
   };
 
@@ -990,88 +940,16 @@ export default function Attendance({ onNavigateMedical }) {
                 </div>
               </div>
 
-              {/* 2. Sort Dropdown */}
-              <div
-                className={`attendance-dropdown ${sortDropdownOpen ? 'open' : ''}`}
-                onMouseEnter={handleSortMouseEnter}
-                onMouseLeave={handleSortMouseLeave}
-              >
+              {matrixPeriod !== 'all' && (
                 <button
                   type="button"
-                  className="attendance-dropdown-btn"
-                  onClick={() => setSortDropdownOpen((prev) => !prev)}
+                  className="attendance-pill-btn"
+                  onClick={() => setMatrixPeriod('all')}
+                  style={{ backgroundColor: '#f1f5f9', color: '#64748b' }}
                 >
-                  <span>Sort: <strong>{getSortLabel()}</strong></span>
-                  <span className="attendance-dropdown-arrow">▼</span>
+                  Reset to All Dates
                 </button>
-
-                <div
-                  className="attendance-dropdown-menu"
-                  onMouseEnter={handleSortMouseEnter}
-                  onMouseLeave={handleSortMouseLeave}
-                >
-                  <div style={{ padding: '6px 16px 4px 16px', fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Sort Dates By
-                  </div>
-
-                  <button
-                    type="button"
-                    className={`attendance-dropdown-item ${sortOrder === 'newest' ? 'active' : ''}`}
-                    onMouseDown={(e) => { e.preventDefault(); setSortOrder('newest'); setSortDropdownOpen(false); }}
-                    onClick={() => { setSortOrder('newest'); setSortDropdownOpen(false); }}
-                  >
-                    <span>Newest Date First</span>
-                    <span className="attendance-dropdown-badge">Nov → Apr</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`attendance-dropdown-item ${sortOrder === 'oldest' ? 'active' : ''}`}
-                    onMouseDown={(e) => { e.preventDefault(); setSortOrder('oldest'); setSortDropdownOpen(false); }}
-                    onClick={() => { setSortOrder('oldest'); setSortDropdownOpen(false); }}
-                  >
-                    <span>Oldest Date First</span>
-                    <span className="attendance-dropdown-badge">Apr → Nov</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`attendance-dropdown-item ${sortOrder === 'most-missed' ? 'active' : ''}`}
-                    onMouseDown={(e) => { e.preventDefault(); setSortOrder('most-missed'); setSortDropdownOpen(false); }}
-                    onClick={() => { setSortOrder('most-missed'); setSortDropdownOpen(false); }}
-                  >
-                    <span>Most Missed Lectures First</span>
-                    <span className="attendance-dropdown-badge">Prioritize</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 3. Toggle Pill for Missed Lectures */}
-              <div className="attendance-filter-pills">
-                <button
-                  type="button"
-                  className={`attendance-pill-btn ${onlyMissedDates ? 'active' : ''}`}
-                  onClick={() => setOnlyMissedDates((prev) => !prev)}
-                  style={onlyMissedDates ? { backgroundColor: '#dc2626', borderColor: '#dc2626', color: '#ffffff' } : {}}
-                >
-                  Dates With Missed Lectures {onlyMissedDates ? '✓' : ''}
-                </button>
-
-                {(matrixPeriod !== 'all' || onlyMissedDates || sortOrder !== 'newest') && (
-                  <button
-                    type="button"
-                    className="attendance-pill-btn"
-                    onClick={() => {
-                      setMatrixPeriod('all');
-                      setSortOrder('newest');
-                      setOnlyMissedDates(false);
-                    }}
-                    style={{ backgroundColor: '#f1f5f9', color: '#64748b' }}
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
+              )}
 
               <button
                 type="button"
@@ -1096,7 +974,7 @@ export default function Attendance({ onNavigateMedical }) {
               <span className="matrix-cell-empty">—</span> No lecture scheduled
             </span>
             <span style={{ marginLeft: 'auto', fontWeight: 600, color: '#0f2b54', fontSize: '0.74rem' }}>
-              Showing <strong>{sortedMatrixRows.length}</strong> of {MATRIX_DAILY_ROWS.length} dates
+              Showing <strong>{filteredMatrixRows.length}</strong> of {MATRIX_DAILY_ROWS.length} dates
             </span>
           </div>
 
@@ -1118,8 +996,8 @@ export default function Attendance({ onNavigateMedical }) {
                 </tr>
               </thead>
               <tbody>
-                {sortedMatrixRows.length > 0 ? (
-                  sortedMatrixRows.map((row) => (
+                {filteredMatrixRows.length > 0 ? (
+                  filteredMatrixRows.map((row) => (
                     <tr key={row.date}>
                       <td className="matrix-date-cell">
                         {row.date}
