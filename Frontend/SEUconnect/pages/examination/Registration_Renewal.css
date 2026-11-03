@@ -160,9 +160,9 @@
 
 /* Modals */
 .adm-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-.adm-modal-card { background: var(--adm-card); padding: 24px; border-radius: 14px; width: 100%; max-width: 500px; }
-.adm-modal-body { margin: 16px 0; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
-.adm-modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
+.adm-modal-overlay .adm-modal-card { background: var(--adm-card, #ffffff); padding: 24px; border-radius: 14px; width: 100%; max-width: 500px; }
+.adm-modal-overlay .adm-modal-body { margin: 16px 0; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+.adm-modal-overlay .adm-modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
 
 @media (max-width: 900px) { .adm-stats-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .adm-stats-grid { grid-template-columns: 1fr; } }

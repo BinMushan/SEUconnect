@@ -700,9 +700,10 @@
 .adm-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(7, 23, 50, 0.65);
-  backdrop-filter: blur(4px);
-  z-index: 100;
+  background: rgba(7, 23, 50, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -711,15 +712,20 @@
 }
 
 .adm-modal-card {
-  background: #ffffff;
+  background: #ffffff !important;
+  color: #0f172a !important;
   border-radius: 14px;
   width: 100%;
   max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
+  padding: 0 !important;
+  border: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 1001;
 }
 
 .adm-modal-header {
@@ -728,13 +734,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: #ffffff !important;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
 }
 
 .adm-modal-title {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #0f172a !important;
 }
 
 .adm-modal-close-btn {
@@ -756,16 +765,18 @@
 }
 
 .adm-modal-body {
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 1.5rem !important;
+  margin: 0 !important;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  background: #ffffff !important;
 }
 
 .adm-modal-footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: #f8fafc !important;
   display: flex;
   align-items: center;
   justify-content: flex-end;
