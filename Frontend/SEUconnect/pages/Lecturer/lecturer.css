@@ -7402,14 +7402,67 @@
   background: #f59e0b;
 }
 
-/* Weekly Grid: 7 Day Columns */
+/* Weekly Grid: 5 Day Columns (Monday to Friday) */
 .lec-weekly-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(170px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.85rem;
   width: 100%;
-  overflow-x: auto;
   padding-bottom: 0.5rem;
+}
+
+/* Special Weekend Classes Section */
+.lec-weekend-classes-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.lec-weekend-section-header {
+  margin-bottom: 1rem;
+}
+
+.lec-weekend-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.lec-weekend-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.55rem;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 6px;
+}
+
+.lec-weekend-header-title h4 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.lec-weekend-header-desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.lec-weekend-classes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.lec-weekend-card {
+  background: #ffffff;
 }
 
 .lec-day-column {
@@ -8930,7 +8983,17 @@
    ========================================================================== */
 @media (max-width: 1200px) {
   .lec-weekly-grid {
-    grid-template-columns: repeat(7, minmax(150px, 1fr));
+    grid-template-columns: repeat(5, minmax(165px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .lec-weekly-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    overflow-x: visible;
   }
 }
 
@@ -9019,191 +9082,391 @@
   margin-top: 0.15rem;
 }
 
-/* Add New CA Modal */
+/* Add New CA Modal - Modern Refined Layout & Alignment */
 .lec-add-ca-modal {
-  max-width: 520px;
-  width: 95%;
-  background: #ffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 540px !important;
+  width: 95% !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.06) !important;
+  border: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.lec-modal-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.15rem 0.55rem;
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-radius: 4px;
-  width: fit-content;
-  margin-bottom: 0.2rem;
+.lec-add-ca-modal .lec-modal-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  padding: 1.5rem 1.75rem 1.15rem !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  margin-bottom: 0 !important;
+  background: #ffffff !important;
 }
 
-.lec-add-ca-helper {
-  font-size: 0.84rem;
-  color: #64748b;
-  margin-bottom: 1rem;
-  line-height: 1.45;
+.lec-add-ca-modal .lec-modal-title-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.4rem !important;
+  flex: 1 !important;
 }
 
-.lec-modal-alert-error {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
+.lec-add-ca-modal .lec-modal-badge {
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.22rem 0.65rem !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-radius: 6px !important;
+  width: fit-content !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
 }
 
-.lec-form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.95rem;
+.lec-add-ca-modal .lec-modal-title {
+  font-size: 1.22rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
 }
 
-.lec-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.lec-add-ca-modal .lec-modal-title svg {
+  color: #2563eb !important;
+  flex-shrink: 0 !important;
 }
 
-.lec-form-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #334155;
+.lec-add-ca-modal .lec-modal-close-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease-in-out !important;
+  flex-shrink: 0 !important;
+  padding: 0 !important;
+  margin-left: 1rem !important;
+  margin-top: 0.15rem !important;
 }
 
-.lec-form-input {
-  width: 100%;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  color: #1e293b;
-  background: #ffffff;
-  outline: none;
-  transition: all 0.2s;
+.lec-add-ca-modal .lec-modal-close-btn:hover {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #dc2626 !important;
+  transform: scale(1.05) !important;
 }
 
-.lec-form-input:focus {
-  border-color: #0f2b5c;
-  box-shadow: 0 0 0 3px rgba(15, 43, 92, 0.12);
+.lec-add-ca-modal .lec-modal-body {
+  padding: 1.5rem 1.75rem !important;
+  background: #ffffff !important;
 }
 
-.lec-form-help {
-  font-size: 0.72rem;
-  color: #94a3b8;
+.lec-add-ca-modal .lec-add-ca-helper {
+  font-size: 0.84rem !important;
+  color: #475569 !important;
+  line-height: 1.55 !important;
+  margin: 0 0 1.25rem !important;
+  padding: 0.8rem 1rem !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-left: 3.5px solid #2563eb !important;
+  border-radius: 8px !important;
 }
 
-.lec-form-row-2col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
+.lec-add-ca-modal .lec-modal-alert-error {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+  padding: 0.75rem 1rem !important;
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #b91c1c !important;
+  border-radius: 8px !important;
+  font-size: 0.83rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
 }
 
-.lec-modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #f1f5f9;
-  background: #f8fafc;
+.lec-add-ca-modal .lec-form-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.15rem !important;
 }
 
-.lec-modal-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 1.1rem;
-  background: #0f2b5c;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.86rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
+.lec-add-ca-modal .lec-form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.35rem !important;
 }
 
-.lec-modal-btn-primary:hover {
-  background: #1e3a8a;
+.lec-add-ca-modal .lec-form-label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  line-height: 1.3 !important;
 }
 
-/* Dark Mode Styles for CA / ESA additions */
-.dark-mode .lec-btn-add-ca {
-  background: #0284c7 !important;
+.lec-add-ca-modal .lec-form-input {
+  width: 100% !important;
+  height: 42px !important;
+  padding: 0 0.85rem !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  font-size: 0.88rem !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+  outline: none !important;
+  transition: all 0.18s ease-in-out !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+.lec-add-ca-modal .lec-form-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
+}
+
+.lec-add-ca-modal .lec-form-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.lec-add-ca-modal .lec-form-help {
+  font-size: 0.73rem !important;
+  color: #64748b !important;
+  margin-top: 0.1rem !important;
+  line-height: 1.35 !important;
+}
+
+.lec-add-ca-modal .lec-form-row-2col {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1.15rem !important;
+}
+
+.lec-add-ca-modal .lec-modal-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+  padding: 1.15rem 1.75rem !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  margin: 0 !important;
+}
+
+.lec-add-ca-modal .lec-modal-btn-cancel {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 40px !important;
+  padding: 0 1.25rem !important;
+  background: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease-in-out !important;
+  font-family: inherit !important;
+}
+
+.lec-add-ca-modal .lec-modal-btn-cancel:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+.lec-add-ca-modal .lec-modal-btn-primary {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.45rem !important;
+  height: 40px !important;
+  padding: 0 1.35rem !important;
+  background: #0f2b5c !important;
   color: #ffffff !important;
-  border: 1px solid #38bdf8 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid #0f2b5c !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease-in-out !important;
+  font-family: inherit !important;
+  box-shadow: 0 1px 2px rgba(15, 43, 92, 0.12) !important;
 }
 
-.dark-mode .lec-btn-add-ca:hover {
-  background: #0369a1 !important;
-  border-color: #38bdf8 !important;
+.lec-add-ca-modal .lec-modal-btn-primary:hover {
+  background: #1e3a8a !important;
+  border-color: #1e3a8a !important;
+  box-shadow: 0 4px 10px rgba(15, 43, 92, 0.2) !important;
+  transform: translateY(-1px) !important;
 }
 
-.dark-mode .th-weight-badge {
-  color: #94a3b8 !important;
+/* Responsive Modal Behavior */
+@media (max-width: 640px) {
+  .lec-add-ca-modal {
+    width: 94% !important;
+    max-width: 100% !important;
+    margin: 0.75rem auto !important;
+  }
+  .lec-add-ca-modal .lec-modal-header {
+    padding: 1.25rem 1.25rem 1rem !important;
+  }
+  .lec-add-ca-modal .lec-modal-body {
+    padding: 1.25rem !important;
+  }
+  .lec-add-ca-modal .lec-modal-footer {
+    padding: 1rem 1.25rem !important;
+  }
+  .lec-add-ca-modal .lec-form-row-2col {
+    grid-template-columns: 1fr !important;
+    gap: 1.15rem !important;
+  }
 }
 
+/* ==========================================================================
+   Dark Mode Styles for Add New Continuous Assessment Modal
+   ========================================================================== */
 .dark-mode .lec-add-ca-modal {
-  background: #070d18 !important;
-  border: 1px solid #1a263c !important;
+  background: #0b1329 !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
 }
 
-.dark-mode .lec-modal-badge {
+.dark-mode .lec-add-ca-modal .lec-modal-header {
+  background: #0b1329 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-badge {
   background: rgba(37, 99, 235, 0.2) !important;
-  color: #93c5fd !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
 }
 
-.dark-mode .lec-add-ca-helper {
+.dark-mode .lec-add-ca-modal .lec-modal-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-title svg {
+  color: #60a5fa !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-close-btn {
+  background: #131d35 !important;
+  border-color: #1e293b !important;
   color: #94a3b8 !important;
 }
 
-.dark-mode .lec-modal-alert-error {
+.dark-mode .lec-add-ca-modal .lec-modal-close-btn:hover {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-body {
+  background: #0b1329 !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-add-ca-helper {
+  background: rgba(15, 23, 42, 0.75) !important;
+  border-color: #1e293b !important;
+  border-left-color: #3b82f6 !important;
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-alert-error {
   background: rgba(239, 68, 68, 0.15) !important;
   border-color: rgba(239, 68, 68, 0.3) !important;
   color: #f87171 !important;
 }
 
-.dark-mode .lec-form-label {
+.dark-mode .lec-add-ca-modal .lec-form-label {
   color: #e2e8f0 !important;
 }
 
-.dark-mode .lec-form-input {
-  background: #0b1325 !important;
-  border-color: #1a263c !important;
+.dark-mode .lec-add-ca-modal .lec-form-input {
+  background: #0f172a !important;
+  border-color: #334155 !important;
   color: #f8fafc !important;
 }
 
-.dark-mode .lec-form-input:focus {
+.dark-mode .lec-add-ca-modal .lec-form-input:focus {
   border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18) !important;
 }
 
-.dark-mode .lec-form-help {
+.dark-mode .lec-add-ca-modal .lec-form-input::placeholder {
+  color: #475569 !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-form-help {
   color: #64748b !important;
 }
 
-.dark-mode .lec-modal-footer {
-  background: #0b1325 !important;
-  border-top-color: #1a263c !important;
+.dark-mode .lec-add-ca-modal .lec-modal-footer {
+  background: #070d1a !important;
+  border-top-color: #1e293b !important;
 }
 
-.dark-mode .lec-modal-btn-primary {
+.dark-mode .lec-add-ca-modal .lec-modal-btn-cancel {
+  background: #131d35 !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-btn-cancel:hover {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+.dark-mode .lec-add-ca-modal .lec-modal-btn-primary {
   background: #0284c7 !important;
+  border-color: #38bdf8 !important;
   color: #ffffff !important;
 }
 
-.dark-mode .lec-modal-btn-primary:hover {
+.dark-mode .lec-add-ca-modal .lec-modal-btn-primary:hover {
   background: #0369a1 !important;
+}
+
+/* Dark mode for special weekend classes section */
+.dark-mode .lec-weekend-classes-section {
+  background: #0b1325 !important;
+  border-color: #1a263c !important;
+}
+
+.dark-mode .lec-weekend-badge {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #fde68a !important;
+}
+
+.dark-mode .lec-weekend-header-title h4 {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-weekend-header-desc {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-weekend-card {
+  background: #070d18 !important;
+  border-color: #1a263c !important;
 }
