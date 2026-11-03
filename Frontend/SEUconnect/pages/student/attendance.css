@@ -1107,3 +1107,165 @@
   color: #475569;
 }
 
+/* ==========================================================================
+   Attendance Dropdown with Hover & Click (1 Week, 2 Weeks, 3 Weeks, 1 Month)
+   ========================================================================== */
+.attendance-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.attendance-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #0f2b54;
+  color: #ffffff;
+  border: 1px solid #0f2b54;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.attendance-dropdown-btn:hover {
+  background-color: #1a427d;
+  border-color: #1a427d;
+  box-shadow: 0 2px 6px rgba(15, 43, 84, 0.25);
+}
+
+.attendance-dropdown-arrow {
+  transition: transform 0.2s ease;
+  font-size: 0.70rem;
+}
+
+.attendance-dropdown:hover .attendance-dropdown-arrow,
+.attendance-dropdown.open .attendance-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.attendance-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  min-width: 230px;
+  z-index: 50;
+  padding: 6px 0;
+  display: none;
+  animation: dropdownFadeIn 0.18s ease-out forwards;
+}
+
+/* Show on hover or when open class is present */
+.attendance-dropdown:hover .attendance-dropdown-menu,
+.attendance-dropdown.open .attendance-dropdown-menu {
+  display: block;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.attendance-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.attendance-dropdown-item:hover {
+  background-color: #f1f5f9;
+  color: #0f2b54;
+  font-weight: 600;
+}
+
+.attendance-dropdown-item.active {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.attendance-dropdown-divider {
+  height: 1px;
+  background-color: #edf2f7;
+  margin: 4px 0;
+}
+
+.attendance-dropdown-badge {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.attendance-dropdown-item.active .attendance-dropdown-badge {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Dark mode for dropdown */
+.dark-mode .attendance-dropdown-btn {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.dark-mode .attendance-dropdown-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.dark-mode .attendance-dropdown-menu {
+  background-color: #162234;
+  border-color: #334155;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+}
+
+.dark-mode .attendance-dropdown-item {
+  color: #cbd5e1;
+}
+
+.dark-mode .attendance-dropdown-item:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-dropdown-item.active {
+  background-color: #1e3a8a;
+  color: #93c5fd;
+}
+
+.dark-mode .attendance-dropdown-divider {
+  background-color: #334155;
+}
+
+.dark-mode .attendance-dropdown-badge {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+
