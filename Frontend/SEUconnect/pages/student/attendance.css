@@ -474,12 +474,12 @@
    ========================================================================== */
 .attendance-tab-nav {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   background-color: #ffffff;
-  padding: 6px;
-  border-radius: 12px;
+  padding: 5px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   flex-wrap: wrap;
 }
 
@@ -487,40 +487,24 @@
   background: transparent;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.84rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .attendance-tab-btn:hover {
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
   color: #0f172a;
 }
 
 .attendance-tab-btn.active {
   background-color: #0f2b54;
-  color: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 43, 84, 0.2);
-}
-
-.attendance-tab-count-badge {
-  font-size: 0.70rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 9999px;
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
-}
-
-.attendance-tab-btn.active .attendance-tab-count-badge {
-  background-color: #dc2626;
   color: #ffffff;
 }
 
@@ -868,8 +852,8 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -890,15 +874,12 @@
   font-weight: 700;
   color: #0f172a;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .attendance-matrix-subtitle {
   font-size: 0.80rem;
   color: #64748b;
-  margin: 2px 0 0 0;
+  margin: 3px 0 0 0;
 }
 
 .matrix-legend-row {
@@ -914,14 +895,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-weight: 600;
 }
 
 .attendance-matrix-table-wrap {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border: 2px solid #0f172a;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
 }
 
@@ -936,39 +916,39 @@
 .attendance-matrix-table th {
   background-color: #0f2b54;
   color: #ffffff;
-  font-weight: 700;
-  padding: 10px 8px;
-  border: 1px solid #334155;
+  font-weight: 600;
+  padding: 9px 8px;
+  border: 1px solid #1e3a8a;
   white-space: nowrap;
   font-size: 0.74rem;
   letter-spacing: 0.02em;
 }
 
 .attendance-matrix-table th.matrix-corner-th {
-  background-color: #0a1e3b;
-  min-width: 130px;
-  text-align: center;
+  background-color: #0b1f3d;
+  min-width: 125px;
+  text-align: left;
+  padding-left: 12px;
 }
 
 .attendance-matrix-table th .matrix-th-title {
   display: block;
-  font-size: 0.80rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .attendance-matrix-table th .matrix-th-sub {
   display: block;
   font-size: 0.68rem;
-  font-weight: 500;
+  font-weight: 400;
   opacity: 0.85;
 }
 
 .attendance-matrix-table td {
-  border: 1px solid #cbd5e1;
+  border: 1px solid #e2e8f0;
   padding: 8px 6px;
   vertical-align: middle;
   font-size: 0.78rem;
-  transition: background-color 0.15s ease;
 }
 
 .attendance-matrix-table tr:hover td {
@@ -976,62 +956,58 @@
 }
 
 .matrix-date-cell {
-  background-color: #f1f5f9;
-  font-weight: 700;
+  background-color: #f8fafc;
+  font-weight: 600;
   color: #0f172a;
-  white-space: nowrap;
+  border-right: 2px solid #e2e8f0;
   padding: 8px 12px !important;
   text-align: left;
+  white-space: nowrap;
 }
 
 .matrix-date-day {
   font-size: 0.70rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #64748b;
   display: block;
+  margin-top: 1px;
 }
 
 .matrix-badge-attend {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
-  font-weight: 700;
+  display: inline-block;
   padding: 3px 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
   border-radius: 4px;
-  font-size: 0.74rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
 .matrix-badge-missed {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background-color: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  font-weight: 700;
+  display: inline-block;
   padding: 3px 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
   border-radius: 4px;
-  font-size: 0.74rem;
+  letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 .matrix-badge-missed:hover {
   background-color: #fee2e2;
-  border-color: #ef4444;
-  transform: translateY(-1px);
+  border-color: #fca5a5;
 }
 
 .matrix-cell-empty {
-  color: #94a3b8;
+  color: #cbd5e1;
   font-weight: 400;
   font-size: 0.85rem;
 }

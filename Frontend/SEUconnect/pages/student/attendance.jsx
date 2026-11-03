@@ -729,16 +729,9 @@ export default function Attendance({ onNavigateMedical }) {
       <section className="grid-3">
         {/* Card 1: Overall Attendance */}
         <div className="stat-card">
-          <div className="stat-icon-wrapper stat-icon-success">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-              <path d="m9 14 2 2 4-4" />
-            </svg>
-          </div>
           <div className="stat-info">
             <div className="stat-header-row">
-              <span className="stat-label stat-label-nowrap">OVERALL ATTENDANCE</span>
+              <span className="stat-label stat-label-nowrap">Overall Attendance</span>
               <span className="stat-badge">{isOverallEligible ? 'Eligible for ESA' : 'Ineligible'}</span>
             </div>
             <div className="stat-value">{overallPercentage}%</div>
@@ -748,17 +741,10 @@ export default function Attendance({ onNavigateMedical }) {
 
         {/* Card 2: Mandatory ESA Threshold */}
         <div className="stat-card">
-          <div className="stat-icon-wrapper stat-icon-accent">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </div>
           <div className="stat-info">
             <div className="stat-header-row">
-              <span className="stat-label">MANDATORY ESA<br />THRESHOLD</span>
-              <span className="stat-badge stat-badge-multiline">Minimum<br />Req</span>
+              <span className="stat-label">Mandatory ESA Threshold</span>
+              <span className="stat-badge">Minimum Req</span>
             </div>
             <div className="stat-value">{minThreshold}%</div>
             <div className="stat-subtext">Faculty Handbook Regulation 8.3</div>
@@ -767,15 +753,9 @@ export default function Attendance({ onNavigateMedical }) {
 
         {/* Card 3: Missed Lectures & Exam Standing */}
         <div className="stat-card">
-          <div className="stat-icon-wrapper stat-icon-success">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-          </div>
           <div className="stat-info">
             <div className="stat-header-row">
-              <span className="stat-label stat-label-nowrap">MISSED LECTURES LOG</span>
+              <span className="stat-label stat-label-nowrap">Missed Lectures Log</span>
               <span className="stat-badge">{totalMissedCount} Recorded</span>
             </div>
             <div className="stat-value">{isOverallEligible ? 'Satisfied (87%)' : 'Action Required'}</div>
@@ -783,7 +763,7 @@ export default function Attendance({ onNavigateMedical }) {
               <button
                 type="button"
                 onClick={handleOpenMissedOnly}
-                style={{ background: 'none', border: 'none', padding: 0, color: '#2563eb', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.80rem' }}
+                style={{ background: 'none', border: 'none', padding: 0, color: '#0f2b54', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', fontSize: '0.78rem' }}
               >
                 Highlight {totalMissedCount} missed sessions on grid →
               </button>
@@ -792,50 +772,14 @@ export default function Attendance({ onNavigateMedical }) {
         </div>
       </section>
 
-      {/* 3. Missed Lecture Alert Banner */}
-      <section className="missed-lecture-callout">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: '#f59e0b', color: '#fff', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 700, fontSize: '0.9rem' }}>
-            !
-          </div>
-          <div className="missed-lecture-callout-text">
-            <strong>Daily Attendance Tracking:</strong> View which lectures you attended or missed on every single date in the matrix table below. Submit a medical excuse for any missed session to maintain ESA exam eligibility.
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-          <button
-            type="button"
-            onClick={handleOpenMissedOnly}
-            className="btn btn-sm"
-            style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d', fontWeight: 600 }}
-          >
-            🔍 Highlight Missed Dates
-          </button>
-          <button
-            type="button"
-            onClick={onNavigateMedical || (() => alert('Redirecting to Medical Requests section...'))}
-            className="btn btn-primary btn-sm"
-          >
-            Submit Medical Certificate
-          </button>
-        </div>
-      </section>
-
-      {/* 4. Tab Navigation Bar */}
+      {/* 3. Tab Navigation Bar */}
       <div className="attendance-tab-nav">
         <button
           type="button"
           className={`attendance-tab-btn ${activeTab === 'matrix' ? 'active' : ''}`}
           onClick={() => setActiveTab('matrix')}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <line x1="3" y1="9" x2="21" y2="9" />
-            <line x1="3" y1="15" x2="21" y2="15" />
-            <line x1="9" y1="3" x2="9" y2="21" />
-            <line x1="15" y1="3" x2="15" y2="21" />
-          </svg>
-          Daily Attendance Sheet (Date × Subject Grid)
+          Daily Attendance Sheet
         </button>
 
         <button
@@ -843,12 +787,6 @@ export default function Attendance({ onNavigateMedical }) {
           className={`attendance-tab-btn ${activeTab === 'subject' ? 'active' : ''}`}
           onClick={() => setActiveTab('subject')}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>
           Subject-wise Eligibility ({SUBJECT_ATTENDANCE.length} Subjects)
         </button>
 
@@ -861,14 +799,8 @@ export default function Attendance({ onNavigateMedical }) {
             setSelectedSubjectFilter('all');
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
           Date-wise Missed List
-          <span className="attendance-tab-count-badge">{totalMissedCount} Missed</span>
+          <span className="attendance-tab-count-badge">{totalMissedCount}</span>
         </button>
 
         <button
@@ -876,11 +808,7 @@ export default function Attendance({ onNavigateMedical }) {
           className={`attendance-tab-btn ${activeTab === 'timetable' ? 'active' : ''}`}
           onClick={() => setActiveTab('timetable')}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          Official Weekly Timetable (Yr 2 - Sem II)
+          Official Weekly Timetable
         </button>
       </div>
 
@@ -893,10 +821,6 @@ export default function Attendance({ onNavigateMedical }) {
           <div className="attendance-matrix-header">
             <div>
               <h3 className="attendance-matrix-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f2b54" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 11l3 3L22 4" />
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                </svg>
                 Daily Lecture Attendance Matrix (Date × Subject)
               </h3>
               <p className="attendance-matrix-subtitle">
@@ -1018,18 +942,18 @@ export default function Attendance({ onNavigateMedical }) {
 
           {/* Legend Row */}
           <div className="matrix-legend-row">
-            <span style={{ fontWeight: 700, color: '#0f172a' }}>LEGEND:</span>
+            <span style={{ fontWeight: 600, color: '#475569' }}>Legend:</span>
             <span className="matrix-legend-item">
-              <span className="matrix-badge-attend">✓ Attend</span> Lecture attended
+              <span className="matrix-badge-attend">Attend</span> Attended
             </span>
             <span className="matrix-legend-item">
-              <span className="matrix-badge-missed">✕ Missed</span> Lecture missed (Click to submit excuse)
+              <span className="matrix-badge-missed">Missed</span> Missed Lecture
             </span>
             <span className="matrix-legend-item">
               <span className="matrix-cell-empty">—</span> No lecture scheduled
             </span>
-            <span style={{ marginLeft: 'auto', fontWeight: 600, color: '#0f2b54', fontSize: '0.74rem' }}>
-              Showing <strong>{filteredMatrixRows.length}</strong> of {MATRIX_DAILY_ROWS.length} dates
+            <span style={{ marginLeft: 'auto', fontWeight: 500, color: '#64748b', fontSize: '0.74rem' }}>
+              Showing {filteredMatrixRows.length} of {MATRIX_DAILY_ROWS.length} dates
             </span>
           </div>
 
@@ -1064,7 +988,7 @@ export default function Attendance({ onNavigateMedical }) {
                           return (
                             <td key={col.code}>
                               <span className="matrix-badge-attend">
-                                ✓ Attend
+                                Attend
                               </span>
                             </td>
                           );
@@ -1078,7 +1002,7 @@ export default function Attendance({ onNavigateMedical }) {
                                 onClick={onNavigateMedical || (() => alert(`Submitting medical excuse for ${col.code} on ${row.date}`))}
                                 title={`Missed ${col.code} on ${row.date}. Click to submit medical excuse`}
                               >
-                                ✕ Missed
+                                Missed
                               </button>
                             </td>
                           );
@@ -1111,10 +1035,6 @@ export default function Attendance({ onNavigateMedical }) {
         <section className="seu-card">
           <div className="seu-card-header">
             <h3 className="seu-card-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f2b54" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-              </svg>
               Semester II Subjects — Attendance & ESA Eligibility
             </h3>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -1124,7 +1044,7 @@ export default function Attendance({ onNavigateMedical }) {
                 className="btn btn-sm"
                 style={{ backgroundColor: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1' }}
               >
-                📊 View Date Matrix
+                View Date Matrix
               </button>
               <button
                 type="button"
@@ -1157,7 +1077,7 @@ export default function Attendance({ onNavigateMedical }) {
                     <td className="course-code-cell">{item.code}</td>
                     <td>
                       <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>👤 {item.lecturer}</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{item.lecturer}</div>
                     </td>
                     <td>
                       <span className={`badge ${item.type === 'Theory' ? 'badge-primary' : 'badge-accent'}`} style={{ backgroundColor: item.type === 'Theory' ? '#eff6ff' : '#f5f3ff', color: item.type === 'Theory' ? '#1d4ed8' : '#6d28d9' }}>
@@ -1203,7 +1123,7 @@ export default function Attendance({ onNavigateMedical }) {
                         style={{ fontSize: '0.74rem', padding: '3px 8px', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f2b54', fontWeight: 600 }}
                         title="View dates and missed lectures for this subject"
                       >
-                        📅 View Dates {item.missedCount > 0 ? `(${item.missedCount} Missed)` : ''}
+                        View Dates {item.missedCount > 0 ? `(${item.missedCount} Missed)` : ''}
                       </button>
                     </td>
                   </tr>
@@ -1222,12 +1142,6 @@ export default function Attendance({ onNavigateMedical }) {
           <div className="seu-card-header">
             <div>
               <h3 className="seu-card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f2b54" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
                 Date-wise Missed Lectures Log
               </h3>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
@@ -1250,9 +1164,9 @@ export default function Attendance({ onNavigateMedical }) {
                 type="button"
                 className={`attendance-pill-btn ${statusFilter === 'missed' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('missed')}
-                style={statusFilter === 'missed' ? { backgroundColor: '#dc2626', borderColor: '#dc2626', color: '#ffffff' } : {}}
+                style={statusFilter === 'missed' ? { backgroundColor: '#0f2b54', borderColor: '#0f2b54', color: '#ffffff' } : {}}
               >
-                ⚠️ Missed Lectures Only ({totalMissedCount})
+                Missed Lectures Only ({totalMissedCount})
               </button>
               <button
                 type="button"
@@ -1266,7 +1180,7 @@ export default function Attendance({ onNavigateMedical }) {
                 className={`attendance-pill-btn ${statusFilter === 'attended' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('attended')}
               >
-                ✓ Attended Sessions ({DATE_WISE_SESSIONS.length - totalMissedCount})
+                Attended Sessions ({DATE_WISE_SESSIONS.length - totalMissedCount})
               </button>
             </div>
 
@@ -1332,14 +1246,14 @@ export default function Attendance({ onNavigateMedical }) {
                   filteredSessions.map((session) => (
                     <tr
                       key={session.id}
-                      style={session.status === 'missed' ? { backgroundColor: 'rgba(254, 242, 242, 0.6)' } : {}}
+                      style={session.status === 'missed' ? { backgroundColor: '#fef2f2' } : {}}
                     >
                       <td>
                         <div style={{ fontWeight: 700, color: '#0f172a' }}>{session.date}</div>
                         <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{session.day}</div>
                       </td>
                       <td style={{ fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
-                        🕒 {session.time}
+                        {session.time}
                       </td>
                       <td className="course-code-cell">{session.code}</td>
                       <td>
@@ -1352,7 +1266,7 @@ export default function Attendance({ onNavigateMedical }) {
                       </td>
                       <td>
                         <span style={{ fontSize: '0.78rem', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, color: '#334155' }}>
-                          🏛️ {session.venue}
+                          {session.venue}
                         </span>
                       </td>
                       <td style={{ fontSize: '0.78rem', color: '#475569' }}>
@@ -1365,12 +1279,12 @@ export default function Attendance({ onNavigateMedical }) {
                       </td>
                       <td>
                         {session.status === 'attended' ? (
-                          <span className="badge badge-success" style={{ fontWeight: 700 }}>
-                            ✓ Attended
+                          <span className="badge badge-success" style={{ fontWeight: 600 }}>
+                            Attended
                           </span>
                         ) : (
-                          <span className="badge badge-danger" style={{ fontWeight: 700 }}>
-                            ✕ Missed / Absent
+                          <span className="badge badge-danger" style={{ fontWeight: 600 }}>
+                            Missed
                           </span>
                         )}
                       </td>
@@ -1380,13 +1294,13 @@ export default function Attendance({ onNavigateMedical }) {
                             type="button"
                             onClick={onNavigateMedical || (() => alert('Opening Medical Excuse Form for ' + session.code + ' on ' + session.date))}
                             className="btn btn-sm"
-                            style={{ backgroundColor: '#ef4444', color: '#ffffff', fontSize: '0.72rem', padding: '3px 8px' }}
+                            style={{ backgroundColor: '#0f2b54', color: '#ffffff', fontSize: '0.72rem', padding: '3px 8px' }}
                             title="Submit medical certificate for this missed date"
                           >
-                            + Submit Medical
+                            Submit Medical
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>Verified ✓</span>
+                          <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600 }}>Verified</span>
                         )}
                       </td>
                     </tr>
