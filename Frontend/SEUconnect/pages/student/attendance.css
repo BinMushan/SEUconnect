@@ -468,3 +468,818 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Interactive Tab Bar for Attendance, Missed Lectures & Timetable
+   ========================================================================== */
+.attendance-tab-nav {
+  display: flex;
+  gap: 6px;
+  background-color: #ffffff;
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  flex-wrap: wrap;
+}
+
+.attendance-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.attendance-tab-btn:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.attendance-tab-btn.active {
+  background-color: #0f2b54;
+  color: #ffffff;
+}
+
+/* Missed Lecture Callout Card */
+.missed-lecture-callout {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.missed-lecture-callout-text {
+  font-size: 0.84rem;
+  color: #92400e;
+  line-height: 1.45;
+}
+
+/* Date-wise Filter & Search Bar */
+.attendance-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.attendance-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.attendance-pill-btn {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.attendance-pill-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.attendance-pill-btn.active {
+  background-color: #0f2b54;
+  color: #ffffff;
+  border-color: #0f2b54;
+}
+
+.attendance-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.attendance-select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.80rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+}
+
+.attendance-search-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.80rem;
+  outline: none;
+  min-width: 220px;
+}
+
+.attendance-search-input:focus,
+.attendance-select:focus {
+  border-color: #0f2b54;
+}
+
+/* Timetable Styles (Parity with Official Timetable Image) */
+.timetable-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timetable-header-banner {
+  text-align: center;
+  border: 2px solid #0f172a;
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border-radius: 4px;
+}
+
+.timetable-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.timetable-header-sub {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 2px 0 0 0;
+}
+
+.timetable-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+  text-align: center;
+  border: 2px solid #0f172a;
+}
+
+.timetable-grid-table th {
+  background-color: #cbd5e1;
+  color: #0f172a;
+  font-weight: 700;
+  padding: 8px 10px;
+  border: 1px solid #64748b;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+}
+
+.timetable-grid-table td {
+  border: 1px solid #94a3b8;
+  padding: 8px 6px;
+  vertical-align: middle;
+}
+
+.timetable-time-cell {
+  background-color: #f8fafc;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.timetable-slot-cell {
+  background-color: #ffffff;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.timetable-course-badge {
+  font-weight: 700;
+  font-style: italic;
+  color: #0f172a;
+  display: block;
+}
+
+.timetable-venue-badge {
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 600;
+  display: block;
+}
+
+.timetable-lunch-row td {
+  background-color: #f1f5f9;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #0f172a;
+  padding: 8px;
+  border-top: 2px solid #0f172a;
+  border-bottom: 2px solid #0f172a;
+}
+
+.timetable-legend-box {
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.76rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.timetable-legend-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 6px;
+}
+
+.timetable-directory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+  margin-top: 6px;
+  border: 1px solid #cbd5e1;
+}
+
+.timetable-directory-table th {
+  background-color: #cbd5e1;
+  color: #0f172a;
+  font-weight: 700;
+  padding: 8px 10px;
+  border: 1px solid #94a3b8;
+  text-align: left;
+}
+
+.timetable-directory-table td {
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+
+.timetable-directory-table tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+/* Dark mode additions */
+.dark-mode .attendance-tab-nav {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .attendance-tab-btn {
+  color: #94a3b8;
+}
+
+.dark-mode .attendance-tab-btn:hover {
+  background-color: #162234;
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-tab-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.dark-mode .missed-lecture-callout {
+  background-color: #2a1f05;
+  border-color: #78350f;
+}
+
+.dark-mode .missed-lecture-callout-text {
+  color: #fde68a;
+}
+
+.dark-mode .timetable-card {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .timetable-header-banner {
+  background-color: #162234;
+  border-color: #475569;
+}
+
+.dark-mode .timetable-header-title {
+  color: #f8fafc;
+}
+
+.dark-mode .timetable-header-sub {
+  color: #cbd5e1;
+}
+
+.dark-mode .timetable-grid-table {
+  border-color: #475569;
+}
+
+.dark-mode .timetable-grid-table th {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.dark-mode .timetable-grid-table td {
+  border-color: #334155;
+  background-color: #111a28;
+}
+
+.dark-mode .timetable-time-cell {
+  background-color: #162234;
+  color: #f8fafc;
+}
+
+.dark-mode .timetable-course-badge {
+  color: #38bdf8;
+}
+
+.dark-mode .timetable-venue-badge {
+  color: #94a3b8;
+}
+
+.dark-mode .timetable-lunch-row td {
+  background-color: #162234;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.dark-mode .timetable-legend-box {
+  background-color: #162234;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark-mode .timetable-legend-title {
+  color: #f8fafc;
+}
+
+.dark-mode .timetable-directory-table th {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.dark-mode .timetable-directory-table td {
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark-mode .timetable-directory-table tr:nth-child(even) {
+  background-color: #162234;
+}
+
+/* ==========================================================================
+   Daily Attendance Matrix Table (Date x Subject Grid View)
+   ========================================================================== */
+.attendance-matrix-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.attendance-matrix-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.attendance-matrix-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.attendance-matrix-subtitle {
+  font-size: 0.80rem;
+  color: #64748b;
+  margin: 3px 0 0 0;
+}
+
+.matrix-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.matrix-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attendance-matrix-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.attendance-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+  text-align: center;
+  background-color: #ffffff;
+}
+
+.attendance-matrix-table th {
+  background-color: #0f2b54;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 9px 8px;
+  border: 1px solid #1e3a8a;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+}
+
+.attendance-matrix-table th.matrix-corner-th {
+  background-color: #0b1f3d;
+  min-width: 125px;
+  text-align: left;
+  padding-left: 12px;
+}
+
+.attendance-matrix-table th .matrix-th-title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.attendance-matrix-table th .matrix-th-sub {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.attendance-matrix-table td {
+  border: 1px solid #e2e8f0;
+  padding: 8px 6px;
+  vertical-align: middle;
+  font-size: 0.78rem;
+}
+
+.attendance-matrix-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.matrix-date-cell {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+  border-right: 2px solid #e2e8f0;
+  padding: 8px 12px !important;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.matrix-date-day {
+  font-size: 0.70rem;
+  font-weight: 500;
+  color: #64748b;
+  display: block;
+  margin-top: 1px;
+}
+
+.matrix-badge-attend {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.matrix-badge-missed {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.matrix-badge-missed:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.matrix-cell-empty {
+  color: #cbd5e1;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+/* Dark mode for Matrix Table */
+.dark-mode .attendance-matrix-card {
+  background-color: #111a28;
+  border-color: #1e293b;
+}
+
+.dark-mode .attendance-matrix-header {
+  border-bottom-color: #1e293b;
+}
+
+.dark-mode .attendance-matrix-title {
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-matrix-subtitle,
+.dark-mode .matrix-legend-row {
+  color: #94a3b8;
+}
+
+.dark-mode .attendance-matrix-table-wrap {
+  border-color: #334155;
+}
+
+.dark-mode .attendance-matrix-table {
+  background-color: #111a28;
+}
+
+.dark-mode .attendance-matrix-table th {
+  background-color: #162234;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-matrix-table th.matrix-corner-th {
+  background-color: #0d1624;
+}
+
+.dark-mode .attendance-matrix-table td {
+  border-color: #1e293b;
+  color: #cbd5e1;
+}
+
+.dark-mode .attendance-matrix-table tr:hover td {
+  background-color: #162234;
+}
+
+.dark-mode .matrix-date-cell {
+  background-color: #162234;
+  color: #f8fafc;
+}
+
+.dark-mode .matrix-date-day {
+  color: #94a3b8;
+}
+
+.dark-mode .matrix-badge-attend {
+  background-color: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
+.dark-mode .matrix-badge-missed {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+
+.dark-mode .matrix-cell-empty {
+  color: #475569;
+}
+
+/* ==========================================================================
+   Attendance Dropdown with Hover & Click (1 Week, 2 Weeks, 3 Weeks, 1 Month & Sorting)
+   ========================================================================== */
+.attendance-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.attendance-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: #0f2b54;
+  border: 1px solid #cbd5e1;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.attendance-dropdown-btn:hover,
+.attendance-dropdown:hover .attendance-dropdown-btn,
+.attendance-dropdown.open .attendance-dropdown-btn {
+  background-color: #0f2b54;
+  color: #ffffff;
+  border-color: #0f2b54;
+  box-shadow: 0 2px 6px rgba(15, 43, 84, 0.25);
+}
+
+.attendance-dropdown-btn.active {
+  background-color: #0f2b54;
+  color: #ffffff;
+  border-color: #0f2b54;
+}
+
+.attendance-dropdown-arrow {
+  transition: transform 0.2s ease;
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+.attendance-dropdown:hover .attendance-dropdown-arrow,
+.attendance-dropdown.open .attendance-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.attendance-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  min-width: 220px;
+  z-index: 1000;
+  padding: 6px 0;
+  display: none;
+  pointer-events: auto;
+  animation: dropdownFadeIn 0.15s ease-out forwards;
+}
+
+/* Invisible bridge so mouse hover never drops between button and menu */
+.attendance-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* Show on hover or when open class is present */
+.attendance-dropdown:hover .attendance-dropdown-menu,
+.attendance-dropdown.open .attendance-dropdown-menu {
+  display: block;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.attendance-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.80rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.attendance-dropdown-item:hover,
+.attendance-dropdown-item:focus {
+  background-color: #f1f5f9;
+  color: #0f2b54;
+  font-weight: 600;
+  outline: none;
+}
+
+.attendance-dropdown-item.active {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.attendance-dropdown-divider {
+  height: 1px;
+  background-color: #edf2f7;
+  margin: 4px 0;
+}
+
+.attendance-dropdown-badge {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.attendance-dropdown-item.active .attendance-dropdown-badge {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Dark mode for dropdown */
+.dark-mode .attendance-dropdown-btn {
+  background-color: #162234;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark-mode .attendance-dropdown-btn:hover,
+.dark-mode .attendance-dropdown:hover .attendance-dropdown-btn,
+.dark-mode .attendance-dropdown.open .attendance-dropdown-btn {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.dark-mode .attendance-dropdown-btn.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.dark-mode .attendance-dropdown-menu {
+  background-color: #162234;
+  border-color: #334155;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+}
+
+.dark-mode .attendance-dropdown-item {
+  color: #cbd5e1;
+}
+
+.dark-mode .attendance-dropdown-item:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+.dark-mode .attendance-dropdown-item.active {
+  background-color: #1e3a8a;
+  color: #93c5fd;
+}
+
+.dark-mode .attendance-dropdown-divider {
+  background-color: #334155;
+}
+
+.dark-mode .attendance-dropdown-badge {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+

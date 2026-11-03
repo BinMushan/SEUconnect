@@ -260,6 +260,52 @@ export const HOD_NAV_SECTIONS = [
 ];
 
 // 4. DEAN (FACULTY EXECUTIVE OFFICE) NAVIGATION
+
+// 4b. SAR NAVIGATION
+export const SAR_NAV_SECTIONS = [
+  {
+    title: 'MAIN',
+    items: [
+      { id: 'dashboard', label: 'SAR Administrative Dashboard', icon: Icons.dashboard },
+    ],
+  },
+  {
+    title: 'WORKFLOW INBOXES',
+    items: [
+      { id: 'inboxes', label: '8 Workflow Inboxes', icon: Icons.checkSquare },
+      { id: 'inbox_eca', label: 'ECA Applications Queue', icon: Icons.clipboardCheck },
+      { id: 'inbox_esa', label: 'ESA Applications Queue', icon: Icons.award },
+      { id: 'inbox_exam_forms', label: 'Examination Forms Verification', icon: Icons.fileText },
+      { id: 'inbox_exam_medicals', label: 'Exam Medicals (Dean Office)', icon: Icons.medical },
+      { id: 'inbox_exam_branch_forward', label: 'Exam Branch Forwarding Queue', icon: Icons.trendingUp },
+      { id: 'inbox_admission_processing', label: 'Admission Processing & Senate', icon: Icons.stamp },
+      { id: 'inbox_returned', label: 'Returned Applications', icon: Icons.alertCircle },
+      { id: 'inbox_completed', label: 'Completed Applications', icon: Icons.checkSquare },
+    ],
+  },
+  {
+    title: 'ADMINISTRATIVE OPERATIONS',
+    items: [
+      { id: 'monitoring', label: 'Administrative Request Monitoring', icon: Icons.clipboardCheck },
+      { id: 'pending_actions', label: 'Pending Administrative Actions', icon: Icons.checkSquare },
+      { id: 'portal_management', label: 'ECA / ESA Portal Management', icon: Icons.building },
+      { id: 'faculty_records', label: 'Faculty Administrative Records', icon: Icons.fileText },
+    ],
+  },
+  {
+    title: 'ANALYTICS & REPORTS',
+    items: [
+      { id: 'reports', label: 'Reports & Workflow Summary', icon: Icons.chart },
+    ],
+  },
+  {
+    title: 'COMMUNICATION',
+    items: [
+      { id: 'notifications', label: 'SAR Notifications', icon: Icons.bell },
+    ],
+  },
+];
+
 export const DEAN_NAV_SECTIONS = [
   {
     title: 'MAIN',
@@ -392,6 +438,8 @@ export function getNavSectionsForRole(roleKey) {
       return LECTURER_NAV_SECTIONS;
     case 'hod':
       return HOD_NAV_SECTIONS;
+    case 'sar':
+      return SAR_NAV_SECTIONS;
     case 'dean':
       return DEAN_NAV_SECTIONS;
     case 'examination':
@@ -435,6 +483,18 @@ export function getRoleMetaData(user) {
           { label: 'Department:', value: 'Department of ICT' },
           { label: 'Designation:', value: 'Head of Department' },
           { label: 'Authority:', value: 'Department Board Chair' },
+        ],
+      };
+    case 'sar':
+      return {
+        rolePill: 'SAR',
+        greeting: `Welcome, ${user?.name || 'Mr. K.L.M. Riyas'}`,
+        facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ADMINISTRATIVE DIVISION',
+        metaItems: [
+          { label: 'Staff ID:', value: user?.staffId || 'STAFF-SAR-001' },
+          { label: 'Division:', value: 'Faculty Administrative Division' },
+          { label: 'Designation:', value: user?.designation || 'Senior Assistant Registrar' },
+          { label: 'Scope:', value: 'Faculty of Technology' },
         ],
       };
     case 'dean':
