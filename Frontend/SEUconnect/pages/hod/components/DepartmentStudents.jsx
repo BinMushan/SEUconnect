@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
-import { DEPARTMENT_STUDENTS_LIST } from '../hodData.js';
+import { DEPARTMENT_STUDENTS_LIST, HOD_BATCH_CONFIG, getCalculatedHodTotal } from '../hodData.js';
 
 export default function DepartmentStudents({ onNavigate }) {
   const [batchFilter, setBatchFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
+  const totalEnrolled = getCalculatedHodTotal();
+
   const filteredStudents = DEPARTMENT_STUDENTS_LIST.filter((student) => {
-    const matchesBatch = batchFilter === 'All' || student.year === batchFilter;
+    const matchesBatch =
+      batchFilter === 'All' ||
+      student.batchKey === batchFilter ||
+      student.batch?.includes(batchFilter) ||
+      student.year === batchFilter;
+
     const matchesSearch =
       !searchQuery ||
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -25,7 +32,7 @@ export default function DepartmentStudents({ onNavigate }) {
           <span className="hod-banner-tag">STUDENT ADVISING & CADRE</span>
           <h1 className="hod-view-title">Department Undergraduates Directory</h1>
           <p className="hod-view-subtitle">
-            Bachelor of Information and Communication Technology Honours – BICT (Hons) Students Across All 4 Batches
+            Bachelor of Information and Communication Technology Honours – BICT (Hons) Students Across All 5 Batches
           </p>
         </div>
         <div className="hod-banner-actions">
@@ -47,41 +54,47 @@ export default function DepartmentStudents({ onNavigate }) {
         </div>
       </div>
 
-      {/* 2. Batch Metric Strip */}
+      {/* 2. Batch Metric Strip (Calculated from 5 batches) */}
       <div className="hod-stats-strip">
-        <div className="hod-strip-card" onClick={() => setBatchFilter('All')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">420</span>
-          <span className="hod-strip-lbl">Total Enrolled (4 Batches)</span>
+        <div
+          className={`hod-strip-card ${batchFilter === 'All' ? 'active-border' : ''}`}
+          onClick={() => setBatchFilter('All')}
+          style={{ cursor: 'pointer' }}
+        >
+          <span className="hod-strip-val">{totalEnrolled}</span>
+          <span className="hod-strip-lbl">Total Enrolled (Across All 5 Batches)</span>
         </div>
-        <div className="hod-strip-card" onClick={() => setBatchFilter('4th Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">105</span>
-          <span className="hod-strip-lbl">4th Year (2020/21)</span>
-        </div>
-        <div className="hod-strip-card" onClick={() => setBatchFilter('3rd Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">108</span>
-          <span className="hod-strip-lbl">3rd Year (2021/22)</span>
-        </div>
-        <div className="hod-strip-card" onClick={() => setBatchFilter('2nd Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">104</span>
-          <span className="hod-strip-lbl">2nd Year (2022/23)</span>
-        </div>
-        <div className="hod-strip-card" onClick={() => setBatchFilter('1st Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">103</span>
-          <span className="hod-strip-lbl">1st Year (2023/24)</span>
-        </div>
+        {HOD_BATCH_CONFIG.map((b) => (
+          <div
+            key={b.batchKey}
+            className={`hod-strip-card ${batchFilter === b.batchKey ? 'active-border' : ''}`}
+            onClick={() => setBatchFilter(b.batchKey)}
+            style={{ cursor: 'pointer' }}
+          >
+            <span className="hod-strip-val" style={{ color: b.color }}>{b.count}</span>
+            <span className="hod-strip-lbl">{b.label}</span>
+          </div>
+        ))}
       </div>
 
       {/* 3. Toolbar & Filters */}
       <div className="hod-toolbar-card">
         <div className="hod-filter-tabs">
-          {['All', '4th Year', '3rd Year', '2nd Year', '1st Year'].map((tab) => (
+          <button
+            type="button"
+            className={`hod-tab-btn ${batchFilter === 'All' ? 'active' : ''}`}
+            onClick={() => setBatchFilter('All')}
+          >
+            All Batches ({totalEnrolled})
+          </button>
+          {HOD_BATCH_CONFIG.map((b) => (
             <button
-              key={tab}
+              key={b.batchKey}
               type="button"
-              className={`hod-tab-btn ${batchFilter === tab ? 'active' : ''}`}
-              onClick={() => setBatchFilter(tab)}
+              className={`hod-tab-btn ${batchFilter === b.batchKey ? 'active' : ''}`}
+              onClick={() => setBatchFilter(b.batchKey)}
             >
-              {tab === 'All' ? 'All Batches (420)' : tab}
+              {b.label} ({b.count})
             </button>
           ))}
         </div>

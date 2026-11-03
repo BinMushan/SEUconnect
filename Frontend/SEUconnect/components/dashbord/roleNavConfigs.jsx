@@ -149,11 +149,11 @@ export const STUDENT_NAV_SECTIONS = [
     items: [
       { id: 'academic_profile', label: 'Academic Profile', icon: Icons.user },
       { id: 'semester_registration', label: 'Semester Registration', icon: Icons.calendar },
-      { id: 'attendance', label: 'Attendance Standing', icon: Icons.clipboardCheck },
+      { id: 'attendance', label: 'Attendance', icon: Icons.clipboardCheck },
       { id: 'medical_requests', label: 'Medical Requests', icon: Icons.medical },
-      { id: 'examinations', label: 'Examinations Entry', icon: Icons.award },
-      { id: 'results', label: 'Results & Transcript', icon: Icons.chart },
-      { id: 'gpa_cgpa', label: 'GPA / CGPA Ledger', icon: Icons.gradCap },
+      { id: 'examinations', label: 'Examinations', icon: Icons.award },
+      { id: 'results', label: 'Results', icon: Icons.chart },
+      { id: 'gpa_cgpa', label: 'GPA / CGPA', icon: Icons.gradCap },
       { id: 'academic_progress', label: 'Academic Progress', icon: Icons.trendingUp },
     ],
   },
@@ -163,8 +163,20 @@ export const STUDENT_NAV_SECTIONS = [
       { id: 'process_guidance', label: 'Process Guidance', icon: Icons.book },
       { id: 'welfare_scholarships', label: 'Welfare & Scholarships', icon: Icons.shield },
       { id: 'societies_clubs', label: 'Societies & Clubs', icon: Icons.users },
-      { id: 'faculty_forms', label: 'Faculty Forms & Downloads', icon: Icons.fileText, hasSubmenu: true },
-      { id: 'notifications', label: 'Official Notifications', icon: Icons.bell },
+      {
+        id: 'faculty_forms',
+        label: 'Faculty Forms & Instructions',
+        icon: Icons.fileText,
+        hasSubmenu: true,
+        subItems: [
+          { id: 'forms_all', label: 'All Forms & Circulars' },
+          { id: 'forms_exam', label: 'Examination Forms' },
+          { id: 'forms_medical', label: 'Medical & Attendance' },
+          { id: 'forms_piv', label: "Finance & PIV Vouchers" },
+          { id: 'forms_academic', label: 'Academic & Registration' },
+        ],
+      },
+      { id: 'notifications', label: 'Notifications', icon: Icons.bell },
       { id: 'penalties_disciplinary', label: 'Penalties / Disciplinary', icon: Icons.alertCircle },
     ],
   },
@@ -219,6 +231,7 @@ export const HOD_NAV_SECTIONS = [
       { id: 'academic_staff', label: 'Department Academic Staff', icon: Icons.users },
       { id: 'student_roster', label: 'Department Students', icon: Icons.user },
       { id: 'course_coordination', label: 'Course Allocations', icon: Icons.book },
+      { id: 'department_calendar', label: 'Department Academic Calendar', icon: Icons.calendar },
     ],
   },
   {
@@ -251,7 +264,7 @@ export const DEAN_NAV_SECTIONS = [
     title: 'FACULTY GOVERNANCE',
     items: [
       { id: 'faculty_overview', label: 'Faculty of Technology View', icon: Icons.building },
-      { id: 'departments', label: 'Departments (ICT, BST, ET)', icon: Icons.book },
+      { id: 'departments', label: 'Departments (ICT, BST)', icon: Icons.book },
       { id: 'faculty_board', label: 'Faculty Board & Senate', icon: Icons.shield },
       { id: 'academic_calendar', label: 'Faculty Academic Calendar', icon: Icons.calendar },
     ],
@@ -408,7 +421,7 @@ export function getRoleMetaData(user) {
     case 'hod':
       return {
         rolePill: 'HOD',
-        greeting: `Welcome, ${user?.name || 'Dr. M.A. Rifky'}`,
+        greeting: `Welcome, ${user?.name || 'M.J Ahamed Sabani'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • HOD COMMAND',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-ICT-001' },
@@ -420,7 +433,7 @@ export function getRoleMetaData(user) {
     case 'dean':
       return {
         rolePill: 'DEAN',
-        greeting: `Welcome, ${user?.name || 'Prof. U.L. Abdul Majeed'}`,
+        greeting: `Welcome, ${user?.name || 'Prof. Rifai Kariapper'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • DEAN EXECUTIVE',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-FOT-001' },

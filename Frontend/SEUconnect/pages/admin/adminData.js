@@ -1,11 +1,26 @@
 /**
  * SEUConnect - Admin Data Repository & State Models
  * Faculty of Technology, South Eastern University of Sri Lanka (SEUSL)
+ *
+ * Faculty Structure:
+ * - Faculty: Faculty of Technology (SEUSL)
+ * - Executive Leadership: One Dean (Dean, Faculty of Technology)
+ * - Two Departments with Two HODs:
+ *     1. BICT: Department of Information & Communication Technology (HOD - ICT)
+ *        Degree: Bachelor of Information Communication Technology (BICT Hons)
+ *     2. BST: Department of Bio Systems Technology (HOD - BST)
+ *        Degree: Bachelor of Bio Systems Technology (BST Hons)
+ * - Student Reg No Format: 'SEU/IS/22/ICT/091'
+ *     Long format: 'South Eastern University / Internal Students / academic year (e.g. 2022) / Department (ICT or BST) / uni batch reg order (e.g. 091)'
+ * - Current Student Population:
+ *     5 active batches across both departments.
+ *     Each academic year batch has 120 ICT students and 120 BST students (240 students/batch).
+ *     Total faculty enrollment = 5 batches × 240 = 1,200 undergraduates (600 BICT, 600 BST).
  */
 
 export const INITIAL_STATS = {
-  totalStudents: 1482,
-  activeAccounts: 1428,
+  totalStudents: 1200,
+  activeAccounts: 1184,
   pendingMedicals: 14,
   pendingRegistrations: 28,
   pendingExamClearance: 19,
@@ -18,86 +33,96 @@ export const INITIAL_BATCHES = [
   {
     id: 'BATCH-01',
     code: 'B01',
-    name: 'Batch 01 (2019/2020)',
-    academicYear: '2019/2020',
+    name: 'Batch 01 (2020/2021)',
+    academicYear: '2020/2021',
     currentSemester: 'Semester 8 (Final Year)',
     status: 'Graduating / Finalizing',
-    totalStudents: 280,
-    coordinator: 'Dr. S. Sabraz Nawaz',
-    departments: ['ICT', 'BST', 'ET'],
+    totalStudents: 240,
+    ictStudents: 120,
+    bstStudents: 120,
+    coordinator: 'Dr. S. Sabraz Nawaz (HOD - ICT)',
+    departments: ['BICT', 'BST'],
     avgCgpa: 3.42,
     attendanceRate: 88,
-    enrollmentDate: '2020-01-15',
-    regPrefix: '19'
+    enrollmentDate: '2021-02-15',
+    regPrefix: '20'
   },
   {
     id: 'BATCH-02',
     code: 'B02',
-    name: 'Batch 02 (2020/2021)',
-    academicYear: '2020/2021',
-    currentSemester: 'Semester 7 (Year 4)',
+    name: 'Batch 02 (2021/2022)',
+    academicYear: '2021/2022',
+    currentSemester: 'Semester 6 (Year 4)',
     status: 'Active',
-    totalStudents: 295,
-    coordinator: 'Dr. U.L. Abdul Majeed',
-    departments: ['ICT', 'BST', 'ET'],
+    totalStudents: 240,
+    ictStudents: 120,
+    bstStudents: 120,
+    coordinator: 'Dr. U.L. Abdul Majeed (HOD - BST)',
+    departments: ['BICT', 'BST'],
     avgCgpa: 3.38,
     attendanceRate: 91,
-    enrollmentDate: '2021-02-10',
-    regPrefix: '20'
+    enrollmentDate: '2022-03-10',
+    regPrefix: '21'
   },
   {
     id: 'BATCH-03',
     code: 'B03',
-    name: 'Batch 03 (2021/2022)',
-    academicYear: '2021/2022',
-    currentSemester: 'Semester 6 (Year 3)',
-    status: 'Active',
-    totalStudents: 310,
-    coordinator: 'Mrs. M.F. Asfa',
-    departments: ['ICT', 'BST', 'ET'],
-    avgCgpa: 3.45,
-    attendanceRate: 89,
-    enrollmentDate: '2022-03-01',
-    regPrefix: '21'
-  },
-  {
-    id: 'BATCH-04',
-    code: 'B04',
-    name: 'Batch 04 (2022/2023)',
+    name: 'Batch 03 (2022/2023)',
     academicYear: '2022/2023',
     currentSemester: 'Semester 5 (Year 3)',
     status: 'Active',
-    totalStudents: 315,
-    coordinator: 'Mr. A.M. Rameez',
-    departments: ['ICT', 'BST', 'ET'],
-    avgCgpa: 3.30,
+    totalStudents: 240,
+    ictStudents: 120,
+    bstStudents: 120,
+    coordinator: 'Mrs. M.F. Asfa (Senior Lecturer)',
+    departments: ['BICT', 'BST'],
+    avgCgpa: 3.45,
     attendanceRate: 93,
     enrollmentDate: '2023-04-18',
     regPrefix: '22'
   },
   {
-    id: 'BATCH-05',
-    code: 'B05',
-    name: 'Batch 05 (2023/2024)',
+    id: 'BATCH-04',
+    code: 'B04',
+    name: 'Batch 04 (2023/2024)',
     academicYear: '2023/2024',
-    currentSemester: 'Semester 2 (Freshers)',
-    status: 'Active (Freshers)',
-    totalStudents: 282,
-    coordinator: 'Mr. M.A. Rifath',
-    departments: ['ICT', 'BST', 'ET'],
-    avgCgpa: 3.25,
-    attendanceRate: 96,
+    currentSemester: 'Semester 3 (Year 2)',
+    status: 'Active',
+    totalStudents: 240,
+    ictStudents: 120,
+    bstStudents: 120,
+    coordinator: 'Dr. S. Kirushanth (Senior Lecturer)',
+    departments: ['BICT', 'BST'],
+    avgCgpa: 3.30,
+    attendanceRate: 94,
     enrollmentDate: '2024-05-20',
     regPrefix: '23'
+  },
+  {
+    id: 'BATCH-05',
+    code: 'B05',
+    name: 'Batch 05 (2024/2025)',
+    academicYear: '2024/2025',
+    currentSemester: 'Semester 1 (Freshers)',
+    status: 'Active (Freshers)',
+    totalStudents: 240,
+    ictStudents: 120,
+    bstStudents: 120,
+    coordinator: 'Dr. (Mrs.) R. Fathima (SAR Exam & Student Affairs)',
+    departments: ['BICT', 'BST'],
+    avgCgpa: 0.00,
+    attendanceRate: 0,
+    enrollmentDate: '2025-06-15',
+    regPrefix: '24'
   }
 ];
 
 export const INITIAL_STUDENTS = [
   {
     id: 'STU-001',
-    batchId: 'BATCH-04',
-    batchCode: 'Batch 04 (2022/2023)',
-    regNo: '22ICT085',
+    batchId: 'BATCH-03',
+    batchCode: 'Batch 03 (2022/2023)',
+    regNo: 'SEU/IS/22/ICT/085',
     indexNo: 'SEU/IS/22/ICT/085',
     name: 'M.N.M. Afnan',
     programme: 'BICT (Hons)',
@@ -116,9 +141,9 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-002',
-    batchId: 'BATCH-04',
-    batchCode: 'Batch 04 (2022/2023)',
-    regNo: '22ICT091',
+    batchId: 'BATCH-03',
+    batchCode: 'Batch 03 (2022/2023)',
+    regNo: 'SEU/IS/22/ICT/091',
     indexNo: 'SEU/IS/22/ICT/091',
     name: 'M.B.M. Bin Mushan',
     programme: 'BICT (Hons)',
@@ -137,9 +162,9 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-003',
-    batchId: 'BATCH-04',
-    batchCode: 'Batch 04 (2022/2023)',
-    regNo: '22ICT072',
+    batchId: 'BATCH-03',
+    batchCode: 'Batch 03 (2022/2023)',
+    regNo: 'SEU/IS/22/ICT/072',
     indexNo: 'SEU/IS/22/ICT/072',
     name: 'Kamsa Jeyasankar',
     programme: 'BICT (Hons)',
@@ -158,9 +183,9 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-004',
-    batchId: 'BATCH-04',
-    batchCode: 'Batch 04 (2022/2023)',
-    regNo: '22ICT068',
+    batchId: 'BATCH-03',
+    batchCode: 'Batch 03 (2022/2023)',
+    regNo: 'SEU/IS/22/ICT/068',
     indexNo: 'SEU/IS/22/ICT/068',
     name: 'Jelaxsi Kularasan',
     programme: 'BICT (Hons)',
@@ -179,9 +204,9 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-005',
-    batchId: 'BATCH-04',
-    batchCode: 'Batch 04 (2022/2023)',
-    regNo: '22ICT083',
+    batchId: 'BATCH-03',
+    batchCode: 'Batch 03 (2022/2023)',
+    regNo: 'SEU/IS/22/ICT/083',
     indexNo: 'SEU/IS/22/ICT/083',
     name: 'Shahnaz Razick',
     programme: 'BICT (Hons)',
@@ -200,13 +225,13 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-006',
-    batchId: 'BATCH-03',
-    batchCode: 'Batch 03 (2021/2022)',
-    regNo: '21BST045',
+    batchId: 'BATCH-02',
+    batchCode: 'Batch 02 (2021/2022)',
+    regNo: 'SEU/IS/21/BST/045',
     indexNo: 'SEU/IS/21/BST/045',
     name: 'R.M. Kavinda Rathnayake',
     programme: 'BST (Hons)',
-    department: 'Biosystems Technology',
+    department: 'Bio Systems Technology',
     semester: 'Semester 6',
     cgpa: 3.28,
     sgpa: 3.35,
@@ -221,35 +246,35 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-007',
-    batchId: 'BATCH-03',
-    batchCode: 'Batch 03 (2021/2022)',
-    regNo: '21ET032',
-    indexNo: 'SEU/IS/21/ET/032',
+    batchId: 'BATCH-02',
+    batchCode: 'Batch 02 (2021/2022)',
+    regNo: 'SEU/IS/21/BST/032',
+    indexNo: 'SEU/IS/21/BST/032',
     name: 'T. Dinushan Weerasinghe',
-    programme: 'ET (Hons)',
-    department: 'Engineering Technology',
+    programme: 'BST (Hons)',
+    department: 'Bio Systems Technology',
     semester: 'Semester 6',
     cgpa: 2.88,
     sgpa: 2.70,
     credits: 104,
     attendance: 76,
-    email: '21et032@seu.ac.lk',
+    email: '21bst032@seu.ac.lk',
     phone: '+94 76 789 0123',
     status: 'Attendance Barred',
     welfare: 'None',
-    specialization: 'Automobile Technology',
-    repeatModules: ['ET2104']
+    specialization: 'Environmental Technology',
+    repeatModules: ['BST2104']
   },
   {
     id: 'STU-008',
-    batchId: 'BATCH-05',
-    batchCode: 'Batch 05 (2023/2024)',
-    regNo: '23ICT014',
+    batchId: 'BATCH-04',
+    batchCode: 'Batch 04 (2023/2024)',
+    regNo: 'SEU/IS/23/ICT/014',
     indexNo: 'SEU/IS/23/ICT/014',
     name: 'F. Humaida Farook',
     programme: 'BICT (Hons)',
     department: 'Information & Communication Technology',
-    semester: 'Semester 2',
+    semester: 'Semester 3',
     cgpa: 3.88,
     sgpa: 3.90,
     credits: 46,
@@ -263,14 +288,14 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-009',
-    batchId: 'BATCH-02',
-    batchCode: 'Batch 02 (2020/2021)',
-    regNo: '20ICT019',
+    batchId: 'BATCH-01',
+    batchCode: 'Batch 01 (2020/2021)',
+    regNo: 'SEU/IS/20/ICT/019',
     indexNo: 'SEU/IS/20/ICT/019',
     name: 'S.P. Kasun Senarath',
     programme: 'BICT (Hons)',
     department: 'Information & Communication Technology',
-    semester: 'Semester 7',
+    semester: 'Semester 8',
     cgpa: 2.15,
     sgpa: 2.30,
     credits: 114,
@@ -284,13 +309,13 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-010',
-    batchId: 'BATCH-04',
-    batchCode: 'Batch 04 (2022/2023)',
-    regNo: '22BST012',
+    batchId: 'BATCH-03',
+    batchCode: 'Batch 03 (2022/2023)',
+    regNo: 'SEU/IS/22/BST/012',
     indexNo: 'SEU/IS/22/BST/012',
     name: 'A.G. Nisansala Kumari',
     programme: 'BST (Hons)',
-    department: 'Biosystems Technology',
+    department: 'Bio Systems Technology',
     semester: 'Semester 5',
     cgpa: 3.32,
     sgpa: 3.41,
@@ -306,9 +331,9 @@ export const INITIAL_STUDENTS = [
   {
     id: 'STU-011',
     batchId: 'BATCH-01',
-    batchCode: 'Batch 01 (2019/2020)',
-    regNo: '19ICT005',
-    indexNo: 'SEU/IS/19/ICT/005',
+    batchCode: 'Batch 01 (2020/2021)',
+    regNo: 'SEU/IS/20/ICT/005',
+    indexNo: 'SEU/IS/20/ICT/005',
     name: 'Mohamed Sajid Rizvi',
     programme: 'BICT (Hons)',
     department: 'Information & Communication Technology',
@@ -317,7 +342,7 @@ export const INITIAL_STUDENTS = [
     sgpa: 3.80,
     credits: 120,
     attendance: 91,
-    email: '19ict005@seu.ac.lk',
+    email: '20ict005@seu.ac.lk',
     phone: '+94 77 111 2233',
     status: 'Active',
     welfare: 'Mahapola Merit',
@@ -327,37 +352,37 @@ export const INITIAL_STUDENTS = [
   {
     id: 'STU-012',
     batchId: 'BATCH-01',
-    batchCode: 'Batch 01 (2019/2020)',
-    regNo: '19ET012',
-    indexNo: 'SEU/IS/19/ET/012',
+    batchCode: 'Batch 01 (2020/2021)',
+    regNo: 'SEU/IS/20/BST/012',
+    indexNo: 'SEU/IS/20/BST/012',
     name: 'H.M. Nimesh Bandara',
-    programme: 'ET (Hons)',
-    department: 'Engineering Technology',
+    programme: 'BST (Hons)',
+    department: 'Bio Systems Technology',
     semester: 'Semester 8 (Final Year)',
     cgpa: 3.35,
     sgpa: 3.40,
     credits: 120,
     attendance: 88,
-    email: '19et012@seu.ac.lk',
+    email: '20bst012@seu.ac.lk',
     phone: '+94 71 222 3344',
     status: 'Active',
     welfare: 'Bursary Ordinary',
-    specialization: 'Mechanical & Automation',
+    specialization: 'Post-Harvest Technology',
     repeatModules: []
   },
   {
     id: 'STU-013',
-    batchId: 'BATCH-02',
-    batchCode: 'Batch 02 (2020/2021)',
-    regNo: '20BST018',
+    batchId: 'BATCH-01',
+    batchCode: 'Batch 01 (2020/2021)',
+    regNo: 'SEU/IS/20/BST/018',
     indexNo: 'SEU/IS/20/BST/018',
     name: 'P.L. Anuradha Perera',
     programme: 'BST (Hons)',
-    department: 'Biosystems Technology',
-    semester: 'Semester 7',
+    department: 'Bio Systems Technology',
+    semester: 'Semester 8',
     cgpa: 3.48,
     sgpa: 3.52,
-    credits: 110,
+    credits: 118,
     attendance: 93,
     email: '20bst018@seu.ac.lk',
     phone: '+94 76 333 4455',
@@ -368,17 +393,17 @@ export const INITIAL_STUDENTS = [
   },
   {
     id: 'STU-014',
-    batchId: 'BATCH-05',
-    batchCode: 'Batch 05 (2023/2024)',
-    regNo: '23BST022',
+    batchId: 'BATCH-04',
+    batchCode: 'Batch 04 (2023/2024)',
+    regNo: 'SEU/IS/23/BST/022',
     indexNo: 'SEU/IS/23/BST/022',
     name: 'S. Tharushi Wijesekara',
     programme: 'BST (Hons)',
-    department: 'Biosystems Technology',
-    semester: 'Semester 2',
+    department: 'Bio Systems Technology',
+    semester: 'Semester 3',
     cgpa: 3.60,
     sgpa: 3.65,
-    credits: 32,
+    credits: 48,
     attendance: 97,
     email: '23bst022@seu.ac.lk',
     phone: '+94 75 444 5566',
@@ -390,22 +415,43 @@ export const INITIAL_STUDENTS = [
   {
     id: 'STU-015',
     batchId: 'BATCH-05',
-    batchCode: 'Batch 05 (2023/2024)',
-    regNo: '23ET008',
-    indexNo: 'SEU/IS/23/ET/008',
+    batchCode: 'Batch 05 (2024/2025)',
+    regNo: 'SEU/IS/24/ICT/001',
+    indexNo: 'SEU/IS/24/ICT/001',
     name: 'A.R. Aathif Ahamed',
-    programme: 'ET (Hons)',
-    department: 'Engineering Technology',
-    semester: 'Semester 2',
-    cgpa: 3.42,
-    sgpa: 3.50,
-    credits: 32,
-    attendance: 95,
-    email: '23et008@seu.ac.lk',
+    programme: 'BICT (Hons)',
+    department: 'Information & Communication Technology',
+    semester: 'Semester 1',
+    cgpa: 0.00,
+    sgpa: 0.00,
+    credits: 0,
+    attendance: 0,
+    email: '24ict001@seu.ac.lk',
     phone: '+94 77 555 6677',
     status: 'Active',
     welfare: 'Mahapola Merit',
-    specialization: 'General Engineering',
+    specialization: 'Pending Specialization',
+    repeatModules: []
+  },
+  {
+    id: 'STU-016',
+    batchId: 'BATCH-05',
+    batchCode: 'Batch 05 (2024/2025)',
+    regNo: 'SEU/IS/24/BST/001',
+    indexNo: 'SEU/IS/24/BST/001',
+    name: 'M.K. Hansani Dissanayake',
+    programme: 'BST (Hons)',
+    department: 'Bio Systems Technology',
+    semester: 'Semester 1',
+    cgpa: 0.00,
+    sgpa: 0.00,
+    credits: 0,
+    attendance: 0,
+    email: '24bst001@seu.ac.lk',
+    phone: '+94 78 666 7788',
+    status: 'Active',
+    welfare: 'Bursary Ordinary',
+    specialization: 'Pending Specialization',
     repeatModules: []
   }
 ];
@@ -413,7 +459,7 @@ export const INITIAL_STUDENTS = [
 export const INITIAL_REGISTRATIONS = [
   {
     id: 'REG-2026-081',
-    regNo: '22ICT085',
+    regNo: 'SEU/IS/22/ICT/085',
     studentName: 'M.N.M. Afnan',
     programme: 'BICT (Hons)',
     semester: 'Semester 5',
@@ -429,34 +475,34 @@ export const INITIAL_REGISTRATIONS = [
       'ICT3106 - Professional Ethics & Law in IT (3 Cr)'
     ],
     status: 'Approved',
-    approvedBy: 'Dr. Faculty Registrar',
+    approvedBy: 'Dr. S. Sabraz Nawaz (HOD - ICT)',
     approvalDate: '2026-10-09'
   },
   {
     id: 'REG-2026-082',
-    regNo: '21ET032',
+    regNo: 'SEU/IS/21/BST/032',
     studentName: 'T. Dinushan Weerasinghe',
-    programme: 'ET (Hons)',
-    semester: 'Semester 7',
+    programme: 'BST (Hons)',
+    semester: 'Semester 6',
     submissionDate: '2026-10-09',
     type: 'Add/Drop Module Amendment',
     totalCredits: 21,
     modules: [
-      'ET4101 - Power Systems & Distribution (3 Cr)',
-      'ET4102 - Industrial Automation & PLC (3 Cr)',
-      'ET4103 - Robotics Systems & Kinematics (3 Cr)',
-      'ET4104 - Engineering Economics & Management (3 Cr)',
-      'ET2104 - Thermodynamics (Repeat Module - 3 Cr)',
-      'ET4106 - Capstone Research Project I (6 Cr)'
+      'BST3101 - Food Processing & Preservation (3 Cr)',
+      'BST3102 - Bioprocess Engineering & Fermentation (3 Cr)',
+      'BST3103 - Agricultural Waste Valorization (3 Cr)',
+      'BST3104 - Post-Harvest Technology (3 Cr)',
+      'BST2104 - Applied Thermodynamics for Bio Systems (Repeat Module - 3 Cr)',
+      'BST3106 - Capstone Research Methodology (6 Cr)'
     ],
     status: 'Pending',
     approvedBy: null,
     approvalDate: null,
-    remarks: 'Requires HOD endorsement for exceeding normal credit cap (21 credits).'
+    remarks: 'Requires HOD (BST) endorsement for exceeding normal credit cap (21 credits).'
   },
   {
     id: 'REG-2026-083',
-    regNo: '23ICT014',
+    regNo: 'SEU/IS/23/ICT/014',
     studentName: 'F. Humaida Farook',
     programme: 'BICT (Hons)',
     semester: 'Semester 3',
@@ -479,7 +525,7 @@ export const INITIAL_REGISTRATIONS = [
   },
   {
     id: 'REG-2026-084',
-    regNo: '20ICT019',
+    regNo: 'SEU/IS/20/ICT/019',
     studentName: 'S.P. Kasun Senarath',
     programme: 'BICT (Hons)',
     semester: 'Semester 8 (Repeat)',
@@ -491,7 +537,7 @@ export const INITIAL_REGISTRATIONS = [
       'ICT3103 - Network Security (Repeat - 3 Cr)'
     ],
     status: 'Approved',
-    approvedBy: 'Senior Assistant Registrar',
+    approvedBy: 'Senior Assistant Registrar (Examinations)',
     approvalDate: '2026-10-07'
   }
 ];
@@ -499,7 +545,7 @@ export const INITIAL_REGISTRATIONS = [
 export const INITIAL_MEDICALS = [
   {
     id: 'MED-2026-014',
-    regNo: '22ICT085',
+    regNo: 'SEU/IS/22/ICT/085',
     studentName: 'M.N.M. Afnan',
     programme: 'BICT (Hons)',
     submissionDate: '2026-10-05',
@@ -519,14 +565,14 @@ export const INITIAL_MEDICALS = [
   },
   {
     id: 'MED-2026-015',
-    regNo: '21ET032',
+    regNo: 'SEU/IS/21/BST/032',
     studentName: 'T. Dinushan Weerasinghe',
-    programme: 'ET (Hons)',
+    programme: 'BST (Hons)',
     submissionDate: '2026-10-08',
     period: '2026-09-22 to 2026-09-29 (8 days)',
     affectedModules: [
-      'ET4101 - Power Systems Lab',
-      'ET4102 - Industrial Automation Mid-Exam'
+      'BST3101 - Food Chemistry Lab',
+      'BST3102 - Bioprocess Engineering Mid-Exam'
     ],
     medicalOfficer: 'District General Hospital - Ampara (External Govt. Hospital)',
     diagnosis: 'Fracture of right radius bone (Cast immobilization)',
@@ -540,7 +586,7 @@ export const INITIAL_MEDICALS = [
   },
   {
     id: 'MED-2026-016',
-    regNo: '22BST012',
+    regNo: 'SEU/IS/22/BST/012',
     studentName: 'A.G. Nisansala Kumari',
     programme: 'BST (Hons)',
     submissionDate: '2026-10-09',
@@ -560,7 +606,7 @@ export const INITIAL_MEDICALS = [
   },
   {
     id: 'MED-2026-017',
-    regNo: '20ICT019',
+    regNo: 'SEU/IS/20/ICT/019',
     studentName: 'S.P. Kasun Senarath',
     programme: 'BICT (Hons)',
     submissionDate: '2026-09-15',
@@ -584,26 +630,26 @@ export const INITIAL_EXAMINATIONS = [
   {
     id: 'EXAM-2026-01',
     examTitle: 'Semester V End Semester Examination (ESA) - 2026/2027',
-    programme: 'BICT (Hons), BST (Hons), ET (Hons)',
+    programme: 'BICT (Hons), BST (Hons)',
     startDate: '2026-11-16',
     endDate: '2026-12-08',
     registrationDeadline: '2026-10-30',
-    totalEligibleCandidates: 384,
-    totalBarredAttendance: 14,
-    totalRepeatCandidates: 28,
+    totalEligibleCandidates: 232,
+    totalBarredAttendance: 8,
+    totalRepeatCandidates: 16,
     status: 'Registration Active',
     eligibilityCriteria: '80% Minimum Lecture & Practical Attendance, 100% CA Completion, Paid PIV Voucher'
   },
   {
     id: 'EXAM-2026-02',
     examTitle: 'Semester III End Semester Examination (ESA) - 2026/2027',
-    programme: 'BICT (Hons), BST (Hons), ET (Hons)',
+    programme: 'BICT (Hons), BST (Hons)',
     startDate: '2026-12-10',
     endDate: '2026-12-28',
     registrationDeadline: '2026-11-15',
-    totalEligibleCandidates: 412,
-    totalBarredAttendance: 19,
-    totalRepeatCandidates: 35,
+    totalEligibleCandidates: 236,
+    totalBarredAttendance: 4,
+    totalRepeatCandidates: 12,
     status: 'Upcoming Verification',
     eligibilityCriteria: '80% Minimum Attendance, Valid Medical Excuse Approval, CA Clearance'
   }
@@ -612,7 +658,7 @@ export const INITIAL_EXAMINATIONS = [
 export const INITIAL_REPEAT_CANDIDATES = [
   {
     id: 'RPT-101',
-    regNo: '20ICT019',
+    regNo: 'SEU/IS/20/ICT/019',
     studentName: 'S.P. Kasun Senarath',
     programme: 'BICT (Hons)',
     moduleCode: 'ICT2102',
@@ -626,11 +672,11 @@ export const INITIAL_REPEAT_CANDIDATES = [
   },
   {
     id: 'RPT-102',
-    regNo: '21ET032',
+    regNo: 'SEU/IS/21/BST/032',
     studentName: 'T. Dinushan Weerasinghe',
-    programme: 'ET (Hons)',
-    moduleCode: 'ET2104',
-    moduleName: 'Thermodynamics',
+    programme: 'BST (Hons)',
+    moduleCode: 'BST2104',
+    moduleName: 'Applied Thermodynamics for Bio Systems',
     attempt: 'Fresh Repeat (Medical Cleared)',
     previousGrade: 'MC',
     caCarriedOver: true,
@@ -640,7 +686,7 @@ export const INITIAL_REPEAT_CANDIDATES = [
   },
   {
     id: 'RPT-103',
-    regNo: '21BST045',
+    regNo: 'SEU/IS/21/BST/045',
     studentName: 'R.M. Kavinda Rathnayake',
     programme: 'BST (Hons)',
     moduleCode: 'BST2105',
@@ -659,12 +705,12 @@ export const INITIAL_ANNOUNCEMENTS = [
     id: 'ANN-01',
     title: 'Submission of ESA Examination Entry Forms - Semester 5 & Semester 7',
     category: 'Examination',
-    targetAudience: 'All Technology Students',
+    targetAudience: 'All Technology Students (BICT & BST)',
     priority: 'Urgent',
     publishDate: '2026-10-10',
     publishedBy: 'Senior Assistant Registrar (Examinations)',
     pinned: true,
-    content: 'All eligible students for the upcoming Semester 5 and Semester 7 End Semester Examinations are required to verify their subject registrations, check attendance standing on SEUConnect, and submit signed examination admission confirmation slips by October 30, 2026.'
+    content: 'All eligible students from BICT and BST for the upcoming Semester 5 and Semester 7 End Semester Examinations are required to verify their subject registrations, check attendance standing on SEUConnect, and submit signed examination admission confirmation slips by October 30, 2026.'
   },
   {
     id: 'ANN-02',
@@ -690,14 +736,14 @@ export const INITIAL_ANNOUNCEMENTS = [
   },
   {
     id: 'ANN-04',
-    title: 'Annual Technology Symposium & ICTSA Hackathon 2026 Call for Registrations',
+    title: 'Annual Technology Symposium & BioTech / ICT Hackathon 2026 Call for Registrations',
     category: 'Societies',
     targetAudience: 'Faculty of Technology',
     priority: 'Normal',
     publishDate: '2026-10-02',
-    publishedBy: 'ICT Student Association (ICTSA)',
+    publishedBy: 'Technology Student Association',
     pinned: false,
-    content: 'The ICT Student Association in collaboration with IEEE SEUSL Student Branch invites teams from BICT, BST, and ET to register for TechVent 2026 Hackathon. Official permits and lab resource access have been authorized by the Dean.'
+    content: 'The Technology Student Association in collaboration with IEEE SEUSL Student Branch invites teams from BICT and BST to register for TechVent 2026. Official permits and lab resource access have been authorized by the Dean.'
   }
 ];
 
@@ -767,10 +813,10 @@ export const INITIAL_FACULTY_FORMS = [
 export const INITIAL_PENALTIES = [
   {
     id: 'PEN-2026-001',
-    regNo: '21ET032',
+    regNo: 'SEU/IS/21/BST/032',
     studentName: 'T. Dinushan Weerasinghe',
     category: 'Laboratory Breaches',
-    description: 'Overdue high-precision digital oscilloscope borrowed from Power Lab #2.',
+    description: 'Overdue high-precision digital incubator borrowed from Biosystems Lab #2.',
     penaltyAmount: 'Rs. 1,500 Late Fine',
     imposedDate: '2026-09-20',
     imposedBy: 'Technical Officer / Lab In-Charge',
@@ -779,7 +825,7 @@ export const INITIAL_PENALTIES = [
   },
   {
     id: 'PEN-2026-002',
-    regNo: '20ICT019',
+    regNo: 'SEU/IS/20/ICT/019',
     studentName: 'S.P. Kasun Senarath',
     category: 'Examination Breaches',
     description: 'Carrying unauthorized revision sheet into ESA Examination Hall (Dec 2025).',
@@ -791,7 +837,7 @@ export const INITIAL_PENALTIES = [
   },
   {
     id: 'PEN-2026-003',
-    regNo: '21BST045',
+    regNo: 'SEU/IS/21/BST/045',
     studentName: 'R.M. Kavinda Rathnayake',
     category: 'Library Overdue',
     description: 'Overdue textbook: "Biotechnology & Fermentation Engineering" (3 weeks).',
@@ -845,12 +891,12 @@ export const INITIAL_USERS = [
   },
   {
     id: 'USR-04',
-    name: 'Senior Assistant Registrar (Examinations)',
+    name: 'Dr. (Mrs.) R. Fathima',
     email: 'Examination@gmail.com',
     role: 'Examination Officer',
     roleKey: 'examination',
     department: 'Examination Branch',
-    designation: 'Senior Assistant Registrar (Examinations)',
+    designation: 'Senior Assistant Registrar (Examinations & Records)',
     isLeadership: true,
     status: 'Active',
     lastLogin: '2026-10-11 10:05 AM',
@@ -862,28 +908,15 @@ export const INITIAL_USERS = [
     email: 'hod.bst@seu.ac.lk',
     role: 'Head of Department (HOD)',
     roleKey: 'hod',
-    department: 'Biosystems Technology',
-    designation: 'Head / Senior Lecturer Gr. I in Biosystems',
+    department: 'Bio Systems Technology',
+    designation: 'Head / Senior Lecturer Gr. I in Bio Systems',
     isLeadership: true,
     status: 'Active',
     lastLogin: '2026-10-11 08:30 AM',
-    permissions: 'BST Module Endorsement, Agricultural Labs Oversight, Attendance Signoff'
+    permissions: 'BST Module Endorsement, Bio Systems Labs Oversight, Attendance Signoff'
   },
   {
     id: 'USR-06',
-    name: 'Dr. A.M. Aslam Saja',
-    email: 'hod.et@seu.ac.lk',
-    role: 'Head of Department (HOD)',
-    roleKey: 'hod',
-    department: 'Engineering Technology',
-    designation: 'Head / Senior Lecturer Gr. II in Engineering Tech',
-    isLeadership: true,
-    status: 'Active',
-    lastLogin: '2026-10-10 05:15 PM',
-    permissions: 'ET Lab Allocations, Industrial Training Approvals, Curriculum Review'
-  },
-  {
-    id: 'USR-07',
     name: 'Mrs. M.F. Asfa',
     email: 'Lecturer@gmail.com',
     role: 'Lecturer',
@@ -896,20 +929,20 @@ export const INITIAL_USERS = [
     permissions: 'Lecture Attendance Marking, CA Mark Upload, LMS Course Management'
   },
   {
-    id: 'USR-08',
-    name: 'Mr. A.M. Rameez',
-    email: 'rameez.et@seu.ac.lk',
+    id: 'USR-07',
+    name: 'Dr. K.M. Farook',
+    email: 'farook.bst@seu.ac.lk',
     role: 'Lecturer',
     roleKey: 'lecturer',
-    department: 'Engineering Technology',
-    designation: 'Lecturer (Probationary) in Mechatronics',
+    department: 'Bio Systems Technology',
+    designation: 'Senior Lecturer Gr. II in Agricultural Systems',
     isLeadership: false,
     status: 'Active',
-    lastLogin: '2026-10-09 11:40 AM',
-    permissions: 'Laboratory Practical Assessment, CA Entry, Attendance Recording'
+    lastLogin: '2026-10-10 11:20 AM',
+    permissions: 'Bio Systems Practical Assessment, CA Entry, Attendance Recording'
   },
   {
-    id: 'USR-09',
+    id: 'USR-08',
     name: 'Campus Enterprise Super Admin',
     email: 'superadmin@seu.ac.lk',
     role: 'Super Admin',
@@ -922,13 +955,26 @@ export const INITIAL_USERS = [
     permissions: 'Global Access Control, Role Delegation, System Auditing, Batch Partitioning'
   },
   {
+    id: 'USR-09',
+    name: 'M.B.M. Bin Mushan (BICT Undergraduate)',
+    email: '22ict091@seu.ac.lk',
+    role: 'Student',
+    roleKey: 'student',
+    department: 'Information & Communication Technology',
+    designation: 'Undergraduate - Batch 03 (2022/2023)',
+    isLeadership: false,
+    status: 'Active',
+    lastLogin: '2026-10-11 12:15 PM',
+    permissions: 'Student Portal, Course Registration, Requests View, Exam Tickets'
+  },
+  {
     id: 'USR-10',
     name: 'M.N.M. Afnan (BICT Undergraduate)',
     email: 'Student@gmail.com',
     role: 'Student',
     roleKey: 'student',
     department: 'Information & Communication Technology',
-    designation: 'Undergraduate - Batch 04 (2022/2023)',
+    designation: 'Undergraduate - Batch 03 (2022/2023)',
     isLeadership: false,
     status: 'Active',
     lastLogin: '2026-10-11 12:20 PM',
@@ -942,21 +988,21 @@ export const INITIAL_AUDIT_LOG = [
     time: 'Today, 11:32 AM',
     user: 'Admin@gmail.com',
     action: 'Approved Medical Request',
-    detail: 'MED-2026-014 (M.N.M. Afnan - 22ICT085). Attendance updated to 87%.'
+    detail: 'MED-2026-014 (M.N.M. Afnan - SEU/IS/22/ICT/085). Attendance updated to 87%.'
   },
   {
     id: 'LOG-002',
     time: 'Today, 10:14 AM',
     user: 'Admin@gmail.com',
     action: 'Published Announcement',
-    detail: 'ANN-01: Submission of ESA Examination Entry Forms - Semester 5 & 7.'
+    detail: 'ANN-01: Submission of ESA Examination Entry Forms - Semester 5 & 7 (BICT & BST).'
   },
   {
     id: 'LOG-003',
     time: 'Yesterday, 04:45 PM',
     user: 'Admin@gmail.com',
     action: 'Cleared Repeat Candidate',
-    detail: 'RPT-101 (20ICT019 - ICT2102 Data Structures) verified with PIV slip.'
+    detail: 'RPT-101 (SEU/IS/20/ICT/019 - ICT2102 Data Structures) verified with PIV slip.'
   },
   {
     id: 'LOG-004',
@@ -970,6 +1016,6 @@ export const INITIAL_AUDIT_LOG = [
     time: '2026-10-09, 11:00 AM',
     user: 'Admin@gmail.com',
     action: 'Approved Semester Registration',
-    detail: 'REG-2026-081 (22ICT085 - Semester 5 BICT 18 credits).'
+    detail: 'REG-2026-081 (SEU/IS/22/ICT/085 - Semester 5 BICT 18 credits).'
   }
 ];
