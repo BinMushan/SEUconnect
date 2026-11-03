@@ -172,7 +172,8 @@ export const STUDENT_NAV_SECTIONS = [
           { id: 'forms_all', label: 'All Forms & Circulars' },
           { id: 'forms_exam', label: 'Examination Forms' },
           { id: 'forms_medical', label: 'Medical & Attendance' },
-          { id: 'forms_piv', label: "People's Bank PIV Voucher" }
+          { id: 'forms_piv', label: "Finance & PIV Vouchers" },
+          { id: 'forms_academic', label: 'Academic & Registration' },
         ],
       },
       { id: 'notifications', label: 'Notifications', icon: Icons.bell },

@@ -242,7 +242,8 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
   const getInitialCategory = () => {
     if (activeSubTab === 'forms_exam') return 'Examination';
     if (activeSubTab === 'forms_medical') return 'Medical / Attendance';
-    if (activeSubTab === 'forms_piv') return 'Finance & Fees';
+    if (activeSubTab === 'forms_piv' || activeSubTab === 'forms_finance') return 'Finance & Fees';
+    if (activeSubTab === 'forms_academic') return 'Academic / Registration';
     return 'All';
   };
 
@@ -264,12 +265,11 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     } else if (activeSubTab === 'forms_medical') {
       setSelectedCategory('Medical / Attendance');
       setViewMode('list');
-    } else if (activeSubTab === 'forms_piv') {
+    } else if (activeSubTab === 'forms_piv' || activeSubTab === 'forms_finance') {
       setSelectedCategory('Finance & Fees');
-      const pivForm = OFFICIAL_FORMS.find(f => f.formId === 'SEU-PIV-VOUCHER');
-      if (pivForm) {
-        setSelectedForm(pivForm);
-      }
+      setViewMode('list');
+    } else if (activeSubTab === 'forms_academic') {
+      setSelectedCategory('Academic / Registration');
       setViewMode('list');
     } else if (activeSubTab === 'forms_all' || activeSubTab === 'faculty_forms') {
       setSelectedCategory('All');
@@ -880,22 +880,13 @@ Note: Present this completed official document with attached original bank PIV s
               />
             </div>
 
-            <div className="seu-forms-filter-row">
-              <div className="seu-forms-categories">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`seu-category-pill ${selectedCategory === cat ? 'active' : ''}`}
-                    onClick={() => setSelectedCategory(cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
+            <div className="seu-forms-status-bar">
+              <div className="seu-forms-active-cat-indicator">
+                <span className="seu-forms-cat-dot"></span>
+                <span>Active Filter: <strong>{selectedCategory === 'All' ? 'All Forms & Circulars' : selectedCategory}</strong></span>
               </div>
-
               <div className="seu-forms-count-badge">
-                Showing <strong>{filteredForms.length}</strong> official forms
+                Showing <strong>{filteredForms.length}</strong> official form{filteredForms.length === 1 ? '' : 's'}
               </div>
             </div>
           </div>

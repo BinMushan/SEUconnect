@@ -17,7 +17,7 @@
   --seu-brand-yellow-dark: #d97706;
   --seu-brand-yellow-light: #fbbf24;
   
-  --seu-topbar-bg: rgba(255, 255, 255, 0.94);
+  --seu-topbar-bg: #ffffff;
   --seu-topbar-border: #e2e8f0;
   
   --seu-dash-bg: #edf5fe;
@@ -321,17 +321,15 @@
 /* Top Navigation Bar */
 .seu-dash-topbar {
   height: 64px;
-  background-color: var(--seu-topbar-bg);
-  backdrop-filter: blur(10px);
+  background-color: #ffffff;
   border-bottom: 1px solid var(--seu-topbar-border);
   padding: 0 1.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 15;
+  position: relative;
+  z-index: 5;
   box-sizing: border-box;
 }
 
@@ -665,8 +663,13 @@
    ========================================================================== */
 .seu-dash-body-content {
   flex: 1;
-  padding: 0 1.75rem 2rem 1.75rem;
+  padding: 1.85rem 2rem 3rem 2rem;
   box-sizing: border-box;
+}
+
+/* When hero banner is present on the main dashboard, hero banner already provides top margin */
+.seu-dash-hero-banner + .seu-dash-body-content {
+  padding-top: 0.25rem;
 }
 
 .seu-dash-placeholder-box {
@@ -811,7 +814,11 @@
   }
 
   .seu-dash-body-content {
-    padding: 0 0.85rem 1.5rem 0.85rem;
+    padding: 1.25rem 0.85rem 2rem 0.85rem;
+  }
+
+  .seu-dash-hero-banner + .seu-dash-body-content {
+    padding-top: 0;
   }
 }
 
