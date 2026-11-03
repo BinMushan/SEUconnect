@@ -282,8 +282,29 @@
 
 .lec-stats-grid-6 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1440px) {
+  .lec-stats-grid-6 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .lec-stats-grid-6 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lec-stats-grid-6 {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 }
 
 /* StatCard Styling */
@@ -1024,6 +1045,80 @@
   gap: 0.75rem;
 }
 
+.lec-unsaved-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lec-unsaved-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+}
+.lec-unsaved-btn:hover {
+  background: #fde68a;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.25);
+}
+
+.unsaved-pulsing-dot {
+  width: 8px;
+  height: 8px;
+  background: #d97706;
+  border-radius: 50%;
+  display: inline-block;
+  animation: unsaved-pulse 1.4s infinite;
+}
+@keyframes unsaved-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.6; }
+}
+
+.lec-discard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.lec-discard-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.lec-all-saved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+}
+
 .lec-unsaved-badge {
   background: #fef3c7;
   color: #b45309;
@@ -1122,37 +1217,43 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   border-bottom: 1px solid #f1f5f9;
   flex-wrap: wrap;
 }
 
 .lec-table-search {
   position: relative;
-  flex: 1;
+  flex: 0 1 380px;
+  max-width: 420px;
   min-width: 240px;
 }
 .lec-table-search svg {
   position: absolute;
-  left: 0.75rem;
+  left: 0.85rem;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
+  pointer-events: none;
 }
 .lec-table-search input {
   width: 100%;
-  padding: 0.45rem 2rem 0.45rem 2.1rem;
+  box-sizing: border-box;
+  padding: 0.52rem 2.2rem 0.52rem 2.4rem;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.84rem;
   outline: none;
+  background: #ffffff;
+  transition: all 0.2s ease;
 }
 .lec-table-search input:focus {
   border-color: #0f2b5c;
+  box-shadow: 0 0 0 3px rgba(15, 43, 92, 0.08);
 }
 .lec-table-search .clear-btn {
   position: absolute;
-  right: 0.6rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -1161,10 +1262,16 @@
   cursor: pointer;
   font-size: 1.1rem;
 }
+.lec-table-search .clear-btn:hover {
+  color: #475569;
+}
 
 .lec-bulk-actions {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .lec-btn-bulk-present {
@@ -1410,6 +1517,42 @@
   padding: 0.5rem 0.6rem;
   border-radius: 6px;
   background: #f8fafc;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.analytics-sub-item.is-active-subject {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.active-sub-badge {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.student-status-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-right: 0.35rem;
+}
+.student-status-badge.status-present {
+  background: #dcfce7;
+  color: #166534;
+}
+.student-status-badge.status-absent {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.text-danger {
+  color: #ef4444;
 }
 .sub-header-row {
   display: flex;
@@ -2503,6 +2646,685 @@
   border-color: #0f2b5c;
 }
 
+/* Interactive Clickable Notifications */
+.lec-notif-item.is-clickable {
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.lec-notif-item.is-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 43, 92, 0.08);
+  border-color: #93c5fd;
+}
+.lec-notif-item.is-clickable:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+.lec-notif-action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 8px;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.lec-notif-action-chip:hover {
+  background: #0f2b5c;
+  border-color: #0f2b5c;
+  color: #ffffff;
+}
+.lec-notif-item.is-clickable:hover .lec-notif-action-chip {
+  background: #0f2b5c;
+  border-color: #0f2b5c;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   10. STUDENT MEDICAL APPROVAL & VERIFICATION MODULE (LIGHT MODE BASE)
+   ========================================================================== */
+.lec-medical-verification-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.25rem 0 2rem;
+}
+
+.lec-med-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.lec-med-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #0f2b5c;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lec-med-back-btn:hover {
+  background: #0f2b5c;
+  border-color: #0f2b5c;
+  color: #ffffff;
+}
+
+.lec-med-breadcrumb-sep {
+  color: #94a3b8;
+}
+
+.lec-med-breadcrumb-current {
+  color: #475569;
+  font-weight: 600;
+}
+
+.lec-med-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.lec-btn-bulk-verify {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #0d9488;
+  color: #ffffff;
+  border: 1px solid #0d9488;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lec-btn-bulk-verify:hover:not(:disabled) {
+  background: #0f766e;
+}
+.lec-btn-bulk-verify:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lec-btn-forward-hod {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #0f2b5c;
+  color: #ffffff;
+  border: 1px solid #0f2b5c;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lec-btn-forward-hod:hover {
+  background: #1e3a8a;
+}
+
+/* Quick Metrics Stats Grid */
+.lec-med-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .lec-med-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .lec-med-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lec-med-stat-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease;
+}
+.lec-med-stat-box:hover {
+  transform: translateY(-2px);
+}
+.lec-med-stat-box.pending {
+  border-left: 4px solid #f59e0b;
+}
+.lec-med-stat-box.verified {
+  border-left: 4px solid #10b981;
+}
+.lec-med-stat-box.rejected {
+  border-left: 4px solid #ef4444;
+}
+.lec-med-stat-box.total {
+  border-left: 4px solid #0284c7;
+}
+
+.med-stat-num {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.3rem;
+}
+.lec-med-stat-box.pending .med-stat-num { color: #d97706; }
+.lec-med-stat-box.verified .med-stat-num { color: #059669; }
+.lec-med-stat-box.rejected .med-stat-num { color: #dc2626; }
+.lec-med-stat-box.total .med-stat-num { color: #0284c7; }
+
+.med-stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Controls Card */
+.lec-med-controls-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.lec-med-search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  flex: 1;
+  min-width: 260px;
+}
+.lec-med-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.88rem;
+  color: #0f172a;
+  width: 100%;
+}
+.clear-search-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+.lec-med-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lec-med-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+}
+.lec-med-select-wrap select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  color: #0f172a;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Submissions Feed Cards */
+.lec-med-submissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lec-med-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.35rem 1.45rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.lec-med-card:hover {
+  box-shadow: 0 6px 18px rgba(15, 43, 92, 0.07);
+  border-color: #93c5fd;
+}
+.lec-med-card.pending-verification {
+  border-left: 5px solid #f59e0b;
+}
+.lec-med-card.verified---excused {
+  border-left: 5px solid #10b981;
+}
+.lec-med-card.rejected {
+  border-left: 5px solid #ef4444;
+}
+
+.lec-med-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lec-med-student-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.lec-med-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lec-med-student-name {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.lec-med-reg-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.lec-med-subject-line {
+  font-size: 0.84rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+.lec-med-code {
+  font-weight: 700;
+  color: #0f2b5c;
+  background: #f1f5f9;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+.lec-med-status-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
+.lec-med-status-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+.lec-med-status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.lec-med-status-badge.verified {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.lec-med-status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.lec-med-submitted-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Details Grid */
+.lec-med-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 0.95rem 1.15rem;
+}
+@media (max-width: 640px) {
+  .lec-med-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lec-med-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+.lec-med-detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.med-detail-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.med-detail-val {
+  color: #1e293b;
+  font-size: 0.88rem;
+}
+.med-detail-val.text-reason {
+  color: #334155;
+  line-height: 1.45;
+}
+.rejection-note {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Card Bottom Actions */
+.lec-med-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 0.35rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.lec-btn-preview-cert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #0f2b5c;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lec-btn-preview-cert:hover {
+  background: #0f2b5c;
+  border-color: #0f2b5c;
+  color: #ffffff;
+}
+
+.lec-med-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.lec-btn-reject-med {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  border: 1px solid #ef4444;
+  color: #dc2626;
+  padding: 0.5rem 0.95rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lec-btn-reject-med:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.lec-btn-approve-med {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #10b981;
+  border: 1px solid #059669;
+  color: #ffffff;
+  padding: 0.5rem 1.15rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lec-btn-approve-med:hover {
+  background: #059669;
+}
+
+.lec-verified-stamp {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #059669;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+}
+.lec-rejected-stamp {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Certificate Preview Modal */
+.lec-modal-content.cert-modal {
+  max-width: 680px;
+  width: 95%;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+.lec-cert-body {
+  padding: 1.5rem 1.75rem;
+}
+.cert-inst-title {
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  letter-spacing: 0.04em;
+}
+.cert-inst-sub {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+.cert-divider {
+  height: 2px;
+  background: #e2e8f0;
+  margin: 1rem 0 1.25rem;
+}
+.cert-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+}
+.cert-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+.cert-val {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+.cert-diagnosis-box {
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  margin-top: 1rem;
+}
+.cert-box-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f766e;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.cert-diagnosis-text {
+  font-size: 0.9rem;
+  color: #134e4a;
+  line-height: 1.45;
+  margin: 0 0 0.5rem;
+}
+.cert-hospital-line {
+  font-size: 0.78rem;
+  color: #475569;
+}
+.cert-endorsement-banner {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+.cert-seal-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #047857;
+  background: #d1fae5;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.cert-seal-text {
+  font-size: 0.78rem;
+  color: #065f46;
+  line-height: 1.4;
+}
+
+.lec-btn-cancel-modal {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.lec-btn-cancel-modal:hover {
+  background: #e2e8f0;
+}
+.lec-btn-approve-modal {
+  background: #10b981;
+  border: 1px solid #059669;
+  color: #ffffff;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.lec-btn-approve-modal:hover {
+  background: #059669;
+}
+.lec-btn-confirm-reject {
+  background: #dc2626;
+  border: 1px solid #b91c1c;
+  color: #ffffff;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.lec-btn-confirm-reject:hover {
+  background: #b91c1c;
+}
+
 /* ==========================================================================
    11. LECTURER PROFILE & IDENTITY DETAILS MODULE
    ========================================================================== */
@@ -2909,3 +3731,1316 @@
 .btn-danger:hover { background: #b91c1c; }
 .btn-success { background: #16a34a; }
 .btn-success:hover { background: #15803d; }
+
+
+/* ==========================================================================
+   Comprehensive Modern Dark Mode Styles for Lecturer Portal Modules
+   ========================================================================== */
+
+/* 1. Welcome Banners, Section Headings & Notices */
+.dark-mode .lec-welcome-banner,
+.dark-mode .lec-module-header-card {
+  background: linear-gradient(135deg, #070e1c 0%, #0d1930 100%) !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark-mode .lec-welcome-title,
+.dark-mode .lec-module-title,
+.dark-mode .lec-section-heading {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-welcome-desc,
+.dark-mode .lec-module-sub,
+.dark-mode .lec-section-sub {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-date-badge {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-semester-badge {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-banner-btn-primary {
+  background: #0284c7 !important;
+  border: 1px solid #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3) !important;
+}
+.dark-mode .lec-banner-btn-primary:hover {
+  background: #0369a1 !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
+}
+
+.dark-mode .lec-banner-btn-secondary {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #e2e8f0 !important;
+}
+.dark-mode .lec-banner-btn-secondary:hover {
+  background: #1e2c44 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-link-btn {
+  color: #38bdf8 !important;
+}
+.dark-mode .lec-link-btn:hover {
+  color: #7dd3fc !important;
+}
+
+.dark-mode .lec-module-meta-pill {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-info-notice-banner {
+  background: #09172a !important;
+  border: 1px solid #0369a1 !important;
+  color: #bae6fd !important;
+}
+
+/* 2. Key Academic Indicators (Stat Cards) */
+.dark-mode .lec-stat-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .lec-stat-card.interactive:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  transform: translateY(-2px) !important;
+}
+
+.dark-mode .lec-stat-title {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-stat-value {
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-stat-subtext {
+  color: #64748b !important;
+}
+
+/* Stat Card Badges (Refined Dark Theme Pills) */
+.dark-mode .badge-success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.dark-mode .badge-primary {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #a5b4fc !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+.dark-mode .badge-info {
+  background: rgba(14, 165, 233, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(14, 165, 233, 0.3) !important;
+}
+.dark-mode .badge-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+.dark-mode .badge-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+.dark-mode .badge-purple {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+}
+
+/* Stat Card Icon Wrappers (Subtle Translucent Tinted Accent) */
+.dark-mode .color-blue .lec-stat-icon-wrap {
+  background: rgba(2, 132, 199, 0.14) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(2, 132, 199, 0.25) !important;
+}
+.dark-mode .color-indigo .lec-stat-icon-wrap {
+  background: rgba(79, 70, 229, 0.14) !important;
+  color: #818cf8 !important;
+  border: 1px solid rgba(79, 70, 229, 0.25) !important;
+}
+.dark-mode .color-cyan .lec-stat-icon-wrap {
+  background: rgba(8, 145, 178, 0.14) !important;
+  color: #22d3ee !important;
+  border: 1px solid rgba(8, 145, 178, 0.25) !important;
+}
+.dark-mode .color-amber .lec-stat-icon-wrap {
+  background: rgba(217, 119, 6, 0.14) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(217, 119, 6, 0.25) !important;
+}
+.dark-mode .color-rose .lec-stat-icon-wrap {
+  background: rgba(225, 29, 72, 0.14) !important;
+  color: #fb7185 !important;
+  border: 1px solid rgba(225, 29, 72, 0.25) !important;
+}
+.dark-mode .color-purple .lec-stat-icon-wrap {
+  background: rgba(147, 51, 234, 0.14) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(147, 51, 234, 0.25) !important;
+}
+
+/* 3. Today's Class Schedule Cards */
+.dark-mode .lec-class-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .lec-class-card:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+.dark-mode .lec-class-card.status-ongoing {
+  border-left: 4px solid #10b981 !important;
+}
+.dark-mode .lec-class-card.status-upcoming {
+  border-left: 4px solid #38bdf8 !important;
+}
+.dark-mode .lec-class-card.status-completed {
+  border-left: 4px solid #475569 !important;
+}
+
+.dark-mode .lec-class-code-badge {
+  background: #111b2e !important;
+  color: #38bdf8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-class-status-tag.status-completed {
+  background: rgba(100, 116, 139, 0.15) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(100, 116, 139, 0.28) !important;
+}
+.dark-mode .lec-class-status-tag.status-completed .status-dot {
+  background: #94a3b8 !important;
+}
+.dark-mode .lec-class-status-tag.status-ongoing {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.28) !important;
+}
+.dark-mode .lec-class-status-tag.status-upcoming {
+  background: rgba(2, 132, 199, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(2, 132, 199, 0.28) !important;
+}
+
+.dark-mode .lec-class-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-class-meta-item {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-class-meta-item .meta-icon {
+  color: #64748b !important;
+}
+
+.dark-mode .lec-class-footer {
+  border-top: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-btn-view-class {
+  background: #111b2e !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-btn-view-class:hover {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
+}
+
+/* Quick Summary Card */
+.dark-mode .lec-summary-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+.dark-mode .lec-summary-title {
+  color: #f8fafc !important;
+}
+.dark-mode .lec-summary-item {
+  border-bottom: 1px solid #1a263c !important;
+}
+.dark-mode .lec-summary-name {
+  color: #f8fafc !important;
+}
+.dark-mode .lec-summary-meta {
+  color: #64748b !important;
+}
+
+/* 4. My Subjects Module */
+.dark-mode .lec-controls-bar {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-search-box input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-search-box input:focus {
+  border-color: #38bdf8 !important;
+}
+.dark-mode .lec-search-box input::placeholder {
+  color: #64748b !important;
+}
+
+.dark-mode .lec-filter-tab-btn {
+  background: #111b2e !important;
+  color: #94a3b8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+.dark-mode .lec-filter-tab-btn:hover {
+  background: #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-filter-tab-btn.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-subject-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+.dark-mode .lec-subject-card:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+.dark-mode .lec-subject-code {
+  background: #111b2e !important;
+  color: #38bdf8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-subject-sem-pill {
+  background: rgba(14, 165, 233, 0.14) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(14, 165, 233, 0.28) !important;
+}
+
+.dark-mode .lec-subject-batch-pill {
+  background: rgba(99, 102, 241, 0.14) !important;
+  color: #a5b4fc !important;
+  border: 1px solid rgba(99, 102, 241, 0.28) !important;
+}
+
+.dark-mode .lec-subject-credits-badge {
+  background: #111b2e !important;
+  color: #cbd5e1 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-subject-name {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-subject-details {
+  background: #070d18 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .detail-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .detail-value {
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .detail-value.highlight {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-subject-progress-wrap .lec-progress-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-progress-track {
+  background: #1a263c !important;
+}
+
+.dark-mode .lec-subject-actions {
+  border-top: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-btn-subject-attendance {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border: 1px solid #38bdf8 !important;
+}
+.dark-mode .lec-btn-subject-attendance:hover {
+  background: #0369a1 !important;
+}
+
+.dark-mode .lec-btn-subject-assessments {
+  background: #111b2e !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #1e2c44 !important;
+}
+.dark-mode .lec-btn-subject-assessments:hover {
+  background: #1e2c44 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-empty-state-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  color: #94a3b8 !important;
+}
+
+/* 5. Student Attendance Recording & Analytics */
+.dark-mode .lec-attendance-filter-bar {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .filter-label {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-select,
+.dark-mode .lec-date-input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-select:focus,
+.dark-mode .lec-date-input:focus {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-btn-save-record {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border: 1px solid #10b981 !important;
+}
+.dark-mode .lec-btn-save-record:hover {
+  background: #047857 !important;
+}
+
+.dark-mode .lec-unsaved-btn {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+.dark-mode .lec-discard-btn {
+  background: #111b2e !important;
+  color: #94a3b8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+.dark-mode .lec-discard-btn:hover {
+  background: #1e2c44 !important;
+  color: #f87171 !important;
+}
+.dark-mode .lec-all-saved-badge {
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.28) !important;
+}
+
+.dark-mode .lec-attendance-table-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .lec-table-header-controls {
+  border-bottom: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-table-search input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-table-search input:focus {
+  border-color: #38bdf8 !important;
+}
+.dark-mode .lec-table-search input::placeholder {
+  color: #64748b !important;
+}
+
+.dark-mode .lec-btn-bulk-present {
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.dark-mode .lec-btn-bulk-present:hover {
+  background: #059669 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-btn-bulk-absent {
+  background: rgba(239, 68, 68, 0.14) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+.dark-mode .lec-btn-bulk-absent:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-live-tally-bar {
+  background: #070d18 !important;
+  border-bottom: 1px solid #1a263c !important;
+}
+
+.dark-mode .tally-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .tally-val {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-custom-table th {
+  background: #070d18 !important;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-custom-table td {
+  border-bottom: 1px solid #1a263c !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .lec-custom-table tbody tr:hover {
+  background: #111b2e !important;
+}
+
+.dark-mode .lec-student-name {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-attendance-status-btn.status-present {
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.dark-mode .lec-attendance-status-btn.status-absent {
+  background: rgba(239, 68, 68, 0.14) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.dark-mode .lec-mini-standing-bar {
+  background: #1a263c !important;
+}
+
+.dark-mode .lec-mini-standing-text {
+  color: #cbd5e1 !important;
+}
+
+/* Analytics Cards */
+.dark-mode .lec-analytics-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .analytics-card-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .analytics-card-sub {
+  color: #64748b !important;
+}
+
+.dark-mode .big-rate-number {
+  color: #f8fafc !important;
+}
+
+.dark-mode .rate-desc {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .analytics-sub-item {
+  background: #070d18 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .analytics-sub-item.is-active-subject {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.dark-mode .active-sub-badge {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+.dark-mode .student-status-badge.status-present {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+}
+
+.dark-mode .student-status-badge.status-absent {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+}
+
+.dark-mode .sub-code {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .sub-rate {
+  color: #f8fafc !important;
+}
+
+.dark-mode .sub-title-small {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .student-reg {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .student-name-short {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .student-rate-val {
+  color: #f8fafc !important;
+}
+
+.dark-mode .threshold-legend {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .analytics-footer-note {
+  border-top: 1px solid #1a263c !important;
+  color: #64748b !important;
+}
+
+/* 6. Continuous Assessment (CA) & ESA Marks */
+.dark-mode .lec-caesa-container {
+  color: #f8fafc;
+}
+
+.dark-mode .lec-subject-quick-tag {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-ca-stats-row .ca-stat-item {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .ca-stat-number {
+  color: #ffffff !important;
+}
+
+.dark-mode .ca-stat-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-missing-warning-banner {
+  background: #1c1505 !important;
+  border: 1px solid #d97706 !important;
+  color: #fef3c7 !important;
+}
+
+.dark-mode .missing-pill {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  color: #fbbf24 !important;
+}
+
+.dark-mode .lec-marks-table-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .lec-mark-input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-mark-input:focus {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-btn-save-draft {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #e2e8f0 !important;
+}
+.dark-mode .lec-btn-save-draft:hover {
+  background: #1e2c44 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-btn-publish {
+  background: #0284c7 !important;
+  border: 1px solid #38bdf8 !important;
+  color: #ffffff !important;
+}
+.dark-mode .lec-btn-publish:hover {
+  background: #0369a1 !important;
+}
+
+/* 7. Results & Grading Module */
+.dark-mode .lec-results-container {
+  color: #f8fafc;
+}
+
+.dark-mode .lec-distribution-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .dist-badge-box {
+  background: #070d18 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .dist-grade {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dist-count {
+  color: #f8fafc !important;
+}
+
+.dark-mode .dist-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .scale-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .scale-item {
+  background: #070d18 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .scale-grade {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .scale-range {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .scale-remark {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-score-input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-score-input:focus {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-status-pill.draft {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+.dark-mode .lec-status-pill.submitted {
+  background: rgba(2, 132, 199, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(2, 132, 199, 0.3) !important;
+}
+.dark-mode .lec-status-pill.finalized {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.dark-mode .grade-badge {
+  background: rgba(2, 132, 199, 0.15) !important;
+  border: 1px solid rgba(2, 132, 199, 0.3) !important;
+  color: #38bdf8 !important;
+}
+.dark-mode .grade-badge.distinction {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #34d399 !important;
+}
+.dark-mode .grade-badge.fail {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+}
+
+/* 8. Announcements Module */
+.dark-mode .lec-announcement-composer,
+.dark-mode .lec-announcement-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .lec-announcement-card:hover {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .composer-input,
+.dark-mode .composer-textarea {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .composer-input:focus,
+.dark-mode .composer-textarea:focus {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .announcement-body {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .announcement-author {
+  color: #f8fafc !important;
+}
+
+.dark-mode .announcement-time {
+  color: #64748b !important;
+}
+
+.dark-mode .ann-tag {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  color: #a5b4fc !important;
+}
+
+.dark-mode .prio-badge.high {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+}
+.dark-mode .prio-badge.normal {
+  background: rgba(2, 132, 199, 0.15) !important;
+  border: 1px solid rgba(2, 132, 199, 0.3) !important;
+  color: #38bdf8 !important;
+}
+
+/* 9. Academic Notification Inbox */
+.dark-mode .lec-notif-controls-bar {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-category-tab-btn {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #94a3b8 !important;
+}
+.dark-mode .lec-category-tab-btn:hover {
+  background: #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-category-tab-btn.active {
+  background: #0284c7 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .toggle-label-text {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-notif-item {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s ease;
+}
+
+.dark-mode .lec-notif-item.unread,
+.dark-mode .lec-notif-item.is-unread {
+  background: #0d1b32 !important;
+  border-color: #0284c7 !important;
+}
+
+.dark-mode .lec-notif-item.is-clickable:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  transform: translateY(-2px);
+}
+
+.dark-mode .notif-title,
+.dark-mode .lec-notif-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .notif-message,
+.dark-mode .lec-notif-desc {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .notif-time,
+.dark-mode .lec-notif-time {
+  color: #64748b !important;
+}
+
+.dark-mode .lec-notif-action-chip {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+.dark-mode .lec-notif-item.is-clickable:hover .lec-notif-action-chip {
+  background: #0284c7 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-notif-read-btn {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #94a3b8 !important;
+}
+.dark-mode .lec-notif-read-btn:hover {
+  background: #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-unread-indicator-dot {
+  background: #38bdf8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.7) !important;
+}
+
+.dark-mode .lec-empty-feed-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  color: #94a3b8 !important;
+}
+
+/* 10. Student Medical Verification Module */
+.dark-mode .lec-medical-verification-page {
+  color: #f8fafc;
+}
+
+.dark-mode .lec-med-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dark-mode .lec-med-back-btn {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+.dark-mode .lec-med-back-btn:hover {
+  background: #1e2c44 !important;
+  color: #7dd3fc !important;
+}
+
+.dark-mode .lec-med-breadcrumb-sep {
+  color: #64748b;
+}
+
+.dark-mode .lec-med-breadcrumb-current {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.dark-mode .lec-med-stat-box {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+.dark-mode .lec-med-stat-box .med-stat-num {
+  color: #ffffff !important;
+}
+.dark-mode .lec-med-stat-box.pending {
+  border-left: 4px solid #f59e0b !important;
+}
+.dark-mode .lec-med-stat-box.pending .med-stat-num {
+  color: #fbbf24 !important;
+}
+.dark-mode .lec-med-stat-box.verified {
+  border-left: 4px solid #10b981 !important;
+}
+.dark-mode .lec-med-stat-box.verified .med-stat-num {
+  color: #34d399 !important;
+}
+.dark-mode .lec-med-stat-box.rejected {
+  border-left: 4px solid #ef4444 !important;
+}
+.dark-mode .lec-med-stat-box.rejected .med-stat-num {
+  color: #f87171 !important;
+}
+.dark-mode .lec-med-stat-box .med-stat-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-med-controls-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-med-search input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-med-search input:focus {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-med-select-wrap select {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-med-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+.dark-mode .lec-med-card:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+.dark-mode .lec-med-avatar {
+  background: #111b2e !important;
+  color: #38bdf8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-med-student-name {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-med-reg-badge {
+  background: #111b2e !important;
+  color: #38bdf8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-med-code {
+  background: #111b2e !important;
+  color: #38bdf8 !important;
+  border: 1px solid #1e2c44 !important;
+}
+
+.dark-mode .lec-med-details-grid {
+  background: #070d18 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .med-detail-label {
+  color: #94a3b8 !important;
+}
+.dark-mode .med-detail-val {
+  color: #f1f5f9 !important;
+}
+.dark-mode .med-detail-val.text-reason {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-med-status-badge.pending {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+.dark-mode .lec-med-status-badge.verified {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.dark-mode .lec-med-status-badge.rejected {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.dark-mode .lec-btn-preview-cert {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+.dark-mode .lec-btn-preview-cert:hover {
+  background: #1e2c44 !important;
+  color: #7dd3fc !important;
+}
+
+.dark-mode .lec-btn-approve-med {
+  background: #059669 !important;
+  border: 1px solid #10b981 !important;
+  color: #ffffff !important;
+}
+.dark-mode .lec-btn-approve-med:hover {
+  background: #047857 !important;
+}
+
+.dark-mode .lec-btn-reject-med {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+}
+.dark-mode .lec-btn-reject-med:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-verified-stamp {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #34d399 !important;
+}
+.dark-mode .lec-rejected-stamp {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+}
+
+/* Certificate Preview Modal in Dark Mode */
+.dark-mode .lec-modal-content.cert-modal {
+  background: #0b1325 !important;
+  border: 1px solid #1e2c44 !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7) !important;
+}
+.dark-mode .cert-inst-title {
+  color: #f8fafc !important;
+}
+.dark-mode .cert-inst-sub {
+  color: #94a3b8 !important;
+}
+.dark-mode .cert-info-grid {
+  background: #070d18 !important;
+  border: 1px solid #1a263c !important;
+}
+.dark-mode .cert-label {
+  color: #94a3b8 !important;
+}
+.dark-mode .cert-val {
+  color: #f8fafc !important;
+}
+.dark-mode .cert-diagnosis-box {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+}
+.dark-mode .cert-box-title {
+  color: #38bdf8 !important;
+}
+.dark-mode .cert-diagnosis-text {
+  color: #f1f5f9 !important;
+}
+.dark-mode .cert-hospital-line {
+  color: #94a3b8 !important;
+}
+.dark-mode .cert-endorsement-banner {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.dark-mode .cert-seal-badge {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+.dark-mode .cert-seal-text {
+  color: #cbd5e1 !important;
+}
+
+/* 11. Lecturer Profile Module */
+.dark-mode .lec-profile-hero-card {
+  background: linear-gradient(135deg, #070e1c 0%, #0d1930 100%) !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark-mode .lec-avatar-large {
+  background: linear-gradient(135deg, #0284c7, #4f46e5) !important;
+  border: 3px solid #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-profile-hero-name {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-verified-pill {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #34d399 !important;
+}
+
+.dark-mode .lec-profile-hero-subtitle {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-profile-tag {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-profile-tag.tag-gold {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #fbbf24 !important;
+}
+
+.dark-mode .lec-profile-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .lec-card-heading {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-card-subheading {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-btn-edit-contact {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+.dark-mode .lec-btn-edit-contact:hover {
+  background: #1e2c44 !important;
+  color: #7dd3fc !important;
+}
+
+.dark-mode .lec-meta-field {
+  border-bottom: 1px solid #1a263c !important;
+}
+
+.dark-mode .meta-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .meta-value {
+  color: #f8fafc !important;
+}
+
+.dark-mode .meta-value.highlight-badge {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-form-label {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-input {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+}
+.dark-mode .lec-input:focus {
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-btn-save-contact {
+  background: #0284c7 !important;
+  border: 1px solid #38bdf8 !important;
+  color: #ffffff !important;
+}
+.dark-mode .lec-btn-cancel-edit {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #94a3b8 !important;
+}
+
+/* 12. Shared Modals, Overlays & Toasts */
+.dark-mode .lec-modal-backdrop,
+.dark-mode .lec-modal-overlay {
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.dark-mode .lec-modal-card,
+.dark-mode .lec-modal-content {
+  background: #0b1325 !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7) !important;
+}
+
+.dark-mode .lec-modal-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-modal-desc {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-modal-close {
+  color: #94a3b8 !important;
+}
+.dark-mode .lec-modal-close:hover {
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-modal-actions,
+.dark-mode .lec-modal-footer {
+  border-top: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-modal-btn-cancel,
+.dark-mode .lec-btn-cancel-modal {
+  background: #111b2e !important;
+  border: 1px solid #1e2c44 !important;
+  color: #cbd5e1 !important;
+}
+.dark-mode .lec-modal-btn-cancel:hover,
+.dark-mode .lec-btn-cancel-modal:hover {
+  background: #1e2c44 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-toast-pill {
+  background: #0f1b33 !important;
+  border: 1px solid #1e2c44 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark-mode .lec-toast-message {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-toast-close {
+  color: #94a3b8 !important;
+}
+.dark-mode .lec-toast-close:hover {
+  color: #ffffff !important;
+}

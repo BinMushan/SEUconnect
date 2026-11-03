@@ -146,7 +146,7 @@ export default function Login({ onLoginSuccess }) {
         if (matchedAccount && matchedAccount.password === password) {
           loggedUser = {
             ...matchedAccount,
-            name: matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role,
+            name: matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role === 'Lecturer' ? 'Dr. K. Perera' : matchedAccount.role,
             regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
             department: 'Department of Information and Communication Technology',
             faculty: 'Faculty of Technology',
@@ -407,3 +407,4 @@ export default function Login({ onLoginSuccess }) {
     </div>
   );
 }
+
