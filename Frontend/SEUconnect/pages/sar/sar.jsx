@@ -304,6 +304,105 @@ export default function SAR({ user, onLogout }) {
     }
   };
 
+  
+  const quickActions = [
+    {
+      label: 'Review Pending Queue',
+      actionId: 'pending_actions',
+      colorTheme: 'purple',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <path d="m9 15 2 2 4-4" />
+        </svg>
+      )
+    },
+    {
+      label: 'Request Monitoring',
+      actionId: 'monitoring',
+      colorTheme: 'blue',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      )
+    },
+    {
+      label: 'Audit Supporting Documents',
+      actionId: 'pending_actions',
+      colorTheme: 'violet',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 11 12 14 22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+      )
+    },
+    {
+      label: 'Faculty Records Ledger',
+      actionId: 'faculty_records',
+      colorTheme: 'indigo',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      )
+    },
+    {
+      label: 'Workflow Analytics & Reports',
+      actionId: 'reports',
+      colorTheme: 'teal',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      )
+    },
+    {
+      label: 'Department of BST Queue',
+      actionId: 'filter_bst',
+      colorTheme: 'green',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      )
+    },
+    {
+      label: 'Department of ICT Queue',
+      actionId: 'filter_ict',
+      colorTheme: 'blue',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <rect x="9" y="9" width="6" height="6" />
+          <line x1="9" y1="1" x2="9" y2="4" />
+          <line x1="15" y1="1" x2="15" y2="4" />
+          <line x1="9" y1="20" x2="9" y2="23" />
+          <line x1="15" y1="20" x2="15" y2="23" />
+        </svg>
+      )
+    },
+    {
+      label: 'SAR Notifications',
+      actionId: 'notifications',
+      colorTheme: 'rose',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      )
+    }
+  ];
+
   // Status Badge Renderer
   const renderStatusBadge = (status) => {
     switch (status) {
@@ -332,183 +431,507 @@ export default function SAR({ user, onLogout }) {
       greetingText={`Welcome, ${sarName}`}
     >
       <div className="sar-portal-container">
-        
         {/* ====================================================================
-            EXECUTIVE HEADER BANNER
+            1. TOP 6 SUMMARY METRIC CARDS (Clean Student Portal Style)
             ==================================================================== */}
-        <div className="sar-header-banner">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <span className="sar-banner-badge">FACULTY ADMINISTRATIVE DIVISION</span>
-              <h1 className="sar-banner-title">SAR Administrative Dashboard</h1>
-            </div>
-            <p className="sar-banner-subtitle">
-              {sarDesignation} • South Eastern University of Sri Lanka • Scope: BST & ICT Departments
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <span className="sar-banner-right-badge">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
+        <section className="sar-stats-grid">
+          {/* Card 1: Total Requests */}
+          <div className="sar-stat-card">
+            <div className="sar-stat-icon-wrap sar-stat-icon-blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
               </svg>
-              Faculty Academic Year 2025/2026
-            </span>
+            </div>
+            <div className="sar-stat-body">
+              <div className="sar-stat-top-row">
+                <span className="sar-stat-title">TOTAL REQUESTS</span>
+                <span className="sar-stat-badge">BST & ICT</span>
+              </div>
+              <div className="sar-stat-number">{totalCount}</div>
+              <div className="sar-stat-target">Across both departments</div>
+            </div>
+          </div>
+
+          {/* Card 2: Pending Admin Review */}
+          <div className="sar-stat-card" style={pendingAdminReview.length > 0 ? { borderLeft: '4px solid #f59e0b', background: '#fffdfa' } : {}}>
+            <div className="sar-stat-icon-wrap sar-stat-icon-amber">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div className="sar-stat-body">
+              <div className="sar-stat-top-row">
+                <span className="sar-stat-title" style={pendingAdminReview.length > 0 ? { color: '#b45309' } : {}}>PENDING REVIEW</span>
+                <span className="sar-stat-badge" style={pendingAdminReview.length > 0 ? { background: '#fef3c7', color: '#b45309', borderColor: '#fde68a' } : {}}>Action Req</span>
+              </div>
+              <div className="sar-stat-number" style={pendingAdminReview.length > 0 ? { color: '#b45309' } : {}}>
+                {pendingAdminReview.length}
+              </div>
+              <div className="sar-stat-target">Document check required</div>
+            </div>
+          </div>
+
+          {/* Card 3: Awaiting Dean Approval */}
+          <div className="sar-stat-card">
+            <div className="sar-stat-icon-wrap sar-stat-icon-purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+            </div>
+            <div className="sar-stat-body">
+              <div className="sar-stat-top-row">
+                <span className="sar-stat-title">AWAITING DEAN</span>
+                <span className="sar-stat-badge">Executive</span>
+              </div>
+              <div className="sar-stat-number">{awaitingDean.length}</div>
+              <div className="sar-stat-target">Dean sanction required</div>
+            </div>
+          </div>
+
+          {/* Card 4: Returned / Corrections */}
+          <div className="sar-stat-card">
+            <div className="sar-stat-icon-wrap sar-stat-icon-rose">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <div className="sar-stat-body">
+              <div className="sar-stat-top-row">
+                <span className="sar-stat-title">CORRECTIONS</span>
+                <span className="sar-stat-badge">Flagged</span>
+              </div>
+              <div className="sar-stat-number">{returnedCorrections.length}</div>
+              <div className="sar-stat-target">Returned for revision</div>
+            </div>
+          </div>
+
+          {/* Card 5: Approved Requests */}
+          <div className="sar-stat-card">
+            <div className="sar-stat-icon-wrap sar-stat-icon-emerald">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <div className="sar-stat-body">
+              <div className="sar-stat-top-row">
+                <span className="sar-stat-title">APPROVED</span>
+                <span className="sar-stat-badge">Sanctioned</span>
+              </div>
+              <div className="sar-stat-number">{approvedRequests.length}</div>
+              <div className="sar-stat-target">Officially sanctioned</div>
+            </div>
+          </div>
+
+          {/* Card 6: Recently Completed */}
+          <div className="sar-stat-card">
+            <div className="sar-stat-icon-wrap sar-stat-icon-cyan">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 11 12 14 22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </div>
+            <div className="sar-stat-body">
+              <div className="sar-stat-top-row">
+                <span className="sar-stat-title">COMPLETED</span>
+                <span className="sar-stat-badge">Archive</span>
+              </div>
+              <div className="sar-stat-number">{recentlyCompleted.length}</div>
+              <div className="sar-stat-target">Past 30 days throughput</div>
+            </div>
+          </div>
+        </section>
+
+        {/* ====================================================================
+            2. "WHAT DO YOU NEED TO DO?" / SAR OPERATIONS & SEARCH CARD
+            ==================================================================== */}
+        <section className="sar-guidance-card">
+          <div className="sar-guidance-header">
+            <div className="sar-guidance-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div className="sar-guidance-titles">
+              <h3 className="sar-guidance-title">Faculty Administrative Operations & Request Search</h3>
+              <p className="sar-guidance-subtitle">
+                Instant institutional lookup: Search requests by Tracking ID, student reg number, department, or review status across BST & ICT.
+              </p>
+            </div>
+          </div>
+
+          <div className="sar-guidance-search-bar">
+            <div className="sar-search-input-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text"
+                className="sar-search-input-field"
+                placeholder='Try "MED-2025-0104", "CA Repeat Form", "22ICT085", "Pending Review", "Awaiting Dean"...'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
             <button
               type="button"
-              className="sar-btn-pill"
-              onClick={loadData}
-              title="Refresh database records"
+              className="sar-find-btn"
+              onClick={() => handleNavigate('monitoring')}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M23 4v6h-6"/>
-                <path d="M1 20v-6h6"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
-              Sync DB
+              Search Requests
             </button>
           </div>
-        </div>
+
+          <div className="sar-suggested-row">
+            <span className="sar-suggested-label">Faculty Scope & Filters:</span>
+            <button
+              type="button"
+              className={`sar-suggested-chip ${deptFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setDeptFilter('all')}
+            >
+              All Departments ({totalCount})
+            </button>
+            <button
+              type="button"
+              className={`sar-suggested-chip ${deptFilter === 'bst' ? 'active' : ''}`}
+              onClick={() => setDeptFilter('bst')}
+            >
+              Biosystems Tech (BST) ({bstMetrics.total})
+            </button>
+            <button
+              type="button"
+              className={`sar-suggested-chip ${deptFilter === 'ict' ? 'active' : ''}`}
+              onClick={() => setDeptFilter('ict')}
+            >
+              Information & Comm. Tech (ICT) ({ictMetrics.total})
+            </button>
+            <button
+              type="button"
+              className={`sar-suggested-chip ${activeNav === 'pending_actions' ? 'active' : ''}`}
+              onClick={() => handleNavigate('pending_actions')}
+            >
+              Pending Admin Review ({pendingAdminReview.length})
+            </button>
+            <button
+              type="button"
+              className="sar-suggested-chip"
+              onClick={() => {
+                setStatusFilter('awaiting_dean');
+                handleNavigate('monitoring');
+              }}
+            >
+              Awaiting Dean ({awaitingDean.length})
+            </button>
+          </div>
+        </section>
 
         {/* ====================================================================
-            SECTION 3: SUMMARY CARDS (Dynamically calculated from real DB)
+            3. MIDDLE ROW: PROGRESSION TREND & QUICK ACTIONS (Image 1 Layout)
             ==================================================================== */}
-        <div className="sar-stats-grid">
-          {/* 1. Total Requests */}
-          <div className="sar-stat-card">
-            <div className="sar-stat-top">
-              <span className="sar-stat-label">Total Requests</span>
-              <div className="sar-stat-icon-wrap sar-stat-icon-blue">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
+        <section className="sar-middle-grid">
+          {/* Left: Administrative Workflow Distribution & Status Card */}
+          <div className="sar-trend-card">
+            {/* Header: Badge Icon, Title, and Department Selector */}
+            <div className="sar-trend-header-row">
+              <div className="sar-trend-header-left">
+                <div className="sar-trend-header-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                </div>
+                <div className="sar-trend-title-col">
+                  <h3 className="sar-card-heading">Faculty Workflow Distribution & Status</h3>
+                  <span className="sar-trend-subheading">Monitor real-time request volume and turnaround across BST & ICT</span>
+                </div>
+              </div>
+
+              {/* Department Selector Dropdown */}
+              <div className="sar-select-wrapper">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <select
+                  className="sar-dropdown-select"
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                >
+                  <option value="all">🏢 All Departments ({totalCount})</option>
+                  <option value="bst">🌱 BST Department ({bstMetrics.total})</option>
+                  <option value="ict">💻 ICT Department ({ictMetrics.total})</option>
+                </select>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </div>
             </div>
-            <div className="sar-stat-value">{totalCount}</div>
-            <div className="sar-stat-subtext">Across BST & ICT Departments</div>
+
+            {/* Top 3 Highlight Metric Boxes */}
+            <div className="sar-trend-top-metrics">
+              {/* Box 1: BST Department Volume */}
+              <div className="sar-trend-top-box">
+                <div className="sar-trend-box-icon sar-box-icon-purple">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                  </svg>
+                </div>
+                <div className="sar-trend-box-content">
+                  <span className="sar-trend-box-lbl">BST Requests</span>
+                  <div className="sar-trend-box-val-row">
+                    <span className="sar-trend-box-val">{bstMetrics.total}</span>
+                    <span className="sar-trend-box-delta">▲ Active</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 2: ICT Department Volume */}
+              <div className="sar-trend-top-box">
+                <div className="sar-trend-box-icon sar-box-icon-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
+                <div className="sar-trend-box-content">
+                  <span className="sar-trend-box-lbl">ICT Requests</span>
+                  <div className="sar-trend-box-val-row">
+                    <span className="sar-trend-box-val">{ictMetrics.total}</span>
+                    <span className="sar-trend-box-denom">/ {totalCount}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 3: Clearance Standing */}
+              <div className="sar-trend-top-box">
+                <div className="sar-trend-box-icon sar-box-icon-amber">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                  </svg>
+                </div>
+                <div className="sar-trend-box-content">
+                  <span className="sar-trend-box-lbl">Admin Standing</span>
+                  <div className="sar-trend-box-val-row">
+                    <span className="sar-trend-box-val" style={{ fontSize: '1.05rem', color: '#10b981' }}>On Schedule</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Spline Pipeline Area Chart */}
+            <div className="sar-trend-chart-area">
+              <div className="sar-chart-container">
+                <div className="sar-y-axis-labels">
+                  <span>High</span>
+                  <span>Avg</span>
+                  <span>Low</span>
+                  <span>Min</span>
+                </div>
+
+                <div className="sar-chart-svg-wrap">
+                  <svg viewBox="0 0 620 155" className="sar-spline-svg" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="sarPurpleAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.32" />
+                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+                      </linearGradient>
+                      <filter id="sarShadow" x="-10%" y="-10%" width="130%" height="130%">
+                        <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#7c3aed" floodOpacity="0.3" />
+                      </filter>
+                    </defs>
+
+                    {/* Horizontal Grid lines */}
+                    <line x1="20" y1="20" x2="600" y2="20" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3"/>
+                    <line x1="20" y1="55" x2="600" y2="55" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3"/>
+                    <line x1="20" y1="90" x2="600" y2="90" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3"/>
+                    <line x1="20" y1="125" x2="600" y2="125" stroke="#f1f5f9" strokeWidth="1"/>
+
+                    {/* Dotted guideline down from stage 3 (SAR Check) */}
+                    <line x1="310" y1="45" x2="310" y2="125" stroke="#6366f1" strokeWidth="1.8" strokeDasharray="3 3"/>
+
+                    {/* Area fill */}
+                    <path
+                      d="M 60,35 C 120,40 140,75 185,72 C 230,70 260,45 310,45 C 360,45 390,75 435,78 C 480,80 500,48 560,50 L 560,125 L 60,125 Z"
+                      fill="url(#sarPurpleAreaGrad)"
+                    />
+
+                    {/* Smooth curve line */}
+                    <path
+                      d="M 60,35 C 120,40 140,75 185,72 C 230,70 260,45 310,45 C 360,45 390,75 435,78 C 480,80 500,48 560,50"
+                      fill="none"
+                      stroke="#6366f1"
+                      strokeWidth="3.2"
+                      strokeLinecap="round"
+                      filter="url(#sarShadow)"
+                    />
+
+                    {/* Node 1: Submitted (2) */}
+                    <circle cx="60" cy="35" r="5" fill="#ffffff" stroke="#6366f1" strokeWidth="3" />
+                    <rect x="42" y="12" width="36" height="18" rx="5" fill="#1e1b4b" />
+                    <text x="60" y="24" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#ffffff">2 Req</text>
+
+                    {/* Node 2: HOD Review (1) */}
+                    <circle cx="185" cy="72" r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
+                    <text x="185" y="62" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1e293b">1 Req</text>
+
+                    {/* Node 3: SAR Check (2) Selected */}
+                    <circle cx="310" cy="45" r="6" fill="#ffffff" stroke="#4f46e5" strokeWidth="3.5" />
+                    <rect x="290" y="20" width="40" height="20" rx="5" fill="#4338ca" />
+                    <text x="310" y="34" textAnchor="middle" fontSize="11" fontWeight="800" fill="#ffffff">2 Req</text>
+
+                    {/* Node 4: Dean Sanction (1) */}
+                    <circle cx="435" cy="78" r="4.5" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
+                    <text x="435" y="68" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1e293b">1 Req</text>
+
+                    {/* Node 5: Approved (1) */}
+                    <circle cx="560" cy="50" r="5" fill="#ffffff" stroke="#10b981" strokeWidth="3" />
+                    <rect x="540" y="26" width="40" height="20" rx="5" fill="#10b981" />
+                    <text x="560" y="40" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#ffffff">1 Req</text>
+
+                    {/* Stage X-axis Labels */}
+                    <text x="60" y="142" textAnchor="middle" fontSize="11" fontWeight="700" fill="#475569">Submitted</text>
+                    <text x="185" y="142" textAnchor="middle" fontSize="11" fontWeight="600" fill="#64748b">HOD Review</text>
+                    <text x="310" y="142" textAnchor="middle" fontSize="11" fontWeight="800" fill="#4338ca">SAR Check</text>
+                    <text x="435" y="142" textAnchor="middle" fontSize="11" fontWeight="600" fill="#64748b">Dean Office</text>
+                    <text x="560" y="142" textAnchor="middle" fontSize="11" fontWeight="700" fill="#059669">Completed</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom 3 Summary Statistics */}
+            <div className="sar-bottom-stats-row">
+              {/* Stat 1: Document Verifications */}
+              <div className="sar-bottom-stat-box">
+                <div className="sar-bottom-stat-icon-circle sar-icon-circle-emerald">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div className="sar-bottom-stat-info">
+                  <span className="sar-bottom-stat-lbl">Document Verification</span>
+                  <span className="sar-bottom-stat-val">100% In Order</span>
+                </div>
+              </div>
+
+              {/* Stat 2: Active Review Queue */}
+              <div className="sar-bottom-stat-box">
+                <div className="sar-bottom-stat-icon-circle sar-icon-circle-purple">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div className="sar-bottom-stat-info">
+                  <span className="sar-bottom-stat-lbl">Active Pending Queue</span>
+                  <span className="sar-bottom-stat-val">{pendingAdminReview.length + awaitingDean.length} Requests</span>
+                </div>
+              </div>
+
+              {/* Stat 3: Clearance Rate */}
+              <div className="sar-bottom-stat-box">
+                <div className="sar-bottom-progress-circle">
+                  <svg width="38" height="38" viewBox="0 0 38 38">
+                    <circle cx="19" cy="19" r="15" fill="none" stroke="#e2e8f0" strokeWidth="3.5" />
+                    <circle
+                      cx="19"
+                      cy="19"
+                      r="15"
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth="3.5"
+                      strokeDasharray="94.2"
+                      strokeDashoffset="20.7"
+                      strokeLinecap="round"
+                      transform="rotate(-90 19 19)"
+                    />
+                    <text x="19" y="23" textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#0f172a">78%</text>
+                  </svg>
+                </div>
+                <div className="sar-bottom-stat-info">
+                  <span className="sar-bottom-stat-lbl">Faculty Clearance</span>
+                  <div className="sar-mini-progress-track">
+                    <div className="sar-mini-progress-bar-fill" style={{ width: '78%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* 2. Pending Administrative Review */}
-          <div className="sar-stat-card" style={pendingAdminReview.length > 0 ? { borderLeft: '4px solid #f59e0b', background: '#fffdfa' } : {}}>
-            <div className="sar-stat-top">
-              <span className="sar-stat-label" style={pendingAdminReview.length > 0 ? { color: '#b45309' } : {}}>Pending Admin Review</span>
-              <div className="sar-stat-icon-wrap sar-stat-icon-amber">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
+          {/* Right: Quick Actions Card (Image 1 Mockup layout) */}
+          <div className="sar-quick-actions-card">
+            {/* Dark Purple Gradient Header Banner with Watermark */}
+            <div className="sar-qa-header-banner">
+              <div className="sar-qa-header-content">
+                <div className="sar-qa-header-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="sar-qa-title">Quick Actions</h3>
+                  <p className="sar-qa-subtitle">Coordinate faculty operations instantly</p>
+                </div>
+              </div>
+              {/* Decorative Watermark Icon */}
+              <div className="sar-qa-watermark">
+                <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
               </div>
             </div>
-            <div className="sar-stat-value" style={pendingAdminReview.length > 0 ? { color: '#b45309' } : {}}>
-              {pendingAdminReview.length}
-            </div>
-            <div className="sar-stat-subtext">Requires document checking</div>
-          </div>
 
-          {/* 3. Awaiting Dean Approval */}
-          <div className="sar-stat-card">
-            <div className="sar-stat-top">
-              <span className="sar-stat-label">Awaiting Dean</span>
-              <div className="sar-stat-icon-wrap sar-stat-icon-purple">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                </svg>
-              </div>
+            {/* 8 Action Items */}
+            <div className="sar-qa-actions-list">
+              {quickActions.map((action, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="sar-qa-item-btn"
+                  onClick={() => {
+                    if (action.actionId === 'filter_bst') {
+                      setDeptFilter('bst');
+                      handleNavigate('monitoring');
+                    } else if (action.actionId === 'filter_ict') {
+                      setDeptFilter('ict');
+                      handleNavigate('monitoring');
+                    } else {
+                      handleNavigate(action.actionId);
+                    }
+                  }}
+                >
+                  <div className="sar-qa-item-left">
+                    <span className={`sar-qa-icon-circle sar-qa-icon-${action.colorTheme}`}>
+                      {action.icon}
+                    </span>
+                    <span className="sar-qa-item-label">{action.label}</span>
+                  </div>
+                  <span className="sar-qa-item-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </span>
+                </button>
+              ))}
             </div>
-            <div className="sar-stat-value">{awaitingDean.length}</div>
-            <div className="sar-stat-subtext">Escalated to Executive Office</div>
           </div>
-
-          {/* 4. Returned for Corrections */}
-          <div className="sar-stat-card">
-            <div className="sar-stat-top">
-              <span className="sar-stat-label">Returned / Corrections</span>
-              <div className="sar-stat-icon-wrap sar-stat-icon-rose">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="15" y1="9" x2="9" y2="15"/>
-                  <line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
-              </div>
-            </div>
-            <div className="sar-stat-value">{returnedCorrections.length}</div>
-            <div className="sar-stat-subtext">Issues flagged or returned</div>
-          </div>
-
-          {/* 5. Approved Requests */}
-          <div className="sar-stat-card">
-            <div className="sar-stat-top">
-              <span className="sar-stat-label">Approved Requests</span>
-              <div className="sar-stat-icon-wrap sar-stat-icon-emerald">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-              </div>
-            </div>
-            <div className="sar-stat-value">{approvedRequests.length}</div>
-            <div className="sar-stat-subtext">Officially sanctioned</div>
-          </div>
-
-          {/* 6. Recently Completed */}
-          <div className="sar-stat-card">
-            <div className="sar-stat-top">
-              <span className="sar-stat-label">Recently Completed</span>
-              <div className="sar-stat-icon-wrap sar-stat-icon-cyan">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="9 11 12 14 22 4"/>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                </svg>
-              </div>
-            </div>
-            <div className="sar-stat-value">{recentlyCompleted.length}</div>
-            <div className="sar-stat-subtext">Past 30 days throughput</div>
-          </div>
-        </div>
+        </section>
 
         {/* ====================================================================
-            SECTION 3: DEPARTMENT-WISE OVERVIEW (BST & ICT) + FILTER
+            4. DEPARTMENT-WISE OVERVIEW (BST & ICT)
             ==================================================================== */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-              Faculty Scope Filter:
-            </span>
-            <div style={{ display: 'flex', gap: '0.35rem' }}>
-              <button
-                type="button"
-                className={`sar-btn-pill ${deptFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setDeptFilter('all')}
-              >
-                All Departments ({totalCount})
-              </button>
-              <button
-                type="button"
-                className={`sar-btn-pill ${deptFilter === 'bst' ? 'active' : ''}`}
-                onClick={() => setDeptFilter('bst')}
-              >
-                Biosystems Tech (BST) ({bstMetrics.total})
-              </button>
-              <button
-                type="button"
-                className={`sar-btn-pill ${deptFilter === 'ict' ? 'active' : ''}`}
-                onClick={() => setDeptFilter('ict')}
-              >
-                Information & Comm. Tech (ICT) ({ictMetrics.total})
-              </button>
-            </div>
-          </div>
-
-          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-            Official Reference: <a href="https://www.seu.ac.lk/ft/" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 600 }}>SEUSL Faculty of Technology</a>
-          </div>
-        </div>
-
-        {/* Department Overview Cards */}
-        <div className="sar-dept-grid">
+        <section className="sar-dept-grid">
           {/* Department of Biosystems Technology (BST) */}
           <div className="sar-dept-card" style={deptFilter === 'ict' ? { opacity: 0.6 } : {}}>
             <div className="sar-dept-header">
@@ -568,10 +991,10 @@ export default function SAR({ user, onLogout }) {
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* ====================================================================
-            MAIN VIEW SELECTOR: Switches between Dashboard, Monitoring, Actions, Records, Reports, Notifications
+            5. MAIN OPERATIONS CARD (Matches Table Standards)
             ==================================================================== */}
         <div className="sar-main-card">
           

@@ -417,18 +417,6 @@ export function getNavSectionsForRole(roleKey) {
       return HOD_NAV_SECTIONS;
     case 'sar':
       return SAR_NAV_SECTIONS;
-    case 'sar':
-      return {
-        rolePill: 'SAR',
-        greeting: `Welcome, ${user?.name || 'Mr. K.L.M. Riyas'}`,
-        facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • SAR ADMINISTRATIVE DESK',
-        metaItems: [
-          { label: 'Staff ID:', value: user?.staffId || 'STAFF-SAR-001' },
-          { label: 'Division:', value: 'Faculty Administrative Division' },
-          { label: 'Designation:', value: 'Senior Assistant Registrar' },
-          { label: 'Scope:', value: 'BST & ICT Coordination' },
-        ],
-      };
     case 'dean':
       return DEAN_NAV_SECTIONS;
     case 'examination':
@@ -472,6 +460,18 @@ export function getRoleMetaData(user) {
           { label: 'Department:', value: 'Department of ICT' },
           { label: 'Designation:', value: 'Head of Department' },
           { label: 'Authority:', value: 'Department Board Chair' },
+        ],
+      };
+    case 'sar':
+      return {
+        rolePill: 'SAR',
+        greeting: `Welcome, ${user?.name || 'Mr. K.L.M. Riyas'}`,
+        facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ADMINISTRATIVE DIVISION',
+        metaItems: [
+          { label: 'Staff ID:', value: user?.staffId || 'STAFF-SAR-001' },
+          { label: 'Division:', value: 'Faculty Administrative Division' },
+          { label: 'Designation:', value: user?.designation || 'Senior Assistant Registrar' },
+          { label: 'Scope:', value: 'BST & ICT Departments' },
         ],
       };
     case 'dean':
