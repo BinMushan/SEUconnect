@@ -109,6 +109,45 @@ export const api = {
     });
   },
 
+  async sarVerifyAndForward(processId, { actorName, remarks }) {
+    return await request(`/processes/${processId}/sar/verify-forward`, {
+      method: 'PUT',
+      body: JSON.stringify({ actorName, remarks }),
+    });
+  },
+
+  async sarProcessAdmission(processId, { actorName, admissionNo, notes }) {
+    return await request(`/processes/${processId}/sar/process-admission`, {
+      method: 'PUT',
+      body: JSON.stringify({ actorName, admissionNo, notes }),
+    });
+  },
+
+  async sarTrackSenateCopy(processId, { actorName, trackingNo, submissionNote }) {
+    return await request(`/processes/${processId}/sar/track-senate-copy`, {
+      method: 'PUT',
+      body: JSON.stringify({ actorName, trackingNo, submissionNote }),
+    });
+  },
+
+  async sarForwardDepartmentList({ department, academicYear, notes }) {
+    return await request('/processes/portal/forward-dept-list', {
+      method: 'POST',
+      body: JSON.stringify({ department, academicYear, notes }),
+    });
+  },
+
+  async getFormAvailability() {
+    return await request('/processes/portal/form-availability');
+  },
+
+  async toggleFormAvailability({ formType, isOpen, deadline, semester }) {
+    return await request('/processes/portal/form-availability', {
+      method: 'POST',
+      body: JSON.stringify({ formType, isOpen, deadline, semester }),
+    });
+  },
+
   // Notification Endpoints
   async getNotifications(role = 'sar') {
     return await request(`/notifications?role=${encodeURIComponent(role)}`);

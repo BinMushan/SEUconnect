@@ -83,7 +83,7 @@ const ProcessRequestSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['medical_excuse', 'repeat_exam', 'add_drop', 'leave_absence', 'special_concession'],
+      enum: ['medical_excuse', 'repeat_exam', 'add_drop', 'leave_absence', 'special_concession', 'eca_application', 'esa_application', 'exam_form', 'subject_medical', 'exam_medical'],
       default: 'medical_excuse',
     },
     title: {
@@ -97,7 +97,7 @@ const ProcessRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Draft', 'Pending Lecturer', 'Pending Medical Verification', 'Pending HOD', 'Pending Dean', 'Approved', 'Declined'],
+      enum: ['Draft', 'Pending Lecturer', 'Pending Medical Verification', 'Pending HOD', 'Pending Dean', 'Pending SAR Review', 'Pending SAR Verification', 'Pending SAR Action', 'Pending Examination Branch', 'Admission Processing', 'Approved', 'Declined', 'Returned for Correction'],
       default: 'Pending Lecturer',
     },
     priority: {
@@ -146,6 +146,34 @@ const ProcessRequestSchema = new mongoose.Schema(
       approvedAt: { type: Date, default: null },
       finalApprovalCode: { type: String, default: null },
       endorsementSeal: { type: String, default: null },
+    },
+    paymentReceipt: {
+      voucherNo: { type: String, default: '' },
+      amount: { type: Number, default: 0 },
+      bankBranch: { type: String, default: "People's Bank" },
+      date: { type: String, default: '' },
+      receiptUrl: { type: String, default: '' },
+      verifiedBySAR: { type: Boolean, default: false },
+    },
+    admissionDetails: {
+      admissionNo: { type: String, default: '' },
+      issuedAt: { type: Date, default: null },
+      status: { type: String, default: 'Pending' },
+      officialTitle: { type: String, default: 'Dean Office Admission (Examination Section)' },
+      managedBySAR: { type: Boolean, default: true },
+    },
+    senateCopy: {
+      prepared: { type: Boolean, default: false },
+      preparedAt: { type: Date, default: null },
+      trackingNo: { type: String, default: '' },
+      submittedAt: { type: Date, default: null },
+      coordinatedBySAR: { type: Boolean, default: true },
+    },
+    departmentList: {
+      forwardedAt: { type: Date, default: null },
+      department: { type: String, default: '' },
+      academicYear: { type: String, default: '2025/2026' },
+      handledBySAR: { type: Boolean, default: true },
     },
     stages: [StageSchema],
     auditLog: [AuditLogSchema],
