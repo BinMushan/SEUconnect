@@ -66,7 +66,15 @@ export default function SAR({ user, onLogout }) {
       ]);
 
       if (procRes && procRes.data) {
-        setProcesses(procRes.data);
+        // Exclusively load ICT department records for SAR operations
+        const ictOnly = procRes.data.filter((p) => {
+          const dept = (p.student?.department || '').toLowerCase();
+          const prog = (p.student?.programme || '').toLowerCase();
+          const reg = (p.student?.regNo || '').toLowerCase();
+          const title = (p.title || '').toLowerCase();
+          return !dept.includes('bio') && !prog.includes('bbst') && !reg.includes('bst') && !title.includes('bst');
+        });
+        setProcesses(ictOnly);
       }
       if (notifRes && notifRes.data) {
         setNotifications(notifRes.data);
@@ -110,26 +118,7 @@ export default function SAR({ user, onLogout }) {
     }
   };
 
-  // Department classifiers
-  const isBST = (p) => {
-    const dept = (p.student?.department || '').toLowerCase();
-    const prog = (p.student?.programme || '').toLowerCase();
-    const title = (p.title || '').toLowerCase();
-    return dept.includes('bio') || prog.includes('bbst') || title.includes('bst');
-  };
-
-  const isICT = (p) => {
-    const dept = (p.student?.department || '').toLowerCase();
-    const prog = (p.student?.programme || '').toLowerCase();
-    const title = (p.title || '').toLowerCase();
-    return dept.includes('information') || dept.includes('ict') || prog.includes('bict') || title.includes('ict');
-  };
-
-  const getDeptShort = (p) => {
-    if (isBST(p)) return 'BST';
-    if (isICT(p)) return 'ICT';
-    return 'FOT';
-  };
+  const getDeptShort = () => 'ICT';
 
   // Pending duration calculator
   const getPendingDuration = (dateStr) => {
@@ -227,8 +216,6 @@ export default function SAR({ user, onLogout }) {
   const currentInboxDef = inboxesList.find((i) => i.id === selectedInbox) || inboxesList[0];
   const currentInboxItems = useMemo(() => {
     let items = currentInboxDef.list || [];
-    if (deptFilter === 'bst') items = items.filter(isBST);
-    if (deptFilter === 'ict') items = items.filter(isICT);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       items = items.filter(
@@ -240,12 +227,11 @@ export default function SAR({ user, onLogout }) {
       );
     }
     return items;
-  }, [currentInboxDef, deptFilter, searchQuery]);
+  }, [currentInboxDef, searchQuery]);
 
   // Overall metrics
   const totalCount = processes.length;
-  const bstProcesses = useMemo(() => processes.filter(isBST), [processes]);
-  const ictProcesses = useMemo(() => processes.filter(isICT), [processes]);
+  const ictProcesses = processes;
 
   // Notifications
   const unreadNotifs = notifications.filter((n) => !n.isRead);
@@ -549,8 +535,8 @@ export default function SAR({ user, onLogout }) {
                         {p.trackingNumber}
                       </strong>
                       {p.priority === 'High' && (
-                        <span style={{ marginLeft: '0.4rem', fontSize: '0.65rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
-                          HIGH
+                        <span style={{ marginLeft: '0.4rem', fontSize: '0.72rem', color: '#b91c1c', fontWeight: 700 }}>
+                          • HIGH
                         </span>
                       )}
                     </td>
@@ -561,9 +547,7 @@ export default function SAR({ user, onLogout }) {
                     </td>
 
                     <td>
-                      <span className={`sar-dept-pill ${isBST(p) ? 'sar-dept-pill-bst' : 'sar-dept-pill-ict'}`}>
-                        {getDeptShort(p)}
-                      </span>
+                      <span className="sar-dept-pill">ICT</span>
                     </td>
 
                     <td>
@@ -703,14 +687,14 @@ export default function SAR({ user, onLogout }) {
                     <span className="sar-stat-badge">Faculty Scope</span>
                   </div>
                   <div className="sar-stat-number">{totalCount}</div>
-                  <div className="sar-stat-target">Across BST & ICT departments</div>
+                  <div className="sar-stat-target">Across Department of ICT</div>
                 </div>
               </div>
 
               {/* Card 2: ECA & ESA Awaiting SAR Review */}
               <div
                 className="sar-stat-card"
-                style={ecaInbox.length + esaInbox.length > 0 ? { borderLeft: '4px solid #f59e0b', background: '#fffdfa' } : {}}
+                style={ecaInbox.length + esaInbox.length > 0 ? { borderLeft: '4px solid #f59e0b' } : {}}
                 onClick={() => handleNavigate('inbox_eca')}
               >
                 <div className="sar-stat-icon-wrap sar-stat-icon-amber">
@@ -722,7 +706,7 @@ export default function SAR({ user, onLogout }) {
                 <div className="sar-stat-body">
                   <div className="sar-stat-top-row">
                     <span className="sar-stat-title" style={ecaInbox.length + esaInbox.length > 0 ? { color: '#b45309' } : {}}>ECA & ESA REVIEW</span>
-                    <span className="sar-stat-badge" style={ecaInbox.length + esaInbox.length > 0 ? { background: '#fef3c7', color: '#b45309', borderColor: '#fde68a' } : {}}>SAR Action</span>
+                    <span className="sar-stat-badge">SAR Action</span>
                   </div>
                   <div className="sar-stat-number" style={ecaInbox.length + esaInbox.length > 0 ? { color: '#b45309' } : {}}>
                     {ecaInbox.length + esaInbox.length}
@@ -887,30 +871,7 @@ export default function SAR({ user, onLogout }) {
             <div className="sar-page-banner">
               <div className="sar-page-banner-title">
                 <h1>SAR Examination Workflow Inboxes</h1>
-                <p>Manage the 8 official examination queues across the Faculty of Technology (BST & ICT)</p>
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  className={`sar-btn-pill ${deptFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setDeptFilter('all')}
-                >
-                  All Depts ({processes.length})
-                </button>
-                <button
-                  type="button"
-                  className={`sar-btn-pill ${deptFilter === 'bst' ? 'active' : ''}`}
-                  onClick={() => setDeptFilter('bst')}
-                >
-                  BST ({bstProcesses.length})
-                </button>
-                <button
-                  type="button"
-                  className={`sar-btn-pill ${deptFilter === 'ict' ? 'active' : ''}`}
-                  onClick={() => setDeptFilter('ict')}
-                >
-                  ICT ({ictProcesses.length})
-                </button>
+                <p>Manage the 8 official examination queues across the Faculty of Technology (Department of ICT)</p>
               </div>
             </div>
 
@@ -926,30 +887,7 @@ export default function SAR({ user, onLogout }) {
             <div className="sar-page-banner">
               <div className="sar-page-banner-title">
                 <h1>Administrative Request Monitoring</h1>
-                <p>Continuous oversight of all examination requests, approvals, and dispatches across both BST and ICT</p>
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  className={`sar-btn-pill ${deptFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setDeptFilter('all')}
-                >
-                  All Departments ({processes.length})
-                </button>
-                <button
-                  type="button"
-                  className={`sar-btn-pill ${deptFilter === 'bst' ? 'active' : ''}`}
-                  onClick={() => setDeptFilter('bst')}
-                >
-                  BST ({bstProcesses.length})
-                </button>
-                <button
-                  type="button"
-                  className={`sar-btn-pill ${deptFilter === 'ict' ? 'active' : ''}`}
-                  onClick={() => setDeptFilter('ict')}
-                >
-                  ICT ({ictProcesses.length})
-                </button>
+                <p>Continuous oversight of all examination requests, approvals, and dispatches for the Department of ICT</p>
               </div>
             </div>
 
@@ -1008,8 +946,6 @@ export default function SAR({ user, onLogout }) {
                   <tbody>
                     {processes
                       .filter((p) => {
-                        if (deptFilter === 'bst' && !isBST(p)) return false;
-                        if (deptFilter === 'ict' && !isICT(p)) return false;
                         if (typeFilter !== 'all' && p.type !== typeFilter) return false;
                         if (statusFilter === 'pending_sar' && !(p.currentAssignedRole === 'sar' || p.status.includes('Pending SAR'))) return false;
                         if (statusFilter === 'pending_exam' && p.currentAssignedRole !== 'examination') return false;
@@ -1040,9 +976,7 @@ export default function SAR({ user, onLogout }) {
                             <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{p.student?.regNo}</div>
                           </td>
                           <td>
-                            <span className={`sar-dept-pill ${isBST(p) ? 'sar-dept-pill-bst' : 'sar-dept-pill-ict'}`}>
-                              {getDeptShort(p)}
-                            </span>
+                            <span className="sar-dept-pill">ICT</span>
                           </td>
                           <td style={{ color: '#64748b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                             {new Date(p.createdAt || new Date()).toLocaleDateString('en-GB')}
@@ -1095,7 +1029,7 @@ export default function SAR({ user, onLogout }) {
                   <div className="sar-action-card-title">
                     <span>💳</span> ECA & ESA Payment Receipts
                   </div>
-                  <span className="sar-stat-badge" style={{ background: '#fef3c7', color: '#b45309' }}>
+                  <span style={{ color: '#b45309', fontWeight: 700, fontSize: '0.8rem' }}>
                     {ecaInbox.length + esaInbox.length} Pending
                   </span>
                 </div>
@@ -1132,7 +1066,7 @@ export default function SAR({ user, onLogout }) {
                   <div className="sar-action-card-title">
                     <span>📋</span> Examination Form Verifications
                   </div>
-                  <span className="sar-stat-badge" style={{ background: '#dbeafe', color: '#1e40af' }}>
+                  <span style={{ color: '#1e40af', fontWeight: 700, fontSize: '0.8rem' }}>
                     {examFormsInbox.length} Pending
                   </span>
                 </div>
@@ -1158,7 +1092,7 @@ export default function SAR({ user, onLogout }) {
                   <div className="sar-action-card-title">
                     <span>🏥</span> Exam Medicals (Dean Office)
                   </div>
-                  <span className="sar-stat-badge" style={{ background: '#ffe4e6', color: '#be123c' }}>
+                  <span style={{ color: '#be123c', fontWeight: 700, fontSize: '0.8rem' }}>
                     {examMedicalsInbox.length} Pending
                   </span>
                 </div>
@@ -1184,7 +1118,7 @@ export default function SAR({ user, onLogout }) {
                   <div className="sar-action-card-title">
                     <span>🎫</span> Dean Office Admission Cards
                   </div>
-                  <span className="sar-stat-badge" style={{ background: '#d1fae5', color: '#047857' }}>
+                  <span style={{ color: '#047857', fontWeight: 700, fontSize: '0.8rem' }}>
                     {admissionProcessingInbox.length} Active
                   </span>
                 </div>
@@ -1314,7 +1248,7 @@ export default function SAR({ user, onLogout }) {
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <span className="sar-ledger-stamp">✓ Verified by SAR</span>
-                <span className="sar-ledger-stamp" style={{ background: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' }}>
+                <span className="sar-ledger-stamp" style={{ color: '#1d4ed8' }}>
                   🏛️ Dean Office Certified
                 </span>
               </div>
@@ -1358,16 +1292,14 @@ export default function SAR({ user, onLogout }) {
                             <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{p.student?.regNo}</div>
                           </td>
                           <td>
-                            <span className={`sar-dept-pill ${isBST(p) ? 'sar-dept-pill-bst' : 'sar-dept-pill-ict'}`}>
-                              {getDeptShort(p)}
-                            </span>
+                            <span className="sar-dept-pill">ICT</span>
                           </td>
                           <td>
                             <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{getFormTypeLabel(p.type)}</div>
                             <div style={{ fontSize: '0.72rem', color: '#64748b' }}>PIV Voucher: {p.paymentReceipt?.voucherNo || 'PIV-VERIFIED'}</div>
                           </td>
                           <td>
-                            <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', background: '#f8fafc', padding: '3px 7px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', color: '#334155' }}>
                               {p.admissionDetails?.admissionNo || p.senateDetails?.trackingNo || 'REC-SAR-2026-FOT'}
                             </span>
                           </td>
@@ -1448,8 +1380,8 @@ export default function SAR({ user, onLogout }) {
             <div className="sar-main-card">
               <div className="sar-card-header">
                 <div className="sar-card-header-left">
-                  <h2>Departmental Overview: BST vs ICT</h2>
-                  <p>Distribution of examination requests between departments</p>
+                  <h2>Departmental Overview: Department of Information and Communication Technology (ICT)</h2>
+                  <p>Overview of examination requests and clearance status</p>
                 </div>
               </div>
 
@@ -1472,14 +1404,6 @@ export default function SAR({ user, onLogout }) {
                       <td>{ictProcesses.filter(p => p.status.includes('Pending')).length}</td>
                       <td>{ictProcesses.filter(p => p.currentAssignedRole === 'examination').length}</td>
                       <td>{ictProcesses.filter(p => p.status === 'Approved').length}</td>
-                      <td><span className="sar-ledger-stamp">100% On Schedule</span></td>
-                    </tr>
-                    <tr>
-                      <td><strong>Department of Biosystems Technology (BST)</strong></td>
-                      <td>{bstProcesses.length}</td>
-                      <td>{bstProcesses.filter(p => p.status.includes('Pending')).length}</td>
-                      <td>{bstProcesses.filter(p => p.currentAssignedRole === 'examination').length}</td>
-                      <td>{bstProcesses.filter(p => p.status === 'Approved').length}</td>
                       <td><span className="sar-ledger-stamp">100% On Schedule</span></td>
                     </tr>
                   </tbody>
@@ -1911,7 +1835,6 @@ export default function SAR({ user, onLogout }) {
                   onChange={(e) => setDeptListSelected(e.target.value)}
                 >
                   <option value="Department of Information and Communication Technology">Department of Information and Communication Technology (ICT)</option>
-                  <option value="Department of Biosystems Technology">Department of Biosystems Technology (BST)</option>
                 </select>
               </div>
 
