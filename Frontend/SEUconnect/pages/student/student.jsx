@@ -116,8 +116,8 @@ export default function Student({ user, onLogout }) {
     'Add / Drop Modules'
   ];
 
-  const quickActions = [
-    {
+  const quickActions = [  
+    { 
       label: 'Register Subjects',
       actionId: 'semester_registration',
       colorTheme: 'purple',
@@ -397,7 +397,7 @@ export default function Student({ user, onLogout }) {
               <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
           </div>
-
+          
           {/* Card 2: Current CGPA */}
           <div className="std-stat-card">
             <div className="std-stat-icon-wrap icon-amber">

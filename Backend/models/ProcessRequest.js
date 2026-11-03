@@ -16,7 +16,7 @@ const StageSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['PENDING', 'CURRENT', 'COMPLETED', 'DECLINED'],
+    enum: ['PENDING', 'CURRENT', 'COMPLETED', 'DECLINED', 'RETURNED'],
     default: 'PENDING',
   },
   actionTakenBy: {

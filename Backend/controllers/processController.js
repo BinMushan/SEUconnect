@@ -302,8 +302,36 @@ exports.approveStage = async (req, res) => {
       if (nextStage.role === 'lecturer') process.status = 'Pending Lecturer';
       else if (nextStage.role === 'examination') process.status = 'Pending Medical Verification';
       else if (nextStage.role === 'hod') process.status = 'Pending HOD';
-      else if (nextStage.role === 'dean') process.status = 'Pending Dean';
-      else process.status = 'In Progress';
+      else if (nextStage.role === 'dean') {
+        process.status = 'Pending Dean';
+        // Notify Dean and HOD of endorsement
+        createNotification({
+          recipientRole: 'dean',
+          recipientDepartment: 'ALL',
+          recipientEmail: 'dean@gmail.com',
+          title: `HOD Endorsement: ${process.trackingNumber}`,
+          message: `${actorName || 'HOD'} (${process.student?.department || 'Department'}) endorsed request ${process.trackingNumber} (${process.student?.name}) for Dean Executive Approval.`,
+          type: 'endorsement',
+          priority: 'urgent',
+          processId: process.trackingNumber,
+          trackingNumber: process.trackingNumber,
+          targetTab: 'faculty_approval',
+        });
+        createNotification({
+          recipientRole: 'hod',
+          recipientDepartment: process.student?.department || 'ALL',
+          recipientEmail: actorEmail || 'hod@gmail.com',
+          title: `Request Endorsed to Dean: ${process.trackingNumber}`,
+          message: `Request ${process.trackingNumber} successfully endorsed to Dean Prof. Rifai Kariapper.`,
+          type: 'endorsement',
+          priority: 'normal',
+          processId: process.trackingNumber,
+          trackingNumber: process.trackingNumber,
+          targetTab: 'hod_command',
+        });
+      } else {
+        process.status = 'In Progress';
+      }
     } else {
       // Final stage reached & completed!
       process.status = 'Approved';
@@ -313,6 +341,30 @@ exports.approveStage = async (req, res) => {
         finalApprovalCode: `SEU-FOT-AUTH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
         endorsementSeal: 'OFFICIALLY VERIFIED AND APPROVED BY SOUTH EASTERN UNIVERSITY FACULTY BOARD',
       };
+
+      // Notify HOD and Student of Dean Approval
+      createNotification({
+        recipientRole: 'hod',
+        recipientDepartment: process.student?.department || 'ALL',
+        title: `Dean Approval Granted: ${process.trackingNumber}`,
+        message: `Dean Prof. Rifai Kariapper officially approved request ${process.trackingNumber} (${process.student?.name}).`,
+        type: 'approved',
+        priority: 'normal',
+        processId: process.trackingNumber,
+        trackingNumber: process.trackingNumber,
+        targetTab: 'hod_command',
+      });
+      createNotification({
+        recipientRole: 'student',
+        recipientEmail: process.student?.email || '',
+        title: `Request Approved by Dean: ${process.trackingNumber}`,
+        message: `Your request ${process.trackingNumber} (${process.title}) has been approved by Dean Prof. Rifai Kariapper.`,
+        type: 'approved',
+        priority: 'high',
+        processId: process.trackingNumber,
+        trackingNumber: process.trackingNumber,
+        targetTab: 'track_requests',
+      });
     }
 
     if (getStatus() && process.save) {
@@ -403,6 +455,33 @@ exports.declineProcess = async (req, res) => {
       if (idx !== -1) memoryProcesses[idx] = process;
     }
 
+    // Emit decline notifications
+    createNotification({
+      recipientRole: 'student',
+      recipientEmail: process.student?.email || '',
+      title: `Request Declined: ${process.trackingNumber}`,
+      message: `Your request ${process.trackingNumber} was declined by ${actorRole}. Reason: ${reason.trim()}`,
+      type: 'declined',
+      priority: 'urgent',
+      processId: process.trackingNumber,
+      trackingNumber: process.trackingNumber,
+      targetTab: 'track_requests',
+    });
+
+    if (actorRole && actorRole.toLowerCase().includes('dean')) {
+      createNotification({
+        recipientRole: 'hod',
+        recipientDepartment: process.student?.department || 'ALL',
+        title: `Request Declined by Dean: ${process.trackingNumber}`,
+        message: `Dean Prof. Rifai Kariapper declined request ${process.trackingNumber} (${process.student?.name}). Reason: ${reason.trim()}`,
+        type: 'declined',
+        priority: 'high',
+        processId: process.trackingNumber,
+        trackingNumber: process.trackingNumber,
+        targetTab: 'hod_command',
+      });
+    }
+
     res.json({
       success: true,
       message: `Process ${process.trackingNumber} declined by ${actorName || actorRole}. Decline justification logged.`,
@@ -411,6 +490,110 @@ exports.declineProcess = async (req, res) => {
   } catch (error) {
     console.error('Error declining process:', error);
     res.status(500).json({ success: false, message: 'Server error while declining process', error: error.message });
+  }
+};
+
+/**
+ * Return Process for Correction (Sends request back with instructions)
+ */
+exports.returnProcess = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { actorName, actorRole, actorEmail, reason } = req.body;
+    const now = new Date();
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({ success: false, message: 'Specific instructions/reason for return are mandatory.' });
+    }
+
+    let process = null;
+    if (getStatus()) {
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        process = await ProcessRequest.findById(id);
+      }
+      if (!process) {
+        process = await ProcessRequest.findOne({ trackingNumber: id });
+      }
+    }
+
+    if (!process) {
+      process = memoryProcesses.find(p => p.trackingNumber === id || p._id === id);
+    }
+
+    if (!process) {
+      return res.status(404).json({ success: false, message: 'Process request not found' });
+    }
+
+    const curIndex = process.currentStageIndex;
+    const currentStage = process.stages[curIndex];
+
+    if (currentStage) {
+      currentStage.status = 'RETURNED';
+      currentStage.actionTakenBy = actorName || actorRole;
+      currentStage.actionTakenRole = actorRole;
+      currentStage.actionDate = now;
+      currentStage.remarks = `RETURNED FOR CORRECTION: ${reason.trim()}`;
+      currentStage.digitalStamp = `SEU-${actorRole.toUpperCase().replace(/\s+/g, '_')}-RETURNED#${Math.floor(10000 + Math.random() * 90000)}`;
+    }
+
+    process.status = 'Returned for Correction';
+    process.currentAssignedRole = 'student';
+    process.currentStageIndex = 0;
+
+    // Add Audit Log
+    process.auditLog.push({
+      action: 'RETURNED_FOR_CORRECTION',
+      actorName: actorName || 'Authorized Officer',
+      actorRole: actorRole || 'Reviewer',
+      actorEmail: actorEmail || '',
+      timestamp: now,
+      stage: currentStage ? currentStage.label : 'Review',
+      comment: `RETURNED FOR CORRECTION: ${reason.trim()}`,
+    });
+
+    if (getStatus() && process.save) {
+      await process.save();
+    } else {
+      const idx = memoryProcesses.findIndex(p => p.trackingNumber === process.trackingNumber);
+      if (idx !== -1) memoryProcesses[idx] = process;
+    }
+
+    // Emit notification to Student
+    createNotification({
+      recipientRole: 'student',
+      recipientEmail: process.student?.email || '',
+      title: `Request Returned for Correction: ${process.trackingNumber}`,
+      message: `Your request was returned by ${actorRole}. Required action: ${reason.trim()}`,
+      type: 'correction',
+      priority: 'urgent',
+      processId: process.trackingNumber,
+      trackingNumber: process.trackingNumber,
+      targetTab: 'track_requests',
+    });
+
+    // If Dean returned, notify HOD
+    if (actorRole && actorRole.toLowerCase().includes('dean')) {
+      createNotification({
+        recipientRole: 'hod',
+        recipientDepartment: process.student?.department || 'ALL',
+        title: `Request Returned by Dean: ${process.trackingNumber}`,
+        message: `Dean Prof. Rifai Kariapper returned request ${process.trackingNumber} (${process.student?.name}) for correction: ${reason.trim()}`,
+        type: 'returned',
+        priority: 'high',
+        processId: process.trackingNumber,
+        trackingNumber: process.trackingNumber,
+        targetTab: 'hod_command',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Process ${process.trackingNumber} returned for correction by ${actorName || actorRole}. Instructions logged.`,
+      data: process,
+    });
+  } catch (error) {
+    console.error('Error returning process for correction:', error);
+    res.status(500).json({ success: false, message: 'Server error while returning process', error: error.message });
   }
 };
 

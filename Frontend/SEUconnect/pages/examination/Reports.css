@@ -1,0 +1,571 @@
+/* ==========================================================================
+   REPORTS MODULE STYLES (adm-)
+   Styled consistently with Results_Compilation
+   ========================================================================== */
+
+.adm-page {
+  --adm-card: #ffffff;
+  --adm-text: #0f172a;
+  --adm-muted: #64748b;
+  --adm-border: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--adm-text);
+  font-family: inherit;
+}
+
+.seu-dash-main.dark-mode .adm-page {
+  --adm-card: #0f1c33;
+  --adm-text: #e2e8f0;
+  --adm-muted: #94a3b8;
+  --adm-border: #1e3050;
+}
+
+/* ==========================================================================
+   1. STATS CARDS
+   ========================================================================== */
+.adm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.adm-stat-card {
+  min-width: 0;
+  background: var(--adm-card);
+  border-radius: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--adm-border) !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.adm-stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.adm-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-stat-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.adm-icon-blue { background: #dbeafe; color: #2563eb; }
+.adm-icon-green { background: #d1fae5; color: #059669; }
+.adm-icon-amber { background: #fef3c7; color: #d97706; }
+.adm-icon-red { background: #fee2e2; color: #dc2626; }
+.adm-icon-purple { background: #ede9fe; color: #7c3aed; }
+
+.adm-pill-blue { background: #dbeafe; color: #1d4ed8; }
+.adm-pill-green { background: #d1fae5; color: #047857; }
+.adm-pill-amber { background: #fef3c7; color: #b45309; }
+.adm-pill-red { background: #fee2e2; color: #b91c1c; }
+.adm-pill-purple { background: #ede9fe; color: #6d28d9; }
+
+.adm-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.adm-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--adm-muted);
+}
+
+.adm-stat-val {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--adm-text);
+}
+
+.adm-stat-sub {
+  font-size: 13px;
+  color: var(--adm-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-stat-click {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.adm-stat-click:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.adm-stat-click:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.adm-stat-click.is-active {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 12px 24px rgba(37, 99, 235, 0.12) !important;
+  background: linear-gradient(to bottom, #ffffff, #eff6ff) !important;
+}
+
+.seu-dash-main.dark-mode .adm-stat-click.is-active {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
+  background: linear-gradient(to bottom, #0f1c33, #172554) !important;
+}
+
+/* ==========================================================================
+   2. MAIN PANEL & HEADER
+   ========================================================================== */
+.adm-panel {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  scroll-margin-top: 90px;
+}
+
+.adm-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.adm-panel-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.adm-panel-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--adm-muted);
+}
+
+.adm-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Active filter banner */
+.adm-active-filter {
+  margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.seu-dash-main.dark-mode .adm-active-filter {
+  background: rgba(30, 58, 138, 0.35);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #bfdbfe;
+}
+
+.adm-btn-clear {
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.adm-btn-clear:hover {
+  color: #1d4ed8;
+}
+
+/* ==========================================================================
+   3. HORIZONTAL FILTER TOOLBAR (Examination_Offences Style)
+   ========================================================================== */
+.adm-filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.adm-search-wrap {
+  position: relative;
+  flex: 1 1 240px;
+}
+
+.adm-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.adm-input,
+.adm-select {
+  padding: 9px 12px;
+  border: 1px solid var(--adm-border);
+  border-radius: 8px;
+  background: var(--adm-card);
+  color: var(--adm-text);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+.adm-select {
+  cursor: pointer;
+}
+
+.adm-input:focus,
+.adm-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.adm-search-input {
+  width: 100%;
+  padding-left: 36px !important;
+  box-sizing: border-box;
+}
+
+.adm-filter-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   4. REPORT CATALOGUE CARDS (Results_Compilation Style)
+   ========================================================================== */
+.rep-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.rep-card {
+  border: 1px solid var(--adm-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--adm-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.rep-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  border-color: #cbd5e1;
+}
+
+.seu-dash-main.dark-mode .rep-card:hover {
+  background: #142440;
+}
+
+.rep-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.rep-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: grid;
+  place-items: center;
+}
+
+.rep-card-body h4 {
+  margin: 8px 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.rep-card-body p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--adm-muted);
+}
+
+.rep-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--adm-border);
+  gap: 10px;
+}
+
+.rep-card-meta {
+  font-size: 11px;
+  color: var(--adm-muted);
+}
+
+/* Badges */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red   { background: #fee2e2; color: #991b1b; }
+.badge-blue  { background: #dbeafe; color: #1e40af; }
+.badge-purple { background: #ede9fe; color: #6d28d9; }
+
+/* ==========================================================================
+   5. BUTTONS (Header and Main)
+   ========================================================================== */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.adm-btn-primary {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.adm-btn-primary:hover {
+  background: #1e40af;
+}
+
+.adm-btn-outline {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.adm-btn-outline:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.seu-dash-main.dark-mode .adm-btn-outline {
+  background: #0f1c33 !important;
+  border: 1px solid #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+.seu-dash-main.dark-mode .adm-btn-outline:hover {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+/* ==========================================================================
+   6. RICH PREVIEW MODAL (Results_Compilation Style)
+   ========================================================================== */
+.adm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.adm-modal-card {
+  background: var(--adm-card);
+  padding: 0;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--adm-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.adm-modal-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #2563eb;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.adm-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.adm-modal-subtitle {
+  font-size: 12px;
+  color: var(--adm-muted);
+  margin-top: 2px;
+}
+
+.adm-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--adm-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.adm-close-btn:hover {
+  color: var(--adm-text);
+  background: #f1f5f9;
+}
+
+.adm-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.adm-info-banner {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  background: #f8fafc;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--adm-border);
+}
+
+.adm-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-info-lbl {
+  font-size: 11px;
+  color: var(--adm-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.adm-info-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.adm-advisory-box {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  border: 1px solid #fde68a;
+  line-height: 1.5;
+}
+
+.adm-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--adm-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 1024px) {
+  .adm-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 800px) {
+  .rep-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .adm-stats-grid { grid-template-columns: 1fr; }
+  .adm-info-banner { grid-template-columns: 1fr; }
+}

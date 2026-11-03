@@ -25,18 +25,18 @@ const DEFAULT_USERS_BY_ROLE = {
     avatarInitial: 'M.',
   },
   lecturer: {
-    name: 'Dr. S. Kirushanth',
+    name: 'Dr. K. Perera',
     email: 'lecturer@gmail.com',
     role: 'lecturer',
     roleKey: 'lecturer',
-    staffId: 'STAFF-ICT-104',
+    staffId: 'LEC/ICT/024',
     department: 'Department of Information and Communication Technology',
     faculty: 'Faculty of Technology',
     designation: 'Senior Lecturer Gr. II & Course Coordinator',
-    avatarInitial: 'SK',
+    avatarInitial: 'KP',
   },
   hod: {
-    name: 'Dr. M.A. Rifky',
+    name: 'M.J Ahamed Sabani',
     email: 'hod@gmail.com',
     role: 'hod',
     roleKey: 'hod',
@@ -44,7 +44,7 @@ const DEFAULT_USERS_BY_ROLE = {
     department: 'Department of Information and Communication Technology',
     faculty: 'Faculty of Technology',
     designation: 'Head of the Department (ICT)',
-    avatarInitial: 'MR',
+    avatarInitial: 'AS',
   },
   sar: {
     name: 'Mr. K.L.M. Riyas',
@@ -58,7 +58,7 @@ const DEFAULT_USERS_BY_ROLE = {
     avatarInitial: 'KR',
   },
   dean: {
-    name: 'Prof. U.L. Abdul Majeed',
+    name: 'Prof. Rifai Kariapper',
     email: 'dean@gmail.com',
     role: 'dean',
     roleKey: 'dean',
@@ -66,7 +66,7 @@ const DEFAULT_USERS_BY_ROLE = {
     department: 'Faculty Executive Office',
     faculty: 'Faculty of Technology',
     designation: 'Dean, Faculty of Technology',
-    avatarInitial: 'AM',
+    avatarInitial: 'RK',
   },
   examination: {
     name: 'Dr. (Mrs.) R. Fathima',
@@ -103,9 +103,23 @@ const DEFAULT_USERS_BY_ROLE = {
   },
 };
 
+function getInitialAuthState() {
+  if (typeof window === 'undefined') return { page: 'login', user: null };
+  const rawHash = window.location.hash ? window.location.hash.replace(/^#/, '').trim() : '';
+  const cleanPath = (rawHash || window.location.pathname).replace(/^\//, '').toLowerCase();
+  const matchedRole = ['student', 'lecturer', 'hod', 'dean', 'admin', 'superadmin', 'examination'].find(
+    (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
+  );
+  if (matchedRole) {
+    return { page: matchedRole, user: DEFAULT_USERS_BY_ROLE[matchedRole] };
+  }
+  return { page: 'login', user: null };
+}
+
 function App() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('login');
+  const [initialState] = useState(getInitialAuthState);
+  const [currentUser, setCurrentUser] = useState(initialState.user);
+  const [currentPage, setCurrentPage] = useState(initialState.page);
 
   // Sync state with URL hash or pathname
   useEffect(() => {
@@ -180,7 +194,7 @@ function App() {
   };
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '100%', maxWidth: '100vw', minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       {currentPage !== 'login' && (
         <RoleSwitcherBar
           currentUser={currentUser || DEFAULT_USERS_BY_ROLE[currentPage]}
@@ -193,3 +207,4 @@ function App() {
 }
 
 export default App;
+
