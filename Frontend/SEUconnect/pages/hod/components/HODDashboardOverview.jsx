@@ -183,6 +183,27 @@ export default function HODDashboardOverview({
         </div>
       </section>
 
+      {/* 2. HOD FAST DISPATCH ACTION BAR */}
+      <section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '1.25rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.6rem 1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#0f2b5c' }}>
+          <span>⚡ HOD Executive Dispatch:</span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem' }} onClick={() => onNavigate('pending_hod_approvals')}>
+            ✓ Approvals Desk ({pendingHOD.length})
+          </button>
+          <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem' }} onClick={() => onNavigate('student_roster')}>
+            👥 Undergraduates Directory (337)
+          </button>
+          <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem', color: '#1e40af', borderColor: '#93c5fd', background: '#eff6ff' }} onClick={() => onNavigate('department_calendar')}>
+            📅 Department Academic Calendar (5 Batches)
+          </button>
+          <button type="button" className="hod-btn-outline" style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem' }} onClick={() => onNavigate('attendance_audit')}>
+            📊 Attendance Audit
+          </button>
+        </div>
+      </section>
+
       {/* 2. SECTION C: ADDITIONAL HOD COMMAND CENTER NUMERICAL SUMMARY CARDS */}
       <section style={{ marginBottom: '1.25rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem' }}>

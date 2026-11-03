@@ -231,6 +231,7 @@ export const HOD_NAV_SECTIONS = [
       { id: 'academic_staff', label: 'Department Academic Staff', icon: Icons.users },
       { id: 'student_roster', label: 'Department Students', icon: Icons.user },
       { id: 'course_coordination', label: 'Course Allocations', icon: Icons.book },
+      { id: 'department_calendar', label: 'Department Academic Calendar', icon: Icons.calendar },
     ],
   },
   {

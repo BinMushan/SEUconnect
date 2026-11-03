@@ -391,40 +391,7 @@ export default function ResultsCompilation() {
       </section>
 
       {/* ====================================================================
-          2. GUIDANCE BANNER
-          ==================================================================== */}
-      <section className="res-guidance-card">
-        <div>
-          <span className="res-guidance-badge">ACADEMIC REGULATIONS COMPLIANCE</span>
-          <h4 className="res-guidance-heading">
-            Marks BroadSheet &amp; Progression Audit (Faculty Handbook Section 4.6 &amp; 4.7)
-          </h4>
-          <p className="res-guidance-text">
-            End semester final broadsheets compute GPA according to Senate formula. Repeat grades are capped 
-            at Grade C (GP 2.00). Candidates with SGPA below 1.50 are referred for Academic Probation. 
-            Official results require ratification by the Board of Examiners.
-          </p>
-        </div>
-        <div className="res-guidance-actions">
-          <button
-            type="button"
-            className="res-btn res-btn-outline"
-            onClick={() => setShowBroadSheet(true)}
-          >
-            Board BroadSheet
-          </button>
-          <button
-            type="button"
-            className="res-btn res-btn-primary"
-            onClick={() => window.print()}
-          >
-            Export BroadSheet PDF
-          </button>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          3. MAIN TABLE & FILTERS PANEL
+          2. MAIN TABLE & FILTERS PANEL
           ==================================================================== */}
       <section className="res-panel" ref={tableRef}>
         <div className="res-panel-header">
@@ -434,9 +401,22 @@ export default function ResultsCompilation() {
               Review module grade breakdowns, verify repeat caps, audit SGPA calculations, and prepare Senate results.
             </p>
           </div>
-          <span className="res-table-counter">
-            Showing <strong>{filteredCandidates.length}</strong> of {candidates.length} Candidate BroadSheets
-          </span>
+          <div className="res-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              type="button"
+              className="res-btn res-btn-outline"
+              onClick={() => setShowBroadSheet(true)}
+            >
+              Board BroadSheet
+            </button>
+            <button
+              type="button"
+              className="res-btn res-btn-primary"
+              onClick={() => window.print()}
+            >
+              Export BroadSheet PDF
+            </button>
+          </div>
         </div>
 
         {/* Shows which card filter is on */}
