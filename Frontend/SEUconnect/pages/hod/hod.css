@@ -720,6 +720,22 @@
   background: #059669;
 }
 
+.hod-btn-return {
+  background: #f59e0b;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hod-btn-return:hover {
+  background: #d97706;
+}
+
 .hod-btn-decline {
   background: #ef4444;
   color: #ffffff;

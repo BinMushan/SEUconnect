@@ -38,7 +38,6 @@ exports.getStats = async (req, res) => {
         departments: [
           { name: 'Information & Communication Technology', code: 'ICT', activeProcesses: total },
           { name: 'Bio-Systems Technology', code: 'BST', activeProcesses: 2 },
-          { name: 'Engineering Technology', code: 'ET', activeProcesses: 1 },
         ],
       },
     });

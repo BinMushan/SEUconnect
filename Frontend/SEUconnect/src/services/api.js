@@ -80,10 +80,41 @@ export const api = {
     });
   },
 
+  async returnProcess(processId, { actorName, actorRole, actorEmail, reason }) {
+    return await request(`/processes/${processId}/return`, {
+      method: 'PUT',
+      body: JSON.stringify({ actorName, actorRole, actorEmail, reason }),
+    });
+  },
+
   async addComment(processId, { actorName, actorRole, actorEmail, comment }) {
     return await request(`/processes/${processId}/comment`, {
       method: 'POST',
       body: JSON.stringify({ actorName, actorRole, actorEmail, comment }),
+    });
+  },
+
+  // Notifications API
+  async getNotifications(params = {}) {
+    const query = new URLSearchParams();
+    if (params.role) query.append('role', params.role);
+    if (params.department) query.append('department', params.department);
+    if (params.email) query.append('email', params.email);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return await request(`/notifications${queryString}`);
+  },
+
+  async markNotificationRead(id) {
+    return await request(`/notifications/${id}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  async markAllNotificationsRead({ role, email } = {}) {
+    return await request('/notifications/read-all', {
+      method: 'POST',
+      body: JSON.stringify({ role, email }),
     });
   },
 
