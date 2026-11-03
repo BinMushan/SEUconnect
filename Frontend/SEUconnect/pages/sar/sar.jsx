@@ -407,30 +407,74 @@ export default function SAR({ user, onLogout }) {
     }
   };
 
-  // Status Badge Renderer
+  // Status Renderer (Clean typography without bubble background layer)
   const renderStatusBadge = (status) => {
     switch (status) {
       case 'Approved':
-        return <span className="sar-status-badge sar-status-approved">✓ Approved</span>;
+        return (
+          <span style={{ color: '#16a34a', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />
+            Approved
+          </span>
+        );
       case 'Pending Dean':
-        return <span className="sar-status-badge sar-status-pending-dean">⏳ Awaiting Dean</span>;
+        return (
+          <span style={{ color: '#7c3aed', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#7c3aed', display: 'inline-block' }} />
+            Awaiting Dean
+          </span>
+        );
       case 'Pending HOD':
-        return <span className="sar-status-badge sar-status-pending-hod">🏛️ Pending HOD</span>;
+        return (
+          <span style={{ color: '#475569', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#64748b', display: 'inline-block' }} />
+            Pending HOD
+          </span>
+        );
       case 'Pending Lecturer':
-        return <span className="sar-status-badge sar-status-pending-lecturer">👨‍🏫 Pending Lecturer</span>;
+        return (
+          <span style={{ color: '#475569', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#64748b', display: 'inline-block' }} />
+            Pending Lecturer
+          </span>
+        );
       case 'Pending SAR Review':
       case 'Pending SAR Verification':
       case 'Pending SAR Action':
-        return <span className="sar-status-badge sar-status-pending-sar">🔍 {status}</span>;
+        return (
+          <span style={{ color: '#d97706', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+            {status}
+          </span>
+        );
       case 'Pending Examination Branch':
-        return <span className="sar-status-badge sar-status-pending-exam">🚀 To Exam Branch</span>;
+        return (
+          <span style={{ color: '#0284c7', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#0284c7', display: 'inline-block' }} />
+            To Exam Branch
+          </span>
+        );
       case 'Admission Generated':
-        return <span className="sar-status-badge sar-status-admission">🎫 Admission Issued</span>;
+        return (
+          <span style={{ color: '#0891b2', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#0891b2', display: 'inline-block' }} />
+            Admission Issued
+          </span>
+        );
       case 'Returned for Correction':
       case 'Declined':
-        return <span className="sar-status-badge sar-status-declined">✕ Returned / Correction</span>;
+        return (
+          <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+            <span style={{ width: '6.5px', height: '6.5px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
+            Returned / Correction
+          </span>
+        );
       default:
-        return <span className="sar-status-badge" style={{ background: '#f1f5f9', color: '#475569' }}>{status}</span>;
+        return (
+          <span style={{ color: '#475569', fontWeight: 600, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+            {status}
+          </span>
+        );
     }
   };
 
@@ -439,7 +483,7 @@ export default function SAR({ user, onLogout }) {
     <section className="sar-inboxes-section">
       <div className="sar-inboxes-header">
         <div className="sar-inboxes-title-group">
-          <h2>SAR Workflow Inboxes ({currentInboxDef.list.length} Items)</h2>
+          <h2>{currentInboxDef.title} ({currentInboxDef.list.length} Items)</h2>
           <p>{currentInboxDef.desc}</p>
         </div>
 
@@ -463,26 +507,6 @@ export default function SAR({ user, onLogout }) {
             ↻ Refresh Queue
           </button>
         </div>
-      </div>
-
-      {/* 8 Inbox Navigation Pills */}
-      <div className="sar-inboxes-nav-pills">
-        {inboxesList.map((inbox) => {
-          const count = inbox.list.length;
-          return (
-            <button
-              key={inbox.id}
-              type="button"
-              className={`sar-inbox-tab-btn ${selectedInbox === inbox.id ? 'active' : ''}`}
-              onClick={() => setSelectedInbox(inbox.id)}
-            >
-              <span>{inbox.label}</span>
-              <span className="sar-inbox-count-badge" style={selectedInbox !== inbox.id && count > 0 ? { background: '#fef3c7', color: '#b45309' } : {}}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
       </div>
 
       {/* Inbox Table Display */}
@@ -559,10 +583,8 @@ export default function SAR({ user, onLogout }) {
                       {new Date(submissionDate).toLocaleDateString('en-GB')}
                     </td>
 
-                    <td>
-                      <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#475569', background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
-                        ⏱️ {pendingDuration}
-                      </span>
+                    <td style={{ color: '#475569', fontSize: '0.82rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                      ⏱️ {pendingDuration}
                     </td>
 
                     <td style={{ textAlign: 'right' }}>
