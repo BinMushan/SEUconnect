@@ -180,7 +180,7 @@ function App() {
   };
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '100%', maxWidth: '100vw', minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       {currentPage !== 'login' && (
         <RoleSwitcherBar
           currentUser={currentUser || DEFAULT_USERS_BY_ROLE[currentPage]}
