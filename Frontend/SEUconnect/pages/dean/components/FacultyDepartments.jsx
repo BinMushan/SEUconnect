@@ -88,10 +88,6 @@ export default function FacultyDepartments({ onNavigate }) {
             <span className="dean-strip-val">{selectedDept.labsCount}</span>
             <span className="dean-strip-lbl">Specialized Labs</span>
           </div>
-          <div className="dean-strip-card">
-            <span className="dean-strip-val">{selectedDept.budgetAllocation}</span>
-            <span className="dean-strip-lbl">Annual Budget Allocation</span>
-          </div>
         </div>
 
         {/* Two-Column Department Intel */}

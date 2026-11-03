@@ -1,7 +1,9 @@
 import React from 'react';
-import { DEAN_INFO, FACULTY_STATS, DEPARTMENTS_DATA } from '../deanData.js';
+import { DEAN_INFO, FACULTY_STATS, DEPARTMENTS_DATA, FACULTY_BATCH_BREAKDOWN, getCalculatedBatchTotals } from '../deanData.js';
 
 export default function FacultyOverview({ onNavigate }) {
+  const batchTotals = getCalculatedBatchTotals();
+
   return (
     <div className="dean-view-container">
       {/* 1. Header Banner */}
@@ -32,10 +34,10 @@ export default function FacultyOverview({ onNavigate }) {
         </div>
       </div>
 
-      {/* 2. Key Stats Strip */}
+      {/* 2. Key Stats Strip (Rebalanced after removing Research Funding) */}
       <div className="dean-stats-strip">
         <div className="dean-strip-card">
-          <span className="dean-strip-val">{FACULTY_STATS.totalUndergraduates}</span>
+          <span className="dean-strip-val">{batchTotals.facultyTotal}</span>
           <span className="dean-strip-lbl">Total Undergraduates</span>
         </div>
         <div className="dean-strip-card">
@@ -53,10 +55,6 @@ export default function FacultyOverview({ onNavigate }) {
         <div className="dean-strip-card">
           <span className="dean-strip-val">{FACULTY_STATS.onTimeGraduationRate}</span>
           <span className="dean-strip-lbl">Graduation Rate</span>
-        </div>
-        <div className="dean-strip-card">
-          <span className="dean-strip-val">{FACULTY_STATS.annualResearchFunding}</span>
-          <span className="dean-strip-lbl">Research Funding</span>
         </div>
       </div>
 
@@ -190,10 +188,6 @@ export default function FacultyOverview({ onNavigate }) {
                   <span className="dean-metric-val">{dept.labsCount}</span>
                   <span className="dean-metric-lbl">Labs</span>
                 </div>
-                <div className="dean-dept-metric-box">
-                  <span className="dean-metric-val">{dept.budgetAllocation}</span>
-                  <span className="dean-metric-lbl">Budget</span>
-                </div>
               </div>
 
               <div className="dean-dept-degree">
@@ -211,6 +205,81 @@ export default function FacultyOverview({ onNavigate }) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* 5. Batch-Wise Undergraduate Breakdown Card */}
+        <div className="dean-card" style={{ marginTop: '1.25rem' }}>
+          <div className="dean-card-header">
+            <div>
+              <h3 className="dean-card-heading">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Faculty Undergraduates by Batch (All 5 Batches)
+              </h3>
+              <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.8rem' }}>
+                Batch standard format: later-year/earlier-year across Department of ICT and Department of BST
+              </p>
+            </div>
+            <span className="dean-badge-blue">Total: {batchTotals.facultyTotal} Undergraduates</span>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table className="dean-table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Academic Batch</th>
+                  <th>Year Level</th>
+                  <th style={{ textAlign: 'center' }}>ICT Undergraduates</th>
+                  <th style={{ textAlign: 'center' }}>BST Undergraduates</th>
+                  <th style={{ textAlign: 'center' }}>Faculty Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FACULTY_BATCH_BREAKDOWN.map((b) => (
+                  <tr key={b.batch}>
+                    <td>
+                      <strong style={{ color: '#0f2b5c' }}>{b.batch}</strong>
+                    </td>
+                    <td>
+                      <span className="dean-badge-blue" style={{ fontSize: '0.75rem' }}>{b.year}</span>
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#1e40af' }}>
+                      {b.ict}
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#047857' }}>
+                      {b.bst}
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#0f172a' }}>
+                      {b.facultyTotal}
+                    </td>
+                    <td>
+                      <span className="dean-badge-green" style={{ fontSize: '0.72rem' }}>
+                        Active (≥ 90 Students)
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#f8fafc', fontWeight: 700, borderTop: '2px solid #cbd5e1' }}>
+                  <td colSpan="2" style={{ padding: '0.75rem 1rem', color: '#0f2b5c' }}>
+                    Calculated Faculty Total
+                  </td>
+                  <td style={{ textAlign: 'center', color: '#1e40af' }}>{batchTotals.ict}</td>
+                  <td style={{ textAlign: 'center', color: '#047857' }}>{batchTotals.bst}</td>
+                  <td style={{ textAlign: 'center', color: '#0f172a', fontSize: '1rem' }}>{batchTotals.facultyTotal}</td>
+                  <td>
+                    <span className="dean-badge-blue" style={{ fontSize: '0.72rem' }}>Verified 500 Enrolled</span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </div>
     </div>

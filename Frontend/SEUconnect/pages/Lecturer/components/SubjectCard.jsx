@@ -2,9 +2,15 @@ import React from 'react';
 
 /**
  * SubjectCard component
- * Card representation of an assigned academic module with direct attendance shortcut.
+ * Card representation of an assigned academic module with direct attendance,
+ * assessment marks, and student details shortcuts.
  */
-export default function SubjectCard({ subject, onMarkAttendance, onViewAssessments }) {
+export default function SubjectCard({
+  subject,
+  onMarkAttendance,
+  onViewAssessments,
+  onViewStudentDetails,
+}) {
   const batchValue = subject.batch || '2021/2022';
   const batchPillLabel = String(batchValue).startsWith('Batch')
     ? batchValue
@@ -56,7 +62,12 @@ export default function SubjectCard({ subject, onMarkAttendance, onViewAssessmen
             className="lec-progress-fill"
             style={{
               width: `${subject.attendanceRate}%`,
-              backgroundColor: subject.attendanceRate >= 80 ? '#10b981' : subject.attendanceRate >= 70 ? '#f59e0b' : '#ef4444',
+              backgroundColor:
+                subject.attendanceRate >= 80
+                  ? '#10b981'
+                  : subject.attendanceRate >= 70
+                  ? '#f59e0b'
+                  : '#ef4444',
             }}
           />
         </div>
@@ -67,6 +78,7 @@ export default function SubjectCard({ subject, onMarkAttendance, onViewAssessmen
           type="button"
           className="lec-btn-subject-attendance"
           onClick={() => onMarkAttendance && onMarkAttendance(subject.code)}
+          title={`Mark attendance for ${subject.code}`}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -81,12 +93,38 @@ export default function SubjectCard({ subject, onMarkAttendance, onViewAssessmen
             type="button"
             className="lec-btn-subject-assessments"
             onClick={() => onViewAssessments(subject.code)}
+            title={`View CA / ESA assessments for ${subject.code}`}
           >
             Assessments (CA/ESA)
+          </button>
+        )}
+
+        {onViewStudentDetails && (
+          <button
+            type="button"
+            className="lec-btn-subject-students"
+            onClick={() => onViewStudentDetails(subject.code)}
+            title={`View registered student details for ${subject.code}`}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Student Details
           </button>
         )}
       </div>
     </div>
   );
 }
-
