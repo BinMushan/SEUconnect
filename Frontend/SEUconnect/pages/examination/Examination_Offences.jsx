@@ -375,40 +375,7 @@ export default function ExaminationOffences() {
       </section>
 
       {/* ====================================================================
-          2. GUIDANCE BANNER
-          ==================================================================== */}
-      <section className="eo-guidance-card">
-        <div>
-          <span className="eo-guidance-badge">SENATE DISCIPLINARY CODE</span>
-          <h4 className="eo-guidance-heading">
-            Procedure on Examination Malpractices (Faculty Handbook Section 8.1.2)
-          </h4>
-          <p className="eo-guidance-text">
-            All hall irregularities, unauthorized chits, smart electronic devices, and candidate impersonation 
-            must be impounded immediately by the Chief Invigilator. Cases are escalated to the Examination Offences 
-            Committee (EOC) for Senate punitive recommendation.
-          </p>
-        </div>
-        <div className="eo-guidance-actions">
-          <button
-            type="button"
-            className="eo-btn eo-btn-outline"
-            onClick={() => setShowDossier(true)}
-          >
-            EOC Referral Dossier
-          </button>
-          <button
-            type="button"
-            className="eo-btn eo-btn-primary"
-            onClick={() => setShowLogModal(true)}
-          >
-            + Log Incident Case
-          </button>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          3. MAIN TABLE & FILTERS PANEL
+          2. MAIN TABLE & FILTERS PANEL
           ==================================================================== */}
       <section className="eo-panel" ref={tableRef}>
         <div className="eo-panel-header">
@@ -418,9 +385,22 @@ export default function ExaminationOffences() {
               Record invigilator statements, track confiscated evidence, and enforce Senate disciplinary rulings.
             </p>
           </div>
-          <span className="eo-table-counter">
-            Showing <strong>{filteredOffences.length}</strong> of {offences.length} Incident Cases
-          </span>
+          <div className="eo-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              type="button"
+              className="eo-btn eo-btn-outline"
+              onClick={() => setShowDossier(true)}
+            >
+              EOC Referral Dossier
+            </button>
+            <button
+              type="button"
+              className="eo-btn eo-btn-primary"
+              onClick={() => setShowLogModal(true)}
+            >
+              + Log Incident Case
+            </button>
+          </div>
         </div>
 
         {/* Shows which card filter is on */}
