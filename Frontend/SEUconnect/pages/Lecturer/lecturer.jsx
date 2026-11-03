@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   MemoryRouter,
   Routes,
@@ -18,6 +18,7 @@ import Results from './Results.jsx';
 import Announcements from './Announcements.jsx';
 import Notifications from './Notifications.jsx';
 import LecturerProfile from './LecturerProfile.jsx';
+import MedicalVerification from './MedicalVerification.jsx';
 
 import { INITIAL_LECTURER_INFO, INITIAL_NOTIFICATIONS } from './lecturerMockData.js';
 import './lecturer.css';
@@ -26,7 +27,7 @@ import './lecturer.css';
  * Sidebar Navigation Sections matching Section 2 of Specification:
  * MAIN: Dashboard
  * ACADEMIC: My Subjects, Attendance, CA / ESA, Results / Grades
- * LECTURER SERVICES: Announcements, Notifications, Profile
+ * LECTURER SERVICES: Announcements, Notifications
  */
 const LECTURER_NAV_SECTIONS = [
   {
@@ -119,16 +120,6 @@ const LECTURER_NAV_SECTIONS = [
           </svg>
         ),
       },
-      {
-        id: 'profile',
-        label: 'Profile',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        ),
-      },
     ],
   },
 ];
@@ -153,6 +144,36 @@ function LecturerPortalShell({ user, onLogout }) {
   const [toasts, setToasts] = useState([]);
   const [selectedSubjectCode, setSelectedSubjectCode] = useState('SWT22022');
 
+  // Lifted Notifications state synchronized with topbar badge
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+
+  const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleToggleNotificationRead = (id) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n))
+    );
+  };
+
+  const handleMarkAllNotificationsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    showToast('All notifications marked as read', 'info');
+  };
+
+  const handleMarkSingleRead = (id) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
+  };
+
+  const handleNotificationNavigate = (targetRoute, params) => {
+    if (params?.subjectCode) {
+      setSelectedSubjectCode(params.subjectCode);
+    }
+    const cleanRoute = targetRoute.startsWith('/') ? targetRoute : `/${targetRoute}`;
+    navigate(cleanRoute);
+  };
+
   const showToast = (message, type = 'info') => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -167,7 +188,7 @@ function LecturerPortalShell({ user, onLogout }) {
 
   // Convert current path to active sidebar id
   const currentPath = location.pathname.replace(/^\//, '') || 'dashboard';
-  const activeNavId = currentPath === '' ? 'dashboard' : currentPath;
+  const activeNavId = (currentPath === '' || currentPath === 'dashboard') ? 'dashboard' : (currentPath === 'medical-verification' ? 'notifications' : currentPath);
 
   const handleNavigate = (targetId) => {
     if (targetId === 'academic_profile') {
@@ -198,7 +219,10 @@ function LecturerPortalShell({ user, onLogout }) {
     } else if (q.includes('announc') || q.includes('notice') || q.includes('publish') || q.includes('circ')) {
       navigate('/announcements');
       showToast('Navigated to Announcements Feed', 'info');
-    } else if (q.includes('notif') || q.includes('inbox') || q.includes('alert') || q.includes('medic')) {
+    } else if (q.includes('medic') || q.includes('mc') || q.includes('concession') || q.includes('doctor') || q.includes('sick')) {
+      navigate('/medical-verification');
+      showToast('Navigated to Student Medical Approval & Verification', 'info');
+    } else if (q.includes('notif') || q.includes('inbox') || q.includes('alert')) {
       navigate('/notifications');
       showToast('Navigated to Notification Inbox', 'info');
     } else if (q.includes('prof') || q.includes('ident') || q.includes('password') || q.includes('contact')) {
@@ -248,7 +272,6 @@ function LecturerPortalShell({ user, onLogout }) {
     </>
   );
 
-  const unreadNotifCount = INITIAL_NOTIFICATIONS.filter((n) => !n.isRead).length;
 
   return (
     <div className="lecturer-module-root">
@@ -356,7 +379,25 @@ function LecturerPortalShell({ user, onLogout }) {
           />
           <Route
             path="/notifications"
-            element={<Notifications onShowToast={showToast} />}
+            element={
+              <Notifications
+                notifications={notifications}
+                onToggleRead={handleToggleNotificationRead}
+                onMarkSingleRead={handleMarkSingleRead}
+                onMarkAllAsRead={handleMarkAllNotificationsRead}
+                onNavigateNotification={handleNotificationNavigate}
+                onShowToast={showToast}
+              />
+            }
+          />
+          <Route
+            path="/medical-verification"
+            element={
+              <MedicalVerification
+                onShowToast={showToast}
+                onNavigateBack={() => navigate('/notifications')}
+              />
+            }
           />
           <Route
             path="/profile"
