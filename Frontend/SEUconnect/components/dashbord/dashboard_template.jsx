@@ -369,9 +369,9 @@ export default function DashboardTemplate({
             <div key={section.title} className="seu-nav-section-group">
               <div className="seu-nav-section-title">{section.title}</div>
               {section.items.map((item) => {
-                const isSubmenuOpen = !!openSubmenus[item.id];
                 const isDirectActive = currentActive === item.id;
                 const isSubActive = item.subItems && item.subItems.some((s) => s.id === currentActive);
+                const isSubmenuOpen = openSubmenus[item.id] !== undefined ? !!openSubmenus[item.id] : (isSubActive || isDirectActive);
                 const isActive = isDirectActive || (!isSubmenuOpen && isSubActive);
 
                 return (
