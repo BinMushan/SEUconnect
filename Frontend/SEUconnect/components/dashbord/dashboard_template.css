@@ -321,17 +321,15 @@
 /* Top Navigation Bar */
 .seu-dash-topbar {
   height: 64px;
-  background-color: var(--seu-topbar-bg);
-  backdrop-filter: blur(10px);
+  background-color: #ffffff;
   border-bottom: 1px solid var(--seu-topbar-border);
   padding: 0 1.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 15;
+  position: relative;
+  z-index: 5;
   box-sizing: border-box;
 }
 
