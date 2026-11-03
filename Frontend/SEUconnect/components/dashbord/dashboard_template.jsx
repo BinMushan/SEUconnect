@@ -359,6 +359,11 @@ export default function DashboardTemplate({
                         <span className="seu-nav-item-icon">{item.icon}</span>
                         <span>{item.label}</span>
                       </div>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="seu-nav-item-badge">
+                          {item.badge}
+                        </span>
+                      )}
                       {item.hasSubmenu && (
                         <span className="seu-nav-chevron">
                           {isSubmenuOpen ? (
