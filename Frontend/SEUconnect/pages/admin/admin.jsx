@@ -337,6 +337,37 @@ export default function Admin({ user, onLogout }) {
     showToast(`Student ${newStudent.name} (${newStudent.regNo}) registered successfully.`);
   };
 
+  // 5.b Bulk Add Students (200+ Student Cohorts from Excel/CSV)
+  const handleBulkAddStudents = (newStudentsList, targetBatchId) => {
+    if (!newStudentsList || newStudentsList.length === 0) return;
+
+    setStudents((prev) => [...newStudentsList, ...prev]);
+
+    if (targetBatchId) {
+      setBatches((prev) =>
+        prev.map((b) =>
+          b.id === targetBatchId
+            ? { ...b, totalStudents: (b.totalStudents || 0) + newStudentsList.length }
+            : b
+        )
+      );
+    }
+
+    setStats((prev) => ({
+      ...prev,
+      totalStudents: prev.totalStudents + newStudentsList.length,
+      activeAccounts: prev.activeAccounts + newStudentsList.length
+    }));
+
+    const targetBatch = batches.find((b) => b.id === targetBatchId);
+    const batchLabel = targetBatch ? targetBatch.name : 'Target Cohort';
+    addAuditLog(
+      'Bulk Enrolled Students',
+      `Imported ${newStudentsList.length} undergraduates into ${batchLabel} via pre-defined spreadsheet roster.`
+    );
+    showToast(`Successfully enrolled ${newStudentsList.length} undergraduates into ${batchLabel}.`);
+  };
+
   // 6. Update Student Status
   const handleUpdateStudentStatus = (id, newStatus) => {
     setStudents((prev) =>
@@ -663,6 +694,7 @@ export default function Admin({ user, onLogout }) {
           students={students}
           onAddBatch={handleAddBatch}
           onAddStudent={handleAddStudent}
+          onBulkAddStudents={handleBulkAddStudents}
           onUpdateStudentStatus={handleUpdateStudentStatus}
           isAddModalOpen={isAddStudentModalOpen}
           setIsAddModalOpen={setIsAddStudentModalOpen}
