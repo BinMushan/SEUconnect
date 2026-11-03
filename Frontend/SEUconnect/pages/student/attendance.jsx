@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './attendance.css';
 
 // 1. Official Course Directory matching the uploaded Department Timetable (Yr 2 - Sem II)
@@ -591,6 +591,31 @@ export default function Attendance({ onNavigateMedical }) {
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const periodTimerRef = useRef(null);
+  const sortTimerRef = useRef(null);
+
+  const handlePeriodMouseEnter = () => {
+    if (periodTimerRef.current) clearTimeout(periodTimerRef.current);
+    setDropdownOpen(true);
+  };
+
+  const handlePeriodMouseLeave = () => {
+    periodTimerRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 250);
+  };
+
+  const handleSortMouseEnter = () => {
+    if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
+    setSortDropdownOpen(true);
+  };
+
+  const handleSortMouseLeave = () => {
+    sortTimerRef.current = setTimeout(() => {
+      setSortDropdownOpen(false);
+    }, 250);
+  };
+
   const overallPercentage = 87;
   const minThreshold = 80;
   const isOverallEligible = overallPercentage >= minThreshold;
@@ -651,7 +676,7 @@ export default function Attendance({ onNavigateMedical }) {
       case 'kickoff':
         return 'Kickoff Week';
       default:
-        return 'All Dates (17)';
+        return 'All Dates';
     }
   };
 
@@ -874,69 +899,70 @@ export default function Attendance({ onNavigateMedical }) {
               </p>
             </div>
 
-            {/* Filter controls: Hover/Click Dropdown + Quick Pills */}
+            {/* Filter controls: Hover/Click Dropdowns (Text only, no icons) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              {/* 1. Dropdown Filter with Hover & Click */}
+              {/* 1. Period Filter Dropdown */}
               <div
                 className={`attendance-dropdown ${dropdownOpen ? 'open' : ''}`}
-                onMouseEnter={() => setDropdownOpen(true)}
-                onMouseLeave={() => setDropdownOpen(false)}
+                onMouseEnter={handlePeriodMouseEnter}
+                onMouseLeave={handlePeriodMouseLeave}
               >
                 <button
                   type="button"
                   className="attendance-dropdown-btn"
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  title="Hover or click to filter by period: 1 Week, 2 Weeks, 3 Weeks, 1 Month"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                  <span>📅 Period: <strong>{getPeriodLabel()}</strong></span>
+                  <span>Period: <strong>{getPeriodLabel()}</strong></span>
                   <span className="attendance-dropdown-arrow">▼</span>
                 </button>
 
                 {/* Dropdown Menu Options */}
-                <div className="attendance-dropdown-menu">
-                  <div style={{ padding: '6px 14px 4px 14px', fontSize: '0.70rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Select Time Frame
+                <div
+                  className="attendance-dropdown-menu"
+                  onMouseEnter={handlePeriodMouseEnter}
+                  onMouseLeave={handlePeriodMouseLeave}
+                >
+                  <div style={{ padding: '6px 16px 4px 16px', fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Select Time Period
                   </div>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${matrixPeriod === '1week' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('1week'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('1week'); setDropdownOpen(false); }}
                   >
-                    <span>⚡ 1 Week (Last 7 Days)</span>
+                    <span>1 Week (Last 7 Days)</span>
                     <span className="attendance-dropdown-badge">5 Days</span>
                   </button>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${matrixPeriod === '2weeks' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('2weeks'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('2weeks'); setDropdownOpen(false); }}
                   >
-                    <span>⚡ 2 Weeks (Last 14 Days)</span>
+                    <span>2 Weeks (Last 14 Days)</span>
                     <span className="attendance-dropdown-badge">10 Days</span>
                   </button>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${matrixPeriod === '3weeks' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('3weeks'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('3weeks'); setDropdownOpen(false); }}
                   >
-                    <span>⚡ 3 Weeks (Last 21 Days)</span>
+                    <span>3 Weeks (Last 21 Days)</span>
                     <span className="attendance-dropdown-badge">12 Days</span>
                   </button>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${matrixPeriod === '1month' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('1month'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('1month'); setDropdownOpen(false); }}
                   >
-                    <span>🗓️ 1 Month (Oct - Nov)</span>
+                    <span>1 Month (Oct - Nov)</span>
                     <span className="attendance-dropdown-badge">12 Days</span>
                   </button>
 
@@ -945,74 +971,76 @@ export default function Attendance({ onNavigateMedical }) {
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${matrixPeriod === 'kickoff' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('kickoff'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('kickoff'); setDropdownOpen(false); }}
                   >
-                    <span>🌱 Kickoff Week (April 2026)</span>
+                    <span>Kickoff Week (April 2026)</span>
                     <span className="attendance-dropdown-badge">5 Days</span>
                   </button>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${matrixPeriod === 'all' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setMatrixPeriod('all'); setDropdownOpen(false); }}
                     onClick={() => { setMatrixPeriod('all'); setDropdownOpen(false); }}
                   >
-                    <span>📋 All Recorded Dates</span>
+                    <span>All Recorded Dates</span>
                     <span className="attendance-dropdown-badge">17 Days</span>
                   </button>
                 </div>
               </div>
 
-              {/* 2. Sort Dropdown with Hover & Click */}
+              {/* 2. Sort Dropdown */}
               <div
                 className={`attendance-dropdown ${sortDropdownOpen ? 'open' : ''}`}
-                onMouseEnter={() => setSortDropdownOpen(true)}
-                onMouseLeave={() => setSortDropdownOpen(false)}
+                onMouseEnter={handleSortMouseEnter}
+                onMouseLeave={handleSortMouseLeave}
               >
                 <button
                   type="button"
                   className="attendance-dropdown-btn"
                   onClick={() => setSortDropdownOpen((prev) => !prev)}
-                  title="Hover or click to sort dates: Newest first, Oldest first, Most missed first"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m3 16 4 4 4-4" />
-                    <path d="M7 20V4" />
-                    <path d="m21 8-4-4-4 4" />
-                    <path d="M17 4v16" />
-                  </svg>
-                  <span>⇅ Sort: <strong>{getSortLabel()}</strong></span>
+                  <span>Sort: <strong>{getSortLabel()}</strong></span>
                   <span className="attendance-dropdown-arrow">▼</span>
                 </button>
 
-                <div className="attendance-dropdown-menu">
-                  <div style={{ padding: '6px 14px 4px 14px', fontSize: '0.70rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div
+                  className="attendance-dropdown-menu"
+                  onMouseEnter={handleSortMouseEnter}
+                  onMouseLeave={handleSortMouseLeave}
+                >
+                  <div style={{ padding: '6px 16px 4px 16px', fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Sort Dates By
                   </div>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${sortOrder === 'newest' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setSortOrder('newest'); setSortDropdownOpen(false); }}
                     onClick={() => { setSortOrder('newest'); setSortDropdownOpen(false); }}
                   >
-                    <span>📅 Newest Date First</span>
+                    <span>Newest Date First</span>
                     <span className="attendance-dropdown-badge">Nov → Apr</span>
                   </button>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${sortOrder === 'oldest' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setSortOrder('oldest'); setSortDropdownOpen(false); }}
                     onClick={() => { setSortOrder('oldest'); setSortDropdownOpen(false); }}
                   >
-                    <span>📅 Oldest Date First</span>
+                    <span>Oldest Date First</span>
                     <span className="attendance-dropdown-badge">Apr → Nov</span>
                   </button>
 
                   <button
                     type="button"
                     className={`attendance-dropdown-item ${sortOrder === 'most-missed' ? 'active' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); setSortOrder('most-missed'); setSortDropdownOpen(false); }}
                     onClick={() => { setSortOrder('most-missed'); setSortDropdownOpen(false); }}
                   >
-                    <span>⚠️ Most Missed Lectures First</span>
+                    <span>Most Missed Lectures First</span>
                     <span className="attendance-dropdown-badge">Prioritize</span>
                   </button>
                 </div>
@@ -1025,9 +1053,8 @@ export default function Attendance({ onNavigateMedical }) {
                   className={`attendance-pill-btn ${onlyMissedDates ? 'active' : ''}`}
                   onClick={() => setOnlyMissedDates((prev) => !prev)}
                   style={onlyMissedDates ? { backgroundColor: '#dc2626', borderColor: '#dc2626', color: '#ffffff' } : {}}
-                  title="Toggle to view only dates with missed lectures"
                 >
-                  ⚠️ Dates With Missed Lectures {onlyMissedDates ? '✓' : ''}
+                  Dates With Missed Lectures {onlyMissedDates ? '✓' : ''}
                 </button>
 
                 {(matrixPeriod !== 'all' || onlyMissedDates || sortOrder !== 'newest') && (
@@ -1040,9 +1067,8 @@ export default function Attendance({ onNavigateMedical }) {
                       setOnlyMissedDates(false);
                     }}
                     style={{ backgroundColor: '#f1f5f9', color: '#64748b' }}
-                    title="Reset filters and sorting"
                   >
-                    ✕ Reset
+                    Reset
                   </button>
                 )}
               </div>

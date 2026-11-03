@@ -1162,16 +1162,29 @@
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 6px;
+  margin-top: 4px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   min-width: 220px;
-  z-index: 50;
+  z-index: 1000;
   padding: 6px 0;
   display: none;
-  animation: dropdownFadeIn 0.18s ease-out forwards;
+  pointer-events: auto;
+  animation: dropdownFadeIn 0.15s ease-out forwards;
+}
+
+/* Invisible bridge so mouse hover never drops between button and menu */
+.attendance-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: transparent;
+  pointer-events: auto;
 }
 
 /* Show on hover or when open class is present */
@@ -1183,7 +1196,7 @@
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
   to {
     opacity: 1;
@@ -1196,21 +1209,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 9px 16px;
   border: none;
   background: transparent;
   text-align: left;
-  font-size: 0.78rem;
+  font-size: 0.80rem;
   font-weight: 500;
   color: #334155;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  pointer-events: auto;
+  user-select: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
 
-.attendance-dropdown-item:hover {
+.attendance-dropdown-item:hover,
+.attendance-dropdown-item:focus {
   background-color: #f1f5f9;
   color: #0f2b54;
   font-weight: 600;
+  outline: none;
 }
 
 .attendance-dropdown-item.active {
