@@ -343,8 +343,8 @@
 }
 
 .sar-btn-pill.active {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: #0f2b5c;
+  border-color: #0f2b5c;
   color: #ffffff;
 }
 
@@ -451,7 +451,7 @@
 }
 
 .sar-action-btn-primary {
-  background: #1d4ed8;
+  background: #0f2b5c;
   color: #ffffff;
   border: none;
   padding: 0.38rem 0.75rem;
@@ -464,7 +464,7 @@
 }
 
 .sar-action-btn-primary:hover {
-  background: #1e40af;
+  background: #081a38;
 }
 
 .sar-action-btn-secondary {
