@@ -489,7 +489,7 @@
 }
 
 .seu-submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #0f2b5c 0%, #071732 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
 }

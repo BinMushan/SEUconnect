@@ -240,7 +240,7 @@
 }
 
 .fma-btn-clear:hover {
-  color: #1d4ed8;
+  color: #071732;
 }
 
 /* ==========================================================================
@@ -715,7 +715,7 @@
 }
 
 .fma-quick-card:hover {
-  border-color: #3b82f6;
+  border-color: #071732;
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
 }

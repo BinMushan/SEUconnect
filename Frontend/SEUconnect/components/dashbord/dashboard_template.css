@@ -660,7 +660,7 @@
 }
 
 .seu-btn-attendance:hover {
-  background: #1d4ed8;
+  background: #071732;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.45);
 }
@@ -1366,8 +1366,8 @@ body.dark-mode,
 }
 
 .seu-notif-mark-all-btn:hover {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #f1f5f9;
+  color: #071732;
 }
 
 .seu-notif-filter-bar {
@@ -1555,7 +1555,7 @@ body.dark-mode,
 }
 
 .seu-notif-mark-single-btn:hover {
-  color: #2563eb;
+  color: #071732;
   background: #e2e8f0;
 }
 
