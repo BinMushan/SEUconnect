@@ -8,6 +8,7 @@ import SAR from '../pages/sar/sar.jsx';
 import Admin from '../pages/admin/admin.jsx';
 import SuperAdmin from '../pages/superadmin/superadmin.jsx';
 import Examination from '../pages/examination/examination.jsx';
+import FMA from '../pages/fma/fma.jsx';
 import RoleSwitcherBar from '../components/workflow/RoleSwitcherBar.jsx';
 
 const DEFAULT_USERS_BY_ROLE = {
@@ -90,6 +91,17 @@ const DEFAULT_USERS_BY_ROLE = {
     designation: 'System Administrator',
     avatarInitial: 'KT',
   },
+  fma: {
+    name: 'Mr. MMM. Kamil',
+    email: 'fma@gmail.com',
+    role: 'fma',
+    roleKey: 'fma',
+    staffId: 'STAFF-FMA-002',
+    department: 'Office of the Dean',
+    faculty: 'Faculty of Technology',
+    designation: 'Management Assistant Gr. I',
+    avatarInitial: 'MK',
+  },
   superadmin: {
     name: 'Director Information Services',
     email: 'superadmin@gmail.com',
@@ -128,7 +140,11 @@ function App() {
       if (!cleanPath) {
         setCurrentPage('login');
       } else {
-        const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination'].find(
+
+        const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma'].find(
+
+
+
           (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
         );
         if (matchedRole) {
@@ -186,6 +202,8 @@ function App() {
         return <Admin user={currentUser || DEFAULT_USERS_BY_ROLE.admin} onLogout={handleLogout} />;
       case 'superadmin':
         return <SuperAdmin user={currentUser || DEFAULT_USERS_BY_ROLE.superadmin} onLogout={handleLogout} />;
+      case 'fma':
+        return <FMA user={currentUser || DEFAULT_USERS_BY_ROLE.fma} onLogout={handleLogout} />;
       case 'examination':
         return <Examination user={currentUser || DEFAULT_USERS_BY_ROLE.examination} onLogout={handleLogout} />;
       default:
