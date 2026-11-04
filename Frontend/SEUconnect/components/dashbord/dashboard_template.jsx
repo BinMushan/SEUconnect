@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
 import api from '../../src/services/api.js';
+import SEUConnectAIAssistantModal from './SEUConnectAIAssistantModal.jsx';
 import './dashboard_template.css';
 
 /**
@@ -257,6 +258,7 @@ export default function DashboardTemplate({
 
   const [openSubmenus, setOpenSubmenus] = useState({ faculty_forms: true });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -617,7 +619,7 @@ export default function DashboardTemplate({
           <button
             type="button"
             className="seu-ai-assistant-btn"
-            onClick={onAiAssistantClick || (() => alert('SEUConnect AI Assistant: How can I help you today?'))}
+            onClick={onAiAssistantClick || (() => setIsAiAssistantOpen(true))}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2v4" />
@@ -961,6 +963,17 @@ export default function DashboardTemplate({
           )}
         </main>
       </div>
+
+      {/* SEUConnect macOS Floating AI Assistant Chatbot */}
+      {isAiAssistantOpen && (
+        <SEUConnectAIAssistantModal
+          user={user}
+          onClose={() => setIsAiAssistantOpen(false)}
+          onNavigate={(targetTab) => {
+            handleItemClick(targetTab);
+          }}
+        />
+      )}
     </div>
   );
 }
