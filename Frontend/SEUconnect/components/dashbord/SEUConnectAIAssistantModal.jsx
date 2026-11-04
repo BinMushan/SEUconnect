@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import './seu_ai_assistant.css';
 
 /**
  * SEUConnect AI Assistant - macOS Floating Window Modal
  * 
  * Features:
+ * - Rendered through React Portal directly into document.body
+ * - Full-screen background blur (backdrop-filter: blur(18px))
  * - Authentic macOS window frame with traffic lights (🔴 Close, 🟡 Clear/Minimize, 🟢 Fullscreen Toggle)
  * - macOS folder opening and cancel zoom/shrink animation with spring easing
- * - Frosted glass backdrop blur (backdrop-filter: blur(16px))
  * - Role-tailored institutional intelligence calibrated with South Eastern University of Sri Lanka regulations
  * - Interactive suggestion chips and direct navigation links into portal sections
  */
@@ -20,7 +22,7 @@ const KNOWLEDGE_RESPONSES = [
     points: [
       '**Strict 7-Day Deadline**: Official medical certificates must be submitted within 7 calendar days of the absence date.',
       '**CMO / UMO Endorsement**: Private medical certificates must be validated and endorsed by the Chief Medical Officer (CMO) at the University Health Centre, Oluvil Campus.',
-      '**ESA Concession**: Approved medical excuses restore attendance eligibility back to active standing for the Continuous Assessment (CA) and End Semester Assessment (ESA).'
+      '**ESA Concession**: Approved medical excuses restore attendance eligibility back to active standing for Continuous Assessment (CA) and End Semester Assessment (ESA).'
     ],
     actions: [
       { label: 'Submit Medical Form Online', tab: 'medical_requests' },
@@ -109,6 +111,7 @@ export default function SEUConnectAIAssistantModal({
   onClose,
   onNavigate
 }) {
+  const [isMounted, setIsMounted] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [inputText, setInputText] = useState('');
@@ -126,6 +129,10 @@ export default function SEUConnectAIAssistantModal({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -135,7 +142,7 @@ export default function SEUConnectAIAssistantModal({
   useEffect(() => {
     const timer = setTimeout(() => {
       inputRef.current?.focus();
-    }, 200);
+    }, 250);
     return () => clearTimeout(timer);
   }, []);
 
@@ -150,7 +157,7 @@ export default function SEUConnectAIAssistantModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Graceful macOS close animation (280ms duration)
+  // Graceful macOS close animation (250ms duration)
   const handleTriggerClose = () => {
     if (isClosing) return;
     setIsClosing(true);
@@ -158,7 +165,7 @@ export default function SEUConnectAIAssistantModal({
       if (typeof onClose === 'function') {
         onClose();
       }
-    }, 280);
+    }, 250);
   };
 
   // Reset conversation to initial welcome
@@ -230,7 +237,7 @@ export default function SEUConnectAIAssistantModal({
         }
       ]);
       setIsTyping(false);
-    }, 650);
+    }, 600);
   };
 
   const handleChipClick = (promptText) => {
@@ -250,7 +257,7 @@ export default function SEUConnectAIAssistantModal({
     }
   };
 
-  return (
+  const modalElement = (
     <div
       className={`seu-ai-backdrop ${isClosing ? 'closing' : ''}`}
       onClick={(e) => {
@@ -353,7 +360,11 @@ export default function SEUConnectAIAssistantModal({
             <div className="seu-ai-welcome-card">
               <div className="seu-ai-welcome-header">
                 <div className="seu-ai-avatar-large">
-                  <img src="/seusl_logo_white.png?v=3" alt="SEUSL Emblem" />
+                  <img
+                    src="/seusl_logo.png"
+                    alt="SEUSL Emblem"
+                    style={{ width: '32px', height: '32px', maxWidth: '32px', maxHeight: '32px', objectFit: 'contain', display: 'block' }}
+                  />
                 </div>
                 <div className="seu-ai-welcome-titles">
                   <h3>South Eastern University of Sri Lanka</h3>
@@ -418,7 +429,11 @@ export default function SEUConnectAIAssistantModal({
               <div key={msg.id} className={`seu-ai-message-row ${msg.sender}`}>
                 {msg.sender === 'assistant' && (
                   <div className="seu-ai-msg-avatar ai">
-                    <img src="/seusl_logo_white.png?v=3" alt="AI" />
+                    <img
+                      src="/seusl_logo.png"
+                      alt="AI"
+                      style={{ width: '22px', height: '22px', maxWidth: '22px', maxHeight: '22px', objectFit: 'contain', display: 'block' }}
+                    />
                   </div>
                 )}
 
@@ -508,7 +523,11 @@ export default function SEUConnectAIAssistantModal({
             {isTyping && (
               <div className="seu-ai-message-row assistant">
                 <div className="seu-ai-msg-avatar ai">
-                  <img src="/seusl_logo_white.png?v=3" alt="AI" />
+                  <img
+                    src="/seusl_logo.png"
+                    alt="AI"
+                    style={{ width: '22px', height: '22px', maxWidth: '22px', maxHeight: '22px', objectFit: 'contain', display: 'block' }}
+                  />
                 </div>
                 <div className="seu-ai-msg-bubble">
                   <div className="seu-ai-typing-indicator">
@@ -589,4 +608,10 @@ export default function SEUConnectAIAssistantModal({
       </div>
     </div>
   );
+
+  if (!isMounted || typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(modalElement, document.body);
 }
