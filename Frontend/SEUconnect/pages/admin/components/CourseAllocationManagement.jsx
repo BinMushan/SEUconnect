@@ -842,7 +842,7 @@ export default function CourseAllocationManagement({
                 >
                   {batches.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.name} — Current: {b.currentSemester} ({b.totalStudents} Students: 120 BICT, 120 BST)
+                      {b.name} — {b.currentSemester}
                     </option>
                   ))}
                 </select>
