@@ -3,13 +3,12 @@ import { createPortal } from 'react-dom';
 import './seu_ai_assistant.css';
 
 /**
- * SEUConnect AI Assistant - macOS Floating Window Modal
+ * SEUConnect AI Assistant - Gemini & ChatGPT Inspired Interface
  * 
  * Features:
- * - Rendered through React Portal directly into document.body
+ * - Iconic Gemini / ChatGPT landing view on first open with centered headline & floating capsule input
+ * - Dynamic transition from landing to active conversation stream upon first query
  * - Full-screen background blur (backdrop-filter: blur(18px))
- * - Authentic macOS window frame with traffic lights (🔴 Close, 🟡 Clear/Minimize, 🟢 Fullscreen Toggle)
- * - macOS folder opening and cancel zoom/shrink animation with spring easing
  * - Role-tailored institutional intelligence calibrated with South Eastern University of Sri Lanka regulations
  * - Interactive suggestion chips and direct navigation links into portal sections
  */
@@ -113,21 +112,15 @@ export default function SEUConnectAIAssistantModal({
 }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState(() => [
-    {
-      id: 'welcome',
-      sender: 'assistant',
-      text: `Hello ${user?.name || 'Student'}! 👋\n\nI am the **SEUConnect Institutional AI Assistant**, calibrated with the official academic handbooks, examination by-laws, and administrative procedures of the **South Eastern University of Sri Lanka (Faculty of Technology)**.\n\nHow can I help you today? You can choose a quick question below or ask me anything directly.`,
-      timestamp: 'Just now',
-      actions: null
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
+  const landingInputRef = useRef(null);
+  const chatInputRef = useRef(null);
+
+  const userFirstName = user?.name ? user.name.split(' ')[0] : 'there';
 
   useEffect(() => {
     setIsMounted(true);
@@ -138,15 +131,19 @@ export default function SEUConnectAIAssistantModal({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Focus input on mount
+  // Focus appropriate input on mount or state switch
   useEffect(() => {
     const timer = setTimeout(() => {
-      inputRef.current?.focus();
-    }, 250);
+      if (messages.length === 0) {
+        landingInputRef.current?.focus();
+      } else {
+        chatInputRef.current?.focus();
+      }
+    }, 200);
     return () => clearTimeout(timer);
-  }, []);
+  }, [messages.length]);
 
-  // Handle ESC key to trigger macOS smooth close animation
+  // Handle ESC key to trigger smooth close animation
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -157,7 +154,7 @@ export default function SEUConnectAIAssistantModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Graceful macOS close animation (250ms duration)
+  // Graceful close animation (250ms duration)
   const handleTriggerClose = () => {
     if (isClosing) return;
     setIsClosing(true);
@@ -168,17 +165,10 @@ export default function SEUConnectAIAssistantModal({
     }, 250);
   };
 
-  // Reset conversation to initial welcome
+  // Reset conversation to initial Gemini landing screen
   const handleResetChat = () => {
-    setMessages([
-      {
-        id: 'welcome-reset',
-        sender: 'assistant',
-        text: `Conversation cleared. 🧹\n\nHow else can I assist you with **SEUSL Faculty of Technology** academic regulations, repeat forms, medical submissions, or portal services?`,
-        timestamp: 'Just now',
-        actions: null
-      }
-    ]);
+    setMessages([]);
+    setInputText('');
   };
 
   // Match response from institutional knowledge base
@@ -265,7 +255,7 @@ export default function SEUConnectAIAssistantModal({
       aria-modal="true"
       aria-label="SEUConnect AI Assistant"
     >
-      <div className={`seu-ai-window ${isClosing ? 'closing' : ''} ${isMaximized ? 'maximized' : ''}`}>
+      <div className={`seu-ai-window ${isClosing ? 'closing' : ''}`}>
         
         {/* ==================================================================
             1. TITLEBAR
@@ -287,17 +277,19 @@ export default function SEUConnectAIAssistantModal({
 
           {/* Right Tools */}
           <div className="seu-ai-titlebar-tools">
-            <button
-              type="button"
-              className="seu-ai-tool-btn"
-              onClick={handleResetChat}
-              title="Clear Chat"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-              Clear
-            </button>
+            {messages.length > 0 && (
+              <button
+                type="button"
+                className="seu-ai-tool-btn"
+                onClick={handleResetChat}
+                title="New Chat / Reset"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                New Chat
+              </button>
+            )}
 
             <button
               type="button"
@@ -315,14 +307,210 @@ export default function SEUConnectAIAssistantModal({
         </div>
 
         {/* ==================================================================
-            2. CHAT BODY & MESSAGE FEED
+            2. CHAT BODY: GEMINI/CHATGPT LANDING OR CONVERSATION FEED
             ================================================================== */}
         <div className="seu-ai-body">
-          <div className="seu-ai-messages-scroll">
-            {/* Render Chat Messages */}
-            {messages.map((msg) => (
-              <div key={msg.id} className={`seu-ai-message-row ${msg.sender}`}>
-                {msg.sender === 'assistant' && (
+          {messages.length === 0 ? (
+            /* ==============================================================
+               GEMINI / CHATGPT CENTERED LANDING INTERFACE
+               ============================================================== */
+            <div className="seu-chatgpt-landing">
+              <div className="seu-chatgpt-center-content">
+                
+                {/* Centered Greeting Headline (ChatGPT style) */}
+                <h1 className="seu-chatgpt-headline">What's on the agenda today?</h1>
+
+                {/* Centered Floating Capsule Input Bar */}
+                <form
+                  className="seu-chatgpt-capsule-bar"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="seu-chatgpt-capsule-plus"
+                    title="Faculty Knowledge Topics"
+                    onClick={() => handleSendMessage('What are the main student academic services and regulations?')}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+
+                  <input
+                    ref={landingInputRef}
+                    type="text"
+                    className="seu-chatgpt-capsule-input"
+                    placeholder="Ask SEUConnect AI anything..."
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                  />
+
+                  <div className="seu-chatgpt-capsule-actions">
+                    <span className="seu-chatgpt-think-badge">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                      </svg>
+                      Think
+                    </span>
+
+                    <button
+                      type="submit"
+                      className="seu-chatgpt-capsule-send-btn"
+                      disabled={!inputText.trim()}
+                      title="Send question"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5" />
+                        <polyline points="5 12 12 5 19 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </form>
+
+                {/* ChatGPT Minimalist Suggestion Chips Below Capsule */}
+                <div className="seu-chatgpt-chips-row">
+                  <button
+                    type="button"
+                    className="seu-chatgpt-chip"
+                    onClick={() => handleSendMessage('What are the rules for submitting a medical excuse?')}
+                  >
+                    <span>📋</span> Medical excuse 7-day rule
+                  </button>
+
+                  <button
+                    type="button"
+                    className="seu-chatgpt-chip"
+                    onClick={() => handleSendMessage('How do I apply for a repeat exam or CA repeat?')}
+                  >
+                    <span>🎓</span> Repeat exam & fee details
+                  </button>
+
+                  <button
+                    type="button"
+                    className="seu-chatgpt-chip"
+                    onClick={() => handleSendMessage('How is SGPA and CGPA calculated for BICT/BST?')}
+                  >
+                    <span>📊</span> Calculate SGPA & CGPA
+                  </button>
+
+                  <button
+                    type="button"
+                    className="seu-chatgpt-chip"
+                    onClick={() => handleSendMessage('What are the bank account details for People\'s Bank PIV?')}
+                  >
+                    <span>💳</span> People's Bank PIV account
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          ) : (
+            /* ==============================================================
+               ACTIVE CONVERSATION FEED
+               ============================================================== */
+            <div className="seu-ai-messages-scroll">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`seu-ai-message-row ${msg.sender}`}>
+                  {msg.sender === 'assistant' && (
+                    <div className="seu-ai-msg-avatar ai">
+                      <img
+                        src="/seusl_logo.png"
+                        alt="AI"
+                        style={{ width: '22px', height: '22px', maxWidth: '22px', maxHeight: '22px', objectFit: 'contain', display: 'block' }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="seu-ai-msg-bubble">
+                    <div className="seu-ai-msg-content">
+                      {msg.text.split('\n').map((line, idx) => {
+                        if (line.startsWith('### ')) {
+                          return <h4 key={idx} style={{ margin: '0 0 0.4rem', color: 'inherit', fontWeight: 700 }}>{line.replace('### ', '')}</h4>;
+                        }
+                        if (line.startsWith('• ')) {
+                          const raw = line.replace('• ', '');
+                          const parts = raw.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <div key={idx} style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.35rem' }}>
+                              <span>•</span>
+                              <div>
+                                {parts.map((p, pIdx) => {
+                                  if (p.startsWith('**') && p.endsWith('**')) {
+                                    return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
+                                  }
+                                  return p;
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+                        const parts = line.split(/(\*\*.*?\*\*)/g);
+                        return (
+                          <p key={idx} style={{ margin: '0 0 0.45rem' }}>
+                            {parts.map((p, pIdx) => {
+                              if (p.startsWith('**') && p.endsWith('**')) {
+                                return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
+                              }
+                              return p;
+                            })}
+                          </p>
+                        );
+                      })}
+                    </div>
+
+                    {/* Contextual Nav Buttons */}
+                    {msg.actions && msg.actions.length > 0 && (
+                      <div className="seu-ai-msg-actions">
+                        {msg.actions.map((act, actIdx) => (
+                          <button
+                            key={actIdx}
+                            type="button"
+                            className="seu-ai-link-btn"
+                            onClick={() => handleActionNavigate(act.tab)}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                            {act.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="seu-ai-msg-meta">
+                      <span>{msg.timestamp}</span>
+                      <button
+                        type="button"
+                        className="seu-ai-copy-btn"
+                        onClick={() => handleCopyText(msg.text)}
+                        title="Copy response"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {msg.sender === 'user' && (
+                    <div className="seu-ai-msg-avatar user-av">
+                      {user?.avatarInitial || 'ME'}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Typing Indicator */}
+              {isTyping && (
+                <div className="seu-ai-message-row assistant">
                   <div className="seu-ai-msg-avatar ai">
                     <img
                       src="/seusl_logo.png"
@@ -330,174 +518,81 @@ export default function SEUConnectAIAssistantModal({
                       style={{ width: '22px', height: '22px', maxWidth: '22px', maxHeight: '22px', objectFit: 'contain', display: 'block' }}
                     />
                   </div>
-                )}
-
-                <div className="seu-ai-msg-bubble">
-                  <div className="seu-ai-msg-content">
-                    {msg.text.split('\n').map((line, idx) => {
-                      if (line.startsWith('### ')) {
-                        return <h4 key={idx} style={{ margin: '0 0 0.4rem', color: 'inherit', fontWeight: 700 }}>{line.replace('### ', '')}</h4>;
-                      }
-                      if (line.startsWith('• ')) {
-                        const raw = line.replace('• ', '');
-                        const parts = raw.split(/(\*\*.*?\*\*)/g);
-                        return (
-                          <div key={idx} style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.35rem' }}>
-                            <span>•</span>
-                            <div>
-                              {parts.map((p, pIdx) => {
-                                if (p.startsWith('**') && p.endsWith('**')) {
-                                  return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
-                                }
-                                return p;
-                              })}
-                            </div>
-                          </div>
-                        );
-                      }
-                      const parts = line.split(/(\*\*.*?\*\*)/g);
-                      return (
-                        <p key={idx} style={{ margin: '0 0 0.45rem' }}>
-                          {parts.map((p, pIdx) => {
-                            if (p.startsWith('**') && p.endsWith('**')) {
-                              return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
-                            }
-                            return p;
-                          })}
-                        </p>
-                      );
-                    })}
-                  </div>
-
-                  {/* Contextual Nav Buttons */}
-                  {msg.actions && msg.actions.length > 0 && (
-                    <div className="seu-ai-msg-actions">
-                      {msg.actions.map((act, actIdx) => (
-                        <button
-                          key={actIdx}
-                          type="button"
-                          className="seu-ai-link-btn"
-                          onClick={() => handleActionNavigate(act.tab)}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                          </svg>
-                          {act.label}
-                        </button>
-                      ))}
+                  <div className="seu-ai-msg-bubble">
+                    <div className="seu-ai-typing-indicator">
+                      <span className="seu-ai-typing-dot" />
+                      <span className="seu-ai-typing-dot" />
+                      <span className="seu-ai-typing-dot" />
                     </div>
-                  )}
-
-                  <div className="seu-ai-msg-meta">
-                    <span>{msg.timestamp}</span>
-                    <button
-                      type="button"
-                      className="seu-ai-copy-btn"
-                      onClick={() => handleCopyText(msg.text)}
-                      title="Copy response"
-                    >
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                      </svg>
-                    </button>
                   </div>
                 </div>
-
-                {msg.sender === 'user' && (
-                  <div className="seu-ai-msg-avatar user-av">
-                    {user?.avatarInitial || 'ME'}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Typing Indicator */}
-            {isTyping && (
-              <div className="seu-ai-message-row assistant">
-                <div className="seu-ai-msg-avatar ai">
-                  <img
-                    src="/seusl_logo.png"
-                    alt="AI"
-                    style={{ width: '22px', height: '22px', maxWidth: '22px', maxHeight: '22px', objectFit: 'contain', display: 'block' }}
-                  />
-                </div>
-                <div className="seu-ai-msg-bubble">
-                  <div className="seu-ai-typing-indicator">
-                    <span className="seu-ai-typing-dot" />
-                    <span className="seu-ai-typing-dot" />
-                    <span className="seu-ai-typing-dot" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* ================================================================
-              3. BOTTOM INPUT DOCK
-              ================================================================ */}
-          <div className="seu-ai-footer">
-            <form
-              className="seu-ai-input-wrapper"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                className="seu-ai-input-field"
-                placeholder="Ask about exam repeat, medical 7-day rule, GPA, PIV voucher..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-              />
-
-              {inputText.trim() && (
-                <button
-                  type="button"
-                  className="seu-ai-action-btn-sm"
-                  onClick={() => setInputText('')}
-                  title="Clear input"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
               )}
 
-              <button
-                type="submit"
-                className="seu-ai-send-btn"
-                disabled={!inputText.trim() || isTyping}
-                title="Send message (Enter)"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </button>
-            </form>
+              <div ref={messagesEndRef} />
+            </div>
+          )}
 
-            <div className="seu-ai-disclaimer">
-              <div className="seu-ai-disclaimer-left">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span>Calibrated with SEUSL Faculty of Technology Examination By-Laws</span>
-              </div>
-              <div>
-                Press <span className="seu-ai-esc-hint">Esc</span> to close
+          {/* Bottom Dock Input (only visible when in active conversation) */}
+          {messages.length > 0 && (
+            <div className="seu-ai-footer">
+              <form
+                className="seu-ai-input-wrapper"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+              >
+                <input
+                  ref={chatInputRef}
+                  type="text"
+                  className="seu-ai-input-field"
+                  placeholder="Ask a follow-up question..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                />
+
+                {inputText.trim() && (
+                  <button
+                    type="button"
+                    className="seu-ai-action-btn-sm"
+                    onClick={() => setInputText('')}
+                    title="Clear input"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  className="seu-ai-send-btn"
+                  disabled={!inputText.trim() || isTyping}
+                  title="Send message (Enter)"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                </button>
+              </form>
+
+              <div className="seu-ai-disclaimer">
+                <div className="seu-ai-disclaimer-left">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>Calibrated with SEUSL Faculty of Technology Examination By-Laws</span>
+                </div>
+                <div>
+                  Press <span className="seu-ai-esc-hint">Esc</span> to close
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
       </div>
