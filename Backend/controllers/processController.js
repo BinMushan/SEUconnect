@@ -67,7 +67,7 @@ exports.getProcessById = async (req, res) => {
 
     if (getStatus()) {
       let process = null;
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
         process = await ProcessRequest.findById(id);
       }
       if (!process) {
@@ -244,7 +244,7 @@ exports.approveStage = async (req, res) => {
 
     let process = null;
     if (getStatus()) {
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
         process = await ProcessRequest.findById(id);
       }
       if (!process) {
@@ -400,7 +400,7 @@ exports.declineProcess = async (req, res) => {
 
     let process = null;
     if (getStatus()) {
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
         process = await ProcessRequest.findById(id);
       }
       if (!process) {
@@ -508,7 +508,7 @@ exports.returnProcess = async (req, res) => {
 
     let process = null;
     if (getStatus()) {
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
         process = await ProcessRequest.findById(id);
       }
       if (!process) {
@@ -611,7 +611,7 @@ exports.addComment = async (req, res) => {
 
     let process = null;
     if (getStatus()) {
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
         process = await ProcessRequest.findById(id);
       }
       if (!process) {
