@@ -10,8 +10,8 @@
   --fma-muted: #64748b;
   --fma-border: #e2e8f0;
   --fma-bg-subtle: #f8fafc;
-  --fma-primary: #1d4ed8;
-  --fma-primary-hover: #1e40af;
+  --fma-primary: #0f2b5c;
+  --fma-primary-hover: #081a38;
   --fma-primary-light: #eff6ff;
   --fma-success: #059669;
   --fma-success-light: #d1fae5;
@@ -240,7 +240,7 @@
 }
 
 .fma-btn-clear:hover {
-  color: #1d4ed8;
+  color: #071732;
 }
 
 /* ==========================================================================
@@ -428,14 +428,14 @@
 }
 
 .fma-action-btn-primary {
-  background: #1d4ed8;
+  background: #0f2b5c;
   color: #ffffff;
-  border-color: #1d4ed8;
+  border-color: #0f2b5c;
 }
 
 .fma-action-btn-primary:hover {
-  background: #1e40af;
-  border-color: #1e40af;
+  background: #081a38;
+  border-color: #081a38;
 }
 
 .seu-dash-main.dark-mode .fma-action-btn {
@@ -469,12 +469,12 @@
 }
 
 .fma-btn-primary {
-  background: #1d4ed8;
+  background: #0f2b5c;
   color: #ffffff;
 }
 
 .fma-btn-primary:hover {
-  background: #1e40af;
+  background: #081a38;
 }
 
 .fma-btn-outline {
@@ -715,7 +715,7 @@
 }
 
 .fma-quick-card:hover {
-  border-color: #3b82f6;
+  border-color: #071732;
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
 }
