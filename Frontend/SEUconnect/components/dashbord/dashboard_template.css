@@ -1395,20 +1395,20 @@ body.dark-mode,
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.seu-notif-list {
+.seu-notif-dropdown .seu-notif-list {
   max-height: 340px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
-.seu-notif-list::-webkit-scrollbar {
+.seu-notif-dropdown .seu-notif-list::-webkit-scrollbar {
   width: 5px;
 }
-.seu-notif-list::-webkit-scrollbar-track {
+.seu-notif-dropdown .seu-notif-list::-webkit-scrollbar-track {
   background: #f8fafc;
 }
-.seu-notif-list::-webkit-scrollbar-thumb {
+.seu-notif-dropdown .seu-notif-list::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
