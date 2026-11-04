@@ -26,6 +26,7 @@ export const INITIAL_SUBJECTS = [
     name: 'Software Engineering & Architecture',
     semester: 'Semester 4',
     semesterNumber: 4,
+    academicYear: 'Year 2',
     batch: '2021/2022',
     studentsCount: 45,
     schedule: 'Monday 08:30 AM - 10:30 AM',
@@ -42,6 +43,7 @@ export const INITIAL_SUBJECTS = [
     name: 'Web Application Development',
     semester: 'Semester 3',
     semesterNumber: 3,
+    academicYear: 'Year 2',
     batch: '2022/2023',
     studentsCount: 40,
     schedule: 'Wednesday 10:00 AM - 12:00 PM',
@@ -58,6 +60,7 @@ export const INITIAL_SUBJECTS = [
     name: 'Data Structures and Algorithms',
     semester: 'Semester 3',
     semesterNumber: 3,
+    academicYear: 'Year 2',
     batch: '2022/2023',
     studentsCount: 35,
     schedule: 'Friday 01:30 PM - 03:30 PM',
@@ -101,6 +104,297 @@ export const INITIAL_TODAY_CLASSES = [
   },
 ];
 
+// Unified weekly timetable teaching sessions for logged-in lecturer (Dr. K. Perera - LEC/ICT/024)
+export const LECTURER_TIMETABLE_CLASSES = [
+  // Monday
+  {
+    id: 'tt-mon-1',
+    dayOfWeek: 1, // 1 = Monday
+    dayName: 'Monday',
+    subjectCode: 'SWT22022',
+    subjectName: 'Software Engineering & Architecture',
+    timeslot: '08:30 AM - 10:30 AM',
+    startTime: '08:30 AM',
+    endTime: '10:30 AM',
+    startHour: 8,
+    startMinute: 30,
+    endHour: 10,
+    endMinute: 30,
+    duration: '2h 00m',
+    classType: 'Lecture',
+    venue: 'LT-02 (Faculty Auditorium)',
+    registeredStudentsCount: 45,
+    academicBatch: '2021/2022',
+    academicYear: '2025/2026',
+    semester: 'Semester 4',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Architectural Patterns & Microservices Decomposition',
+    notes: 'Please review Monolith to Microservice transition trade-offs before class.',
+  },
+  {
+    id: 'tt-mon-2',
+    dayOfWeek: 1,
+    dayName: 'Monday',
+    subjectCode: 'SWT21022',
+    subjectName: 'Data Structures and Algorithms',
+    timeslot: '11:00 AM - 01:00 PM',
+    startTime: '11:00 AM',
+    endTime: '01:00 PM',
+    startHour: 11,
+    startMinute: 0,
+    endHour: 13,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Lecture',
+    venue: 'LT-01 (Lecture Theatre 1)',
+    registeredStudentsCount: 35,
+    academicBatch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Balanced Trees: AVL and Red-Black Rotations',
+    notes: 'Bring graph plotting paper or laptop for tree rotation exercises.',
+  },
+
+  // Tuesday (Coincides with INITIAL_TODAY_CLASSES)
+  {
+    id: 'cls-1',
+    dayOfWeek: 2, // 2 = Tuesday
+    dayName: 'Tuesday',
+    subjectCode: 'SWT21032',
+    subjectName: 'Web Application Development',
+    timeslot: '10:00 AM - 12:00 PM',
+    startTime: '10:00 AM',
+    endTime: '12:00 PM',
+    startHour: 10,
+    startMinute: 0,
+    endHour: 12,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Lecture',
+    sessionType: 'Lecture & Live Demo',
+    venue: 'LT-01 (Lecture Theatre 1)',
+    location: 'LT-01 (Lecture Theatre 1)',
+    registeredStudentsCount: 40,
+    enrolledCount: 40,
+    academicBatch: '2022/2023',
+    batch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Full-Stack Architecture & State Management (Redux/Context API)',
+    notes: 'Live coding demonstration with Vite + React + Node.js backend.',
+  },
+  {
+    id: 'cls-2',
+    dayOfWeek: 2,
+    dayName: 'Tuesday',
+    subjectCode: 'SWT22022',
+    subjectName: 'Software Engineering & Architecture',
+    timeslot: '02:00 PM - 04:00 PM',
+    startTime: '02:00 PM',
+    endTime: '04:00 PM',
+    startHour: 14,
+    startMinute: 0,
+    endHour: 16,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Practical',
+    sessionType: 'Hands-on Lab Session',
+    venue: 'ICT Lab 02',
+    location: 'ICT Lab 02',
+    registeredStudentsCount: 45,
+    enrolledCount: 45,
+    academicBatch: '2021/2022',
+    batch: '2021/2022',
+    academicYear: '2025/2026',
+    semester: 'Semester 4',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Hands-on Microservice Containerization & CI/CD Pipelines',
+    notes: 'Ensure Docker Desktop and Minikube are running prior to the session.',
+  },
+
+  // Wednesday
+  {
+    id: 'tt-wed-1',
+    dayOfWeek: 3, // 3 = Wednesday
+    dayName: 'Wednesday',
+    subjectCode: 'SWT21032',
+    subjectName: 'Web Application Development',
+    timeslot: '09:00 AM - 11:00 AM',
+    startTime: '09:00 AM',
+    endTime: '11:00 AM',
+    startHour: 9,
+    startMinute: 0,
+    endHour: 11,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Practical',
+    venue: 'ICT Lab 01',
+    registeredStudentsCount: 40,
+    academicBatch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'REST API Integration & Async Hook Testing',
+    notes: 'Lab Exercise 04 submission deadline at end of session.',
+  },
+  {
+    id: 'tt-wed-2',
+    dayOfWeek: 3,
+    dayName: 'Wednesday',
+    subjectCode: 'SWT21022',
+    subjectName: 'Data Structures and Algorithms',
+    timeslot: '02:00 PM - 04:00 PM',
+    startTime: '02:00 PM',
+    endTime: '04:00 PM',
+    startHour: 14,
+    startMinute: 0,
+    endHour: 16,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Tutorial',
+    venue: 'Room 204 (Tutorial Hall)',
+    registeredStudentsCount: 35,
+    academicBatch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Dynamic Programming vs Greedy Algorithms Case Problems',
+    notes: 'Problem set #3 will be solved in pairs.',
+  },
+
+  // Thursday
+  {
+    id: 'tt-thu-1',
+    dayOfWeek: 4, // 4 = Thursday
+    dayName: 'Thursday',
+    subjectCode: 'SWT22022',
+    subjectName: 'Software Engineering & Architecture',
+    timeslot: '10:00 AM - 12:00 PM',
+    startTime: '10:00 AM',
+    endTime: '12:00 PM',
+    startHour: 10,
+    startMinute: 0,
+    endHour: 12,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Tutorial',
+    venue: 'LT-02 (Faculty Auditorium)',
+    registeredStudentsCount: 45,
+    academicBatch: '2021/2022',
+    academicYear: '2025/2026',
+    semester: 'Semester 4',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Software Architecture Evaluation Method (ATAM) Walkthrough',
+    notes: 'Preparation for upcoming Mid-term Architecture review.',
+  },
+  {
+    id: 'tt-thu-2',
+    dayOfWeek: 4,
+    dayName: 'Thursday',
+    subjectCode: 'SWT21032',
+    subjectName: 'Web Application Development',
+    timeslot: '02:00 PM - 04:00 PM',
+    startTime: '02:00 PM',
+    endTime: '04:00 PM',
+    startHour: 14,
+    startMinute: 0,
+    endHour: 16,
+    endMinute: 0,
+    duration: '2h 00m',
+    classType: 'Tutorial',
+    venue: 'Room 205 (Tutorial Hall)',
+    registeredStudentsCount: 40,
+    academicBatch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Web Security Mitigation: JWT, CSRF, and CORS In-Depth',
+    notes: 'Interactive security vulnerability analysis session.',
+  },
+
+  // Friday
+  {
+    id: 'tt-fri-1',
+    dayOfWeek: 5, // 5 = Friday
+    dayName: 'Friday',
+    subjectCode: 'SWT21022',
+    subjectName: 'Data Structures and Algorithms',
+    timeslot: '08:30 AM - 10:30 AM',
+    startTime: '08:30 AM',
+    endTime: '10:30 AM',
+    startHour: 8,
+    startMinute: 30,
+    endHour: 10,
+    endMinute: 30,
+    duration: '2h 00m',
+    classType: 'Practical',
+    venue: 'Lab 01 (Computer Systems)',
+    registeredStudentsCount: 35,
+    academicBatch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Graph Algorithms Implementation (Dijkstra & Prim)',
+    notes: 'Lab evaluations will be recorded for CA 2.',
+  },
+  {
+    id: 'tt-fri-2',
+    dayOfWeek: 5,
+    dayName: 'Friday',
+    subjectCode: 'SWT21022',
+    subjectName: 'Data Structures and Algorithms',
+    timeslot: '01:30 PM - 03:30 PM',
+    startTime: '01:30 PM',
+    endTime: '03:30 PM',
+    startHour: 13,
+    startMinute: 30,
+    endHour: 15,
+    endMinute: 30,
+    duration: '2h 00m',
+    classType: 'Practical',
+    venue: 'Lab 01 (Computer Systems)',
+    registeredStudentsCount: 35,
+    academicBatch: '2022/2023',
+    academicYear: '2025/2026',
+    semester: 'Semester 3',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerId: 'LEC/ICT/024',
+    lecturerName: 'Dr. K. Perera',
+    department: 'Department of ICT',
+    topic: 'Algorithm Benchmarking & Space-Time Profiling',
+    notes: 'Hands-on profiling tools in Linux environment.',
+  },
+];
+
 export const INITIAL_STATS = {
   totalStudents: 120,
   totalStudentsGrowth: '+8 this semester',
@@ -131,6 +425,86 @@ export const ENROLLED_STUDENTS = [
   { regNo: '22ICT085', name: 'M.N.M. Afnan', attendanceRate: 96, ca1: 94, ca2: 96, esa: 95, present: true },
   { regNo: '22ICT091', name: 'Bin Mushan', attendanceRate: 92, ca1: 89, ca2: 92, esa: 90, present: true },
 ];
+
+// Default Assessments configuration for CA/ESA Module
+export const DEFAULT_ASSESSMENTS = [
+  {
+    id: 'ca1',
+    name: 'CA 01',
+    label: 'Continuous Assessment 01 (CA 01)',
+    type: 'CA',
+    max: 100,
+    weight: 20,
+    isDefault: true,
+  },
+  {
+    id: 'ca2',
+    name: 'CA 02',
+    label: 'Continuous Assessment 02 (CA 02)',
+    type: 'CA',
+    max: 100,
+    weight: 20,
+    isDefault: true,
+  },
+  {
+    id: 'esa',
+    name: 'ESA Exam',
+    label: 'End Semester Examination (ESA)',
+    type: 'ESA',
+    max: 100,
+    weight: 60,
+    isDefault: true,
+  },
+];
+
+export const STORAGE_KEY_CUSTOM_CAS = 'seu_lecturer_custom_cas_v1';
+export const STORAGE_KEY_MARKS = 'seu_lecturer_ca_marks_v1';
+
+export function getStoredCustomCAs() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CUSTOM_CAS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('Failed reading custom CAs from localStorage', e);
+  }
+  return [];
+}
+
+export function saveStoredCustomCAs(list) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_CUSTOM_CAS, JSON.stringify(list));
+  } catch (e) {
+    console.error('Failed saving custom CAs to localStorage', e);
+  }
+}
+
+export function getStoredMarks() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_MARKS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch (e) {
+    console.error('Failed reading marks from localStorage', e);
+  }
+  return null;
+}
+
+export function saveStoredMarks(marks) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_MARKS, JSON.stringify(marks));
+  } catch (e) {
+    console.error('Failed saving marks to localStorage', e);
+  }
+}
 
 export const INITIAL_ANNOUNCEMENTS = [
   {
@@ -338,3 +712,93 @@ export const calculateSEUSLGrade = (score) => {
   return { grade: 'E', gpa: 0.0, remark: 'Fail' };
 };
 
+
+// ============================================================================
+// STUDENT ENROLLMENT DATA (Subject-wise & Combined Cohort - 120 Total Registrations)
+// Section 7.2 of Faculty of Technology Undergraduate Handbook 2023/2024
+// ============================================================================
+const NAMES_POOL = [
+  'A.B.M. Rifnas', 'M.N.F. Nuha', 'S. Kaveen', 'R. Mohamed Akram', 'P. Danushan',
+  'T. Nilaxshan', 'A.R. Fathima', 'K. Logesh', 'H.M. Ashfaq', 'V. Keerthana',
+  'M.N.M. Afnan', 'M.M. Bin Mushan', 'S. Tharani', 'J. Piratheepan', 'F. Shamila',
+  'K. Kamsan', 'M.R.F. Rizna', 'A. Kavithan', 'N. Diluxshan', 'S. Sajeevan',
+  'R. Janarthan', 'M.I.F. Ilma', 'T. Thuvaragan', 'M.N. Faslan', 'V. Pavithra',
+  'K. Abinayan', 'A.F. Safna', 'S. Mithurshan', 'P. Lavanya', 'M.S.M. Shifan',
+  'T. Gobinath', 'R. Priyadharshan', 'M.H.F. Hanoon', 'N. Mayooran', 'S. Sanjeevan',
+  'M.A.F. Asma', 'K. Vithushan', 'A.J. Anojan', 'M.R. Mohamed Rishad', 'T. Subajiny',
+  'V. Kiruthika', 'S. Sharmilan', 'M.S. Fathima Saara', 'K. Thanushan', 'P. Gowshikan',
+  'A.C.F. Sumaiya', 'K. Dineshkumar', 'M.A.M. Sajid', 'R. Ragunath', 'S. Sivatharshini',
+  'T. Mathusan', 'F. Haneefa', 'M.Z.M. Zafras', 'K. Niroshan', 'A.R.M. Rasheed',
+  'V. Abarna', 'S. Gopinath', 'M.T.F. Tasneem', 'T. Kajan', 'R. Bavithra',
+  'M.F.M. Fayaz', 'S. Tharmika', 'K. Partheepan', 'A.K. Fathima Rimza', 'M.J. Mohamed Jaseel',
+  'N. Sarujan', 'T. Vithusan', 'M.S.M. Sameer', 'S. Kirushanth', 'R. Kokila',
+  'A.L.M. Anas', 'K. Santhosh', 'V. Nishanthini', 'S. Bavatharani', 'M.R.M. Rilwan'
+];
+
+export const ENROLLMENT_STUDENTS_LIST = [
+  // Subject 1: SWT22022 - Software Engineering & Architecture (45 Students, Batch 2021/2022)
+  ...Array.from({ length: 45 }, (_, i) => {
+    const regNo = `21ICT${String(i + 1).padStart(3, '0')}`;
+    const name = NAMES_POOL[i % NAMES_POOL.length];
+    const status = i === 44 ? 'Dropped' : (i === 42 || i === 43) ? 'Pending' : 'Registered';
+    return {
+      id: `ENR-${regNo}-SWT22022`,
+      regNo,
+      name,
+      batch: '2021/2022',
+      degreeProgramme: 'BICT (Hons)',
+      academicYear: 'Year 2',
+      semester: 'Semester 4',
+      subjectCode: 'SWT22022',
+      subjectName: 'Software Engineering & Architecture',
+      credits: 3,
+      status,
+      registeredAt: '2026-09-12',
+      email: `${regNo.toLowerCase()}@seu.ac.lk`,
+    };
+  }),
+
+  // Subject 2: SWT21032 - Web Application Development (40 Students, Batch 2022/2023)
+  ...Array.from({ length: 40 }, (_, i) => {
+    const regNo = `22ICT${String(i + 1).padStart(3, '0')}`;
+    const name = NAMES_POOL[(i + 10) % NAMES_POOL.length];
+    const status = i === 39 ? 'Dropped' : i === 38 ? 'Pending' : 'Registered';
+    return {
+      id: `ENR-${regNo}-SWT21032`,
+      regNo,
+      name,
+      batch: '2022/2023',
+      degreeProgramme: 'BICT (Hons)',
+      academicYear: 'Year 2',
+      semester: 'Semester 3',
+      subjectCode: 'SWT21032',
+      subjectName: 'Web Application Development',
+      credits: 3,
+      status,
+      registeredAt: '2026-09-14',
+      email: `${regNo.toLowerCase()}@seu.ac.lk`,
+    };
+  }),
+
+  // Subject 3: SWT21022 - Data Structures and Algorithms (35 Students, Batch 2022/2023)
+  ...Array.from({ length: 35 }, (_, i) => {
+    const regNo = `22ICT${String(i + 1).padStart(3, '0')}`;
+    const name = NAMES_POOL[(i + 25) % NAMES_POOL.length];
+    const status = i === 34 ? 'Dropped' : i === 33 ? 'Pending' : 'Registered';
+    return {
+      id: `ENR-${regNo}-SWT21022`,
+      regNo,
+      name,
+      batch: '2022/2023',
+      degreeProgramme: 'BICT (Hons)',
+      academicYear: 'Year 2',
+      semester: 'Semester 3',
+      subjectCode: 'SWT21022',
+      subjectName: 'Data Structures and Algorithms',
+      credits: 3,
+      status,
+      registeredAt: '2026-09-15',
+      email: `${regNo.toLowerCase()}@seu.ac.lk`,
+    };
+  }),
+];

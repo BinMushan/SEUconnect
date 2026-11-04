@@ -22,15 +22,31 @@ export const DEAN_INFO = {
   ],
 };
 
+export const FACULTY_BATCH_BREAKDOWN = [
+  { batch: '2025/2024', year: '1st Year', ict: 76, bst: 36, facultyTotal: 112 },
+  { batch: '2024/2023', year: '2nd Year', ict: 70, bst: 34, facultyTotal: 104 },
+  { batch: '2023/2022', year: '3rd Year', ict: 66, bst: 32, facultyTotal: 98 },
+  { batch: '2022/2021', year: '4th Year', ict: 64, bst: 31, facultyTotal: 95 },
+  { batch: '2021/2020', year: '5th Year', ict: 61, bst: 30, facultyTotal: 91 },
+];
+
+export const getCalculatedBatchTotals = () => {
+  const ictTotal = FACULTY_BATCH_BREAKDOWN.reduce((acc, b) => acc + b.ict, 0);
+  const bstTotal = FACULTY_BATCH_BREAKDOWN.reduce((acc, b) => acc + b.bst, 0);
+  const facultyTotal = ictTotal + bstTotal;
+  return { ict: ictTotal, bst: bstTotal, facultyTotal };
+};
+
+const BATCH_TOTALS = getCalculatedBatchTotals();
+
 export const FACULTY_STATS = {
-  totalUndergraduates: 800,
+  totalUndergraduates: BATCH_TOTALS.facultyTotal, // 500 (Calculated from batches)
   departmentsCount: 2,
   fullTimeAcademicStaff: 34,
   professorsAndSeniorLecturers: 18,
   specializedLaboratories: 9,
   activeDegreePrograms: 2,
   employmentRate6Months: '94.2%',
-  annualResearchFunding: 'LKR 28.5M',
   onTimeGraduationRate: '96.8%',
 };
 
@@ -40,26 +56,24 @@ export const DEPARTMENTS_DATA = [
     name: 'Department of Information and Communication Technology',
     head: 'M.J Ahamed Sabani',
     headDesignation: 'Senior Lecturer Gr. I & Head of Department',
-    undergraduatesCount: 420,
+    undergraduatesCount: BATCH_TOTALS.ict, // 337 (Calculated from batches)
     academicStaffCount: 18,
     degreeProgram: 'Bachelor of Information and Communication Technology Honours – BICT (Hons)',
     specializations: ['Software Systems Development', 'Network & Cloud Security', 'Data Science & AI'],
     labsCount: 4,
     status: 'High Performance',
-    budgetAllocation: 'LKR 15.8M',
   },
   {
     code: 'BST',
     name: 'Department of Biosystems Technology',
     head: 'Dr. M.G. Mohamed Thariq',
     headDesignation: 'Senior Lecturer Gr. I & Head of Department',
-    undergraduatesCount: 380,
+    undergraduatesCount: BATCH_TOTALS.bst, // 163 (Calculated from batches)
     academicStaffCount: 16,
     degreeProgram: 'Bachelor of Biosystems Technology Honours – BBST (Hons)',
     specializations: ['Food Production & Processing', 'Agricultural Biotechnology', 'Bio-energy Systems'],
     labsCount: 5,
     status: 'High Performance',
-    budgetAllocation: 'LKR 16.8M',
   },
 ];
 
@@ -129,7 +143,7 @@ export const FACULTY_BOARD_MEETINGS = [
       'Confirmation of minutes of the 111th Faculty Board Meeting',
       'Matters arising from minutes: Student Attendance & Medical Excuses',
       'Endorsement of Continuous Assessment (CA) Moderation Marks for Semester 5',
-      'Review of 2020/21 Final Degree Examination Results for Senate Recommendation',
+      'Review of 2021/2020 Final Degree Examination Results for Senate Recommendation',
       'Industrial Internship progress report (Virtusa, IFS, Dialog, Hayleys Agriculture)',
       'Any other business with the permission of the Chair',
     ],
@@ -243,7 +257,7 @@ export const INTER_DEPARTMENTAL_DATA = [
     initiativeTitle: 'Faculty Common Foundation Modules (Year 1)',
     participatingDepts: ['Department of ICT', 'Department of BST'],
     coordinator: 'M.J Ahamed Sabani (ICT) & Dr. M.G. Mohamed Thariq (BST)',
-    totalStudentsBenefiting: 380,
+    totalStudentsBenefiting: BATCH_TOTALS.facultyTotal,
     status: 'Operational',
     modules: ['FT 1101 - Mathematics for Technology', 'FT 1102 - Applied Sciences for Technology', 'FT 1103 - Computing Fundamentals'],
     notes: 'Resource sharing agreement approved by Dean Prof. Rifai Kariapper. Computing laboratories shared with BST undergraduates.',
@@ -271,7 +285,7 @@ export const INTER_DEPARTMENTAL_DATA = [
 export const FACULTY_KPIS = {
   academicYear: '2025/2026',
   intakeCapacity: 350,
-  currentEnrollment: 800,
+  currentEnrollment: BATCH_TOTALS.facultyTotal,
   studentTeacherRatio: '23:1',
   femaleStudentRatio: '46.2%',
   gpaDistribution: [
@@ -282,8 +296,8 @@ export const FACULTY_KPIS = {
     { label: 'Academic Warning (< 2.00)', count: 8, pct: '2.5%' },
   ],
   departmentBreakdown: [
-    { dept: 'Department of ICT', students: 420, staff: 18, avgGPA: 3.38, passRate: '95.4%' },
-    { dept: 'Department of BST', students: 380, staff: 16, avgGPA: 3.42, passRate: '94.8%' },
+    { dept: 'Department of ICT', students: BATCH_TOTALS.ict, staff: 18, avgGPA: 3.38, passRate: '95.4%' },
+    { dept: 'Department of BST', students: BATCH_TOTALS.bst, staff: 16, avgGPA: 3.42, passRate: '94.8%' },
   ],
 };
 
@@ -291,7 +305,7 @@ export const OFFICIAL_SANCTIONS_SEALS = [
   {
     sealId: 'SEAL-DEAN-2026-042',
     date: '2026-10-28',
-    decreeTitle: 'Executive Sanction of 2020/21 Final Degree Completion Ledger',
+    decreeTitle: 'Executive Sanction of 2021/2020 Final Degree Completion Ledger',
     authority: 'Dean, Faculty of Technology under Statute 14 of SEUSL Act',
     verificationHash: 'SHA256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
     status: 'Gazetted & Sealed',
