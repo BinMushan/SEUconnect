@@ -1,0 +1,1203 @@
+/* ==========================================================================
+   SEUConnect AI Assistant - macOS Floating Window Stylesheet
+   Authentic macOS traffic lights, frosted glass backdrop blur,
+   fluid spring zoom-in & collapse-cancel animations.
+   ========================================================================== */
+
+/* 1. Backdrop Overlay with Full Viewport Blur */
+.seu-ai-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+  background: rgba(10, 16, 30, 0.65) !important;
+  backdrop-filter: blur(18px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(190%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1.5rem !important;
+  box-sizing: border-box !important;
+  opacity: 0;
+  animation: macOsBackdropFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.seu-ai-backdrop.closing {
+  animation: macOsBackdropFadeOut 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  pointer-events: none !important;
+}
+
+@keyframes macOsBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes macOsBackdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* 2. macOS Window Frame */
+.seu-ai-window {
+  width: 820px !important;
+  max-width: 94vw !important;
+  height: 680px !important;
+  max-height: 88vh !important;
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  box-shadow: 
+    0 28px 75px -10px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: relative !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
+  box-sizing: border-box !important;
+  margin: auto !important;
+
+  /* Origin: bottom-left near the sidebar AI button */
+  transform-origin: 50px calc(100% - 50px);
+  animation: macOsFolderZoomIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), height 0.28s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.28s ease, max-height 0.28s ease !important;
+}
+
+/* Maximized Window Variant (macOS Green Button) */
+.seu-ai-window.maximized {
+  width: 96vw !important;
+  max-width: 96vw !important;
+  height: 94vh !important;
+  max-height: 94vh !important;
+  border-radius: 14px !important;
+}
+
+/* macOS Zoom In Opening Animation (Folder / Window Open) */
+@keyframes macOsFolderZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) translate(-140px, 180px);
+    filter: blur(10px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.02) translate(0, 0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+    filter: blur(0px);
+  }
+}
+
+/* macOS Cancel / Close Animation (Folder / Window Cancel) */
+.seu-ai-window.closing {
+  animation: macOsFolderZoomOut 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  pointer-events: none !important;
+}
+
+@keyframes macOsFolderZoomOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.25) translate(-140px, 180px);
+    filter: blur(12px);
+  }
+}
+
+/* 3. macOS Titlebar / Header */
+.seu-ai-titlebar {
+  height: 48px !important;
+  background: rgba(248, 250, 252, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 1.25rem !important;
+  user-select: none !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* macOS Traffic Lights (Close, Minimize/Reset, Maximize) */
+.seu-ai-traffic-lights {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.seu-ai-traffic-dot {
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  min-height: 12px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  position: relative !important;
+  transition: transform 0.15s ease, filter 0.15s ease !important;
+  outline: none !important;
+}
+
+.seu-ai-traffic-dot svg {
+  opacity: 0 !important;
+  transition: opacity 0.15s ease !important;
+}
+
+.seu-ai-traffic-lights:hover .seu-ai-traffic-dot svg {
+  opacity: 0.8 !important;
+}
+
+.seu-ai-traffic-dot.close {
+  background: #ff5f56 !important;
+  border: 0.5px solid #e0443e !important;
+  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.15) !important;
+}
+
+.seu-ai-traffic-dot.close:hover {
+  filter: brightness(1.1) !important;
+  transform: scale(1.08) !important;
+}
+
+.seu-ai-traffic-dot.minimize {
+  background: #ffbd2e !important;
+  border: 0.5px solid #dea123 !important;
+  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.15) !important;
+}
+
+.seu-ai-traffic-dot.minimize:hover {
+  filter: brightness(1.1) !important;
+  transform: scale(1.08) !important;
+}
+
+.seu-ai-traffic-dot.maximize {
+  background: #27c93f !important;
+  border: 0.5px solid #1aab29 !important;
+  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.15) !important;
+}
+
+.seu-ai-traffic-dot.maximize:hover {
+  filter: brightness(1.1) !important;
+  transform: scale(1.08) !important;
+}
+
+/* Titlebar Center Title */
+.seu-ai-title-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+}
+
+.seu-ai-title-icon {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 6px !important;
+  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #6366f1 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35) !important;
+}
+
+.seu-ai-title-text {
+  font-size: 0.86rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  letter-spacing: -0.01em !important;
+}
+
+.seu-ai-badge-status {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.32rem !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  color: #059669 !important;
+  background: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
+  padding: 0.12rem 0.5rem !important;
+  border-radius: 999px !important;
+}
+
+.seu-ai-pulse-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: #10b981 !important;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7) !important;
+  animation: seuAiPulse 1.8s infinite !important;
+}
+
+@keyframes seuAiPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* Titlebar Right Tools */
+.seu-ai-titlebar-tools {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+
+.seu-ai-tool-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #64748b !important;
+  padding: 0.3rem 0.55rem !important;
+  border-radius: 6px !important;
+  font-size: 0.74rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.seu-ai-tool-btn:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+.seu-ai-close-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+}
+
+.seu-ai-close-icon-btn:hover {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+}
+
+/* 4. Chat Body / Message Feed */
+.seu-ai-body {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  min-height: 0 !important;
+}
+
+.seu-ai-messages-scroll {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 1.25rem 1.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.15rem !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
+}
+
+.seu-ai-messages-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.seu-ai-messages-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+/* Welcome Hero in Chat */
+.seu-ai-welcome-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f0fdf4 50%, #eff6ff 100%) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 1.25rem 1.45rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  flex-shrink: 0 !important;
+}
+
+.seu-ai-welcome-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.85rem !important;
+}
+
+.seu-ai-avatar-large {
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #071732 0%, #1e3a8a 100%) !important;
+  border: 2px solid #f59e0b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 5px !important;
+  box-shadow: 0 4px 12px rgba(7, 23, 50, 0.18) !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.seu-ai-avatar-large img {
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.seu-ai-welcome-titles h3 {
+  margin: 0 !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #0f2b5c !important;
+  letter-spacing: -0.01em !important;
+}
+
+.seu-ai-welcome-titles p {
+  margin: 0.15rem 0 0 0 !important;
+  font-size: 0.78rem !important;
+  color: #64748b !important;
+  line-height: 1.35 !important;
+}
+
+/* Quick Suggestion Chips */
+.seu-ai-suggestions-title {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  color: #94a3b8 !important;
+  margin-top: 0.25rem !important;
+}
+
+.seu-ai-chips-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+}
+
+.seu-ai-chip-btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  padding: 0.42rem 0.85rem !important;
+  border-radius: 999px !important;
+  font-size: 0.77rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  font-family: inherit !important;
+}
+
+.seu-ai-chip-btn:hover {
+  background: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* 5. Message Rows */
+.seu-ai-message-row {
+  display: flex !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  animation: seuMessageAppear 0.25s ease-out forwards;
+}
+
+@keyframes seuMessageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.seu-ai-message-row.user {
+  justify-content: flex-end !important;
+}
+
+.seu-ai-message-row.assistant {
+  justify-content: flex-start !important;
+}
+
+.seu-ai-msg-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.seu-ai-msg-avatar.ai {
+  background: linear-gradient(135deg, #071732 0%, #1e40af 100%) !important;
+  border: 1.5px solid #f59e0b !important;
+  color: #ffffff !important;
+  padding: 4px !important;
+}
+
+.seu-ai-msg-avatar.ai img {
+  width: 22px !important;
+  height: 22px !important;
+  max-width: 22px !important;
+  max-height: 22px !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.seu-ai-msg-avatar.user-av {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+}
+
+.seu-ai-msg-bubble {
+  max-width: 78% !important;
+  border-radius: 14px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.84rem !important;
+  line-height: 1.5 !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* User Bubble: Apple Vibrant Blue */
+.seu-ai-message-row.user .seu-ai-msg-bubble {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border-bottom-right-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+}
+
+/* Assistant Bubble: Card Slate White with subtle border */
+.seu-ai-message-row.assistant .seu-ai-msg-bubble {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  border-bottom-left-radius: 4px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.seu-ai-msg-content {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+.seu-ai-msg-content strong {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+.seu-ai-message-row.user .seu-ai-msg-content strong {
+  color: #ffffff !important;
+}
+
+.seu-ai-msg-meta {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+  margin-top: 0.35rem !important;
+  font-size: 0.68rem !important;
+  opacity: 0.7 !important;
+}
+
+.seu-ai-copy-btn {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: inherit !important;
+  padding: 0 !important;
+  opacity: 0.6 !important;
+  transition: opacity 0.15s !important;
+}
+
+.seu-ai-copy-btn:hover {
+  opacity: 1 !important;
+}
+
+/* Actionable Direct Nav Link in Assistant Answer */
+.seu-ai-msg-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.45rem !important;
+  margin-top: 0.65rem !important;
+  padding-top: 0.55rem !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.seu-ai-link-btn {
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  color: #1d4ed8 !important;
+  padding: 0.28rem 0.65rem !important;
+  border-radius: 6px !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  transition: all 0.15s !important;
+  font-family: inherit !important;
+}
+
+.seu-ai-link-btn:hover {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+/* Typing Indicator (Three Pulsing Dots) */
+.seu-ai-typing-indicator {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 0.35rem 0.2rem !important;
+}
+
+.seu-ai-typing-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  background: #94a3b8 !important;
+  animation: seuAiTypingBounce 1.4s infinite ease-in-out both !important;
+}
+
+.seu-ai-typing-dot:nth-child(1) {
+  animation-delay: -0.32s !important;
+}
+
+.seu-ai-typing-dot:nth-child(2) {
+  animation-delay: -0.16s !important;
+}
+
+@keyframes seuAiTypingBounce {
+  0%, 80%, 100% {
+    transform: scale(0.65);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.1);
+    opacity: 1;
+    background: #2563eb;
+  }
+}
+
+/* 6. Bottom Input Dock */
+.seu-ai-footer {
+  padding: 0.85rem 1.25rem 1rem 1.25rem !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.seu-ai-input-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  padding: 0.35rem 0.5rem 0.35rem 0.85rem !important;
+  gap: 0.5rem !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) inset !important;
+  box-sizing: border-box !important;
+}
+
+.seu-ai-input-wrapper:focus-within {
+  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+.seu-ai-input-field {
+  flex: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  font-family: inherit !important;
+  font-size: 0.84rem !important;
+  color: #0f172a !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.seu-ai-input-field::placeholder {
+  color: #94a3b8 !important;
+}
+
+.seu-ai-action-btn-sm {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  padding: 0 !important;
+}
+
+.seu-ai-action-btn-sm:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.seu-ai-send-btn {
+  background: #2563eb !important;
+  border: none !important;
+  color: #ffffff !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3) !important;
+  padding: 0 !important;
+}
+
+.seu-ai-send-btn:hover:not(:disabled) {
+  background: #1d4ed8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4) !important;
+}
+
+.seu-ai-send-btn:disabled {
+  background: #cbd5e1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.seu-ai-disclaimer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  font-size: 0.68rem !important;
+  color: #94a3b8 !important;
+  padding: 0 0.25rem !important;
+}
+
+.seu-ai-disclaimer-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+}
+
+.seu-ai-disclaimer-left svg {
+  color: #f59e0b !important;
+}
+
+.seu-ai-esc-hint {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  padding: 0.1rem 0.35rem !important;
+  font-size: 0.64rem !important;
+  color: #64748b !important;
+  font-family: monospace !important;
+}
+
+/* ==========================================================================
+   7. Dark Mode Styling for macOS AI Window
+   ========================================================================== */
+.dark-mode .seu-ai-window,
+body.dark-mode .seu-ai-window {
+  background: #0b1329 !important;
+  border-color: #1e293b !important;
+  box-shadow: 
+    0 28px 75px -10px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .seu-ai-titlebar,
+body.dark-mode .seu-ai-titlebar {
+  background: rgba(11, 19, 41, 0.95) !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.dark-mode .seu-ai-title-text,
+body.dark-mode .seu-ai-title-text {
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-ai-tool-btn,
+body.dark-mode .seu-ai-tool-btn {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .seu-ai-tool-btn:hover,
+body.dark-mode .seu-ai-tool-btn:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .seu-ai-close-icon-btn:hover,
+body.dark-mode .seu-ai-close-icon-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+}
+
+.dark-mode .seu-ai-body,
+body.dark-mode .seu-ai-body {
+  background: #070e20 !important;
+}
+
+.dark-mode .seu-ai-welcome-card,
+body.dark-mode .seu-ai-welcome-card {
+  background: linear-gradient(135deg, #0b152d 0%, #0d1e40 100%) !important;
+  border-color: #1e2f52 !important;
+}
+
+.dark-mode .seu-ai-welcome-titles h3,
+body.dark-mode .seu-ai-welcome-titles h3 {
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .seu-ai-welcome-titles p,
+body.dark-mode .seu-ai-welcome-titles p {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .seu-ai-chip-btn,
+body.dark-mode .seu-ai-chip-btn {
+  background: #0f1c3a !important;
+  border-color: #1e2f52 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .seu-ai-chip-btn:hover,
+body.dark-mode .seu-ai-chip-btn:hover {
+  background: #172a54 !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .seu-ai-message-row.assistant .seu-ai-msg-bubble,
+body.dark-mode .seu-ai-message-row.assistant .seu-ai-msg-bubble {
+  background: #0f1c38 !important;
+  border-color: #1e2f52 !important;
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .seu-ai-msg-content strong,
+body.dark-mode .seu-ai-msg-content strong {
+  color: #ffffff !important;
+}
+
+.dark-mode .seu-ai-link-btn,
+body.dark-mode .seu-ai-link-btn {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .seu-ai-link-btn:hover,
+body.dark-mode .seu-ai-link-btn:hover {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .seu-ai-footer,
+body.dark-mode .seu-ai-footer {
+  background: #0b1329 !important;
+  border-top-color: #1e293b !important;
+}
+
+.dark-mode .seu-ai-input-wrapper,
+body.dark-mode .seu-ai-input-wrapper {
+  background: #070e20 !important;
+  border-color: #1e2f52 !important;
+}
+
+.dark-mode .seu-ai-input-wrapper:focus-within,
+body.dark-mode .seu-ai-input-wrapper:focus-within {
+  background: #0a142c !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18) !important;
+}
+
+.dark-mode .seu-ai-input-field,
+body.dark-mode .seu-ai-input-field {
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .seu-ai-input-field::placeholder,
+body.dark-mode .seu-ai-input-field::placeholder {
+  color: #64748b !important;
+}
+
+.dark-mode .seu-ai-action-btn-sm,
+body.dark-mode .seu-ai-action-btn-sm {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .seu-ai-action-btn-sm:hover,
+body.dark-mode .seu-ai-action-btn-sm:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-ai-esc-hint,
+body.dark-mode .seu-ai-esc-hint {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   7.5. ChatGPT / Gemini Inspired Landing View (Empty State)
+   ========================================================================== */
+.seu-chatgpt-landing {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2.5rem 1.75rem !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
+  animation: seuChatGptFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes seuChatGptFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.seu-chatgpt-center-content {
+  width: 100% !important;
+  max-width: 660px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1.6rem !important;
+  text-align: center !important;
+}
+
+.seu-chatgpt-headline {
+  font-size: 1.85rem !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.2 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif !important;
+}
+
+.seu-chatgpt-capsule-bar {
+  width: 100% !important;
+  height: 54px !important;
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 0.5rem 0 0.75rem !important;
+  gap: 0.65rem !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-sizing: border-box !important;
+}
+
+.seu-chatgpt-capsule-bar:focus-within {
+  border-color: #3b82f6 !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3.5px rgba(59, 130, 246, 0.15), 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.seu-chatgpt-capsule-plus {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+
+.seu-chatgpt-capsule-plus:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.seu-chatgpt-capsule-input {
+  flex: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  font-size: 0.94rem !important;
+  color: #0f172a !important;
+  min-width: 0 !important;
+  font-family: inherit !important;
+}
+
+.seu-chatgpt-capsule-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.seu-chatgpt-capsule-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.seu-chatgpt-think-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+  background: #e2e8f0 !important;
+  padding: 0.25rem 0.65rem !important;
+  border-radius: 9999px !important;
+  user-select: none !important;
+}
+
+.seu-chatgpt-capsule-send-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease !important;
+}
+
+.seu-chatgpt-capsule-send-btn:hover:not(:disabled) {
+  background: #1d4ed8 !important;
+  transform: scale(1.05) !important;
+}
+
+.seu-chatgpt-capsule-send-btn:disabled {
+  background: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.seu-chatgpt-chips-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 0.55rem !important;
+  width: 100% !important;
+}
+
+.seu-chatgpt-chip {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  padding: 0.45rem 0.85rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  transition: all 0.15s ease !important;
+  font-family: inherit !important;
+}
+
+.seu-chatgpt-chip:hover {
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Dark Mode Overrides for ChatGPT Landing */
+.dark-mode .seu-chatgpt-headline,
+body.dark-mode .seu-chatgpt-headline {
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-bar,
+body.dark-mode .seu-chatgpt-capsule-bar {
+  background: #111a2e !important;
+  border-color: #272f42 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-bar:focus-within,
+body.dark-mode .seu-chatgpt-capsule-bar:focus-within {
+  background: #162038 !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 3.5px rgba(56, 189, 248, 0.2), 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-plus,
+body.dark-mode .seu-chatgpt-capsule-plus {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-plus:hover,
+body.dark-mode .seu-chatgpt-capsule-plus:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-input,
+body.dark-mode .seu-chatgpt-capsule-input {
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-input::placeholder,
+body.dark-mode .seu-chatgpt-capsule-input::placeholder {
+  color: #64748b !important;
+}
+
+.dark-mode .seu-chatgpt-think-badge,
+body.dark-mode .seu-chatgpt-think-badge {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border: 1px solid #334155 !important;
+}
+
+.dark-mode .seu-chatgpt-capsule-send-btn:disabled,
+body.dark-mode .seu-chatgpt-capsule-send-btn:disabled {
+  background: #1e293b !important;
+  color: #64748b !important;
+}
+
+.dark-mode .seu-chatgpt-chip,
+body.dark-mode .seu-chatgpt-chip {
+  background: #111a2e !important;
+  border-color: #1e2f52 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .seu-chatgpt-chip:hover,
+body.dark-mode .seu-chatgpt-chip:hover {
+  background: #1a2744 !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+}
+
+/* ==========================================================================
+   8. Mobile Responsiveness
+   ========================================================================== */
+@media (max-width: 640px) {
+  .seu-ai-backdrop {
+    padding: 0.5rem !important;
+  }
+  
+  .seu-ai-window {
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 94vh !important;
+    max-height: 94vh !important;
+    border-radius: 12px !important;
+    transform-origin: center bottom !important;
+  }
+
+  .seu-ai-messages-scroll {
+    padding: 1rem !important;
+    gap: 0.85rem !important;
+  }
+
+  .seu-ai-msg-bubble {
+    max-width: 88% !important;
+  }
+
+  .seu-ai-chip-btn {
+    font-size: 0.72rem !important;
+    padding: 0.35rem 0.7rem !important;
+  }
+}
