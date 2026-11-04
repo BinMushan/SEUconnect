@@ -477,28 +477,39 @@ export default function Admin({ user, onLogout }) {
     showToast(`Intake Batch ${newBatch.name} onboarded successfully.`);
   };
 
-  // 17. Assign & Reassign Staff Roles (Lecturers, HODs, Dean, Exam Officers)
+  // 17. Assign & Reassign Roles (All 10 System Roles)
   const handleAssignRole = (userId, { role, department, designation }) => {
+    const roleKey =
+      role === 'Head of Department (HOD)' ? 'hod' :
+      role === 'Faculty Dean' ? 'dean' :
+      role === 'Senior Assistant Registrar (SAR)' ? 'sar' :
+      role === 'Examination Officer' ? 'examination' :
+      role === 'Lecturer' ? 'lecturer' :
+      role === 'Department Management Assistant (Dept MA)' ? 'dept_ma' :
+      role === 'Faculty Management Assistant (FMA)' ? 'fma' :
+      role === 'Student' ? 'student' :
+      role === 'Super Admin' ? 'superadmin' : 'admin';
+
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? {
         ...u,
         role,
-        roleKey: role === 'Head of Department (HOD)' ? 'hod' : role === 'Faculty Dean' ? 'dean' : role === 'Examination Officer' ? 'examination' : role === 'Lecturer' ? 'lecturer' : 'admin',
+        roleKey,
         department,
         designation,
-        isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Examination Officer'].includes(role)
+        isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(role)
       } : u))
     );
     const target = users.find((u) => u.id === userId);
-    addAuditLog('Reassigned Staff Role', `${target?.name} assigned as "${role}" in ${department}.`);
+    addAuditLog('Reassigned User Role', `${target?.name} assigned as "${role}" in ${department}.`);
     showToast(`Role for ${target?.name} updated to ${role}.`);
   };
 
-  // 18. Appoint New Staff Member
+  // 18. Appoint New Staff Member / Provision User Account with Temp Password
   const handleAppointUser = (newStaff) => {
     setUsers((prev) => [newStaff, ...prev]);
-    addAuditLog('Appointed Staff Member', `${newStaff.name} appointed as ${newStaff.role} (${newStaff.department}).`);
-    showToast(`Staff member ${newStaff.name} appointed as ${newStaff.role}.`);
+    addAuditLog('Provisioned User Account', `${newStaff.name} created as ${newStaff.role} (${newStaff.email}).`);
+    showToast(`User account for ${newStaff.name} (${newStaff.role}) provisioned with temporary password.`);
   };
 
   // 19. Promote Batch to Next Semester & Auto-Shift Enrolled Subjects

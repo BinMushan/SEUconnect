@@ -1,47 +1,130 @@
 import { useState } from 'react';
 
+const getDefaultsForRole = (role) => {
+  switch (role) {
+    case 'Student':
+      return {
+        dept: 'Department of Information & Communication Technology',
+        designation: 'Undergraduate Student',
+        tempPass: 'Seu@Student2024'
+      };
+    case 'Lecturer':
+      return {
+        dept: 'Department of Information & Communication Technology',
+        designation: 'Lecturer (Probationary)',
+        tempPass: 'Seu@Lecturer2024'
+      };
+    case 'Head of Department (HOD)':
+      return {
+        dept: 'Department of Information & Communication Technology',
+        designation: 'Head / Senior Lecturer Gr. I',
+        tempPass: 'Seu@HOD2024'
+      };
+    case 'Faculty Dean':
+      return {
+        dept: "Dean's Secretariat",
+        designation: 'Dean, Faculty of Technology',
+        tempPass: 'Seu@Dean2024'
+      };
+    case 'Senior Assistant Registrar (SAR)':
+      return {
+        dept: 'Faculty Administration Office',
+        designation: 'Senior Assistant Registrar',
+        tempPass: 'Seu@SAR2024'
+      };
+    case 'Examination Officer':
+      return {
+        dept: 'Examination Branch',
+        designation: 'Senior Assistant Registrar (Examinations & Records)',
+        tempPass: 'Seu@Exam2024'
+      };
+    case 'Department Management Assistant (Dept MA)':
+      return {
+        dept: 'Department of Information & Communication Technology',
+        designation: 'Management Assistant Gr. I',
+        tempPass: 'Seu@DeptMA2024'
+      };
+    case 'Faculty Management Assistant (FMA)':
+      return {
+        dept: "Dean's Secretariat",
+        designation: 'Management Assistant (Dean’s Office)',
+        tempPass: 'Seu@FMA2024'
+      };
+    case 'System Administrator':
+      return {
+        dept: 'Faculty Administration Office',
+        designation: 'System Administrator',
+        tempPass: 'Seu@Admin2024'
+      };
+    case 'Super Admin':
+      return {
+        dept: 'Center for Information & Communication Technology (CICT)',
+        designation: 'Lead Systems Architect & Super Admin',
+        tempPass: 'Seu@SuperAdmin2024'
+      };
+    default:
+      return {
+        dept: 'Department of Information & Communication Technology',
+        designation: role,
+        tempPass: `Seu@${role.replace(/[^a-zA-Z0-9]/g, '')}2024`
+      };
+  }
+};
+
 export default function UserRoleManagement({
   users,
   onAssignRole,
   onAppointUser,
   onToggleUserStatus
 }) {
-  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'leadership' | 'matrix'
+  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'matrix'
   const [roleFilter, setRoleFilter] = useState('ALL');
 
   // Role Assignment Modal State (for existing user)
   const [editingUser, setEditingUser] = useState(null);
   const [assignedRole, setAssignedRole] = useState('Lecturer');
-  const [assignedDept, setAssignedDept] = useState('Department of ICT');
+  const [assignedDept, setAssignedDept] = useState('Department of Information & Communication Technology');
   const [assignedDesignation, setAssignedDesignation] = useState('');
 
-  // Appoint New Staff Modal State
+  // Appoint / Add User Modal State
   const [isAppointModalOpen, setIsAppointModalOpen] = useState(false);
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffPassword, setNewStaffPassword] = useState('Seu@Lecturer2024');
   const [newStaffRole, setNewStaffRole] = useState('Lecturer');
-  const [newStaffDept, setNewStaffDept] = useState('Department of ICT');
-  const [newStaffDesignation, setNewStaffDesignation] = useState('');
+  const [newStaffDept, setNewStaffDept] = useState('Department of Information & Communication Technology');
+  const [newStaffDesignation, setNewStaffDesignation] = useState('Lecturer (Probationary)');
   const [formError, setFormError] = useState('');
+  const [copiedId, setCopiedId] = useState(null);
 
   // Find leadership holders
   const currentDean = users.find((u) => u.role === 'Faculty Dean');
-  const hodIct = users.find((u) => u.role === 'Head of Department (HOD)' && u.department.includes('ICT'));
-  const hodBst = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('Biosystems') || u.department.includes('BST')));
-
+  const hodIct = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('ICT') || u.department.includes('Information')));
+  const hodBst = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('Biosystems') || u.department.includes('Bio') || u.department.includes('BST')));
   const examOfficer = users.find((u) => u.role === 'Examination Officer');
 
   // Filter users
   const filteredUsers = users.filter((u) => {
     if (roleFilter === 'ALL') return true;
+    if (roleFilter === 'STUDENT') return u.role === 'Student';
     if (roleFilter === 'LECTURER') return u.role === 'Lecturer';
     if (roleFilter === 'HOD') return u.role === 'Head of Department (HOD)';
     if (roleFilter === 'DEAN') return u.role === 'Faculty Dean';
+    if (roleFilter === 'SAR') return u.role === 'Senior Assistant Registrar (SAR)';
     if (roleFilter === 'EXAM') return u.role === 'Examination Officer';
+    if (roleFilter === 'DEPT_MA') return u.role === 'Department Management Assistant (Dept MA)';
+    if (roleFilter === 'FMA') return u.role === 'Faculty Management Assistant (FMA)';
     if (roleFilter === 'ADMIN') return u.role === 'System Administrator' || u.role === 'Super Admin';
-    if (roleFilter === 'STUDENT') return u.role === 'Student';
     return true;
   });
+
+  const handleCopyPassword = (id, pass) => {
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(pass);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
 
   const openAssignModal = (user) => {
     setEditingUser(user);
@@ -63,23 +146,51 @@ export default function UserRoleManagement({
     setEditingUser(null);
   };
 
+  const handleRoleSelectChange = (role) => {
+    setNewStaffRole(role);
+    const def = getDefaultsForRole(role);
+    setNewStaffDept(def.dept);
+    setNewStaffDesignation(def.designation);
+    setNewStaffPassword(def.tempPass);
+  };
+
+  const handleGeneratePassword = () => {
+    const randNum = Math.floor(100 + Math.random() * 900);
+    const roleSlug = newStaffRole.replace(/[^a-zA-Z]/g, '').slice(0, 7);
+    setNewStaffPassword(`Seu@${roleSlug || 'User'}${randNum}`);
+  };
+
   const handleAppointSubmit = (e) => {
     e.preventDefault();
     if (!newStaffName.trim() || !newStaffEmail.trim()) {
-      setFormError('Please enter Staff Full Name and University Email.');
+      setFormError('Please enter Full Name and Institutional Email Address.');
       return;
     }
 
+    const finalPass = newStaffPassword.trim() || getDefaultsForRole(newStaffRole).tempPass;
+
+    const roleKey =
+      newStaffRole === 'Head of Department (HOD)' ? 'hod' :
+      newStaffRole === 'Faculty Dean' ? 'dean' :
+      newStaffRole === 'Senior Assistant Registrar (SAR)' ? 'sar' :
+      newStaffRole === 'Examination Officer' ? 'examination' :
+      newStaffRole === 'Lecturer' ? 'lecturer' :
+      newStaffRole === 'Department Management Assistant (Dept MA)' ? 'dept_ma' :
+      newStaffRole === 'Faculty Management Assistant (FMA)' ? 'fma' :
+      newStaffRole === 'Student' ? 'student' :
+      newStaffRole === 'Super Admin' ? 'superadmin' : 'admin';
+
     onAppointUser({
-      id: `USR-${Date.now()}`,
+      id: `USR-${Date.now().toString().slice(-4)}`,
       name: newStaffName.trim(),
       email: newStaffEmail.trim().toLowerCase(),
+      tempPassword: finalPass,
       role: newStaffRole,
-      roleKey: newStaffRole === 'Head of Department (HOD)' ? 'hod' : newStaffRole === 'Faculty Dean' ? 'dean' : newStaffRole === 'Examination Officer' ? 'examination' : newStaffRole === 'Lecturer' ? 'lecturer' : 'admin',
+      roleKey,
       department: newStaffDept,
       designation: newStaffDesignation.trim() || newStaffRole,
       status: 'Active',
-      isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Examination Officer'].includes(newStaffRole),
+      isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(newStaffRole),
       appointedDate: new Date().toISOString().split('T')[0],
       lastLogin: 'Never',
       permissions: `Granted permissions for ${newStaffRole}`
@@ -87,7 +198,10 @@ export default function UserRoleManagement({
 
     setNewStaffName('');
     setNewStaffEmail('');
-    setNewStaffDesignation('');
+    setNewStaffRole('Lecturer');
+    setNewStaffDept('Department of Information & Communication Technology');
+    setNewStaffDesignation('Lecturer (Probationary)');
+    setNewStaffPassword('Seu@Lecturer2024');
     setFormError('');
     setIsAppointModalOpen(false);
   };
@@ -95,10 +209,13 @@ export default function UserRoleManagement({
   const roleMatrix = [
     { role: 'Student', portal: '#student', permissions: ['View batch profile & grades', 'Register semester modules', 'Submit medical excuses', 'Download faculty forms', 'Calculate GPA'] },
     { role: 'Lecturer', portal: '#lecturer', permissions: ['Record batch attendance', 'Upload LMS course materials', 'Enter Continuous Assessment (CA) scores', 'Endorse student medical excuses'] },
-    { role: 'Head of Department (HOD)', portal: '#hod', permissions: ['Approve Add/Drop requests >22 credits', 'Endorse departmental CA ledgers', 'Manage departmental module allocations', 'Authorize leave'] },
+    { role: 'Head of Department (HOD)', portal: '#hod', permissions: ['Approve Add/Drop requests >22 credits', 'Endorse departmental CA ledgers', 'Manage departmental module allocations', 'Authorize academic leave'] },
     { role: 'Faculty Dean', portal: '#dean', permissions: ['Faculty-wide executive governance', 'Approve academic calendar amendments', 'Endorse results for Senate approval', 'Approve society event permits'] },
+    { role: 'Senior Assistant Registrar (SAR)', portal: '#sar', permissions: ['Student registration approval & batch oversight', 'Endorse degree candidates for Faculty Board', 'Manage academic calendars & exam timetables', 'Official administrative notifications'] },
     { role: 'Examination Officer', portal: '#examination', permissions: ['Verify ESA exam eligibility across all batches', 'Process repeat & fresh-repeat applications', 'Publish final marks ledgers', 'Generate exam admission tickets'] },
-    { role: 'System Administrator', portal: '#admin', permissions: ['Full batch & student profile management', 'Verify medical certificates & attendance', 'Broadcast announcements', 'Assign Lecturers, HODs, Deans & Staff Roles'] },
+    { role: 'Department Management Assistant (Dept MA)', portal: '#dept_ma', permissions: ['Departmental student logbooks & attendance rosters', 'LMS course enrollment support', 'Module registration collation for HOD', 'Student medical & excuse letter intake'] },
+    { role: 'Faculty Management Assistant (FMA)', portal: '#fma', permissions: ['Faculty Board documentation & minutes', 'Dean office communications & appointments', 'Student grievance docket tracking', 'Official correspondence filing'] },
+    { role: 'System Administrator', portal: '#admin', permissions: ['Full batch & student profile management', 'Verify medical certificates & attendance', 'Broadcast announcements', 'Assign Lecturers, HODs, Deans & Staff Roles', 'Provision user accounts with temporary passwords'] },
     { role: 'Super Admin', portal: '#superadmin', permissions: ['Global system infrastructure', 'Master website user role management', 'Database connection monitoring', 'Security audit logs'] }
   ];
 
@@ -109,7 +226,7 @@ export default function UserRoleManagement({
         <div className="adm-section-title-wrap">
           <h2 className="adm-section-title">User Roles, Appointments & Access Delegation</h2>
           <p className="adm-section-subtitle">
-            Faculty of Technology Leadership: One Faculty Dean and Two Heads of Department (BICT: Department of Information & Communication Technology and BST: Department of Bio Systems Technology), alongside Examination Officers and Academic Staff.
+            Faculty of Technology Leadership: Dean, Heads of Department (BICT & BST), SAR, Examination Officers, Academic Lecturers, Support Staff & Students with credential provisioning.
           </p>
         </div>
         <div className="adm-section-actions">
@@ -117,13 +234,16 @@ export default function UserRoleManagement({
             type="button"
             className="adm-find-process-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            onClick={() => setIsAppointModalOpen(true)}
+            onClick={() => {
+              setFormError('');
+              setIsAppointModalOpen(true);
+            }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            + Appoint Staff / Assign Role
+            + Add New User / Provision Account
           </button>
         </div>
       </div>
@@ -246,12 +366,15 @@ export default function UserRoleManagement({
                 onChange={(e) => setRoleFilter(e.target.value)}
               >
                 <option value="ALL">All System Roles ({users.length})</option>
-                <option value="LECTURER">Lecturers & Staff</option>
+                <option value="STUDENT">Students</option>
+                <option value="LECTURER">Lecturers & Academic Staff</option>
                 <option value="HOD">Heads of Department (HOD)</option>
                 <option value="DEAN">Faculty Dean</option>
+                <option value="SAR">Senior Assistant Registrar (SAR)</option>
                 <option value="EXAM">Examination Officers</option>
+                <option value="DEPT_MA">Department Management Assistants (Dept MA)</option>
+                <option value="FMA">Faculty Management Assistants (FMA)</option>
                 <option value="ADMIN">System & Super Administrators</option>
-                <option value="STUDENT">Students</option>
               </select>
             </div>
             <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
@@ -266,7 +389,7 @@ export default function UserRoleManagement({
                 <thead>
                   <tr>
                     <th>Official Name / Account</th>
-                    <th>Institutional Email</th>
+                    <th>Institutional Email & Temp Password</th>
                     <th>Current Assigned Role</th>
                     <th>Department / Division</th>
                     <th>Official Designation</th>
@@ -282,7 +405,41 @@ export default function UserRoleManagement({
                         <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ID: {u.id}</div>
                       </td>
                       <td>
-                        <span style={{ fontWeight: 500, color: '#0f2b5c' }}>{u.email}</span>
+                        <div style={{ fontWeight: 600, color: '#0f2b5c', fontSize: '0.84rem' }}>{u.email}</div>
+                        <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Pass:</span>
+                          <code
+                            style={{
+                              fontSize: '0.72rem',
+                              background: '#f1f5f9',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              color: '#0f172a',
+                              fontWeight: 600,
+                              border: '1px solid #cbd5e1',
+                              fontFamily: 'monospace'
+                            }}
+                            title="Temporary Login Password"
+                          >
+                            {u.tempPassword || 'Seu@2024Temp'}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPassword(u.id, u.tempPassword || 'Seu@2024Temp')}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: '1px 4px',
+                              cursor: 'pointer',
+                              color: copiedId === u.id ? '#16a34a' : '#64748b',
+                              fontSize: '0.7rem',
+                              fontWeight: 600
+                            }}
+                            title="Copy Temporary Password"
+                          >
+                            {copiedId === u.id ? 'Copied!' : 'Copy'}
+                          </button>
+                        </div>
                       </td>
                       <td>
                         <span
@@ -291,10 +448,16 @@ export default function UserRoleManagement({
                               ? 'adm-badge-warning'
                               : u.role === 'Head of Department (HOD)'
                               ? 'adm-badge-info'
+                              : u.role === 'Senior Assistant Registrar (SAR)'
+                              ? 'adm-badge-neutral'
                               : u.role === 'Examination Officer'
                               ? 'adm-badge-neutral'
                               : u.role === 'Lecturer'
                               ? 'adm-badge-success'
+                              : u.role === 'Department Management Assistant (Dept MA)' || u.role === 'Faculty Management Assistant (FMA)'
+                              ? 'adm-badge-info'
+                              : u.role === 'Student'
+                              ? 'adm-badge-neutral'
                               : u.role === 'Super Admin' || u.role === 'System Administrator'
                               ? 'adm-badge-danger'
                               : 'adm-badge-neutral'
@@ -397,13 +560,16 @@ export default function UserRoleManagement({
                       value={assignedRole}
                       onChange={(e) => setAssignedRole(e.target.value)}
                     >
+                      <option value="Student">Student (Undergraduate)</option>
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
                       <option value="Faculty Dean">Faculty Dean (Executive)</option>
+                      <option value="Senior Assistant Registrar (SAR)">Senior Assistant Registrar (SAR)</option>
                       <option value="Examination Officer">Examination Officer</option>
+                      <option value="Department Management Assistant (Dept MA)">Department Management Assistant (Dept MA)</option>
+                      <option value="Faculty Management Assistant (FMA)">Faculty Management Assistant (FMA)</option>
                       <option value="System Administrator">System Administrator (Admin)</option>
                       <option value="Super Admin">Super Admin (Global Authority)</option>
-                      <option value="Student">Student</option>
                     </select>
                   </div>
 
@@ -414,11 +580,12 @@ export default function UserRoleManagement({
                       value={assignedDept}
                       onChange={(e) => setAssignedDept(e.target.value)}
                     >
-                      <option value="Department of ICT">Department of ICT</option>
-                      <option value="Department of Biosystems Technology">Department of Biosystems Technology</option>
+                      <option value="Department of Information & Communication Technology">Department of ICT</option>
+                      <option value="Department of Bio Systems Technology">Department of Biosystems Technology</option>
                       <option value="Dean's Secretariat">Dean&apos;s Secretariat</option>
                       <option value="Examination Branch">Examination Branch</option>
                       <option value="Faculty Administration Office">Faculty Administration Office</option>
+                      <option value="Center for Information & Communication Technology (CICT)">Center for Information & Communication Technology (CICT)</option>
                     </select>
                   </div>
 
@@ -460,13 +627,13 @@ export default function UserRoleManagement({
       )}
 
       {/* =========================================================
-          MODAL 2: APPOINT NEW STAFF ACCOUNT
+          MODAL 2: APPOINT / PROVISION NEW USER ACCOUNT
           ========================================================= */}
       {isAppointModalOpen && (
         <div className="adm-modal-backdrop" onClick={() => setIsAppointModalOpen(false)}>
           <div className="adm-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="adm-modal-header">
-              <h3 className="adm-modal-title">Appoint Staff Member & Provision Account</h3>
+              <h3 className="adm-modal-title">Provision New User Account & Set Credentials</h3>
               <button
                 type="button"
                 className="adm-modal-close-btn"
@@ -482,18 +649,18 @@ export default function UserRoleManagement({
             <form onSubmit={handleAppointSubmit}>
               <div className="adm-modal-body">
                 {formError && (
-                  <div style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.65rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem' }}>
+                  <div style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.65rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', marginBottom: '0.75rem' }}>
                     {formError}
                   </div>
                 )}
 
                 <div className="adm-form-grid">
                   <div className="adm-form-group full-width">
-                    <label className="adm-label">Full Name with Title *</label>
+                    <label className="adm-label">Full Name with Title / Initials *</label>
                     <input
                       type="text"
                       className="adm-input"
-                      placeholder="e.g. Prof. / Dr. / Mr. Name"
+                      placeholder="e.g. Prof. / Dr. / Mr. / Ms. Full Name"
                       value={newStaffName}
                       onChange={(e) => setNewStaffName(e.target.value)}
                       required
@@ -505,7 +672,7 @@ export default function UserRoleManagement({
                     <input
                       type="email"
                       className="adm-input"
-                      placeholder="official@seu.ac.lk"
+                      placeholder="username@seu.ac.lk"
                       value={newStaffEmail}
                       onChange={(e) => setNewStaffEmail(e.target.value)}
                       required
@@ -513,45 +680,85 @@ export default function UserRoleManagement({
                   </div>
 
                   <div className="adm-form-group">
-                    <label className="adm-label">Appointed Role *</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label className="adm-label" style={{ margin: 0 }}>Temporary Login Password *</label>
+                      <button
+                        type="button"
+                        onClick={handleGeneratePassword}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#2563eb',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: '0 2px',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Auto-Generate
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      className="adm-input"
+                      placeholder="e.g. Seu@Student2024"
+                      value={newStaffPassword}
+                      onChange={(e) => setNewStaffPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="adm-form-group">
+                    <label className="adm-label">User System Role *</label>
                     <select
                       className="adm-input"
                       value={newStaffRole}
-                      onChange={(e) => setNewStaffRole(e.target.value)}
+                      onChange={(e) => handleRoleSelectChange(e.target.value)}
                     >
+                      <option value="Student">Student (Undergraduate)</option>
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
-                      <option value="Faculty Dean">Faculty Dean</option>
+                      <option value="Faculty Dean">Faculty Dean (Executive)</option>
+                      <option value="Senior Assistant Registrar (SAR)">Senior Assistant Registrar (SAR)</option>
                       <option value="Examination Officer">Examination Officer</option>
+                      <option value="Department Management Assistant (Dept MA)">Department Management Assistant (Dept MA)</option>
+                      <option value="Faculty Management Assistant (FMA)">Faculty Management Assistant (FMA)</option>
                       <option value="System Administrator">System Administrator</option>
+                      <option value="Super Admin">Super Admin</option>
                     </select>
                   </div>
 
                   <div className="adm-form-group">
-                    <label className="adm-label">Department / Division</label>
+                    <label className="adm-label">Department / Branch *</label>
                     <select
                       className="adm-input"
                       value={newStaffDept}
                       onChange={(e) => setNewStaffDept(e.target.value)}
                     >
-                      <option value="Department of ICT">Department of ICT</option>
-                      <option value="Department of Biosystems Technology">Department of Biosystems Technology</option>
+                      <option value="Department of Information & Communication Technology">Department of ICT</option>
+                      <option value="Department of Bio Systems Technology">Department of Biosystems Technology</option>
                       <option value="Dean's Secretariat">Dean&apos;s Secretariat</option>
                       <option value="Examination Branch">Examination Branch</option>
                       <option value="Faculty Administration Office">Faculty Administration Office</option>
+                      <option value="Center for Information & Communication Technology (CICT)">Center for Information & Communication Technology (CICT)</option>
                     </select>
                   </div>
 
-                  <div className="adm-form-group">
-                    <label className="adm-label">Official Designation</label>
+                  <div className="adm-form-group full-width">
+                    <label className="adm-label">Official Designation / Title</label>
                     <input
                       type="text"
                       className="adm-input"
-                      placeholder="e.g. Senior Lecturer Gr. II"
+                      placeholder="e.g. Senior Lecturer Gr. II / Undergraduate"
                       value={newStaffDesignation}
                       onChange={(e) => setNewStaffDesignation(e.target.value)}
                     />
                   </div>
+                </div>
+
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.75rem', borderRadius: '8px', fontSize: '0.78rem', color: '#166534', marginTop: '0.5rem' }}>
+                  <strong>Onboarding Credentials:</strong> This account will be provisioned with email <code>{newStaffEmail || '...'}</code> and temporary password <code>{newStaffPassword || '...'}</code>. The user will be required to change their temporary password upon initial sign-in.
                 </div>
               </div>
 
@@ -567,7 +774,7 @@ export default function UserRoleManagement({
                   type="submit"
                   className="adm-find-process-btn"
                 >
-                  Provision & Appoint Staff
+                  + Provision & Save Account
                 </button>
               </div>
             </form>
