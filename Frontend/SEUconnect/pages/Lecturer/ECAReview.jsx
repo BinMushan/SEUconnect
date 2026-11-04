@@ -29,6 +29,7 @@ export default function ECAReview({
   const [returnReason, setReturnReason] = useState('');
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
 
   // Quick stats
   const pendingCount = applications.filter((a) => a.status === 'Pending Lecturer Review').length;
@@ -238,80 +239,63 @@ export default function ECAReview({
       {/* 1. Header Banner */}
       <div className="lec-module-header-card">
         <div className="lec-header-left">
-          <div className="lec-badge-group">
-            <span className="lec-tag-accent">EXAMINATION BRANCH WORKFLOW</span>
-            <span className="lec-tag-sub">STEP 4: COURSE LECTURER VERIFICATION</span>
-          </div>
-          <h2 className="lec-module-title">Assigned ECA Applications Review</h2>
-          <p className="lec-module-sub">
-            Review and verify Continuous Assessment (ECA) repeat applications forwarded by the Examination Branch for your assigned course modules. Mark verified applications as <strong>Checked</strong> to forward them to the Head of Department (HOD) for official sign-off.
-          </p>
+          <h2 className="lec-module-title">Assigned ECA Applications</h2>
+          <p className="lec-module-sub">Review assigned applications and forward them to the HOD.</p>
         </div>
-        {onNavigateBack && (
-          <button type="button" className="lec-btn-secondary" onClick={onNavigateBack}>
-            Back to Dashboard
+        <div className="lec-header-actions-row">
+          <button
+            type="button"
+            className="lec-btn-guidelines-trigger"
+            onClick={() => setIsGuidelinesOpen(true)}
+            title="View Guidelines & Regulations"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            Guidelines
           </button>
-        )}
-      </div>
-
-      {/* 2. Official Workflow Notice Banner */}
-      <div className="lec-workflow-notice-box">
-        <div className="lec-workflow-notice-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-        </div>
-        <div className="lec-workflow-notice-text">
-          <strong>Official Faculty Regulation (Section 4.2):</strong> As Course Lecturer, your responsibility is to check student coursework attendance, verify medical concessions and payment vouchers, and endorse assessment eligibility. <strong>Final approval authority rests exclusively with the Head of Department (HOD).</strong>
+          {onNavigateBack && (
+            <button type="button" className="lec-btn-secondary" onClick={onNavigateBack}>
+              Back to Dashboard
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 3. Stats Strip */}
+      {/* 2. Compact Statistics Cards without colored indicator lines */}
       <div className="lec-eca-stats-strip">
         <div
           className={`lec-eca-stat-card ${selectedStatus === 'Pending Lecturer Review' ? 'active' : ''}`}
           onClick={() => setSelectedStatus(selectedStatus === 'Pending Lecturer Review' ? 'All' : 'Pending Lecturer Review')}
         >
-          <div className="lec-stat-indicator indicator-amber"></div>
-          <div>
-            <div className="lec-stat-num">{pendingCount}</div>
-            <div className="lec-stat-label">Pending Lecturer Review</div>
-          </div>
+          <div className="lec-stat-num">{pendingCount}</div>
+          <div className="lec-stat-label">Pending Review</div>
         </div>
 
         <div
           className={`lec-eca-stat-card ${selectedStatus === 'Forwarded to HOD' ? 'active' : ''}`}
           onClick={() => setSelectedStatus(selectedStatus === 'Forwarded to HOD' ? 'All' : 'Forwarded to HOD')}
         >
-          <div className="lec-stat-indicator indicator-indigo"></div>
-          <div>
-            <div className="lec-stat-num">{forwardedCount}</div>
-            <div className="lec-stat-label">Forwarded to HOD</div>
-          </div>
+          <div className="lec-stat-num">{forwardedCount}</div>
+          <div className="lec-stat-label">Forwarded to HOD</div>
         </div>
 
         <div
           className={`lec-eca-stat-card ${selectedStatus === 'Finally Approved by HOD' ? 'active' : ''}`}
           onClick={() => setSelectedStatus(selectedStatus === 'Finally Approved by HOD' ? 'All' : 'Finally Approved by HOD')}
         >
-          <div className="lec-stat-indicator indicator-emerald"></div>
-          <div>
-            <div className="lec-stat-num">{approvedCount}</div>
-            <div className="lec-stat-label">Finally Approved by HOD</div>
-          </div>
+          <div className="lec-stat-num">{approvedCount}</div>
+          <div className="lec-stat-label">Approved by HOD</div>
         </div>
 
         <div
           className={`lec-eca-stat-card ${selectedStatus === 'Returned for Correction' ? 'active' : ''}`}
           onClick={() => setSelectedStatus(selectedStatus === 'Returned for Correction' ? 'All' : 'Returned for Correction')}
         >
-          <div className="lec-stat-indicator indicator-rose"></div>
-          <div>
-            <div className="lec-stat-num">{returnedCount}</div>
-            <div className="lec-stat-label">Returned for Correction</div>
-          </div>
+          <div className="lec-stat-num">{returnedCount}</div>
+          <div className="lec-stat-label">Returned</div>
         </div>
       </div>
 
@@ -359,10 +343,10 @@ export default function ECAReview({
             <label>Status:</label>
             <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
               <option value="All">All Statuses</option>
-              <option value="Pending Lecturer Review">Pending Lecturer Review</option>
+              <option value="Pending Lecturer Review">Pending Review</option>
               <option value="Forwarded to HOD">Forwarded to HOD</option>
-              <option value="Finally Approved by HOD">Finally Approved by HOD</option>
-              <option value="Returned for Correction">Returned for Correction</option>
+              <option value="Finally Approved by HOD">Approved by HOD</option>
+              <option value="Returned for Correction">Returned</option>
             </select>
           </div>
         </div>
@@ -959,6 +943,48 @@ export default function ECAReview({
             <div className="lec-modal-footer">
               <button type="button" className="lec-btn-secondary" onClick={() => setPreviewDoc(null)}>
                 Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. Guidelines & Regulations Submodal */}
+      {isGuidelinesOpen && (
+        <div className="lec-modal-overlay" style={{ zIndex: 1250 }} onClick={() => setIsGuidelinesOpen(false)}>
+          <div className="lec-guidelines-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="lec-modal-header">
+              <div className="lec-modal-title-box">
+                <span className="lec-modal-tag">FACULTY REGULATIONS & GUIDELINES</span>
+                <h3 className="lec-modal-title">ECA Review Guidelines (Section 4.2)</h3>
+              </div>
+              <button type="button" className="lec-modal-close-btn" onClick={() => setIsGuidelinesOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="lec-guidelines-modal-body">
+              <div className="lec-guideline-item">
+                <span className="lec-guideline-badge">Scope of Responsibility</span>
+                <p>
+                  As Course Lecturer, your responsibility is to check student coursework attendance, verify medical concessions and payment vouchers, and endorse assessment eligibility.
+                </p>
+              </div>
+              <div className="lec-guideline-item">
+                <span className="lec-guideline-badge">Authority Limitation</span>
+                <p>
+                  <strong>Final approval authority rests exclusively with the Head of Department (HOD).</strong> Course Lecturers verify eligibility and mark applications as <em>Checked</em> to forward them to the HOD for official sign-off.
+                </p>
+              </div>
+              <div className="lec-guideline-item">
+                <span className="lec-guideline-badge">Returned Applications</span>
+                <p>
+                  If student documents or payment receipts are insufficient, select <em>Return for Correction</em> with explicit instructions for the candidate.
+                </p>
+              </div>
+            </div>
+            <div className="lec-modal-footer">
+              <button type="button" className="lec-btn-secondary" onClick={() => setIsGuidelinesOpen(false)}>
+                Close
               </button>
             </div>
           </div>
