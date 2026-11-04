@@ -785,11 +785,11 @@ export default function DashboardTemplate({
                         No {notifFilter === 'unread' ? 'unread ' : ''}notifications at this time
                       </div>
                     ) : (
-                      displayedNotifs.map((n) => {
+                      displayedNotifs.map((n, idx) => {
                         const iconType = n.type || 'general';
                         return (
                           <div
-                            key={n._id || n.id || Math.random()}
+                            key={n._id || n.id || `notif-${idx}`}
                             className={`seu-notif-item ${!n.isRead ? 'unread' : ''}`}
                             onClick={() => handleNotifClick(n)}
                           >

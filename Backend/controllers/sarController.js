@@ -12,7 +12,7 @@ let formAvailability = {
 const findProcess = async (id) => {
   let process = null;
   if (getStatus()) {
-    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
       process = await ProcessRequest.findById(id);
     }
 
