@@ -94,7 +94,7 @@ export default function ECAReview({
       status: 'Forwarded to HOD',
       currentAssignedRole: 'hod',
       currentStageIndex: 4,
-      stages: selectedApp.stages.map((stg) => {
+      stages: (selectedApp.stages || []).map((stg) => {
         if (stg.stageKey === 'lecturer_check') {
           return {
             ...stg,
@@ -163,7 +163,7 @@ export default function ECAReview({
       ...selectedApp,
       status: 'Returned for Correction',
       currentAssignedRole: 'student',
-      stages: selectedApp.stages.map((stg) => {
+      stages: (selectedApp.stages || []).map((stg) => {
         if (stg.stageKey === 'lecturer_check') {
           return {
             ...stg,
@@ -962,3 +962,4 @@ export default function ECAReview({
     </div>
   );
 }
+
