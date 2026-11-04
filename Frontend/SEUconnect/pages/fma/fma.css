@@ -1,0 +1,755 @@
+/* ==========================================================================
+   FACULTY MANAGEMENT ASSISTANT (FMA) PORTAL STYLES
+   Designed according to Faculty of Technology Undergraduate Handbook
+   Office of the Dean / Senior Assistant Registrar
+   ========================================================================== */
+
+.fma-page {
+  --fma-card: #ffffff;
+  --fma-text: #0f172a;
+  --fma-muted: #64748b;
+  --fma-border: #e2e8f0;
+  --fma-bg-subtle: #f8fafc;
+  --fma-primary: #1d4ed8;
+  --fma-primary-hover: #1e40af;
+  --fma-primary-light: #eff6ff;
+  --fma-success: #059669;
+  --fma-success-light: #d1fae5;
+  --fma-warning: #d97706;
+  --fma-warning-light: #fef3c7;
+  --fma-danger: #dc2626;
+  --fma-danger-light: #fee2e2;
+  --fma-purple: #7c3aed;
+  --fma-purple-light: #ede9fe;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: var(--fma-text);
+  font-family: inherit;
+}
+
+/* Dark Mode */
+.seu-dash-main.dark-mode .fma-page {
+  --fma-card: #0f1c33;
+  --fma-text: #e2e8f0;
+  --fma-muted: #94a3b8;
+  --fma-border: #1e3050;
+  --fma-bg-subtle: #16253f;
+  --fma-primary-light: rgba(29, 78, 216, 0.2);
+  --fma-success-light: rgba(5, 150, 105, 0.2);
+  --fma-warning-light: rgba(217, 119, 6, 0.2);
+  --fma-danger-light: rgba(220, 38, 38, 0.2);
+  --fma-purple-light: rgba(124, 58, 237, 0.2);
+}
+
+/* ==========================================================================
+   1. STATS CARDS GRID (Clickable with active state)
+   ========================================================================== */
+.fma-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fma-stat-card {
+  min-width: 0;
+  background: var(--fma-card);
+  border-radius: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--fma-border) !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.fma-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.fma-stat-card:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.fma-stat-card.is-active {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 12px 24px rgba(37, 99, 235, 0.12) !important;
+  background: linear-gradient(to bottom, #ffffff, #eff6ff) !important;
+}
+
+.seu-dash-main.dark-mode .fma-stat-card.is-active {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
+  background: linear-gradient(to bottom, #0f1c33, #172554) !important;
+}
+
+.fma-stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.fma-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fma-stat-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* Stat color themes */
+.fma-icon-blue { background: #dbeafe; color: #2563eb; }
+.fma-pill-blue { background: #dbeafe; color: #1d4ed8; }
+
+.fma-icon-green { background: #d1fae5; color: #059669; }
+.fma-pill-green { background: #d1fae5; color: #047857; }
+
+.fma-icon-amber { background: #fef3c7; color: #d97706; }
+.fma-pill-amber { background: #fef3c7; color: #b45309; }
+
+.fma-icon-red { background: #fee2e2; color: #dc2626; }
+.fma-pill-red { background: #fee2e2; color: #b91c1c; }
+
+.fma-icon-purple { background: #ede9fe; color: #7c3aed; }
+.fma-pill-purple { background: #ede9fe; color: #6d28d9; }
+
+.fma-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fma-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fma-muted);
+}
+
+.fma-stat-val {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--fma-text);
+}
+
+.fma-stat-sub {
+  font-size: 13px;
+  color: var(--fma-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   2. MAIN PANEL & HEADER
+   ========================================================================== */
+.fma-panel {
+  background: var(--fma-card);
+  border: 1px solid var(--fma-border);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  scroll-margin-top: 90px;
+}
+
+.fma-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.fma-panel-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fma-text);
+}
+
+.fma-panel-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--fma-muted);
+}
+
+.fma-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Active filter pill */
+.fma-active-filter {
+  margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.seu-dash-main.dark-mode .fma-active-filter {
+  background: rgba(30, 58, 138, 0.35);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #bfdbfe;
+}
+
+.fma-btn-clear {
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.fma-btn-clear:hover {
+  color: #1d4ed8;
+}
+
+/* ==========================================================================
+   3. HORIZONTAL FILTER TOOLBAR (Clean Examination_Offences Sizing)
+   ========================================================================== */
+.fma-filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.fma-search-wrap {
+  position: relative;
+  flex: 1 1 240px;
+}
+
+.fma-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.fma-input,
+.fma-select {
+  padding: 9px 12px;
+  border: 1px solid var(--fma-border);
+  border-radius: 8px;
+  background: var(--fma-card);
+  color: var(--fma-text);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+.fma-select {
+  cursor: pointer;
+}
+
+.fma-input:focus,
+.fma-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.fma-search-input {
+  width: 100%;
+  padding-left: 36px !important;
+  box-sizing: border-box;
+}
+
+.fma-filter-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   4. DATA TABLE (Results_Compilation Style)
+   ========================================================================== */
+.fma-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--fma-border);
+}
+
+.fma-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.fma-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--fma-border);
+  white-space: nowrap;
+}
+
+.seu-dash-main.dark-mode .fma-table th {
+  background: #16253f;
+  color: #94a3b8;
+}
+
+.fma-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--fma-border);
+  vertical-align: middle;
+}
+
+.fma-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.seu-dash-main.dark-mode .fma-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.fma-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Student / Record Meta */
+.fma-student-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fma-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.fma-avatar-amber { background: #fef3c7; color: #b45309; }
+.fma-avatar-green { background: #d1fae5; color: #065f46; }
+.fma-avatar-purple { background: #ede9fe; color: #6d28d9; }
+
+.fma-name {
+  font-weight: 600;
+  color: var(--fma-text);
+  line-height: 1.2;
+}
+
+.fma-regno {
+  font-size: 12px;
+  color: var(--fma-muted);
+  margin-top: 2px;
+  font-family: monospace;
+}
+
+/* Badges */
+.fma-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-purple { background: #ede9fe; color: #5b21b6; }
+.badge-slate { background: #f1f5f9; color: #334155; }
+
+/* Table Action Buttons */
+.fma-action-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.fma-action-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.fma-action-btn-primary {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+.fma-action-btn-primary:hover {
+  background: #1e40af;
+  border-color: #1e40af;
+}
+
+.seu-dash-main.dark-mode .fma-action-btn {
+  background: #16253f;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+.seu-dash-main.dark-mode .fma-action-btn:hover {
+  background: #1e3050;
+  border-color: #475569;
+}
+
+/* ==========================================================================
+   5. STANDARD BUTTONS
+   ========================================================================== */
+.fma-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.fma-btn-primary {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.fma-btn-primary:hover {
+  background: #1e40af;
+}
+
+.fma-btn-outline {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.fma-btn-outline:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.seu-dash-main.dark-mode .fma-btn-outline {
+  background: #0f1c33 !important;
+  border: 1px solid #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+.seu-dash-main.dark-mode .fma-btn-outline:hover {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+/* ==========================================================================
+   6. RICH DETAIL MODAL (Results_Compilation Style)
+   ========================================================================== */
+.fma-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.fma-modal-card {
+  background: var(--fma-card);
+  padding: 0;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fmaModalIn 0.2s ease-out;
+}
+
+@keyframes fmaModalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.fma-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--fma-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.fma-modal-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #2563eb;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.fma-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fma-text);
+}
+
+.fma-modal-subtitle {
+  font-size: 12px;
+  color: var(--fma-muted);
+  margin-top: 2px;
+}
+
+.fma-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--fma-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.fma-close-btn:hover {
+  color: var(--fma-text);
+  background: #f1f5f9;
+}
+
+.fma-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 72vh;
+  overflow-y: auto;
+}
+
+.fma-info-banner {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  background: #f8fafc;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--fma-border);
+}
+
+.seu-dash-main.dark-mode .fma-info-banner {
+  background: #16253f;
+}
+
+.fma-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fma-info-lbl {
+  font-size: 11px;
+  color: var(--fma-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.fma-info-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fma-text);
+}
+
+.fma-advisory-box {
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  border: 1px solid #bfdbfe;
+  line-height: 1.5;
+}
+
+.seu-dash-main.dark-mode .fma-advisory-box {
+  background: rgba(30, 58, 138, 0.3);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #bfdbfe;
+}
+
+.fma-advisory-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.fma-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--fma-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   7. HANDBOOK CLAUSE CARD (Handbook Reference Widget)
+   ========================================================================== */
+.fma-handbook-card {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+  margin-bottom: 4px;
+}
+
+.fma-handbook-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.fma-handbook-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.fma-handbook-desc {
+  font-size: 13px;
+  opacity: 0.9;
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.4;
+}
+
+/* Quick Action Cards Grid (Overview) */
+.fma-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.fma-quick-card {
+  background: var(--fma-card);
+  border: 1px solid var(--fma-border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fma-quick-card:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.fma-quick-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.fma-quick-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fma-text);
+}
+
+.fma-quick-desc {
+  font-size: 12px;
+  color: var(--fma-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 1024px) {
+  .fma-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fma-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .fma-stats-grid { grid-template-columns: 1fr; }
+  .fma-quick-grid { grid-template-columns: 1fr; }
+  .fma-info-banner { grid-template-columns: 1fr; }
+}
+
