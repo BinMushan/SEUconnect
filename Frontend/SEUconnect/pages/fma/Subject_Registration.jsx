@@ -189,7 +189,7 @@ export default function Subject_Registration() {
           <div className="fma-stat-body">
             <span className="fma-stat-label">Awaiting Verification</span>
             <span className="fma-stat-val">{stats.pending}</span>
-            <span className="fma-stat-sub">Handbook §7.2 checks</span>
+            <span className="fma-stat-sub">Course registration checks</span>
           </div>
         </button>
 
@@ -241,7 +241,7 @@ export default function Subject_Registration() {
           <div>
             <h3 className="fma-panel-title">Semester Subject Registration &amp; Add/Drop Registry</h3>
             <p className="fma-panel-sub">
-              Faculty Handbook Section 7.2: Verify course units within 2 weeks of semester commencement and ensure credit limit compliance (§7.3).
+              Verify course units within 2 weeks of semester commencement and ensure credit limit compliance.
             </p>
           </div>
           <div className="fma-header-actions">

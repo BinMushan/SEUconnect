@@ -65,27 +65,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
 
   return (
     <div className="fma-page">
-      {/* 1. Handbook Context Header */}
-      <div className="fma-handbook-card">
-        <div>
-          <span className="fma-handbook-tag">Undergraduate Handbook • Section 2.3 &amp; Section 7</span>
-          <h2 className="fma-handbook-title">Office of the Dean — Faculty Management Assistant Desk</h2>
-          <p className="fma-handbook-desc">
-            Executive administrative workflow for student enrolment, semester subject registrations (Handbook §7.2),
-            Student Record Books &amp; Identity Cards (§7.5), annual renewal fee verification (§7.6), and academic leave processing (§7.4).
-          </p>
-        </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <button
-            type="button"
-            className="fma-btn fma-btn-outline"
-            style={{ color: '#0f172a', background: '#fff' }}
-            onClick={() => onNavigate('subject_reg')}
-          >
-            Review Enrolments →
-          </button>
-        </div>
-      </div>
+
 
       {/* 2. Clickable Stats Grid */}
       <section className="fma-stats-grid">
@@ -131,7 +111,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
               </svg>
             </div>
             <div className="fma-quick-name">Subject Registration &amp; Add/Drop</div>
-            <div className="fma-quick-desc">Handbook §7.2: Verify 2-week semester course forms, HOD signatures, and Add/Drop amendments.</div>
+            <div className="fma-quick-desc">Verify 2-week semester course forms, HOD signatures, and Add/Drop amendments.</div>
           </div>
 
           <div className="fma-quick-card" onClick={() => onNavigate('record_renewal')}>
@@ -145,7 +125,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
               </svg>
             </div>
             <div className="fma-quick-name">Record Books &amp; Renewal PIVs</div>
-            <div className="fma-quick-desc">Handbook §7.5 &amp; §7.6: Official Record Book issuance, seal embossing, and Bank PIV slips verification.</div>
+            <div className="fma-quick-desc">Official Record Book issuance, seal embossing, and Bank PIV slips verification.</div>
           </div>
 
           <div className="fma-quick-card" onClick={() => onNavigate('student_leave')}>
@@ -156,7 +136,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
               </svg>
             </div>
             <div className="fma-quick-name">Leave of Absence Management</div>
-            <div className="fma-quick-desc">Handbook §7.4 &amp; §4.2.4: 48h sick notices, 15-day short leave, long leave &amp; 8-week absence rule.</div>
+            <div className="fma-quick-desc">48h sick notices, 15-day short leave, long leave &amp; 8-week absence rule.</div>
           </div>
 
           <div className="fma-quick-card" onClick={() => onNavigate('training')}>
@@ -167,7 +147,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
               </svg>
             </div>
             <div className="fma-quick-name">Industrial Training Daily Diaries</div>
-            <div className="fma-quick-desc">Handbook §3.8.4 &amp; §3.9.3: Issue continuous training record books, verify company mentors &amp; supervisors.</div>
+            <div className="fma-quick-desc">Issue continuous training record books, verify company mentors &amp; supervisors.</div>
           </div>
 
           <div className="fma-quick-card" onClick={() => onNavigate('streaming')}>
@@ -177,7 +157,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
               </svg>
             </div>
             <div className="fma-quick-name">Specialization Streaming</div>
-            <div className="fma-quick-desc">Handbook §3.8.6 &amp; §3.9.5: BBST &amp; BICT majoring allocation (CGPA ≥ 2.0 prerequisite check &amp; transfers).</div>
+            <div className="fma-quick-desc">BBST &amp; BICT majoring allocation (CGPA ≥ 2.0 prerequisite check &amp; transfers).</div>
           </div>
 
           <div className="fma-quick-card" onClick={() => onNavigate('clearance')}>
@@ -190,7 +170,7 @@ export default function FMA_Overview({ stats, onNavigate, onOpenDetail }) {
               </svg>
             </div>
             <div className="fma-quick-name">Certificates &amp; Clearance Letters</div>
-            <div className="fma-quick-desc">Handbook §7.8: Issue Bonafide certificates, English Medium confirmations (§3.4), and semester clearances.</div>
+            <div className="fma-quick-desc">Issue Bonafide certificates, English Medium confirmations, and semester clearances.</div>
           </div>
         </div>
       </div>

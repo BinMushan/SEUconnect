@@ -498,6 +498,19 @@ export function getRoleMetaData(user) {
   const roleKey = (user?.roleKey || user?.role || 'student').toLowerCase();
 
   switch (roleKey) {
+    case 'fma':
+    case 'faculty_ma':
+      return {
+        rolePill: 'FMA',
+        greeting: `Good Morning, ${user?.name || "Mr. MMM. Kamil"}`,
+        facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
+        metaItems: [
+          { label: 'Staff ID:', value: user?.staffId || 'STAFF-FMA-002' },
+          { label: 'Office:', value: 'Office of the Dean' },
+          { label: 'Faculty:', value: 'Faculty of Technology' },
+          { label: 'Role:', value: user?.designation || 'Faculty Management Assistant' },
+        ],
+      };
     case 'dept_ma':
     case 'department_ma':
       return {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import './seu_ai_assistant.css';
+import { askGemini } from '../../src/services/geminiService';
 
 /**
  * SEUConnect AI Assistant - Gemini & ChatGPT Inspired Interface
@@ -197,8 +198,8 @@ export default function SEUConnectAIAssistantModal({
     };
   };
 
-  // Send message
-  const handleSendMessage = (textToSend) => {
+  // Send message with Gemini AI integration & institutional fallback
+  const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputText).trim();
     if (!text) return;
 
@@ -209,25 +210,64 @@ export default function SEUConnectAIAssistantModal({
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const currentHistory = [...messages, userMsg];
+    setMessages(currentHistory);
     setInputText('');
     setIsTyping(true);
 
-    // Realistic assistant response delay
-    setTimeout(() => {
-      const aiReply = generateResponse(text);
+    try {
+      // 1. Attempt generation via Google Gemini API
+      const geminiResult = await askGemini({
+        prompt: text,
+        history: messages,
+        user
+      });
+
+      if (geminiResult && geminiResult.success && geminiResult.text) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            sender: 'assistant',
+            text: geminiResult.text,
+            actions: geminiResult.actions || null,
+            model: geminiResult.model,
+            isGemini: true,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      } else {
+        // 2. Seamless institutional knowledge base fallback
+        const fallbackReply = generateResponse(text);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            sender: 'assistant',
+            text: fallbackReply.text,
+            actions: fallbackReply.actions,
+            isGemini: false,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      }
+    } catch (err) {
+      console.warn('[Chatbot] Gemini processing error:', err);
+      const fallbackReply = generateResponse(text);
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
           sender: 'assistant',
-          text: aiReply.text,
-          actions: aiReply.actions,
+          text: fallbackReply.text,
+          actions: fallbackReply.actions,
+          isGemini: false,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+    } finally {
       setIsTyping(false);
-    }, 600);
+    }
   };
 
   const handleActionNavigate = (tabId) => {
@@ -273,6 +313,10 @@ export default function SEUConnectAIAssistantModal({
               </svg>
             </div>
             <span className="seu-ai-title-text">SEUConnect AI Assistant</span>
+            <div className="seu-ai-badge-status" title="Connected to Google Gemini Live API">
+              <span className="seu-ai-pulse-dot" />
+              <span>Gemini AI Connected</span>
+            </div>
           </div>
 
           {/* Right Tools */}
@@ -432,8 +476,14 @@ export default function SEUConnectAIAssistantModal({
                         if (line.startsWith('### ')) {
                           return <h4 key={idx} style={{ margin: '0 0 0.4rem', color: 'inherit', fontWeight: 700 }}>{line.replace('### ', '')}</h4>;
                         }
-                        if (line.startsWith('• ')) {
-                          const raw = line.replace('• ', '');
+                        if (line.startsWith('## ')) {
+                          return <h3 key={idx} style={{ margin: '0 0 0.45rem', color: 'inherit', fontWeight: 700, fontSize: '1rem' }}>{line.replace('## ', '')}</h3>;
+                        }
+                        if (line.startsWith('# ')) {
+                          return <h3 key={idx} style={{ margin: '0 0 0.45rem', color: 'inherit', fontWeight: 700, fontSize: '1.05rem' }}>{line.replace('# ', '')}</h3>;
+                        }
+                        if (line.startsWith('• ') || line.startsWith('* ') || line.startsWith('- ')) {
+                          const raw = line.replace(/^[•*-]\s*/, '');
                           const parts = raw.split(/(\*\*.*?\*\*)/g);
                           return (
                             <div key={idx} style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.35rem' }}>
@@ -449,6 +499,28 @@ export default function SEUConnectAIAssistantModal({
                             </div>
                           );
                         }
+                        if (/^\d+\.\s/.test(line)) {
+                          const numMatch = line.match(/^\d+\./);
+                          const num = numMatch ? numMatch[0] : '';
+                          const raw = line.replace(/^\d+\.\s*/, '');
+                          const parts = raw.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <div key={idx} style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.35rem' }}>
+                              <span style={{ fontWeight: 600 }}>{num}</span>
+                              <div>
+                                {parts.map((p, pIdx) => {
+                                  if (p.startsWith('**') && p.endsWith('**')) {
+                                    return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
+                                  }
+                                  return p;
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+                        if (!line.trim()) {
+                          return <div key={idx} style={{ height: '0.35rem' }} />;
+                        }
                         const parts = line.split(/(\*\*.*?\*\*)/g);
                         return (
                           <p key={idx} style={{ margin: '0 0 0.45rem' }}>
@@ -460,8 +532,7 @@ export default function SEUConnectAIAssistantModal({
                             })}
                           </p>
                         );
-                      })}
-                    </div>
+                      })}                    </div>
 
                     {/* Contextual Nav Buttons */}
                     {msg.actions && msg.actions.length > 0 && (
@@ -486,6 +557,11 @@ export default function SEUConnectAIAssistantModal({
 
                     <div className="seu-ai-msg-meta">
                       <span>{msg.timestamp}</span>
+                      {msg.sender === 'assistant' && (
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', marginLeft: '0.45rem', fontWeight: 600 }}>
+                          {msg.isGemini ? '✨ Google Gemini' : '📚 SEUSL Regulations'}
+                        </span>
+                      )}
                       <button
                         type="button"
                         className="seu-ai-copy-btn"
@@ -585,7 +661,7 @@ export default function SEUConnectAIAssistantModal({
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  <span>Calibrated with SEUSL Faculty of Technology Examination By-Laws</span>
+                  <span>Powered by Google Gemini AI & SEUSL Faculty of Technology Regulations</span>
                 </div>
                 <div>
                   Press <span className="seu-ai-esc-hint">Esc</span> to close
