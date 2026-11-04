@@ -39,7 +39,7 @@ export default function LecturerDashboard({
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             }
-            onClick={() => onNavigateModule('subjects')}
+            onClick={() => onNavigateModule('enrollment')}
           />
 
           {/* 2. Assigned Subjects */}

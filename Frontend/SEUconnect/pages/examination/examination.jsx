@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import "./examination.css";
 import DashboardTemplate from "../../components/dashbord/dashboard_template";
 import ExamEntry from "./Exam_Entry";
@@ -276,8 +276,8 @@ const FILTER_LABELS = {
 const INITIAL_QUEUE_ITEMS = [
   {
     id: "q-1",
-    name: "K.P. Silva ┬╖ 22ICT041",
-    detail: "Software Systems ┬╖ 6 subjects registered",
+    name: "K.P. Silva \u00B7 22ICT041",
+    detail: "Software Systems \u00B7 6 subjects registered",
     status: "Eligible",
     statusClass: "status-success",
     avatar: "KP",
@@ -286,8 +286,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-2",
-    name: "A.N. Perera ┬╖ 22ICT078",
-    detail: "Data Science ┬╖ Attendance 74% (Barred from ESA)",
+    name: "A.N. Perera \u00B7 22ICT078",
+    detail: "Data Science \u00B7 Attendance 74% (Barred from ESA)",
     status: "Ineligible",
     statusClass: "status-danger",
     avatar: "AN",
@@ -296,8 +296,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-3",
-    name: "M.F. Rasheed ┬╖ 21ICT019",
-    detail: "Software Systems ┬╖ Repeat candidate, attempt 2",
+    name: "M.F. Rasheed \u00B7 21ICT019",
+    detail: "Software Systems \u00B7 Repeat candidate, attempt 2",
     status: "Review",
     statusClass: "status-warning",
     avatar: "MF",
@@ -306,8 +306,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-4",
-    name: "S. Jayasuriya ┬╖ 22ICT103",
-    detail: "Network Systems ┬╖ 5 subjects registered",
+    name: "S. Jayasuriya \u00B7 22ICT103",
+    detail: "Network Systems \u00B7 5 subjects registered",
     status: "Eligible",
     statusClass: "status-success",
     avatar: "SJ",
@@ -316,8 +316,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-5",
-    name: "H. Nazeer ┬╖ 22ICT056",
-    detail: "Software Systems ┬╖ Sickness notice filed (Base Hospital)",
+    name: "H. Nazeer \u00B7 22ICT056",
+    detail: "Software Systems \u00B7 Sickness notice filed (Base Hospital)",
     status: "Medical Notice",
     statusClass: "status-info",
     avatar: "HN",
@@ -326,8 +326,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-6",
-    name: "F. Nilufar ┬╖ 21ICT064",
-    detail: "Data Science ┬╖ 2 days remaining for medical certificate",
+    name: "F. Nilufar \u00B7 21ICT064",
+    detail: "Data Science \u00B7 2 days remaining for medical certificate",
     status: "Urgent MC",
     statusClass: "status-danger",
     avatar: "FN",
@@ -336,8 +336,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-7",
-    name: "S. Divya ┬╖ 22ICT115",
-    detail: "Data Science ┬╖ Attendance 68% (Appeals committee pending)",
+    name: "S. Divya \u00B7 22ICT115",
+    detail: "Data Science \u00B7 Attendance 68% (Appeals committee pending)",
     status: "Ineligible",
     statusClass: "status-danger",
     avatar: "SD",
@@ -346,8 +346,8 @@ const INITIAL_QUEUE_ITEMS = [
   },
   {
     id: "q-8",
-    name: "T. Kumar ┬╖ 23ICT027",
-    detail: "Network Systems ┬╖ 3rd attempt repeat registration",
+    name: "T. Kumar \u00B7 23ICT027",
+    detail: "Network Systems \u00B7 3rd attempt repeat registration",
     status: "Review",
     statusClass: "status-warning",
     avatar: "TK",
@@ -640,7 +640,7 @@ function ExaminationHome({ goTo }) {
           <ul className="std-dl-list">
             <li className="std-dl-item">
               <span className="std-dl-dot dot-red" />
-              <span className="std-dl-text">4 medical certificates due ΓÇö 2-week window</span>
+              <span className="std-dl-text">4 medical certificates due - 2-week window</span>
               <span className="std-dl-when">2 days</span>
             </li>
             <li className="std-dl-item">

@@ -13,6 +13,8 @@ import DepartmentOverview from './components/DepartmentOverview.jsx';
 import AcademicStaffManagement from './components/AcademicStaffManagement.jsx';
 import DepartmentStudents from './components/DepartmentStudents.jsx';
 import CourseAllocations from './components/CourseAllocations.jsx';
+import DepartmentAcademicCalendar from './components/DepartmentAcademicCalendar.jsx';
+import DepartmentTimetable from './components/DepartmentTimetable.jsx';
 import DepartmentApprovalsDesk from './components/DepartmentApprovalsDesk.jsx';
 import CAMarksModeration from './components/CAMarksModeration.jsx';
 import RepeatExamEndorsements from './components/RepeatExamEndorsements.jsx';
@@ -120,6 +122,10 @@ export default function HOD({ user, onLogout }) {
         return <DepartmentStudents onNavigate={setActiveNav} />;
       case 'course_coordination':
         return <CourseAllocations onNavigate={setActiveNav} />;
+      case 'department_calendar':
+        return <DepartmentAcademicCalendar onNavigate={setActiveNav} />;
+      case 'department_timetable':
+        return <DepartmentTimetable onNavigate={setActiveNav} />;
       case 'pending_hod_approvals':
         return (
           <DepartmentApprovalsDesk

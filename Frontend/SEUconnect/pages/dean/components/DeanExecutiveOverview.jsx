@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DEPARTMENTS_DATA, FACULTY_STATS, FACULTY_BOARD_MEETINGS } from '../deanData.js';
+import { DEPARTMENTS_DATA, FACULTY_STATS, FACULTY_BOARD_MEETINGS, FACULTY_BATCH_BREAKDOWN, getCalculatedBatchTotals } from '../deanData.js';
 
 export default function DeanExecutiveOverview({
   processes,
@@ -14,6 +14,7 @@ export default function DeanExecutiveOverview({
   const [filter, setFilter] = useState('pending_dean');
   const [searchQuery, setSearchQuery] = useState('');
   const safeProcesses = Array.isArray(processes) ? processes : [];
+  const batchTotals = getCalculatedBatchTotals();
 
   const displayedProcesses = safeProcesses.filter((p) => {
     const matchesSearch =
@@ -56,7 +57,7 @@ export default function DeanExecutiveOverview({
               <span className="dean-stat-badge badge-blue">Faculty</span>
             </div>
             <div className="dean-stat-number">{DEPARTMENTS_DATA.length} Depts</div>
-            <div className="dean-stat-target">ICT & BST (800 Students)</div>
+            <div className="dean-stat-target">ICT & BST ({batchTotals.facultyTotal} Students)</div>
           </div>
         </div>
 
@@ -377,7 +378,43 @@ export default function DeanExecutiveOverview({
 
         {/* RIGHT COLUMN: Faculty Executive Vital Signs & Notice */}
         <aside className="dean-sidebar-widgets">
-          {/* Widget 1: Faculty Executive Standing */}
+          {/* Widget 1: Faculty Undergraduates Batch-Wise Breakdown */}
+          <div className="dean-card dean-vital-card">
+            <div className="dean-card-header">
+              <h3 className="dean-card-heading">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Faculty Undergraduates by Batch
+              </h3>
+              <span className="dean-badge-blue">Total: {batchTotals.facultyTotal}</span>
+            </div>
+
+            <div className="dean-batch-list">
+              {FACULTY_BATCH_BREAKDOWN.map((b) => (
+                <div key={b.batch} className="dean-batch-item-row">
+                  <div className="dean-batch-item-label">
+                    <span className="dean-batch-item-name">{b.batch}</span>
+                    <span className="dean-batch-item-year">{b.year}</span>
+                  </div>
+                  <div className="dean-batch-counts-group">
+                    <span className="dean-batch-dept-chip ict">ICT {b.ict}</span>
+                    <span className="dean-batch-dept-chip bst">BST {b.bst}</span>
+                    <span className="dean-batch-total-chip">{b.facultyTotal}</span>
+                  </div>
+                </div>
+              ))}
+              <div className="dean-batch-card-summary">
+                <span style={{ color: '#1e40af', fontWeight: 600 }}>Calculated Faculty Total:</span>
+                <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{batchTotals.facultyTotal} Undergrads</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Widget 2: Faculty Executive Standing (Rebalanced, Research Funding Removed) */}
           <div className="dean-card dean-vital-card">
             <div className="dean-card-header">
               <h3 className="dean-card-heading">
@@ -397,7 +434,7 @@ export default function DeanExecutiveOverview({
             <div className="dean-vital-stats-list">
               <div className="dean-vital-row">
                 <span className="dean-vital-lbl">Total Undergraduates</span>
-                <span className="dean-vital-val">{FACULTY_STATS.totalUndergraduates}</span>
+                <span className="dean-vital-val" style={{ fontWeight: 700, color: '#0f2b5c' }}>{batchTotals.facultyTotal}</span>
               </div>
               <div className="dean-vital-row">
                 <span className="dean-vital-lbl">Academic Staff Cadre</span>
@@ -414,10 +451,6 @@ export default function DeanExecutiveOverview({
               <div className="dean-vital-row">
                 <span className="dean-vital-lbl">6-Month Employment</span>
                 <span className="dean-vital-val" style={{ color: '#2563eb' }}>{FACULTY_STATS.employmentRate6Months}</span>
-              </div>
-              <div className="dean-vital-row">
-                <span className="dean-vital-lbl">Research Funding (YTD)</span>
-                <span className="dean-vital-val">{FACULTY_STATS.annualResearchFunding}</span>
               </div>
             </div>
           </div>

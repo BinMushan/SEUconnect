@@ -416,40 +416,7 @@ export default function SpecialNeeds() {
       </section>
 
       {/* ====================================================================
-          2. GUIDANCE BANNER
-          ==================================================================== */}
-      <section className="sn-guidance-card">
-        <div>
-          <span className="sn-guidance-badge">SENATE POLICY DIRECTIVE</span>
-          <h4 className="sn-guidance-heading">
-            Special Examination Arrangements (Faculty Handbook Section 4.5)
-          </h4>
-          <p className="sn-guidance-text">
-            Special accommodations including extra time, separate halls, amanuensis (scribe) assistance, 
-            and physical accessibility adaptations require formal University Medical Officer (UMO) endorsement 
-            and ratification by the Faculty Board of Technology.
-          </p>
-        </div>
-        <div className="sn-guidance-actions">
-          <button
-            type="button"
-            className="sn-btn sn-btn-outline"
-            onClick={() => setShowSupervisorDossier(true)}
-          >
-            Invigilator Dossier
-          </button>
-          <button
-            type="button"
-            className="sn-btn sn-btn-primary"
-            onClick={() => setShowLogModal(true)}
-          >
-            + Log Special Request
-          </button>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          3. MAIN TABLE & FILTERS PANEL
+          2. MAIN TABLE & FILTERS PANEL
           ==================================================================== */}
       <section className="sn-panel" ref={tableRef}>
         <div className="sn-panel-header">
@@ -459,9 +426,22 @@ export default function SpecialNeeds() {
               Audit candidate conditions, allocate specialized examination rooms, and configure invigilator instructions.
             </p>
           </div>
-          <span className="sn-table-counter">
-            Showing <strong>{filteredRequests.length}</strong> of {requests.length} Accommodated Candidates
-          </span>
+          <div className="sn-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              type="button"
+              className="sn-btn sn-btn-outline"
+              onClick={() => setShowSupervisorDossier(true)}
+            >
+              Invigilator Dossier
+            </button>
+            <button
+              type="button"
+              className="sn-btn sn-btn-primary"
+              onClick={() => setShowLogModal(true)}
+            >
+              + Log Special Request
+            </button>
+          </div>
         </div>
 
         {/* Shows which card filter is on */}
