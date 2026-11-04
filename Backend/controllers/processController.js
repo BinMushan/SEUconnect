@@ -264,12 +264,7 @@ exports.approveStage = async (req, res) => {
       return res.status(400).json({ success: false, message: `Cannot approve a process that is already ${process.status}` });
     }
 
-    const curIndex = process.currentStageIndex;
-    const currentStage = process.stages[curIndex];
 
-    if (!currentStage) {
-      return res.status(400).json({ success: false, message: 'Invalid stage index' });
-    }
 
     // Complete current stage
     currentStage.status = 'COMPLETED';

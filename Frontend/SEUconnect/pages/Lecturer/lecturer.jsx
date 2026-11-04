@@ -13,8 +13,9 @@ import Announcements from './Announcements.jsx';
 import Notifications from './Notifications.jsx';
 import LecturerProfile from './LecturerProfile.jsx';
 import MedicalVerification from './MedicalVerification.jsx';
+import ECAReview from './ECAReview.jsx';
 
-import { INITIAL_LECTURER_INFO, INITIAL_NOTIFICATIONS } from './lecturerMockData.js';
+import { INITIAL_LECTURER_INFO, INITIAL_NOTIFICATIONS, INITIAL_ASSIGNED_ECA_APPLICATIONS } from './lecturerMockData.js';
 import './lecturer.css';
 
 /**
@@ -111,6 +112,17 @@ const LECTURER_NAV_SECTIONS = [
           </svg>
         ),
       },
+      {
+        id: 'eca-review',
+        label: 'Assigned ECA Review',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <path d="m9 15 2 2 4-4" />
+          </svg>
+        ),
+      },
     ],
   },
   {
@@ -159,6 +171,16 @@ export default function Lecturer({ user, onLogout }) {
 
   // Lifted Notifications state synchronized with topbar badge
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+
+  // Assigned ECA Applications state
+  const [ecaApplications, setEcaApplications] = useState(INITIAL_ASSIGNED_ECA_APPLICATIONS);
+  const pendingEcaCount = ecaApplications.filter((a) => a.status === 'Pending Lecturer Review').length;
+
+  const handleUpdateEcaApplication = (updatedApp) => {
+    setEcaApplications((prev) =>
+      prev.map((app) => (app.id === updatedApp.id ? updatedApp : app))
+    );
+  };
 
   const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
 
@@ -240,6 +262,9 @@ export default function Lecturer({ user, onLogout }) {
     } else if (q.includes('announc') || q.includes('notice') || q.includes('publish') || q.includes('circ')) {
       navigate('announcements');
       showToast('Navigated to Announcements Feed', 'info');
+    } else if (q.includes('eca') || q.includes('repeat exam') || q.includes('exam application') || q.includes('assigned eca')) {
+      navigate('eca-review');
+      showToast('Navigated to Assigned ECA Applications Review', 'info');
     } else if (q.includes('medic') || q.includes('mc') || q.includes('concession') || q.includes('doctor') || q.includes('sick')) {
       navigate('medical-verification');
       showToast('Navigated to Student Medical Approval & Verification', 'info');
@@ -360,6 +385,15 @@ export default function Lecturer({ user, onLogout }) {
             onShowToast={showToast}
           />
         );
+      case 'eca-review':
+        return (
+          <ECAReview
+            applications={ecaApplications}
+            onUpdateApplication={handleUpdateEcaApplication}
+            onShowToast={showToast}
+            onNavigateBack={() => navigate('dashboard')}
+          />
+        );
       case 'medical-verification':
         return (
           <MedicalVerification
@@ -374,6 +408,8 @@ export default function Lecturer({ user, onLogout }) {
         return (
           <LecturerDashboard
             user={user}
+            assignedEcaCount={pendingEcaCount}
+            ecaApplications={ecaApplications}
             onNavigateModule={(modId, params) => {
               if (params?.subjectCode) {
                 setSelectedSubjectCode(params.subjectCode);
@@ -408,7 +444,24 @@ export default function Lecturer({ user, onLogout }) {
         facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
         greetingText={`Good Morning, ${INITIAL_LECTURER_INFO.fullName}`}
         metaItems={LECTURER_META_CHIPS}
-        navSections={LECTURER_NAV_SECTIONS}
+        navSections={LECTURER_NAV_SECTIONS.map((sec) => {
+          if (sec.title === 'ACADEMIC') {
+            return {
+              ...sec,
+              items: sec.items.map((item) => {
+                if (item.id === 'eca-review') {
+                  return {
+                    ...item,
+                    badge: pendingEcaCount > 0 ? String(pendingEcaCount) : null,
+                    badgeType: 'warning',
+                  };
+                }
+                return item;
+              }),
+            };
+          }
+          return sec;
+        })}
         actionButtons={lecturerHeroActions}
         notificationCount={unreadNotifCount}
         searchPlaceholder="Quick search modules (e.g. 'Attendance', 'CA', 'Results', 'Announcements')..."

@@ -133,6 +133,48 @@ export default function LecturerDashboard({
         </div>
       </div>
 
+      {/* 2. Assigned ECA Applications (Examination Branch Forwarded) */}
+      <div className="lec-assigned-eca-section">
+        <div className="lec-assigned-eca-card">
+          <div className="lec-assigned-eca-left">
+            <div className="lec-assigned-eca-icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <path d="m9 15 2 2 4-4" />
+              </svg>
+            </div>
+            <div className="lec-assigned-eca-info">
+              <div className="lec-assigned-eca-title-row">
+                <h4 className="lec-assigned-eca-title">Assigned ECA Applications</h4>
+                <span className={`lec-eca-badge ${assignedEcaCount > 0 ? 'badge-pending' : 'badge-completed'}`}>
+                  {assignedEcaCount} {assignedEcaCount === 1 ? 'Application' : 'Applications'} Pending Review
+                </span>
+              </div>
+              <p className="lec-assigned-eca-desc">
+                Continuous Assessment (ECA) repeat applications forwarded by the Examination Branch for course lecturer verification and recommendation before Head of Department (HOD) final approval.
+              </p>
+              <div className="lec-assigned-eca-meta-tags">
+                <span className="lec-eca-meta-tag">Assigned Modules: SWT21032, SWT22022, SWT21022</span>
+                <span className="lec-eca-meta-tag">Workflow Step 4 of 5</span>
+              </div>
+            </div>
+          </div>
+          <div className="lec-assigned-eca-right">
+            <button
+              type="button"
+              className="lec-btn-eca-check"
+              onClick={() => {
+                if (onShowToast) onShowToast('Navigating to Assigned ECA Applications Review', 'info');
+                onNavigateModule('eca-review');
+              }}
+            >
+              Check
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* 3. Today's Timetable / Classes Cards */}
       <div className="lec-classes-section">
         <div className="lec-section-title-row">
