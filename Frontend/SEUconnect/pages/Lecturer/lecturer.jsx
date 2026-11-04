@@ -112,17 +112,7 @@ const LECTURER_NAV_SECTIONS = [
           </svg>
         ),
       },
-      {
-        id: 'eca-review',
-        label: 'Assigned ECA Review',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <path d="m9 15 2 2 4-4" />
-          </svg>
-        ),
-      },
+
     ],
   },
   {
@@ -184,26 +174,9 @@ export default function Lecturer({ user, onLogout }) {
 
   const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
 
-  const dynamicNavSections = useMemo(() => {
-    return LECTURER_NAV_SECTIONS.map((sec) => {
-      if (sec.title === 'ACADEMIC') {
-        return {
-          ...sec,
-          items: sec.items.map((item) => {
-            if (item.id === 'eca-review') {
-              return {
-                ...item,
-                badge: pendingEcaCount > 0 ? String(pendingEcaCount) : null,
-                badgeType: 'warning',
-              };
-            }
-            return item;
-          }),
-        };
-      }
-      return sec;
-    });
-  }, [pendingEcaCount]);
+  // Selected ECA application ID for direct navigation via notification
+  const [selectedEcaAppId, setSelectedEcaAppId] = useState(null);
+  const [navSource, setNavSource] = useState('dashboard');
 
   const navigate = (targetPath) => {
     const clean = targetPath.replace(/^\//, '') || 'dashboard';
@@ -231,6 +204,12 @@ export default function Lecturer({ user, onLogout }) {
     if (params?.subjectCode) {
       setSelectedSubjectCode(params.subjectCode);
     }
+    if (params?.applicationId) {
+      setSelectedEcaAppId(params.applicationId);
+    } else {
+      setSelectedEcaAppId(null);
+    }
+    setNavSource('notifications');
     navigate(targetRoute);
   };
 
@@ -249,7 +228,11 @@ export default function Lecturer({ user, onLogout }) {
   // Convert current path to active sidebar id
   const activeNavId = (currentPath === '' || currentPath === 'dashboard')
     ? 'dashboard'
-    : (currentPath === 'medical-verification' ? 'notifications' : currentPath);
+    : (currentPath === 'medical-verification'
+        ? 'notifications'
+        : (currentPath === 'eca-review'
+            ? (navSource === 'notifications' ? 'notifications' : 'dashboard')
+            : currentPath));
 
   const handleNavigate = (targetId) => {
     if (targetId === 'academic_profile') {
@@ -410,9 +393,13 @@ export default function Lecturer({ user, onLogout }) {
         return (
           <ECAReview
             applications={ecaApplications}
+            initialApplicationId={selectedEcaAppId}
             onUpdateApplication={handleUpdateEcaApplication}
             onShowToast={showToast}
-            onNavigateBack={() => navigate('dashboard')}
+            onNavigateBack={() => {
+              setSelectedEcaAppId(null);
+              navigate(navSource === 'notifications' ? 'notifications' : 'dashboard');
+            }}
           />
         );
       case 'medical-verification':
@@ -434,6 +421,10 @@ export default function Lecturer({ user, onLogout }) {
             onNavigateModule={(modId, params) => {
               if (params?.subjectCode) {
                 setSelectedSubjectCode(params.subjectCode);
+              }
+              if (modId === 'eca-review') {
+                setSelectedEcaAppId(null);
+                setNavSource('dashboard');
               }
               navigate(modId);
             }}
@@ -465,7 +456,7 @@ export default function Lecturer({ user, onLogout }) {
         facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
         greetingText={`Good Morning, ${INITIAL_LECTURER_INFO.fullName}`}
         metaItems={LECTURER_META_CHIPS}
-        navSections={dynamicNavSections}
+        navSections={LECTURER_NAV_SECTIONS}
         actionButtons={lecturerHeroActions}
         notificationCount={unreadNotifCount}
         searchPlaceholder="Quick search modules (e.g. 'Attendance', 'CA', 'Results', 'Announcements')..."
