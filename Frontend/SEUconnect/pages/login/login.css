@@ -33,8 +33,8 @@
   --seu-success-bg: rgba(16, 185, 129, 0.15);
   --seu-success-border: rgba(16, 185, 129, 0.35);
   
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif-brand: 'Times New Roman', Times, Georgia, Garamond, serif;
 }
 
@@ -489,7 +489,7 @@
 }
 
 .seu-submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #0f2b5c 0%, #071732 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
 }
