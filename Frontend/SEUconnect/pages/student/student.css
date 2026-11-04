@@ -208,8 +208,8 @@
 }
 
 .std-search-input:focus {
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+  border-color: #071732;
+  box-shadow: 0 0 0 3px rgba(7, 23, 50, 0.15);
 }
 
 .std-search-input::placeholder {
@@ -623,8 +623,8 @@
 
 .std-action-btn:hover {
   background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #1d4ed8;
+  border-color: #071732;
+  color: #071732;
   transform: translateX(2px);
 }
 
@@ -912,8 +912,8 @@
 }
 
 .std-view-details-btn:hover {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: #071732;
+  border-color: #071732;
   color: #ffffff;
 }
 
