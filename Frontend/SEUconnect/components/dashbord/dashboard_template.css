@@ -31,14 +31,15 @@
 /* Master Layout Wrapper */
 .seu-dash-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
   width: 100%;
   max-width: 100vw;
   background-color: var(--seu-dash-bg);
   font-family: var(--font-dash-sans);
   color: #0f172a;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -52,8 +53,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 20;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   box-sizing: border-box;
@@ -319,7 +319,27 @@
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--seu-dash-bg);
+}
+
+.seu-dash-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.seu-dash-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.seu-dash-main::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.seu-dash-main::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Top Navigation Bar */
@@ -337,6 +357,7 @@
   z-index: 30;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 /* Topbar Left Search Bar */
