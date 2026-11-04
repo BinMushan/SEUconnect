@@ -107,7 +107,7 @@ function getInitialAuthState() {
   if (typeof window === 'undefined') return { page: 'login', user: null };
   const rawHash = window.location.hash ? window.location.hash.replace(/^#/, '').trim() : '';
   const cleanPath = (rawHash || window.location.pathname).replace(/^\//, '').toLowerCase();
-  const matchedRole = ['student', 'lecturer', 'hod', 'dean', 'admin', 'superadmin', 'examination'].find(
+  const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination'].find(
     (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
   );
   if (matchedRole) {
@@ -128,7 +128,7 @@ function App() {
       if (!cleanPath) {
         setCurrentPage('login');
       } else {
-        const matchedRole = ['student', 'lecturer', 'hod', 'dean', 'admin', 'superadmin', 'examination'].find(
+        const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination'].find(
           (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
         );
         if (matchedRole) {
