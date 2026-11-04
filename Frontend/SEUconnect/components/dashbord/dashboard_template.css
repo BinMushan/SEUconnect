@@ -527,6 +527,8 @@
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  min-height: fit-content;
 }
 
 .seu-hero-banner-top-row {
@@ -689,7 +691,8 @@
    MAIN DASHBOARD CONTENT AREA (For Role Components Children)
    ========================================================================== */
 .seu-dash-body-content {
-  flex: 1;
+  flex: 1 0 auto;
+  flex-shrink: 0;
   padding: 1.85rem 2rem 3rem 2rem;
   box-sizing: border-box;
   width: 100%;
