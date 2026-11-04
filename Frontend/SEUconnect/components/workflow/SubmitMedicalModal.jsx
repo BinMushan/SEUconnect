@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './workflow.css';
 
 export default function SubmitMedicalModal({ user, onClose, onSubmitSuccess }) {
-  const [absenceDate, setAbsenceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [absenceDate, setAbsenceDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [missedSessions, setMissedSessions] = useState('Full Day Lectures (08:30 AM - 04:30 PM)');
   const [selectedCourses, setSelectedCourses] = useState([
     'ICT 3112 - Web Application Development',
@@ -11,7 +11,7 @@ export default function SubmitMedicalModal({ user, onClose, onSubmitSuccess }) {
   const [reason, setReason] = useState('High viral fever and physical exhaustion diagnosed by university clinic.');
   const [doctorName, setDoctorName] = useState('Dr. A.H.M. Nazeer (MBBS, DFM)');
   const [hospitalClinic, setHospitalClinic] = useState('University Health Centre, SEUSL Oluvil Campus');
-  const [medicalCertNo, setMedicalCertNo] = useState(`SEU/HC/MED/${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`);
+  const [medicalCertNo, setMedicalCertNo] = useState(() => `SEU/HC/MED/${new Date().getFullYear()}/${Math.floor(1000 + Math.random() * 9000)}`);
   const [fileName, setFileName] = useState('medical_slip_scan.pdf');
   const [notes, setNotes] = useState('Requesting excused attendance for 80% ESA eligibility calculation.');
   const [declared, setDeclared] = useState(true);

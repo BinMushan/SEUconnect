@@ -635,6 +635,7 @@ export default function Attendance({ onNavigateMedical }) {
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
   const [matrixPeriod, setMatrixPeriod] = useState('1week'); // Default to Current Week (Monday to Friday)
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [onlyMissedDates, setOnlyMissedDates] = useState(false);
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 

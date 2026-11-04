@@ -289,7 +289,7 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
   const studentPhone = user?.phone || '+94 77 1234567';
 
   // Interactive Form Editor State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     name: studentName,
     registrationNumber: studentRegNo,
     indexNumber: studentIndexNo,
@@ -359,7 +359,7 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     rescrutinyTitle: 'Web Application Development',
     gradeReceived: 'C-',
     signatureName: studentName
-  });
+  }));
 
   const categories = ['All', 'Examination', 'Medical / Attendance', 'Finance & Fees', 'Academic / Registration'];
 
