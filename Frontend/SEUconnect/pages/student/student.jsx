@@ -99,7 +99,7 @@ export default function Student({ user, onLogout }) {
   }, [activeTab]);
   const [studentUser, setStudentUser] = useState(user);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(4); // Default to Semester 5 (current)
+  const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(0); // Default to Semester 5 (current)
 
   const progressionData = [
     { semester: 'Sem 1', fullLabel: 'Semester 1', sgpa: 3.82, credits: 16, standing: 'First Class Standing', x: 85, y: 55.9, isFirstClass: true },
@@ -120,31 +120,36 @@ export default function Student({ user, onLogout }) {
     { 
       label: 'Register Subjects',
       actionId: 'semester_registration',
+      colorTheme: 'purple',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       )
     },
     {
       label: 'Check Attendance',
       actionId: 'attendance',
+      colorTheme: 'blue',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-          <path d="m9 14 2 2 4-4"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <path d="m9 16 2 2 4-4"/>
         </svg>
       )
     },
     {
       label: 'Exam Registration',
       actionId: 'examinations',
+      colorTheme: 'violet',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="8" r="6"/>
           <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
         </svg>
@@ -153,8 +158,9 @@ export default function Student({ user, onLogout }) {
     {
       label: 'View Results',
       actionId: 'results',
+      colorTheme: 'indigo',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="20" x2="18" y2="10"/>
           <line x1="12" y1="20" x2="12" y2="4"/>
           <line x1="6" y1="20" x2="6" y2="14"/>
@@ -164,40 +170,45 @@ export default function Student({ user, onLogout }) {
     {
       label: 'Submit Medical Request',
       actionId: 'medical_requests',
+      colorTheme: 'teal',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="12" y1="18" x2="12" y2="12"/>
-          <line x1="9" y1="15" x2="15" y2="15"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
         </svg>
       )
     },
     {
       label: 'Calculate GPA Report',
       actionId: 'gpa_cgpa',
+      colorTheme: 'purple',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <line x1="8" y1="6" x2="16" y2="6"/>
+          <line x1="16" y1="14" x2="16" y2="18"/>
+          <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/>
         </svg>
       )
     },
     {
       label: 'Degree Progress',
       actionId: 'academic_progress',
+      colorTheme: 'green',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"/>
+          <polyline points="7 7 17 7 17 17"/>
         </svg>
       )
     },
     {
       label: 'Find a Faculty Form',
       actionId: 'forms_all',
+      colorTheme: 'purple',
       icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
           <line x1="16" y1="13" x2="8" y2="13"/>
@@ -514,35 +525,111 @@ export default function Student({ user, onLogout }) {
         </section>
 
         {/* =========================================================
-            3. MIDDLE ROW: PROGRESSION TREND & QUICK ACTIONS
+            3. MIDDLE ROW: PROGRESSION TREND & QUICK ACTIONS (Image 1 Mockup)
             ========================================================= */}
         <section className="std-middle-grid">
           {/* Left: Academic Progression Trend */}
           <div className="std-trend-card">
+            {/* Header: Cap Icon Badge, Title, and Semester Dropdown */}
             <div className="std-trend-header-row">
-              <div className="std-trend-title-col">
-                <div className="std-trend-title-line">
-                  <h3 className="std-card-heading">Academic Progression Trend (SGPA)</h3>
-                  <span className="std-trend-cgpa-pill">CGPA: 3.58 • 2nd Class Upper</span>
+              <div className="std-trend-header-left">
+                <div className="std-trend-header-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                  </svg>
                 </div>
-                <span className="std-trend-subheading">Track semester GPA performance against faculty honours criteria</span>
+                <div className="std-trend-title-col">
+                  <h3 className="std-card-heading">Academic Progress Trend</h3>
+                  <span className="std-trend-subheading">Track semester GPA performance against faculty honours criteria</span>
+                </div>
               </div>
-              
+
+              {/* Semester Selector Dropdown */}
+              <div className="std-sem-select-wrapper">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f2b54" strokeWidth="2.2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <select
+                  className="std-sem-dropdown-select"
+                  value={selectedSemesterIdx}
+                  onChange={(e) => setSelectedSemesterIdx(Number(e.target.value))}
+                >
+                  {progressionData.map((p, idx) => (
+                    <option key={idx} value={idx}>{p.fullLabel}</option>
+                  ))}
+                </select>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.5">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
             </div>
 
-            {/* Compact Active Semester Strip */}
-            <div className="std-active-sem-strip">
-              <span className="sem-chip active-chip">{progressionData[selectedSemesterIdx].fullLabel}</span>
-              <span className="sem-chip-metric">SGPA: <strong>{progressionData[selectedSemesterIdx].sgpa.toFixed(2)}</strong></span>
-              <span className="sem-chip-metric">Credits: <strong>{progressionData[selectedSemesterIdx].credits}</strong></span>
-              <span className={`sem-chip-standing ${progressionData[selectedSemesterIdx].isFirstClass ? 'chip-first' : 'chip-upper'}`}>
-                {progressionData[selectedSemesterIdx].standing}
-              </span>
+            {/* Top 3 Highlight Stat Boxes (SGPA, Credits, Standing) */}
+            <div className="std-trend-top-metrics">
+              {/* 1. SGPA */}
+              <div className="std-trend-top-box">
+                <div className="std-trend-box-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                    <polyline points="17 6 23 6 23 12" />
+                  </svg>
+                </div>
+                <div className="std-trend-box-content">
+                  <span className="std-trend-box-lbl">SGPA</span>
+                  <div className="std-trend-box-val-row">
+                    <span className="std-trend-box-val">{progressionData[selectedSemesterIdx].sgpa.toFixed(2)}</span>
+                    <span className="std-trend-box-delta">+0.32</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Credits */}
+              <div className="std-trend-top-box">
+                <div className="std-trend-box-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+                <div className="std-trend-box-content">
+                  <span className="std-trend-box-lbl">Credits</span>
+                  <div className="std-trend-box-val-row">
+                    <span className="std-trend-box-val">{progressionData[selectedSemesterIdx].credits}</span>
+                    <span className="std-trend-box-denom">/ {progressionData[selectedSemesterIdx].credits}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Standing */}
+              <div className="std-trend-top-box">
+                <div className="std-trend-box-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <circle cx="12" cy="8" r="6" />
+                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                  </svg>
+                </div>
+                <div className="std-trend-box-content">
+                  <span className="std-trend-box-lbl">{progressionData[selectedSemesterIdx].standing}</span>
+                  <div className="std-trend-box-achieved">
+                    <span>Achieved</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* SVG Chart - Clean Minimalist Styling */}
+            {/* SVG Chart with Area Gradient Fill */}
             <div className="std-chart-wrapper">
               <svg viewBox="0 0 560 190" className="std-trend-svg" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="navyAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0f2b54" stopOpacity="0.14" />
+                    <stop offset="100%" stopColor="#0f2b54" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+
                 {/* Horizontal Reference Grid Lines */}
                 <line x1="45" y1="30" x2="525" y2="30" className="std-grid-line" />
                 <line x1="45" y1="52" x2="525" y2="52" className="std-grid-line" />
@@ -552,88 +639,115 @@ export default function Student({ user, onLogout }) {
 
                 {/* Y-Axis Labels */}
                 <text x="36" y="34" className="std-axis-text">4.0</text>
-                <text x="36" y="56" className="std-axis-text ">3.7</text>
-                <text x="36" y="86" className="std-axis-text ">3.3</text>
+                <text x="36" y="56" className="std-axis-text">3.7</text>
+                <text x="36" y="86" className="std-axis-text">3.3</text>
                 <text x="36" y="110" className="std-axis-text">3.0</text>
                 <text x="36" y="144" className="std-axis-text">2.5</text>
 
-                {/* Vertical Drop Guidelines under points */}
-                {progressionData.map((p, idx) => (
-                  <line
-                    key={`v-${idx}`}
-                    x1={p.x}
-                    y1={p.y}
-                    x2={p.x}
-                    y2="140"
-                    className={`std-grid-line-vert ${selectedSemesterIdx === idx ? 'vert-active' : ''}`}
-                  />
-                ))}
-
-                {/* Clean Blue Trend Line Curve */}
+                {/* Gradient Area Fill Under Curve */}
                 <path
-                  d="M 85,44 C 135,46 145,57 185,57 C 235,57 245,58 285,58 C 335,58 345,69 385,69 L 485,69"
-                  className="std-trend-path"
+                  d="M 85,44 C 135,46 145,62 185,62 C 235,62 245,63 285,63 C 335,63 345,78 385,78 L 485,78 L 485,140 L 85,140 Z"
+                  fill="url(#navyAreaGrad)"
                 />
 
-                {/* Data Points & Clean Floating Pill Badges */}
+                {/* Vertical Drop Guideline on Selected Point */}
                 {progressionData.map((p, idx) => {
                   const isSelected = selectedSemesterIdx === idx;
-                  // Adjusted Y coordinate for more balanced curve
-                  const py = idx === 0 ? 44 : idx === 1 ? 57 : idx === 2 ? 58 : 69;
+                  const py = idx === 0 ? 44 : idx === 1 ? 62 : idx === 2 ? 63 : 78;
+                  if (!isSelected) return null;
+                  return (
+                    <line
+                      key={`v-${idx}`}
+                      x1={p.x}
+                      y1={py}
+                      x2={p.x}
+                      y2="140"
+                      stroke="#0f2b54"
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                    />
+                  );
+                })}
+
+                {/* Smooth University Navy Trend Line Curve */}
+                <path
+                  d="M 85,44 C 135,46 145,62 185,62 C 235,62 245,63 285,63 C 335,63 345,78 385,78 L 485,78"
+                  fill="none"
+                  stroke="#0f2b54"
+                  strokeWidth="3.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                {/* Data Points & Pill Badges */}
+                {progressionData.map((p, idx) => {
+                  const isSelected = selectedSemesterIdx === idx;
+                  const py = idx === 0 ? 44 : idx === 1 ? 62 : idx === 2 ? 63 : 78;
+                  const hasNavyPill = idx === 0 || idx === 4 || isSelected;
+
                   return (
                     <g
                       key={`point-${idx}`}
-                      className="std-chart-point-group"
                       onClick={() => setSelectedSemesterIdx(idx)}
-                      onMouseEnter={() => setSelectedSemesterIdx(idx)}
                       style={{ cursor: 'pointer' }}
                     >
-                      {/* Refined Pill Badge above point */}
-                      <rect
-                        x={p.x - 17}
-                        y={py - 23}
-                        width="34"
-                        height="17"
-                        rx="4"
-                        fill={isSelected ? '#1d4ed8' : (p.isCurrent ? '#0284c7' : '#f1f5f9')}
-                        stroke={isSelected ? '#1e40af' : (p.isCurrent ? '#0369a1' : '#cbd5e1')}
-                        strokeWidth="1"
-                        className="std-badge-pill-rect"
-                      />
-                      <text
-                        x={p.x}
-                        y={py - 11}
-                        textAnchor="middle"
-                        fill={isSelected || p.isCurrent ? '#ffffff' : '#1e293b'}
-                        fontSize="10"
-                        fontWeight="700"
-                        className="std-badge-pill-text"
-                      >
-                        {p.sgpa.toFixed(2)}
-                      </text>
+                      {/* Floating Pill Badge or Text Number */}
+                      {hasNavyPill ? (
+                        <g>
+                          <rect
+                            x={p.x - 17}
+                            y={py - 24}
+                            width="34"
+                            height="18"
+                            rx="9"
+                            fill="#0f2b54"
+                            className="std-badge-pill-rect"
+                          />
+                          <text
+                            x={p.x}
+                            y={py - 11}
+                            textAnchor="middle"
+                            fill="#ffffff"
+                            fontSize="10"
+                            fontWeight="700"
+                          >
+                            {p.sgpa.toFixed(2)}
+                          </text>
+                        </g>
+                      ) : (
+                        <text
+                          x={p.x}
+                          y={py - 10}
+                          textAnchor="middle"
+                          fill="#0f172a"
+                          fontSize="10.5"
+                          fontWeight="700"
+                        >
+                          {p.sgpa.toFixed(2)}
+                        </text>
+                      )}
 
-                      {/* Halo ring for selected or current */}
+                      {/* Halo on selected */}
                       {isSelected && (
                         <circle
                           cx={p.x}
                           cy={py}
                           r={9}
                           fill="none"
-                          stroke="#2563eb"
+                          stroke="#0f2b54"
                           strokeWidth="2"
-                          opacity="0.3"
+                          opacity="0.25"
                         />
                       )}
 
-                      {/* Outer Ring Point Dot */}
+                      {/* Point Dot */}
                       <circle
                         cx={p.x}
                         cy={py}
                         r={isSelected ? 5.5 : 4.5}
                         fill="#ffffff"
-                        stroke={isSelected ? '#1d4ed8' : (p.isCurrent ? '#0284c7' : '#2563eb')}
+                        stroke="#0f2b54"
                         strokeWidth={isSelected ? 3 : 2.5}
-                        className={`std-trend-dot ${isSelected ? 'dot-active' : ''}`}
                       />
 
                       {/* X-Axis Semester Label */}
@@ -651,7 +765,7 @@ export default function Student({ user, onLogout }) {
                         y="172"
                         className="std-axis-text-sub"
                       >
-                        {p.credits} cr
+                        {p.credits} Cr
                       </text>
                     </g>
                   );
@@ -659,43 +773,111 @@ export default function Student({ user, onLogout }) {
               </svg>
             </div>
 
-            {/* Bottom 3 Stats */}
-            <div className="std-trend-metrics">
-              <div className="std-metric-col">
-                <span className="std-metric-label">Credits Completed</span>
-                <span className="std-metric-value">78 <span className="std-metric-denom">/ 130</span></span>
+            {/* Bottom 3 Stat Segments */}
+            <div className="std-trend-bottom-row">
+              {/* Segment 1: Credits Completed */}
+              <div className="std-bottom-stat-box">
+                <div className="std-bottom-stat-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div className="std-bottom-stat-info">
+                  <span className="std-bottom-stat-lbl">Credits Completed</span>
+                  <span className="std-bottom-stat-val">78 <span className="std-bottom-stat-denom">/ 130</span></span>
+                </div>
               </div>
-              <div className="std-metric-col">
-                <span className="std-metric-label">Credits Remaining</span>
-                <span className="std-metric-value">52</span>
+
+              {/* Segment 2: Credits Remaining */}
+              <div className="std-bottom-stat-box">
+                <div className="std-bottom-stat-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div className="std-bottom-stat-info">
+                  <span className="std-bottom-stat-lbl">Credits Remaining</span>
+                  <span className="std-bottom-stat-val">52</span>
+                </div>
               </div>
-              <div className="std-metric-col">
-                <span className="std-metric-label">Degree Progress</span>
-                <div className="std-progress-val-row">
-                  <span className="std-metric-value text-green">60%</span>
-                  <div className="std-mini-progress-bar">
-                    <div className="std-mini-progress-fill" style={{ width: '60%' }}></div>
+
+              {/* Segment 3: Degree Progress */}
+              <div className="std-bottom-stat-box">
+                <div className="std-bottom-progress-circle">
+                  <svg width="38" height="38" viewBox="0 0 38 38">
+                    <circle cx="19" cy="19" r="15" fill="none" stroke="#e2e8f0" strokeWidth="3.5" />
+                    <circle
+                      cx="19"
+                      cy="19"
+                      r="15"
+                      fill="none"
+                      stroke="#0f2b54"
+                      strokeWidth="3.5"
+                      strokeDasharray="94.2"
+                      strokeDashoffset="37.68"
+                      strokeLinecap="round"
+                      transform="rotate(-90 19 19)"
+                    />
+                    <text x="19" y="23" textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#0f172a">60%</text>
+                  </svg>
+                </div>
+                <div className="std-bottom-stat-info">
+                  <span className="std-bottom-stat-lbl">Degree Progress</span>
+                  <div className="std-mini-progress-track">
+                    <div className="std-mini-progress-bar-fill" style={{ width: '60%' }}></div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right: Quick Actions */}
+          {/* Right: Quick Actions Card */}
           <div className="std-quick-actions-card">
-            <h3 className="std-card-heading">Quick Actions</h3>
-            <div className="std-actions-list">
+            {/* Professional University Navy Header Banner with Watermark */}
+            <div className="std-qa-header-banner">
+              <div className="std-qa-header-content">
+                <div className="std-qa-header-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="std-qa-title">Quick Actions</h3>
+                  <p className="std-qa-subtitle">Access your academic services instantly</p>
+                </div>
+              </div>
+              {/* Decorative Watermark Graduation Cap */}
+              <div className="std-qa-watermark">
+                <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+              </div>
+            </div>
+
+            {/* 8 Action Items */}
+            <div className="std-qa-actions-list">
               {quickActions.map((action, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  className="std-action-btn"
+                  className="std-qa-item-btn"
                   onClick={() => {
                     if (action.actionId) setActiveTab(action.actionId);
                   }}
                 >
-                  <span className="std-action-icon">{action.icon}</span>
-                  <span className="std-action-label">{action.label}</span>
+                  <div className="std-qa-item-left">
+                    <span className="std-qa-icon-circle">
+                      {action.icon}
+                    </span>
+                    <span className="std-qa-item-label">{action.label}</span>
+                  </div>
+                  <span className="std-qa-item-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </span>
                 </button>
               ))}
             </div>

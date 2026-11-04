@@ -120,14 +120,17 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedClass]);
 
-  // Generate current week days
-  const weekDays = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
+  // Generate all 7 calendar days of the week (for date calculations)
+  const allWeekDays = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
 
-  // Formatted week date range
+  // Regular university teaching days: Monday to Friday (5 days)
+  const weekDays = useMemo(() => allWeekDays.slice(0, 5), [allWeekDays]);
+
+  // Formatted 5-day week date range (Monday to Friday)
   const weekRangeText = useMemo(() => {
     if (weekDays.length === 0) return '';
     const first = weekDays[0].formattedDate;
-    const last = weekDays[6].formattedDate;
+    const last = weekDays[4].formattedDate;
     const year = weekDays[0].date.getFullYear();
     return `${first} – ${last}, ${year}`;
   }, [weekDays]);
@@ -184,6 +187,11 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
       return true;
     });
   }, [searchQuery, filterSubject, filterBatch, filterYear, filterSemester, filterClassType]);
+
+  // Filter any scheduled weekend classes (Saturday = 6, Sunday = 7)
+  const weekendClasses = useMemo(() => {
+    return filteredClasses.filter((c) => c.dayOfWeek === 6 || c.dayOfWeek === 7);
+  }, [filteredClasses]);
 
   // Check if any filter is active
   const isFiltered = useMemo(() => {
@@ -607,16 +615,15 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
             </div>
           </div>
 
-          {/* 7-Day Timetable Grid (Monday to Sunday) */}
+          {/* 5-Day Weekly Timetable Grid (Monday to Friday) */}
           <div className="lec-weekly-grid">
             {weekDays.map((day) => {
               const dayClasses = classesByDay[day.dayOfWeek] || [];
-              const isWeekend = day.dayOfWeek >= 6;
 
               return (
                 <div
                   key={day.dayOfWeek}
-                  className={`lec-day-column ${day.isToday ? 'is-today' : ''} ${isWeekend ? 'is-weekend' : ''}`}
+                  className={`lec-day-column ${day.isToday ? 'is-today' : ''}`}
                 >
                   {/* Day Column Header */}
                   <div className="lec-day-header">
@@ -686,17 +693,9 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
                       ))
                     ) : (
                       <div className="lec-free-day-slot">
-                        <div className="free-slot-icon">
-                          {isWeekend ? '☕' : '📖'}
-                        </div>
-                        <div className="free-slot-title">
-                          {isWeekend ? 'University Weekend' : 'No Classes Scheduled'}
-                        </div>
-                        <div className="free-slot-sub">
-                          {isWeekend
-                            ? 'Campus administrative recess'
-                            : 'Allocated for grading, course prep, and research'}
-                        </div>
+                        <div className="free-slot-icon">📖</div>
+                        <div className="free-slot-title">No Classes Scheduled</div>
+                        <div className="free-slot-sub">Allocated for grading, course prep, and research</div>
                       </div>
                     )}
                   </div>
@@ -704,6 +703,73 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
               );
             })}
           </div>
+
+          {/* Special Weekend Classes Section (Displayed separately only if weekend classes exist) */}
+          {weekendClasses.length > 0 && (
+            <div className="lec-weekend-classes-section">
+              <div className="lec-weekend-section-header">
+                <div className="lec-weekend-header-title">
+                  <span className="lec-weekend-badge">Weekend Sessions</span>
+                  <h4>Special & Makeup Weekend Sessions ({weekendClasses.length})</h4>
+                </div>
+                <p className="lec-weekend-header-desc">
+                  These classes are officially scheduled on Saturday or Sunday by faculty arrangement.
+                </p>
+              </div>
+
+              <div className="lec-weekend-classes-grid">
+                {weekendClasses.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`lec-tt-card type-${session.classType.toLowerCase()} lec-weekend-card`}
+                    onClick={() => setSelectedClass({ ...session, calendarDate: session.dayName })}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setSelectedClass({ ...session, calendarDate: session.dayName });
+                      }
+                    }}
+                  >
+                    <div className="lec-tt-card-top">
+                      <span className={`lec-tt-pill pill-${session.classType.toLowerCase()}`}>
+                        {session.classType}
+                      </span>
+                      <span className="lec-tt-timeslot">{session.dayName} • {session.timeslot}</span>
+                    </div>
+
+                    <div className="lec-tt-code-line">
+                      <span className="lec-tt-code">{session.subjectCode}</span>
+                      <span className="lec-tt-batch">{session.academicBatch}</span>
+                    </div>
+
+                    <div className="lec-tt-name" title={session.subjectName}>
+                      {session.subjectName}
+                    </div>
+
+                    <div className="lec-tt-meta-row">
+                      <span className="lec-tt-venue" title={session.venue}>
+                        📍 {session.venue.split('(')[0].trim()}
+                      </span>
+                      <span className="lec-tt-students">
+                        👥 {session.registeredStudentsCount}
+                      </span>
+                    </div>
+
+                    {session.topic && (
+                      <div className="lec-tt-topic" title={session.topic}>
+                        <span className="topic-prefix">Topic:</span> {session.topic}
+                      </div>
+                    )}
+
+                    <div className="lec-tt-card-footer">
+                      <span className="lec-tt-details-hint">View details →</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
