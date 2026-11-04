@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import ToastStack from './components/ToastStack.jsx';
 
@@ -183,6 +183,27 @@ export default function Lecturer({ user, onLogout }) {
   };
 
   const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
+
+  const dynamicNavSections = useMemo(() => {
+    return LECTURER_NAV_SECTIONS.map((sec) => {
+      if (sec.title === 'ACADEMIC') {
+        return {
+          ...sec,
+          items: sec.items.map((item) => {
+            if (item.id === 'eca-review') {
+              return {
+                ...item,
+                badge: pendingEcaCount > 0 ? String(pendingEcaCount) : null,
+                badgeType: 'warning',
+              };
+            }
+            return item;
+          }),
+        };
+      }
+      return sec;
+    });
+  }, [pendingEcaCount]);
 
   const navigate = (targetPath) => {
     const clean = targetPath.replace(/^\//, '') || 'dashboard';
@@ -444,24 +465,7 @@ export default function Lecturer({ user, onLogout }) {
         facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
         greetingText={`Good Morning, ${INITIAL_LECTURER_INFO.fullName}`}
         metaItems={LECTURER_META_CHIPS}
-        navSections={LECTURER_NAV_SECTIONS.map((sec) => {
-          if (sec.title === 'ACADEMIC') {
-            return {
-              ...sec,
-              items: sec.items.map((item) => {
-                if (item.id === 'eca-review') {
-                  return {
-                    ...item,
-                    badge: pendingEcaCount > 0 ? String(pendingEcaCount) : null,
-                    badgeType: 'warning',
-                  };
-                }
-                return item;
-              }),
-            };
-          }
-          return sec;
-        })}
+        navSections={dynamicNavSections}
         actionButtons={lecturerHeroActions}
         notificationCount={unreadNotifCount}
         searchPlaceholder="Quick search modules (e.g. 'Attendance', 'CA', 'Results', 'Announcements')..."

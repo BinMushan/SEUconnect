@@ -12,7 +12,10 @@ export default function LecturerDashboard({
   user,
   onNavigateModule,
   onShowToast,
+  assignedEcaCount = INITIAL_STATS.assignedECA ?? 3,
+  ecaApplications = [],
 }) {
+  const ecaPendingCount = typeof assignedEcaCount === 'number' ? assignedEcaCount : (INITIAL_STATS.assignedECA ?? 3);
   return (
     <div className="lec-dashboard-content">
       {/* 1. 6 Key Academic Stat Cards */}
@@ -147,8 +150,8 @@ export default function LecturerDashboard({
             <div className="lec-assigned-eca-info">
               <div className="lec-assigned-eca-title-row">
                 <h4 className="lec-assigned-eca-title">Assigned ECA Applications</h4>
-                <span className={`lec-eca-badge ${assignedEcaCount > 0 ? 'badge-pending' : 'badge-completed'}`}>
-                  {assignedEcaCount} {assignedEcaCount === 1 ? 'Application' : 'Applications'} Pending Review
+                <span className={`lec-eca-badge ${ecaPendingCount > 0 ? 'badge-pending' : 'badge-completed'}`}>
+                  {ecaPendingCount} {ecaPendingCount === 1 ? 'Application' : 'Applications'} Pending Review
                 </span>
               </div>
               <p className="lec-assigned-eca-desc">
