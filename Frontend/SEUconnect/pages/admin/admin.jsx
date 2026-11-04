@@ -33,6 +33,7 @@ import UserRoleManagement from './components/UserRoleManagement.jsx';
 import SettingsManagement from './components/SettingsManagement.jsx';
 import NotificationsManagement from './components/NotificationsManagement.jsx';
 import CourseAllocationManagement from './components/CourseAllocationManagement.jsx';
+import InputDataManagement from './components/InputDataManagement.jsx';
 
 /**
  * Admin Navigation Sections customized for Faculty Administration
@@ -191,6 +192,19 @@ const ADMIN_NAV_SECTIONS = [
   {
     title: 'SYSTEM & SECURITY',
     items: [
+      {
+        id: 'input_data',
+        label: 'Input Data',
+        badge: 'RAG',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+        )
+      },
       {
         id: 'users_roles',
         label: 'User & Role Management',
@@ -595,6 +609,8 @@ export default function Admin({ user, onLogout }) {
       setCurrentSection('forms_guidance');
     } else if (q.includes('welfare') || q.includes('mahapola') || q.includes('bursary')) {
       setCurrentSection('welfare_scholarships');
+    } else if (q.includes('input') || q.includes('data') || q.includes('date') || q.includes('rag') || q.includes('by-law') || q.includes('knowledge')) {
+      setCurrentSection('input_data');
     } else {
       setCurrentSection('student_management');
     }
@@ -830,6 +846,13 @@ export default function Admin({ user, onLogout }) {
           penalties={penalties}
           onClearPenalty={handleClearPenalty}
           onAddPenalty={handleAddPenalty}
+        />
+      )}
+
+      {currentSection === 'input_data' && (
+        <InputDataManagement
+          onShowToast={showToast}
+          onAddAuditLog={addAuditLog}
         />
       )}
 
