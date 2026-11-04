@@ -240,10 +240,6 @@ export default function SEUConnectAIAssistantModal({
     }, 600);
   };
 
-  const handleChipClick = (promptText) => {
-    handleSendMessage(promptText);
-  };
-
   const handleActionNavigate = (tabId) => {
     handleTriggerClose();
     if (typeof onNavigate === 'function') {
@@ -328,10 +324,6 @@ export default function SEUConnectAIAssistantModal({
               </svg>
             </div>
             <span className="seu-ai-title-text">SEUConnect AI Assistant</span>
-            <span className="seu-ai-badge-status">
-              <span className="seu-ai-pulse-dot" />
-              Academic v2.6 Online
-            </span>
           </div>
 
           {/* Right Tools */}
@@ -355,75 +347,6 @@ export default function SEUConnectAIAssistantModal({
             ================================================================== */}
         <div className="seu-ai-body">
           <div className="seu-ai-messages-scroll">
-            
-            {/* Initial Welcome Hero Card */}
-            <div className="seu-ai-welcome-card">
-              <div className="seu-ai-welcome-header">
-                <div className="seu-ai-avatar-large">
-                  <img
-                    src="/seusl_logo.png"
-                    alt="SEUSL Emblem"
-                    style={{ width: '32px', height: '32px', maxWidth: '32px', maxHeight: '32px', objectFit: 'contain', display: 'block' }}
-                  />
-                </div>
-                <div className="seu-ai-welcome-titles">
-                  <h3>South Eastern University of Sri Lanka</h3>
-                  <p>Faculty of Technology • Institutional Academic Intelligence Chatbot</p>
-                </div>
-              </div>
-
-              <div className="seu-ai-suggestions-title">Quick Topics & Regulations</div>
-              <div className="seu-ai-chips-grid">
-                <button
-                  type="button"
-                  className="seu-ai-chip-btn"
-                  onClick={() => handleChipClick('What are the rules for submitting a medical excuse?')}
-                >
-                  📋 Medical Excuse 7-Day Rule
-                </button>
-
-                <button
-                  type="button"
-                  className="seu-ai-chip-btn"
-                  onClick={() => handleChipClick('How do I apply for a repeat exam or CA repeat?')}
-                >
-                  🎓 Repeat Exam & CA Guidelines
-                </button>
-
-                <button
-                  type="button"
-                  className="seu-ai-chip-btn"
-                  onClick={() => handleChipClick('What are the bank account details for People\'s Bank PIV?')}
-                >
-                  💳 People's Bank PIV Remittance
-                </button>
-
-                <button
-                  type="button"
-                  className="seu-ai-chip-btn"
-                  onClick={() => handleChipClick('How is SGPA and CGPA calculated for BICT/BST?')}
-                >
-                  📊 GPA & Degree Honours Formula
-                </button>
-
-                <button
-                  type="button"
-                  className="seu-ai-chip-btn"
-                  onClick={() => handleChipClick('What is the attendance percentage required for ESA?')}
-                >
-                  ⚖️ 80% Attendance Threshold
-                </button>
-
-                <button
-                  type="button"
-                  className="seu-ai-chip-btn"
-                  onClick={() => handleChipClick('Where can I download official faculty forms?')}
-                >
-                  📑 Official Faculty Forms Catalog
-                </button>
-              </div>
-            </div>
-
             {/* Render Chat Messages */}
             {messages.map((msg) => (
               <div key={msg.id} className={`seu-ai-message-row ${msg.sender}`}>
