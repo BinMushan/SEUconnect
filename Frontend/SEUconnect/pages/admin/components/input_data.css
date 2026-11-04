@@ -421,7 +421,7 @@
 
 /* Action submit buttons */
 .rag-btn-submit {
-  background: #1e3a8a;
+  background: #0f2b5c;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -437,7 +437,7 @@
 }
 
 .rag-btn-submit:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: #081a38;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
 }
@@ -681,7 +681,7 @@
 }
 
 .rag-btn-test:hover {
-  background: #1d4ed8;
+  background: #081a38;
 }
 
 /* Retrieved Results */
