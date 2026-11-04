@@ -9,6 +9,7 @@ export default function RoleSwitcherBar({ currentUser, onSwitchRole }) {
     { key: 'sar', label: '📋 SAR (Mr. Riyas)', email: 'sar@gmail.com' },
     { key: 'dean', label: '📜 Dean (Prof. Majeed)', email: 'dean@gmail.com' },
     { key: 'examination', label: '📝 Exam/Medical Officer', email: 'examination@gmail.com' },
+    { key: 'fma', label: '📋 Management Assistant (Kamil)', email: 'fma@gmail.com' },
     { key: 'admin', label: '⚙️ System Admin', email: 'admin@gmail.com' },
   ];
 
