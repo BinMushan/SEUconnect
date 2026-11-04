@@ -146,6 +146,12 @@ const Icons = {
       <rect x="6" y="13" width="12" height="4" rx="1" />
     </svg>
   ),
+  inbox: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+      <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+    </svg>
+  ),
 };
 
 // 1. STUDENT NAVIGATION
@@ -449,14 +455,16 @@ export const DEPT_MA_NAV_SECTIONS = [
     title: 'ACADEMIC & STUDENTS',
     items: [
       { id: 'students', label: 'Student Management', icon: Icons.users },
-      { id: 'subject_registrations', label: 'Subject Registrations', icon: Icons.book },
-      { id: 'medical_applications', label: 'Subject Medical Applications', icon: Icons.medical },
+      { id: 'subject_registrations', label: 'Subject Registrations & CA', icon: Icons.book },
+      { id: 'medical_applications', label: 'Medical Applications', icon: Icons.medical },
       { id: 'attendance_records', label: 'Attendance Records', icon: Icons.clipboardCheck },
     ],
   },
   {
     title: 'ADMINISTRATION & RECORDS',
     items: [
+      { id: 'student_requests', label: 'Student Request Letters', icon: Icons.inbox },
+      { id: 'mahapola_bursary', label: 'Mahapola & Bursary', icon: Icons.award },
       { id: 'department_documents', label: 'Department Documents', icon: Icons.fileText },
       { id: 'reports', label: 'Reports', icon: Icons.chart },
       { id: 'announcements', label: 'Announcements', icon: Icons.megaphone },

@@ -1719,3 +1719,58 @@
 .dark-mode .dept-ma-history-section-header {
   border-bottom-color: #1e293b !important;
 }
+
+
+/* ==========================================================================
+   SEVEN OFFICIAL RESPONSIBILITIES SUPPLEMENTARY STYLING & DARK MODE
+   ========================================================================== */
+
+.dept-ma-requests-section,
+.dept-ma-mahapola-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Dark mode overrides for cards, dossiers, checklists and workspaces */
+.dark-mode .dept-ma-requests-section,
+.dark-mode .dept-ma-mahapola-section {
+  color: #f1f5f9;
+}
+
+.dark-mode [style*="background: rgb(248, 250, 252)"],
+.dark-mode [style*="background: #f8fafc"],
+.dark-mode [style*="background: rgb(241, 245, 249)"],
+.dark-mode [style*="background: #f1f5f9"] {
+  background: #111a36 !important;
+  color: #f1f5f9 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode [style*="background: rgb(255, 255, 255)"],
+.dark-mode [style*="background: #ffffff"] {
+  background: #0d1527 !important;
+  color: #f1f5f9 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode [style*="color: rgb(15, 23, 42)"],
+.dark-mode [style*="color: #0f172a"],
+.dark-mode [style*="color: rgb(30, 41, 59)"],
+.dark-mode [style*="color: #1e293b"] {
+  color: #f8fafc !important;
+}
+
+.dark-mode [style*="color: rgb(71, 85, 105)"],
+.dark-mode [style*="color: #475569"],
+.dark-mode [style*="color: rgb(100, 116, 139)"],
+.dark-mode [style*="color: #64748b"] {
+  color: #94a3b8 !important;
+}
+
+.dark-mode [style*="border-color: rgb(226, 232, 240)"],
+.dark-mode [style*="border-color: #e2e8f0"],
+.dark-mode [style*="border-color: rgb(203, 213, 225)"],
+.dark-mode [style*="border-color: #cbd5e1"] {
+  border-color: #1e293b !important;
+}

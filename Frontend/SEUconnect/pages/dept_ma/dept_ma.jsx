@@ -11,6 +11,11 @@ import {
   INITIAL_ANNOUNCEMENTS,
   INITIAL_NOTIFICATIONS,
   INITIAL_AUDIT_LOG,
+  INITIAL_LECTURER_MEDICALS,
+  INITIAL_CA_APPLICATIONS,
+  INITIAL_AR_REGISTRATION_PACKAGES,
+  INITIAL_STUDENT_REQUESTS,
+  INITIAL_MAHAPOLA_BURSARY,
 } from './deptMaData.js';
 import './dept_ma.css';
 
@@ -20,6 +25,8 @@ import DeptMAStudents from './components/DeptMAStudents.jsx';
 import DeptMARegistrations from './components/DeptMARegistrations.jsx';
 import DeptMAMedicalApplications from './components/DeptMAMedicalApplications.jsx';
 import DeptMAAttendance from './components/DeptMAAttendance.jsx';
+import DeptMAStudentRequests from './components/DeptMAStudentRequests.jsx';
+import DeptMAMahapolaBursary from './components/DeptMAMahapolaBursary.jsx';
 import DeptMADocuments from './components/DeptMADocuments.jsx';
 import DeptMAReports from './components/DeptMAReports.jsx';
 import DeptMAAnnouncements from './components/DeptMAAnnouncements.jsx';
@@ -40,6 +47,13 @@ export default function DeptMA({ user, onLogout }) {
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [auditLog, setAuditLog] = useState(INITIAL_AUDIT_LOG);
+
+  // Seven Responsibilities Datasets
+  const [lecturerMedicals, setLecturerMedicals] = useState(INITIAL_LECTURER_MEDICALS || []);
+  const [caApplications, setCaApplications] = useState(INITIAL_CA_APPLICATIONS || []);
+  const [arPackages, setArPackages] = useState(INITIAL_AR_REGISTRATION_PACKAGES || []);
+  const [studentRequests, setStudentRequests] = useState(INITIAL_STUDENT_REQUESTS || []);
+  const [mahapolaBursary, setMahapolaBursary] = useState(INITIAL_MAHAPOLA_BURSARY || []);
 
   // Jump to specific medical application in verification modal
   const [selectedMedicalApp, setSelectedMedicalApp] = useState(null);
@@ -74,7 +88,6 @@ export default function DeptMA({ user, onLogout }) {
       prev.map((s) => (s.regNo === updatedStudent.regNo ? updatedStudent : s))
     );
 
-    // Append to Audit Log
     const newLog = {
       id: `AUD-${Date.now()}`,
       action: 'STUDENT_RECORD_UPDATED',
@@ -103,13 +116,12 @@ export default function DeptMA({ user, onLogout }) {
     setAuditLog((prev) => [newLog, ...prev]);
   };
 
-  // Medical Application Update Handler (MAIN FEATURE)
+  // Student Medical Application Update Handler (Resp 1 part A)
   const handleUpdateMedicalApplication = (updatedApp) => {
     setMedicalApplications((prev) =>
       prev.map((m) => (m.trackingNumber === updatedApp.trackingNumber ? updatedApp : m))
     );
 
-    // Create Audit Log
     const newLog = {
       id: `AUD-${Date.now()}`,
       action: updatedApp.status === 'Approved' ? 'MEDICAL_APPROVED' : updatedApp.status === 'Rejected' ? 'MEDICAL_REJECTED' : 'MEDICAL_STAGE_UPDATED',
@@ -120,7 +132,6 @@ export default function DeptMA({ user, onLogout }) {
     };
     setAuditLog((prev) => [newLog, ...prev]);
 
-    // Create Automatic Student Notification
     const newNotif = {
       id: `NOTIF-${Date.now()}`,
       title: `Medical Application Decision: ${updatedApp.status}`,
@@ -131,6 +142,91 @@ export default function DeptMA({ user, onLogout }) {
       actionNav: 'medical_applications',
     };
     setNotifications((prev) => [newNotif, ...prev]);
+  };
+
+  // Lecturer Medical Update Handler (Resp 1 part B)
+  const handleUpdateLecturerMedical = (updatedMed) => {
+    setLecturerMedicals((prev) =>
+      prev.map((m) => (m.id === updatedMed.id ? updatedMed : m))
+    );
+
+    const newLog = {
+      id: `AUD-${Date.now()}`,
+      action: 'LECTURER_MEDICAL_FORWARDED',
+      target: `${updatedMed.id} (${updatedMed.lecturerName})`,
+      actor: `${effectiveUser.name} (Dept MA)`,
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      details: `Forwarded to ${updatedMed.forwardedToAuthority || 'Higher Authority'} with MA completeness clearance.`,
+    };
+    setAuditLog((prev) => [newLog, ...prev]);
+  };
+
+  // CA Application Update Handler (Resp 2)
+  const handleUpdateCAApplication = (updatedCA) => {
+    setCaApplications((prev) =>
+      prev.map((c) => (c.id === updatedCA.id ? updatedCA : c))
+    );
+
+    const newLog = {
+      id: `AUD-${Date.now()}`,
+      action: 'CA_APPLICATION_FORWARDED_TO_INCHARGE',
+      target: `${updatedCA.id} (${updatedCA.subjectCode} - ${updatedCA.studentName})`,
+      actor: `${effectiveUser.name} (Dept MA)`,
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      details: `Verified Rs. 250 voucher & attendance. Forwarded to Subject In-Charge (${updatedCA.subjectInCharge}) for signing.`,
+    };
+    setAuditLog((prev) => [newLog, ...prev]);
+  };
+
+  // AR Registration Package Update Handler (Resp 3)
+  const handleUpdateARPackage = (updatedPkg) => {
+    setArPackages((prev) =>
+      prev.map((p) => (p.packageId === updatedPkg.packageId ? updatedPkg : p))
+    );
+
+    const newLog = {
+      id: `AUD-${Date.now()}`,
+      action: 'AR_PACKAGE_DISPATCHED',
+      target: `${updatedPkg.packageId} (${updatedPkg.batch})`,
+      actor: `${effectiveUser.name} (Dept MA)`,
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      details: `Status: ${updatedPkg.status}. Verified credit caps and dispatched to AR Examination & Registration Office.`,
+    };
+    setAuditLog((prev) => [newLog, ...prev]);
+  };
+
+  // Student Request Letter Update Handler (Resp 5)
+  const handleUpdateStudentRequest = (updatedReq) => {
+    setStudentRequests((prev) =>
+      prev.map((r) => (r.requestId === updatedReq.requestId ? updatedReq : r))
+    );
+
+    const newLog = {
+      id: `AUD-${Date.now()}`,
+      action: 'STUDENT_REQUEST_FORWARDED',
+      target: `${updatedReq.requestId} (${updatedReq.studentName})`,
+      actor: `${effectiveUser.name} (Dept MA)`,
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      details: `Letter forwarded to ${updatedReq.forwardedTo} for review/action.`,
+    };
+    setAuditLog((prev) => [newLog, ...prev]);
+  };
+
+  // Mahapola & Bursary Update Handler (Resp 7)
+  const handleUpdateMahapolaBursary = (updatedRec) => {
+    setMahapolaBursary((prev) =>
+      prev.map((m) => (m.id === updatedRec.id ? updatedRec : m))
+    );
+
+    const newLog = {
+      id: `AUD-${Date.now()}`,
+      action: 'MAHAPOLA_BURSARY_VERIFIED',
+      target: `${updatedRec.id} (${updatedRec.studentName})`,
+      actor: `${effectiveUser.name} (Dept MA)`,
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      details: `Status: ${updatedRec.departmentStatus}. Verified GN/DS income cert & 80% attendance standing.`,
+    };
+    setAuditLog((prev) => [newLog, ...prev]);
   };
 
   // Upload Document Handler
@@ -173,19 +269,19 @@ export default function DeptMA({ user, onLogout }) {
 
   // Notification Click & Direct Navigation Handler
   const handleNotificationClick = (item) => {
-    // 1. Automatically mark as read if currently unread
     if (!item.read) {
       setNotifications((prev) =>
         prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
       );
     }
-    // 2. Resolve destination view
     const targetNav = item.actionNav || (
       item.type === 'medical' ? 'medical_applications' :
-      item.type === 'registration' ? 'subject_registrations' :
+      item.type === 'lecturer_medical' ? 'medical_applications' :
+      item.type === 'registration' || item.type === 'ca_signing' ? 'subject_registrations' :
+      item.type === 'student_request' ? 'student_requests' :
+      item.type === 'mahapola' || item.type === 'bursary' ? 'mahapola_bursary' :
       item.type === 'attendance' ? 'attendance_records' : 'dashboard'
     );
-    // 3. For medical notifications, check if a specific application tracking number matches
     if (targetNav === 'medical_applications') {
       const match = medicalApplications.find((app) =>
         (item.message && item.message.includes(app.trackingNumber)) ||
@@ -197,7 +293,6 @@ export default function DeptMA({ user, onLogout }) {
         setSelectedMedicalApp(null);
       }
     }
-    // 4. Navigate directly to destination
     setActiveNav(targetNav);
   };
 
@@ -225,8 +320,12 @@ export default function DeptMA({ user, onLogout }) {
           <DeptMARegistrations
             registrations={registrations}
             subjects={subjects}
+            arPackages={arPackages}
+            caApplications={caApplications}
             deptInfo={DEPT_INFO}
             onUpdateRegistration={handleUpdateRegistration}
+            onUpdateARPackage={handleUpdateARPackage}
+            onUpdateCAApplication={handleUpdateCAApplication}
             onShowToast={showToast}
           />
         );
@@ -235,8 +334,10 @@ export default function DeptMA({ user, onLogout }) {
         return (
           <DeptMAMedicalApplications
             medicalApplications={medicalApplications}
+            lecturerMedicals={lecturerMedicals}
             deptInfo={DEPT_INFO}
             onUpdateMedicalApplication={handleUpdateMedicalApplication}
+            onUpdateLecturerMedical={handleUpdateLecturerMedical}
             onShowToast={showToast}
             selectedAppFromParent={selectedMedicalApp}
             onClearSelectedApp={() => setSelectedMedicalApp(null)}
@@ -248,6 +349,26 @@ export default function DeptMA({ user, onLogout }) {
           <DeptMAAttendance
             attendanceSubjects={attendanceSubjects}
             deptInfo={DEPT_INFO}
+            onShowToast={showToast}
+          />
+        );
+
+      case 'student_requests':
+        return (
+          <DeptMAStudentRequests
+            studentRequests={studentRequests}
+            deptInfo={DEPT_INFO}
+            onUpdateRequest={handleUpdateStudentRequest}
+            onShowToast={showToast}
+          />
+        );
+
+      case 'mahapola_bursary':
+        return (
+          <DeptMAMahapolaBursary
+            mahapolaBursaryList={mahapolaBursary}
+            deptInfo={DEPT_INFO}
+            onUpdateRecord={handleUpdateMahapolaBursary}
             onShowToast={showToast}
           />
         );
@@ -310,6 +431,11 @@ export default function DeptMA({ user, onLogout }) {
             registrations={registrations}
             medicalApplications={medicalApplications}
             attendanceSubjects={attendanceSubjects}
+            lecturerMedicals={lecturerMedicals}
+            caApplications={caApplications}
+            arPackages={arPackages}
+            studentRequests={studentRequests}
+            mahapolaBursary={mahapolaBursary}
             notifications={notifications}
             auditLog={auditLog}
             onNavigate={(nav) => setActiveNav(nav)}
@@ -337,7 +463,7 @@ export default function DeptMA({ user, onLogout }) {
         { label: 'Staff ID:', value: effectiveUser.staffId },
         { label: 'Department:', value: DEPT_INFO.departmentName },
         { label: 'Designation:', value: effectiveUser.designation },
-        { label: 'Desk Authority:', value: 'Subject Medical & Registration Desk' },
+        { label: 'Desk Authority:', value: 'Department Administration & Student Services' },
       ]}
       notificationCount={notifications.filter((n) => !n.read).length}
     >
@@ -379,4 +505,3 @@ export default function DeptMA({ user, onLogout }) {
     </DashboardTemplate>
   );
 }
-
