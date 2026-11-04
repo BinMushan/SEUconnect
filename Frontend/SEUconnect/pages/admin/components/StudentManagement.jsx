@@ -38,6 +38,7 @@ export default function StudentManagement({
   // Enrolment Modal Tabs & Target Batch
   const [enrollMode, setEnrollMode] = useState('bulk'); // 'single' | 'bulk'
   const [targetBatchId, setTargetBatchId] = useState('');
+  const [bulkDeptFilter, setBulkDeptFilter] = useState('ALL'); // 'ALL' | 'BICT' | 'BST'
 
   // Register New Student Modal State (Individual Registration)
   const [newRegNo, setNewRegNo] = useState('');
@@ -216,66 +217,73 @@ export default function StudentManagement({
     const initialsList = ['A.B.', 'K.L.', 'M.N.', 'S.K.', 'T.R.', 'H.M.', 'R.P.', 'P.S.', 'D.M.', 'W.A.', 'G.V.', 'N.D.'];
 
     const roster = [];
+    const shouldAddBICT = bulkDeptFilter === 'ALL' || bulkDeptFilter === 'BICT';
+    const shouldAddBST = bulkDeptFilter === 'ALL' || bulkDeptFilter === 'BST';
 
     // 120 BICT Students (SEU/IS/YY/ICT/001 to 120)
-    for (let i = 1; i <= 120; i++) {
-      const numStr = String(i).padStart(3, '0');
-      const regNo = `SEU/IS/${prefix}/ICT/${numStr}`;
-      const name = `${initialsList[i % initialsList.length]} ${ictSurnames[i % ictSurnames.length]}`;
-      roster.push({
-        id: `BULK-STU-ICT-${prefix}-${numStr}`,
-        batchId: currentBatch.id,
-        batchCode: currentBatch.name,
-        regNo,
-        indexNo: regNo,
-        name,
-        programme: 'BICT (Hons)',
-        department: 'Department of Information & Communication Technology',
-        semester: startingSem,
-        cgpa: 0.00,
-        sgpa: 0.00,
-        credits: 0,
-        attendance: 0,
-        email: `seu${prefix}ict${numStr}@seu.ac.lk`,
-        phone: `+94 77 ${Math.floor(1000000 + (i * 71329) % 9000000)}`,
-        status: 'Active',
-        welfare: 'Pending Verification',
-        specialization: 'Software Technology',
-        repeatModules: []
-      });
+    if (shouldAddBICT) {
+      for (let i = 1; i <= 120; i++) {
+        const numStr = String(i).padStart(3, '0');
+        const regNo = `SEU/IS/${prefix}/ICT/${numStr}`;
+        const name = `${initialsList[i % initialsList.length]} ${ictSurnames[i % ictSurnames.length]}`;
+        roster.push({
+          id: `BULK-STU-ICT-${prefix}-${numStr}`,
+          batchId: currentBatch.id,
+          batchCode: currentBatch.name,
+          regNo,
+          indexNo: regNo,
+          name,
+          programme: 'BICT (Hons)',
+          department: 'Department of Information & Communication Technology',
+          semester: startingSem,
+          cgpa: 0.00,
+          sgpa: 0.00,
+          credits: 0,
+          attendance: 0,
+          email: `seu${prefix}ict${numStr}@seu.ac.lk`,
+          phone: `+94 77 ${Math.floor(1000000 + (i * 71329) % 9000000)}`,
+          status: 'Active',
+          welfare: 'Pending Verification',
+          specialization: 'Software Technology',
+          repeatModules: []
+        });
+      }
     }
 
     // 120 BST Students (SEU/IS/YY/BST/001 to 120)
-    for (let i = 1; i <= 120; i++) {
-      const numStr = String(i).padStart(3, '0');
-      const regNo = `SEU/IS/${prefix}/BST/${numStr}`;
-      const name = `${initialsList[(i + 3) % initialsList.length]} ${bstSurnames[i % bstSurnames.length]}`;
-      roster.push({
-        id: `BULK-STU-BST-${prefix}-${numStr}`,
-        batchId: currentBatch.id,
-        batchCode: currentBatch.name,
-        regNo,
-        indexNo: regNo,
-        name,
-        programme: 'BST (Hons)',
-        department: 'Department of Bio Systems Technology',
-        semester: startingSem,
-        cgpa: 0.00,
-        sgpa: 0.00,
-        credits: 0,
-        attendance: 0,
-        email: `seu${prefix}bst${numStr}@seu.ac.lk`,
-        phone: `+94 71 ${Math.floor(1000000 + (i * 84913) % 9000000)}`,
-        status: 'Active',
-        welfare: 'Pending Verification',
-        specialization: 'Agricultural Biotechnology',
-        repeatModules: []
-      });
+    if (shouldAddBST) {
+      for (let i = 1; i <= 120; i++) {
+        const numStr = String(i).padStart(3, '0');
+        const regNo = `SEU/IS/${prefix}/BST/${numStr}`;
+        const name = `${initialsList[(i + 3) % initialsList.length]} ${bstSurnames[i % bstSurnames.length]}`;
+        roster.push({
+          id: `BULK-STU-BST-${prefix}-${numStr}`,
+          batchId: currentBatch.id,
+          batchCode: currentBatch.name,
+          regNo,
+          indexNo: regNo,
+          name,
+          programme: 'BST (Hons)',
+          department: 'Department of Bio Systems Technology',
+          semester: startingSem,
+          cgpa: 0.00,
+          sgpa: 0.00,
+          credits: 0,
+          attendance: 0,
+          email: `seu${prefix}bst${numStr}@seu.ac.lk`,
+          phone: `+94 71 ${Math.floor(1000000 + (i * 84913) % 9000000)}`,
+          status: 'Active',
+          welfare: 'Pending Verification',
+          specialization: 'Agricultural Biotechnology',
+          repeatModules: []
+        });
+      }
     }
 
     setBulkParsedStudents(roster);
     setBulkError('');
-    setBulkSuccessMsg(`Generated official intake roster: 240 undergraduates (120 BICT + 120 BST) with initial Freshers GPA 0.00 for ${currentBatch.name}.`);
+    const label = bulkDeptFilter === 'BICT' ? '120 BICT students' : bulkDeptFilter === 'BST' ? '120 BST students' : '240 students (120 BICT + 120 BST)';
+    setBulkSuccessMsg(`Loaded roster: ${label} for ${currentBatch.name} (GPA 0.00).`);
   };
 
   // Process File Upload (CSV, TXT, Excel Comma Separated)
@@ -396,8 +404,8 @@ export default function StudentManagement({
 
   // Confirm and Bulk Enroll all parsed records
   const handleBulkSubmit = () => {
-    if (bulkParsedStudents.length === 0) {
-      setBulkError('No student records loaded. Upload a spreadsheet or generate a sample intake roster.');
+    if (targetStudentsForEnrol.length === 0) {
+      setBulkError('No student records loaded for the selected department. Please upload a file or generate sample roster.');
       return;
     }
 
@@ -405,7 +413,7 @@ export default function StudentManagement({
     const currentBatch = activeBatch;
 
     setTimeout(() => {
-      const finalized = bulkParsedStudents.map((s) => ({
+      const finalized = targetStudentsForEnrol.map((s) => ({
         ...s,
         batchId: currentBatch.id,
         batchCode: currentBatch.name
@@ -478,6 +486,28 @@ export default function StudentManagement({
     setFormError('');
     setIsAddModalOpen(false);
   };
+
+  // Bulk Enrolment Filtered Students
+  const targetStudentsForEnrol = bulkParsedStudents.filter((s) => {
+    if (bulkDeptFilter === 'BICT') {
+      return s.department.includes('Information') || s.programme.includes('BICT') || s.regNo.includes('/ICT/');
+    }
+    if (bulkDeptFilter === 'BST') {
+      return s.department.includes('Bio') || s.programme.includes('BST') || s.regNo.includes('/BST/');
+    }
+    return true;
+  });
+
+  const displayedBulkStudents = targetStudentsForEnrol.filter((s) => {
+    if (!bulkSearchTerm) return true;
+    const q = bulkSearchTerm.toLowerCase();
+    return (
+      s.regNo.toLowerCase().includes(q) ||
+      s.name.toLowerCase().includes(q) ||
+      s.department.toLowerCase().includes(q) ||
+      s.programme.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="adm-dashboard-container">
@@ -1494,7 +1524,7 @@ export default function StudentManagement({
                       >
                         {batches.map((b) => (
                           <option key={b.id} value={b.id}>
-                            {b.name} &bull; {b.currentSemester} &bull; 2 Depts: 120 BICT + 120 BST (240 Students)
+                            {b.name}
                           </option>
                         ))}
                       </select>
@@ -1624,27 +1654,12 @@ export default function StudentManagement({
             {/* TAB 2: BULK EXCEL / CSV ENROLMENT */}
             {enrollMode === 'bulk' && (
               <div className="adm-modal-body" style={{ gap: '1rem' }}>
-                {/* Target Batch Selector Bar */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: '#f8fafc',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    flexWrap: 'wrap',
-                    gap: '0.75rem'
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: '240px' }}>
-                    <label style={{ fontSize: '0.73rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                      Target Intake Batch for Bulk Enrolment:
-                    </label>
+                {/* Clean Batch & Department Selection */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                  <div className="adm-form-group">
+                    <label className="adm-label">Select Intake Batch *</label>
                     <select
                       className="adm-input"
-                      style={{ padding: '0.4rem 0.65rem', fontSize: '0.8rem', height: 'auto' }}
                       value={activeTargetBatchId}
                       onChange={(e) => {
                         const newId = e.target.value;
@@ -1659,29 +1674,27 @@ export default function StudentManagement({
                     >
                       {batches.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.name} &bull; {b.currentSemester} &bull; 2 Depts: 120 BICT + 120 BST (240 Students)
+                          {b.name}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#eff6ff',
-                      padding: '0.45rem 0.85rem',
-                      borderRadius: '6px',
-                      border: '1px solid #bfdbfe'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.72rem', color: '#1e40af', fontWeight: 600 }}>
-                      Faculty Standard: 240 Students / Intake (120 BICT + 120 BST)
-                    </span>
+
+                  <div className="adm-form-group">
+                    <label className="adm-label">Select Department *</label>
+                    <select
+                      className="adm-input"
+                      value={bulkDeptFilter}
+                      onChange={(e) => setBulkDeptFilter(e.target.value)}
+                    >
+                      <option value="ALL">Both Departments (BICT &amp; BST)</option>
+                      <option value="BICT">ICT Department (BICT)</option>
+                      <option value="BST">BST Department (BST)</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Quick Action Buttons: Template Download + 1-Click 240 Student Generator */}
+                {/* Quick Action Buttons: Template Download + 1-Click Student Generator */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                   <button
                     type="button"
@@ -1707,7 +1720,7 @@ export default function StudentManagement({
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    Download Excel / CSV Template (.csv)
+                    Download CSV Template (.csv)
                   </button>
 
                   <button
@@ -1732,7 +1745,11 @@ export default function StudentManagement({
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2">
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                     </svg>
-                    Load 240 Freshers Roster (120 BICT + 120 BST • GPA 0.00)
+                    {bulkDeptFilter === 'BICT'
+                      ? 'Load 120 BICT Students'
+                      : bulkDeptFilter === 'BST'
+                      ? 'Load 120 BST Students'
+                      : 'Load 240 Students (BICT & BST)'}
                   </button>
                 </div>
 
@@ -1831,14 +1848,28 @@ export default function StudentManagement({
                     {/* Summary Chips */}
                     <div className="adm-bulk-stats-strip">
                       <span className="adm-bulk-chip" style={{ background: '#dbeafe', color: '#1e40af' }}>
-                        Total Ready: {bulkParsedStudents.length} Students
+                        Total Ready: {targetStudentsForEnrol.length} Students
                       </span>
-                      <span className="adm-bulk-chip" style={{ background: '#eff6ff', color: '#2563eb' }}>
-                        Dept 1 (BICT): {bulkParsedStudents.filter((s) => s.department.includes('Information') || s.programme.includes('BICT')).length} Undergraduates
-                      </span>
-                      <span className="adm-bulk-chip" style={{ background: '#f0fdf4', color: '#15803d' }}>
-                        Dept 2 (BST): {bulkParsedStudents.filter((s) => s.department.includes('Bio') || s.programme.includes('BST')).length} Undergraduates
-                      </span>
+                      {bulkDeptFilter === 'ALL' ? (
+                        <>
+                          <span className="adm-bulk-chip" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                            BICT: {bulkParsedStudents.filter((s) => s.department.includes('Information') || s.programme.includes('BICT') || s.regNo.includes('/ICT/')).length} Undergraduates
+                          </span>
+                          <span className="adm-bulk-chip" style={{ background: '#f0fdf4', color: '#15803d' }}>
+                            BST: {bulkParsedStudents.filter((s) => s.department.includes('Bio') || s.programme.includes('BST') || s.regNo.includes('/BST/')).length} Undergraduates
+                          </span>
+                        </>
+                      ) : (
+                        <span
+                          className="adm-bulk-chip"
+                          style={{
+                            background: bulkDeptFilter === 'BICT' ? '#eff6ff' : '#f0fdf4',
+                            color: bulkDeptFilter === 'BICT' ? '#1d4ed8' : '#15803d'
+                          }}
+                        >
+                          Target: {bulkDeptFilter === 'BICT' ? 'ICT Department (BICT Hons)' : 'BST Department (BST Hons)'}
+                        </span>
+                      )}
                       <span className="adm-bulk-chip" style={{ background: '#fef3c7', color: '#92400e' }}>
                         Freshers Metrics: GPA 0.00 &bull; Credits: 0
                       </span>
@@ -1855,11 +1886,7 @@ export default function StudentManagement({
                         style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem' }}
                       />
                       <span style={{ fontSize: '0.72rem', color: '#64748b', whiteSpace: 'nowrap' }}>
-                        Showing {bulkParsedStudents.filter((s) => {
-                          if (!bulkSearchTerm) return true;
-                          const q = bulkSearchTerm.toLowerCase();
-                          return s.regNo.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) || s.department.toLowerCase().includes(q);
-                        }).length} of {bulkParsedStudents.length} records
+                        Showing {displayedBulkStudents.length} of {targetStudentsForEnrol.length} records
                       </span>
                     </div>
 
@@ -1880,12 +1907,7 @@ export default function StudentManagement({
                           </tr>
                         </thead>
                         <tbody>
-                          {bulkParsedStudents
-                            .filter((s) => {
-                              if (!bulkSearchTerm) return true;
-                              const q = bulkSearchTerm.toLowerCase();
-                              return s.regNo.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) || s.department.toLowerCase().includes(q);
-                            })
+                          {displayedBulkStudents
                             .slice(0, 50)
                             .map((stu, idx) => (
                               <tr key={stu.id || idx}>
@@ -1898,11 +1920,11 @@ export default function StudentManagement({
                                       fontSize: '0.7rem',
                                       padding: '2px 6px',
                                       borderRadius: '4px',
-                                      background: stu.department.includes('Bio') ? '#ecfdf5' : '#eff6ff',
-                                      color: stu.department.includes('Bio') ? '#047857' : '#1d4ed8'
+                                      background: (stu.department.includes('Bio') || stu.regNo.includes('/BST/')) ? '#ecfdf5' : '#eff6ff',
+                                      color: (stu.department.includes('Bio') || stu.regNo.includes('/BST/')) ? '#047857' : '#1d4ed8'
                                     }}
                                   >
-                                    {stu.department.includes('Bio') ? 'BST' : 'BICT'}
+                                    {stu.department.includes('Bio') || stu.regNo.includes('/BST/') ? 'BST' : 'BICT'}
                                   </span>
                                 </td>
                                 <td style={{ color: '#64748b' }}>{stu.programme}</td>
@@ -1919,9 +1941,9 @@ export default function StudentManagement({
                         </tbody>
                       </table>
                     </div>
-                    {bulkParsedStudents.length > 50 && (
+                    {targetStudentsForEnrol.length > 50 && (
                       <div style={{ textAlign: 'center', fontSize: '0.72rem', color: '#64748b', padding: '0.15rem' }}>
-                        + {bulkParsedStudents.length - 50} more records ready to be enrolled into {activeBatch.name}.
+                        + {targetStudentsForEnrol.length - 50} more records ready to be enrolled into {activeBatch.name}.
                       </div>
                     )}
                   </div>
@@ -1954,18 +1976,18 @@ export default function StudentManagement({
                     className="adm-find-process-btn"
                     style={{
                       padding: '0.45rem 1.25rem',
-                      opacity: bulkParsedStudents.length === 0 ? 0.6 : 1,
-                      cursor: bulkParsedStudents.length === 0 ? 'not-allowed' : 'pointer'
+                      opacity: targetStudentsForEnrol.length === 0 ? 0.6 : 1,
+                      cursor: targetStudentsForEnrol.length === 0 ? 'not-allowed' : 'pointer'
                     }}
-                    disabled={bulkParsedStudents.length === 0 || isProcessingBulk}
+                    disabled={targetStudentsForEnrol.length === 0 || isProcessingBulk}
                     onClick={handleBulkSubmit}
                   >
                     {isProcessingBulk ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        Bulk Enrolling {bulkParsedStudents.length} Students...
+                        Bulk Enrolling {targetStudentsForEnrol.length} Students...
                       </span>
                     ) : (
-                      `Confirm & Bulk Enrol ${bulkParsedStudents.length > 0 ? `(${bulkParsedStudents.length} Students)` : ''}`
+                      `Confirm & Bulk Enrol ${targetStudentsForEnrol.length > 0 ? `(${targetStudentsForEnrol.length} Students)` : ''}`
                     )}
                   </button>
                 </div>
