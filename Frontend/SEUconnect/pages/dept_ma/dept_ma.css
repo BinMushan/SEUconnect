@@ -1,0 +1,1721 @@
+/* ==========================================================================
+   SEUConnect - Department Management Assistant (Department MA) Stylesheet
+   Department of Information and Communication Technology (ICT)
+   Theme: Navy / Blue / Emerald / Slate with Light & Dark Mode Support
+   ========================================================================== */
+
+.dept-ma-portal-container {
+  width: 100%;
+  padding: 1.5rem 2rem 3rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: #1e293b;
+}
+
+/* ==========================================================================
+   Department Header Banner & Breadcrumbs
+   ========================================================================== */
+.dept-ma-header-banner {
+  background: linear-gradient(135deg, #0f2b5c 0%, #1e3a8a 60%, #0369a1 100%);
+  color: #ffffff;
+  padding: 1.75rem 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 43, 92, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.dept-ma-header-content h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin: 0 0 0.4rem 0;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.dept-ma-header-sub {
+  font-size: 0.9rem;
+  color: #e0f2fe;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dept-ma-badge-pill.dept-code {
+  background: #38bdf8;
+  color: #0c4a6e;
+  border-color: #7dd3fc;
+}
+
+.dept-ma-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-btn-ghost-light {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dept-ma-btn-ghost-light:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: #ffffff;
+}
+
+/* ==========================================================================
+   Department Stats Overview Cards Grid
+   ========================================================================== */
+.dept-ma-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dept-ma-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.4rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.dept-ma-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.07);
+  border-color: #cbd5e1;
+}
+
+.dept-ma-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.dept-ma-stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dept-ma-stat-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.dept-ma-stat-icon-wrap.blue { background: #eff6ff; color: #1d4ed8; }
+.dept-ma-stat-icon-wrap.emerald { background: #ecfdf5; color: #047857; }
+.dept-ma-stat-icon-wrap.amber { background: #fffbeb; color: #b45309; }
+.dept-ma-stat-icon-wrap.indigo { background: #eef2ff; color: #4338ca; }
+.dept-ma-stat-icon-wrap.purple { background: #faf5ff; color: #7e22ce; }
+
+.dept-ma-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
+}
+
+.dept-ma-stat-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dept-ma-stat-sub strong {
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   Quick Actions Bar
+   ========================================================================== */
+.dept-ma-quick-actions-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dept-ma-quick-actions-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.dept-ma-action-btns-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-btn-action {
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.dept-ma-btn-action.primary {
+  background: #0f2b5c;
+  color: #ffffff;
+}
+
+.dept-ma-btn-action.primary:hover {
+  background: #1e3a8a;
+}
+
+.dept-ma-btn-action.secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.dept-ma-btn-action.secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.dept-ma-btn-action.emerald {
+  background: #059669;
+  color: #ffffff;
+}
+
+.dept-ma-btn-action.emerald:hover {
+  background: #047857;
+}
+
+/* ==========================================================================
+   Two Column Dashboard Layout (Tasks & Activities)
+   ========================================================================== */
+.dept-ma-dashboard-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .dept-ma-dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dept-ma-panel-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.dept-ma-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dept-ma-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dept-ma-panel-badge {
+  padding: 0.18rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.dept-ma-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dept-ma-task-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  gap: 0.75rem;
+  transition: background 0.15s;
+}
+
+.dept-ma-task-item:hover {
+  background: #f1f5f9;
+}
+
+.dept-ma-task-item.is-clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dept-ma-task-item.is-clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.dept-ma-task-item.is-unread {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.dept-ma-task-item.is-unread:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+.dept-ma-task-item.is-read {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.dept-ma-task-item.is-read:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dept-ma-task-content {
+  flex: 1;
+}
+
+.dept-ma-task-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.2rem;
+}
+
+.dept-ma-task-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.dept-ma-task-time {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 0.3rem;
+}
+
+.dept-ma-task-btn {
+  padding: 0.38rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  background: #0f2b5c;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dept-ma-task-btn:hover {
+  background: #1e3a8a;
+}
+
+/* ==========================================================================
+   Filter & Search Toolbar
+   ========================================================================== */
+.dept-ma-toolbar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dept-ma-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.dept-ma-search-input-wrap {
+  position: relative;
+  min-width: 260px;
+  flex: 1;
+  max-width: 380px;
+}
+
+.dept-ma-search-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.86rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.dept-ma-search-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.dept-ma-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.dept-ma-filter-select {
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.84rem;
+  color: #1e293b;
+  background: #ffffff;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.dept-ma-filter-select:focus {
+  border-color: #0284c7;
+}
+
+.dept-ma-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   Data Table Modern Styles
+   ========================================================================== */
+.dept-ma-table-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  margin-bottom: 2rem;
+}
+
+.dept-ma-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.dept-ma-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.86rem;
+}
+
+.dept-ma-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.dept-ma-table td {
+  padding: 0.95rem 1.1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.dept-ma-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dept-ma-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* Table Badges & Status */
+.dept-ma-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.dept-ma-status-badge.active,
+.dept-ma-status-badge.confirmed,
+.dept-ma-status-badge.approved,
+.dept-ma-status-badge.eligible {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.dept-ma-status-badge.pending,
+.dept-ma-status-badge.under-review,
+.dept-ma-status-badge.at-risk {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.dept-ma-status-badge.rejected,
+.dept-ma-status-badge.barred,
+.dept-ma-status-badge.incomplete {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.dept-ma-status-badge.escalated,
+.dept-ma-status-badge.duplicate {
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+
+/* ==========================================================================
+   MAIN FEATURE: Subject Medical Application Verification & Approval
+   ========================================================================== */
+.dept-ma-med-workflow-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dept-ma-workflow-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dept-ma-step-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 2px solid #cbd5e1;
+}
+
+.dept-ma-workflow-step.active .dept-ma-step-circle {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.dept-ma-workflow-step.completed .dept-ma-step-circle {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}
+
+.dept-ma-step-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.dept-ma-step-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dept-ma-step-sub {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.dept-ma-step-divider {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  min-width: 40px;
+  margin: 0 0.5rem;
+}
+
+/* Medical Application Cards in Verification Queue */
+.dept-ma-med-queue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dept-ma-med-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.4rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.dept-ma-med-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.dept-ma-med-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.dept-ma-tracking-pill {
+  font-family: monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #0f2b5c;
+  border: 1px solid #e2e8f0;
+}
+
+.dept-ma-med-student-info {
+  margin-bottom: 0.85rem;
+}
+
+.dept-ma-med-student-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.2rem 0;
+}
+
+.dept-ma-med-student-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dept-ma-med-subject-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.dept-ma-med-subject-code {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dept-ma-med-subject-name {
+  font-size: 0.82rem;
+  color: #334155;
+  margin: 0.25rem 0 0.4rem 0;
+  font-weight: 500;
+}
+
+.dept-ma-med-missed-dates {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dept-ma-med-details-box {
+  font-size: 0.8rem;
+  color: #475569;
+  margin-bottom: 1rem;
+  line-height: 1.45;
+}
+
+.dept-ma-med-details-box strong {
+  color: #1e293b;
+}
+
+.dept-ma-med-actions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* ==========================================================================
+   Verification Drawer / Inspection Modal
+   ========================================================================== */
+.dept-ma-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.dept-ma-modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.dept-ma-modal-header {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.dept-ma-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.dept-ma-modal-subtitle {
+  font-size: 0.84rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.dept-ma-modal-close {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.dept-ma-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.dept-ma-modal-body {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Simulated Medical Certificate Paper View */
+.dept-ma-cert-paper {
+  background: #fffdfa;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  position: relative;
+}
+
+.dept-ma-cert-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: rgba(14, 165, 233, 0.05);
+  pointer-events: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.dept-ma-cert-header {
+  text-align: center;
+  border-bottom: 2px solid #0f2b5c;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.dept-ma-cert-hospital {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dept-ma-cert-doc-type {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #b91c1c;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+.dept-ma-cert-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.dept-ma-cert-field label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.dept-ma-cert-field span {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.dept-ma-cert-stamp-box {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dept-ma-doctor-seal {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #1e3a8a;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: #1e3a8a;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Compliance Checklist */
+.dept-ma-checklist-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.dept-ma-checklist-title {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dept-ma-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.84rem;
+}
+
+.dept-ma-checklist-item:last-child {
+  border-bottom: none;
+}
+
+.dept-ma-check-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.dept-ma-check-icon.valid {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.dept-ma-check-icon.invalid {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.dept-ma-modal-footer {
+  padding: 1.25rem 1.75rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border-radius: 0 0 16px 16px;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Digital Approval Stamp in Final Decision */
+.dept-ma-approval-stamp-block {
+  border: 2px dashed #059669;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dept-ma-stamp-icon {
+  font-size: 2rem;
+}
+
+.dept-ma-stamp-text strong {
+  display: block;
+  font-size: 0.94rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dept-ma-stamp-ref {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: #047857;
+  margin-top: 0.2rem;
+}
+
+/* ==========================================================================
+   Document Grid Cards
+   ========================================================================== */
+.dept-ma-docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dept-ma-doc-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.dept-ma-doc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.dept-ma-doc-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.dept-ma-doc-type-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.dept-ma-doc-type-icon.xlsx {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.dept-ma-doc-meta h4 {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.2rem 0;
+  line-height: 1.35;
+}
+
+.dept-ma-doc-code {
+  font-family: monospace;
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.dept-ma-doc-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.85rem;
+  line-height: 1.45;
+}
+
+.dept-ma-doc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   Reports Generator Section
+   ========================================================================== */
+.dept-ma-reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dept-ma-report-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.dept-ma-report-card:hover {
+  border-color: #0284c7;
+  box-shadow: 0 8px 18px -4px rgba(2, 132, 199, 0.1);
+}
+
+.dept-ma-report-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.dept-ma-report-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+}
+
+.dept-ma-report-desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+/* ==========================================================================
+   Profile & RBAC Matrix
+   ========================================================================== */
+.dept-ma-profile-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .dept-ma-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dept-ma-profile-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.dept-ma-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+}
+
+.dept-ma-profile-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.dept-ma-profile-title {
+  font-size: 0.84rem;
+  color: #0284c7;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.dept-ma-rbac-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin-top: 1rem;
+}
+
+.dept-ma-rbac-table th {
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.dept-ma-rbac-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+/* ==========================================================================
+   Dark Mode Support for Department MA
+   ========================================================================== */
+.dark-mode .dept-ma-portal-container {
+  color: #f1f5f9;
+}
+
+.dark-mode .dept-ma-stat-card,
+.dark-mode .dept-ma-quick-actions-bar,
+.dark-mode .dept-ma-panel-card,
+.dark-mode .dept-ma-toolbar,
+.dark-mode .dept-ma-table-container,
+.dark-mode .dept-ma-med-workflow-bar,
+.dark-mode .dept-ma-med-card,
+.dark-mode .dept-ma-modal-content,
+.dark-mode .dept-ma-modal-header,
+.dark-mode .dept-ma-doc-card,
+.dark-mode .dept-ma-report-card,
+.dark-mode .dept-ma-profile-card {
+  background: #0b1329 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-stat-value,
+.dark-mode .dept-ma-quick-actions-title,
+.dark-mode .dept-ma-panel-title,
+.dark-mode .dept-ma-task-title,
+.dark-mode .dept-ma-med-student-name,
+.dept-ma-modal-title,
+.dark-mode .dept-ma-report-title,
+.dark-mode .dept-ma-profile-name,
+.dark-mode .dept-ma-step-name,
+.dark-mode .dept-ma-doc-meta h4 {
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-table th,
+.dark-mode .dept-ma-rbac-table th {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-table td,
+.dark-mode .dept-ma-rbac-table td {
+  border-bottom-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .dept-ma-table tr:hover td {
+  background: #131d35 !important;
+}
+
+.dark-mode .dept-ma-task-item,
+.dark-mode .dept-ma-med-subject-box,
+.dark-mode .dept-ma-checklist-card,
+.dark-mode .dept-ma-modal-footer {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-task-item.is-unread {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+.dark-mode .dept-ma-task-item.is-unread:hover {
+  background: rgba(14, 165, 233, 0.22) !important;
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .dept-ma-task-item.is-read {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-task-item.is-read:hover {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .dept-ma-empty-state {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+.dark-mode .dept-ma-search-input,
+.dark-mode .dept-ma-filter-select {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-cert-paper {
+  background: #070d1a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-cert-field span {
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-cert-stamp-box {
+  background: #0b1329 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-btn-action.secondary {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .dept-ma-btn-action.secondary:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+
+/* ==========================================================================
+   Student Attendance Standing Table Layout & Width Optimization
+   ========================================================================== */
+.dept-ma-standing-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  margin-top: 0.75rem;
+}
+
+.dept-ma-standing-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.84rem;
+}
+
+.dept-ma-standing-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 0.65rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: normal;
+  vertical-align: middle;
+  line-height: 1.3;
+}
+
+.dept-ma-standing-table td {
+  padding: 0.75rem 0.65rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+
+.dept-ma-standing-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dept-ma-standing-table tr:hover td {
+  background: #f8fafc;
+}
+
+.dept-ma-standing-table .col-reg-no {
+  width: 13%;
+  min-width: 105px;
+  text-align: left;
+}
+
+.dept-ma-standing-table .col-student-name {
+  width: 20%;
+  min-width: 140px;
+  text-align: left;
+}
+
+.dept-ma-standing-table .col-total-lectures {
+  width: 9%;
+  min-width: 75px;
+  text-align: center;
+}
+
+.dept-ma-standing-table .col-sessions-attended {
+  width: 10%;
+  min-width: 80px;
+  text-align: center;
+}
+
+.dept-ma-standing-table .col-approved-medicals {
+  width: 11%;
+  min-width: 95px;
+  text-align: center;
+}
+
+.dept-ma-standing-table .col-effective-rate {
+  width: 11%;
+  min-width: 95px;
+  text-align: center;
+}
+
+.dept-ma-standing-table .col-statutory-standing {
+  width: 12%;
+  min-width: 100px;
+  text-align: center;
+}
+
+.dept-ma-standing-table .col-notes {
+  width: 14%;
+  min-width: 120px;
+  text-align: left;
+  font-size: 0.77rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+/* Dark Mode Support for Standing Table */
+.dark-mode .dept-ma-standing-table-wrapper {
+  background: #0b1329 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-standing-table th {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-standing-table td {
+  border-bottom-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .dept-ma-standing-table tr:hover td {
+  background: #131d35 !important;
+}
+
+.dark-mode .dept-ma-standing-table .col-notes {
+  color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   Document History Modal & Version Ledger
+   ========================================================================== */
+.dept-ma-history-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.dept-ma-history-meta-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.dept-ma-history-meta-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+}
+
+.dept-ma-history-meta-val {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.dept-ma-history-meta-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.dept-ma-history-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dept-ma-history-section-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dept-ma-history-section-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dept-ma-version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dept-ma-version-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #94a3b8;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  transition: all 0.2s;
+}
+
+.dept-ma-version-item.is-current {
+  border-left-color: #0ea5e9;
+  background: #f0f9ff;
+}
+
+.dept-ma-version-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.dept-ma-version-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.dept-ma-version-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.dept-ma-version-tag.current {
+  background: #0ea5e9;
+  color: #ffffff;
+}
+
+.dept-ma-version-changes {
+  font-size: 0.82rem;
+  color: #334155;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.dept-ma-version-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dept-ma-history-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dept-ma-history-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.dept-ma-history-activity-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.dept-ma-history-activity-content {
+  flex: 1;
+}
+
+.dept-ma-history-activity-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-history-activity-details {
+  font-size: 0.77rem;
+  color: #475569;
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+.dept-ma-history-empty-state {
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  margin: 0.5rem 0;
+}
+
+.dept-ma-history-empty-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.dept-ma-history-empty-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.25rem;
+}
+
+.dept-ma-history-empty-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Dark Mode Overrides for Document History */
+.dark-mode .dept-ma-history-meta-card,
+.dark-mode .dept-ma-version-item,
+.dark-mode .dept-ma-history-activity-item,
+.dark-mode .dept-ma-history-empty-state {
+  background: #111a36 !important;
+  border-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .dept-ma-version-item.is-current {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border-left-color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-history-meta-val,
+.dark-mode .dept-ma-history-section-title,
+.dark-mode .dept-ma-version-changes,
+.dark-mode .dept-ma-history-activity-title,
+.dark-mode .dept-ma-history-empty-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-history-meta-label,
+.dark-mode .dept-ma-history-meta-sub,
+.dark-mode .dept-ma-history-section-sub,
+.dark-mode .dept-ma-version-bottom,
+.dark-mode .dept-ma-history-activity-details,
+.dark-mode .dept-ma-history-empty-sub {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .dept-ma-history-section-header {
+  border-bottom-color: #1e293b !important;
+}

@@ -9,6 +9,7 @@ import Admin from '../pages/admin/admin.jsx';
 import SuperAdmin from '../pages/superadmin/superadmin.jsx';
 import Examination from '../pages/examination/examination.jsx';
 import FMA from '../pages/fma/fma.jsx';
+import DeptMA from '../pages/dept_ma/dept_ma.jsx';
 import RoleSwitcherBar from '../components/workflow/RoleSwitcherBar.jsx';
 
 const DEFAULT_USERS_BY_ROLE = {
@@ -102,6 +103,28 @@ const DEFAULT_USERS_BY_ROLE = {
     designation: 'Management Assistant Gr. I',
     avatarInitial: 'MK',
   },
+  dept_ma: {
+    name: 'Mrs. K. N. Fathima',
+    email: 'deptma@gmail.com',
+    role: 'dept_ma',
+    roleKey: 'dept_ma',
+    staffId: 'STAFF-DMA-008',
+    department: 'Department of Information and Communication Technology',
+    faculty: 'Faculty of Technology',
+    designation: 'Department Management Assistant (ICT)',
+    avatarInitial: 'KF',
+  },
+  department_ma: {
+    name: 'Mrs. K. N. Fathima',
+    email: 'deptma@gmail.com',
+    role: 'dept_ma',
+    roleKey: 'dept_ma',
+    staffId: 'STAFF-DMA-008',
+    department: 'Department of Information and Communication Technology',
+    faculty: 'Faculty of Technology',
+    designation: 'Department Management Assistant (ICT)',
+    avatarInitial: 'KF',
+  },
   superadmin: {
     name: 'Director Information Services',
     email: 'superadmin@gmail.com',
@@ -119,7 +142,7 @@ function getInitialAuthState() {
   if (typeof window === 'undefined') return { page: 'login', user: null };
   const rawHash = window.location.hash ? window.location.hash.replace(/^#/, '').trim() : '';
   const cleanPath = (rawHash || window.location.pathname).replace(/^\//, '').toLowerCase();
-  const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination'].find(
+  const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma', 'dept_ma', 'department_ma'].find(
     (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
   );
   if (matchedRole) {
@@ -140,11 +163,7 @@ function App() {
       if (!cleanPath) {
         setCurrentPage('login');
       } else {
-
-        const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma'].find(
-
-
-
+        const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma', 'dept_ma', 'department_ma'].find(
           (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
         );
         if (matchedRole) {
@@ -206,6 +225,9 @@ function App() {
         return <FMA user={currentUser || DEFAULT_USERS_BY_ROLE.fma} onLogout={handleLogout} />;
       case 'examination':
         return <Examination user={currentUser || DEFAULT_USERS_BY_ROLE.examination} onLogout={handleLogout} />;
+      case 'dept_ma':
+      case 'department_ma':
+        return <DeptMA user={currentUser || DEFAULT_USERS_BY_ROLE.dept_ma} onLogout={handleLogout} />;
       default:
         return <Login onLoginSuccess={handleLoginSuccess} />;
     }

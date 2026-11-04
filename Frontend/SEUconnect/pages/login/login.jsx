@@ -50,6 +50,12 @@ const DEMO_ACCOUNTS = [
     roleKey: 'examination'
   },
   {
+    role: 'Department MA',
+    email: 'DeptMA@gmail.com',
+    password: '123456',
+    roleKey: 'dept_ma'
+  },
+  {
     role: 'Management Assistant',
     email: 'Fma@gmail.com',
     password: '123456',
@@ -158,10 +164,12 @@ export default function Login({ onLoginSuccess }) {
         if (matchedAccount && matchedAccount.password === password) {
           loggedUser = {
             ...matchedAccount,
-            name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role,
-            staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : undefined,
-            designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : undefined,
+            name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role === 'Lecturer' ? 'Dr. K. Perera' : matchedAccount.role === 'Department MA' ? 'Mrs. K. N. Fathima' : matchedAccount.role,
+            staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
+            designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
             regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
+            staffId: matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
+            designation: matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
             department: 'Department of Information and Communication Technology',
             faculty: 'Faculty of Technology',
           };

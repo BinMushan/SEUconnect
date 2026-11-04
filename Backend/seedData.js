@@ -89,6 +89,18 @@ const SEED_USERS = [
     avatarInitial: 'KT',
   },
   {
+    name: 'Mrs. K. N. Fathima',
+    email: 'deptma@gmail.com',
+    password: '123456',
+    role: 'dept_ma',
+    roleKey: 'dept_ma',
+    staffId: 'STAFF-DMA-008',
+    department: 'Department of Information and Communication Technology',
+    faculty: 'Faculty of Technology',
+    designation: 'Department Management Assistant (ICT)',
+    avatarInitial: 'KF',
+  },
+  {
     name: 'Director Information Services',
     email: 'superadmin@gmail.com',
     password: '123456',
