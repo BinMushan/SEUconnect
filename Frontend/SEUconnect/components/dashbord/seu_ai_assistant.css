@@ -296,6 +296,26 @@
   border-color: #e2e8f0 !important;
 }
 
+.seu-ai-close-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+}
+
+.seu-ai-close-icon-btn:hover {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+}
+
 /* 4. Chat Body / Message Feed */
 .seu-ai-body {
   flex: 1 !important;
@@ -786,6 +806,12 @@ body.dark-mode .seu-ai-tool-btn:hover {
   background: #1e293b !important;
   color: #f8fafc !important;
   border-color: #334155 !important;
+}
+
+.dark-mode .seu-ai-close-icon-btn:hover,
+body.dark-mode .seu-ai-close-icon-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
 }
 
 .dark-mode .seu-ai-body,

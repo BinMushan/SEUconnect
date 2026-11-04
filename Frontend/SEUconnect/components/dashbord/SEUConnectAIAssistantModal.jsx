@@ -268,51 +268,10 @@ export default function SEUConnectAIAssistantModal({
       <div className={`seu-ai-window ${isClosing ? 'closing' : ''} ${isMaximized ? 'maximized' : ''}`}>
         
         {/* ==================================================================
-            1. macOS TITLEBAR WITH TRAFFIC LIGHTS
+            1. TITLEBAR
             ================================================================== */}
         <div className="seu-ai-titlebar">
-          {/* macOS Traffic Light Buttons */}
-          <div className="seu-ai-traffic-lights">
-            <button
-              type="button"
-              className="seu-ai-traffic-dot close"
-              onClick={handleTriggerClose}
-              title="Close Assistant (Esc)"
-              aria-label="Close"
-            >
-              <svg width="6" height="6" viewBox="0 0 10 10" fill="none" stroke="#4c0000" strokeWidth="1.8" strokeLinecap="round">
-                <line x1="1" y1="1" x2="9" y2="9" />
-                <line x1="9" y1="1" x2="1" y2="9" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              className="seu-ai-traffic-dot minimize"
-              onClick={handleResetChat}
-              title="Clear Conversation / Reset"
-              aria-label="Reset Chat"
-            >
-              <svg width="6" height="6" viewBox="0 0 10 10" fill="none" stroke="#7a5200" strokeWidth="1.8" strokeLinecap="round">
-                <line x1="1" y1="5" x2="9" y2="5" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              className="seu-ai-traffic-dot maximize"
-              onClick={() => setIsMaximized((prev) => !prev)}
-              title={isMaximized ? "Restore window size" : "Expand to fullscreen"}
-              aria-label="Maximize"
-            >
-              <svg width="6" height="6" viewBox="0 0 10 10" fill="none" stroke="#004c00" strokeWidth="1.8" strokeLinecap="round">
-                <line x1="1" y1="5" x2="9" y2="5" />
-                <line x1="5" y1="1" x2="5" y2="9" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Center Brand Title */}
+          {/* Brand Title */}
           <div className="seu-ai-title-wrap">
             <div className="seu-ai-title-icon">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -338,6 +297,19 @@ export default function SEUConnectAIAssistantModal({
                 <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
               Clear
+            </button>
+
+            <button
+              type="button"
+              className="seu-ai-close-icon-btn"
+              onClick={handleTriggerClose}
+              title="Close (Esc)"
+              aria-label="Close Assistant"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
           </div>
         </div>
