@@ -9,6 +9,7 @@ export default function SuperAdmin({ user, onLogout }) {
   const [users, setUsers] = useState([]);
   const [selectedProcess, setSelectedProcess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeNav, setActiveNav] = useState('dashboard');
 
   useEffect(() => {
     let isMounted = true;
@@ -39,7 +40,7 @@ export default function SuperAdmin({ user, onLogout }) {
   }, []);
 
   return (
-    <DashboardTemplate user={user} onLogout={onLogout} activeItem="dashboard">
+    <DashboardTemplate user={user} onLogout={onLogout} activeItem={activeNav} onNavigate={(id) => setActiveNav(id)}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {/* Banner */}
         <div style={{ background: 'linear-gradient(135deg, #020617 0%, #0f172a 100%)', padding: '1.5rem', borderRadius: '14px', color: '#fff', borderBottom: '3px solid #f59e0b', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
