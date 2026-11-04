@@ -10994,3 +10994,62 @@
   background: #0b1325 !important;
   color: #cbd5e1 !important;
 }
+
+/* Compact, Readable ECA Review Table Enhancements */
+.lec-regno-tag {
+  font-family: monospace;
+  font-weight: 700;
+  color: #0f2b5c;
+}
+
+.lec-date-label {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.lec-cell-assessment-summary {
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.35;
+  margin-top: 0.2rem;
+}
+
+.lec-status-cell-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.lec-fee-cleared-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #047857;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Dark mode overrides for table enhancements */
+.dark-mode .lec-regno-tag {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-date-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-cell-assessment-summary {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-fee-cleared-tag {
+  background: #064e3b !important;
+  color: #a7f3d0 !important;
+  border-color: #047857 !important;
+}

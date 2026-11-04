@@ -392,19 +392,17 @@ export default function ECAReview({
           <table className="lec-eca-table">
             <thead>
               <tr>
-                <th>Tracking No & Date</th>
-                <th>Student Details</th>
-                <th>Subject & Missed Evaluation</th>
-                <th>Resit Assessment Context</th>
-                <th>Bank Voucher</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'center' }}>Action</th>
+                <th style={{ width: '16%' }}>Application</th>
+                <th style={{ width: '22%' }}>Student Details</th>
+                <th style={{ width: '33%' }}>Course & Assessment</th>
+                <th style={{ width: '17%' }}>Status</th>
+                <th style={{ width: '12%', textAlign: 'center' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredApps.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="lec-no-data-cell">
+                  <td colSpan="5" className="lec-no-data-cell">
                     <div className="lec-empty-state">
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <circle cx="12" cy="12" r="10" />
@@ -421,39 +419,46 @@ export default function ECAReview({
                   const isPending = app.status === 'Pending Lecturer Review';
                   return (
                     <tr key={app.id} className={isPending ? 'lec-row-highlight' : ''}>
+                      {/* 1. Application: Tracking No & Submission Date */}
                       <td>
                         <div className="lec-cell-tracking">{app.trackingNumber}</div>
-                        <div className="lec-cell-sub">Submitted: {app.submissionDate}</div>
+                        <div className="lec-cell-sub">
+                          <span className="lec-date-label">Submitted: {app.submissionDate}</span>
+                        </div>
                       </td>
+
+                      {/* 2. Student Details */}
                       <td>
                         <div className="lec-cell-student-name">{app.student?.name}</div>
                         <div className="lec-cell-sub">
-                          <strong>{app.student?.regNo}</strong> • Batch {app.details?.academicBatch || app.student?.batch}
+                          <span className="lec-regno-tag">{app.student?.regNo}</span> • Batch {app.details?.academicBatch || app.student?.batch}
                         </div>
                       </td>
+
+                      {/* 3. Course & Assessment */}
                       <td>
                         <div className="lec-cell-subject">
                           <span className="lec-subject-pill">{app.details?.subjectCode}</span>
                           <span className="lec-subject-title">{app.details?.subjectName}</span>
                         </div>
-                        <div className="lec-cell-missed-desc">{app.details?.missedSessions}</div>
-                      </td>
-                      <td>
-                        <div className="lec-cell-resit-info">{app.details?.examDetails}</div>
-                      </td>
-                      <td>
-                        <div className="lec-voucher-cell">
-                          <span className="lec-voucher-no">{app.paymentReceipt?.voucherNo}</span>
-                          <div className="lec-voucher-sub">
-                            Rs. {app.paymentReceipt?.amount} • <span className="lec-sar-tag">SAR Verified</span>
-                          </div>
+                        <div className="lec-cell-assessment-summary">
+                          {app.details?.examDetails || app.details?.missedSessions}
                         </div>
                       </td>
+
+                      {/* 4. Status with compact fee clearance indicator */}
                       <td>
-                        <span className={`lec-status-badge ${getStatusBadgeClass(app.status)}`}>
-                          {app.status}
-                        </span>
+                        <div className="lec-status-cell-wrap">
+                          <span className={`lec-status-badge ${getStatusBadgeClass(app.status)}`}>
+                            {app.status}
+                          </span>
+                          <span className="lec-fee-cleared-tag">
+                            ✓ Fee Verified (Rs. {app.paymentReceipt?.amount || 250})
+                          </span>
+                        </div>
                       </td>
+
+                      {/* 5. Action */}
                       <td style={{ textAlign: 'center' }}>
                         <button
                           type="button"
