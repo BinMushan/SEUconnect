@@ -320,7 +320,7 @@ export default function HODDashboardOverview({
                         </div>
                       </td>
                       <td>
-                        <span className="hod-date-text">{new Date(proc.createdAt || Date.now()).toLocaleDateString()}</span>
+                        <span className="hod-date-text">{proc.createdAt ? new Date(proc.createdAt).toLocaleDateString() : 'Recent'}</span>
                       </td>
                       <td>
                         <span className="hod-status-pill status-pending-hod">
@@ -575,7 +575,7 @@ export default function HODDashboardOverview({
                         </span>
                       </td>
                       <td>
-                        <span className="hod-date-text">{new Date(proc.createdAt || Date.now()).toLocaleDateString()}</span>
+                        <span className="hod-date-text">{proc.createdAt ? new Date(proc.createdAt).toLocaleDateString() : 'Recent'}</span>
                       </td>
                       <td>
                         <div className="hod-actions-cell">
