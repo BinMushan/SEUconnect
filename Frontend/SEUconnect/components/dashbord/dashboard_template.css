@@ -608,12 +608,12 @@
 
 .seu-hero-greeting-title {
   font-family: var(--font-dash-sans);
-  font-size: 1.32rem;
-  font-weight: 700;
+  font-size: 1.85rem;
+  font-weight: 800;
   color: #ffffff;
-  margin: 0.2rem 0;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  margin: 0.35rem 0 0.25rem 0;
+  line-height: 1.22;
+  letter-spacing: -0.018em;
 }
 
 .seu-hero-meta-row {
@@ -877,7 +877,8 @@
   }
 
   .seu-hero-greeting-title {
-    font-size: 1.15rem;
+    font-size: 1.45rem;
+    font-weight: 800;
   }
 
   .seu-hero-banner-top-row {
