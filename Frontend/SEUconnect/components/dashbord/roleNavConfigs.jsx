@@ -110,6 +110,12 @@ const Icons = {
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   ),
+  megaphone: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m3 11 18-5v12L3 14v-3z" />
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+    </svg>
+  ),
   fileText: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -431,9 +437,40 @@ export const SUPERADMIN_NAV_SECTIONS = [
 /**
  * Returns role-tailored navigation items based on roleKey
  */
+// 8. DEPARTMENT MANAGEMENT ASSISTANT (DEPARTMENT MA) NAVIGATION
+export const DEPT_MA_NAV_SECTIONS = [
+  {
+    title: 'MAIN',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: Icons.dashboard },
+    ],
+  },
+  {
+    title: 'ACADEMIC & STUDENTS',
+    items: [
+      { id: 'students', label: 'Student Management', icon: Icons.users },
+      { id: 'subject_registrations', label: 'Subject Registrations', icon: Icons.book },
+      { id: 'medical_applications', label: 'Subject Medical Applications', icon: Icons.medical },
+      { id: 'attendance_records', label: 'Attendance Records', icon: Icons.clipboardCheck },
+    ],
+  },
+  {
+    title: 'ADMINISTRATION & RECORDS',
+    items: [
+      { id: 'department_documents', label: 'Department Documents', icon: Icons.fileText },
+      { id: 'reports', label: 'Reports', icon: Icons.chart },
+      { id: 'announcements', label: 'Announcements', icon: Icons.megaphone },
+      { id: 'notifications', label: 'Notifications', icon: Icons.bell },
+    ],
+  },
+];
+
 export function getNavSectionsForRole(roleKey) {
   const key = (roleKey || '').toLowerCase();
   switch (key) {
+    case 'dept_ma':
+    case 'department_ma':
+      return DEPT_MA_NAV_SECTIONS;
     case 'lecturer':
       return LECTURER_NAV_SECTIONS;
     case 'hod':
@@ -461,6 +498,19 @@ export function getRoleMetaData(user) {
   const roleKey = (user?.roleKey || user?.role || 'student').toLowerCase();
 
   switch (roleKey) {
+    case 'dept_ma':
+    case 'department_ma':
+      return {
+        rolePill: 'DMA',
+        greeting: `Welcome, ${user?.name || 'Mrs. K. N. Fathima'}`,
+        facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • DEPARTMENT OF ICT',
+        metaItems: [
+          { label: 'Staff ID:', value: user?.staffId || 'STAFF-DMA-008' },
+          { label: 'Department:', value: 'Department of ICT' },
+          { label: 'Designation:', value: user?.designation || 'Department Management Assistant' },
+          { label: 'Authority:', value: 'Subject Medical & Registration Desk' },
+        ],
+      };
     case 'lecturer':
       return {
         rolePill: 'LEC',
