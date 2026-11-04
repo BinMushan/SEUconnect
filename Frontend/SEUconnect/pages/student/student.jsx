@@ -540,25 +540,13 @@ export default function Student({ user, onLogout }) {
                   </svg>
                 </div>
                 <div className="std-trend-title-col">
-                  <div className="std-trend-title-line">
-                    <h3 className="std-card-heading">Academic Progress Trend</h3>
-                    <span className="std-trend-badge-cur">Semester 05 Active</span>
-                  </div>
+                  <h3 className="std-card-heading">Academic Progress Trend</h3>
                   <span className="std-trend-subheading">Track semester GPA performance against faculty honours criteria</span>
                 </div>
               </div>
 
               {/* Right Controls: Legend & Semester Dropdown */}
               <div className="std-trend-header-right">
-                <div className="std-trend-legend-badges">
-                  <span className="std-legend-badge badge-first" title="First Class Criteria: CGPA >= 3.70">
-                    <span className="std-legend-dot gold" /> First Class (≥ 3.70)
-                  </span>
-                  <span className="std-legend-badge badge-upper" title="Second Upper Criteria: CGPA >= 3.30">
-                    <span className="std-legend-dot blue" /> 2nd Upper (≥ 3.30)
-                  </span>
-                </div>
-
                 <div className="std-sem-select-wrapper">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f2b5c" strokeWidth="2.2">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -922,10 +910,7 @@ export default function Student({ user, onLogout }) {
               <h3 className="std-deadlines-heading">Upcoming Institutional Deadlines</h3>
               <p className="std-deadlines-sub">Active faculty notices, examination entry periods, and compliance cutoff dates</p>
             </div>
-            <div className="std-deadlines-counter-pill">
-              <span className="std-pulse-dot"></span>
-              4 Active Deadlines
-            </div>
+
           </div>
 
           <div className="std-deadlines-grid">
