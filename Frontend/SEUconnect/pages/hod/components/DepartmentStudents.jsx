@@ -84,6 +84,7 @@ export default function DepartmentStudents({ onNavigate }) {
             type="button"
             className={`hod-tab-btn ${batchFilter === 'All' ? 'active' : ''}`}
             onClick={() => setBatchFilter('All')}
+            style={{ cursor: 'pointer' }}
           >
             All Batches ({totalEnrolled})
           </button>
@@ -93,6 +94,7 @@ export default function DepartmentStudents({ onNavigate }) {
               type="button"
               className={`hod-tab-btn ${batchFilter === b.batchKey ? 'active' : ''}`}
               onClick={() => setBatchFilter(b.batchKey)}
+              style={{ cursor: 'pointer' }}
             >
               {b.label} ({b.count})
             </button>

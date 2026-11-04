@@ -1,251 +1,167 @@
 const Notification = require('../models/Notification');
 const { getStatus } = require('../config/db');
 
-// In-memory fallback notifications to ensure 100% demo resilience and real-time responsiveness
+// Seed notifications for in-memory fallback
 let memoryNotifications = [
-  // --- DEAN NOTIFICATIONS ---
   {
-    _id: 'notif_dean_1',
-    recipientRole: 'dean',
-    recipientDepartment: 'ALL',
-    recipientEmail: 'dean@gmail.com',
-    title: 'HOD Endorsement: Credit Exemption Request',
-    message: 'HOD ICT M.J Ahamed Sabani endorsed request REQ-2026-0420 (K.M. Nuwais) for Dean Executive Ratification.',
-    type: 'endorsement',
-    priority: 'urgent',
-    processId: 'REQ-2026-0420',
-    trackingNumber: 'REQ-2026-0420',
-    targetTab: 'faculty_approval',
+    _id: 'notif_001',
+    title: 'New BST Student Request Submitted',
+    message: 'K.M. Dilshan (22BST012) submitted a Field Practical Medical Excuse (BST 3113 & BST 3122). Administrative review required.',
+    type: 'NEW_SUBMISSION',
+    recipientRole: 'sar',
+    relatedRequestId: 'MED-2026-0910',
+    department: 'Department of Biosystems Technology',
     isRead: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 35), // 35 mins ago
+    readAt: null,
+    createdAt: new Date(Date.now() - 25 * 60 * 1000), // 25 mins ago
   },
   {
-    _id: 'notif_dean_2',
-    recipientRole: 'dean',
-    recipientDepartment: 'ALL',
-    recipientEmail: 'dean@gmail.com',
-    title: 'Awaiting Dean Approval: BST Practicum Rescheduling',
-    message: 'Dr. M.G. Mohamed Thariq (HOD BST) forwarded special concession viva defense REQ-2026-0318 for Faculty Board sanction.',
-    type: 'approval_request',
-    priority: 'high',
-    processId: 'REQ-2026-0318',
-    trackingNumber: 'REQ-2026-0318',
-    targetTab: 'faculty_approval',
+    _id: 'notif_002',
+    title: 'HOD Endorsement Received: ICT 2223 Repeat Form',
+    message: 'Dr. M.A. Rifky (HOD ICT) has endorsed the Repeat Examination form for A.R. Fathima (22ICT041). Pending final Faculty Board scheduling.',
+    type: 'HOD_ENDORSED',
+    recipientRole: 'sar',
+    relatedRequestId: 'REP-2026-0105',
+    department: 'Department of Information and Communication Technology',
     isRead: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
+    readAt: null,
+    createdAt: new Date(Date.now() - 2 * 3600 * 1000), // 2 hours ago
   },
   {
-    _id: 'notif_dean_3',
-    recipientRole: 'dean',
-    recipientDepartment: 'ALL',
-    recipientEmail: 'dean@gmail.com',
-    title: 'Faculty Academic Calendar Notice',
-    message: 'Semester 05 Mid-Semester examination board clearance scheduling finalized for BST and ICT departments.',
-    type: 'announcement',
-    priority: 'normal',
-    processId: '',
-    trackingNumber: '',
-    targetTab: 'academic_calendar',
+    _id: 'notif_003',
+    title: 'Dean Sanctioned: Medical Leave Approval',
+    message: 'Prof. U.L. Abdul Majeed (Dean) confirmed final executive approval for MED-2026-0640 (M.N.M. Afnan). Ready for archiving in faculty register.',
+    type: 'DEAN_APPROVED',
+    recipientRole: 'sar',
+    relatedRequestId: 'MED-2026-0640',
+    department: 'Department of Information and Communication Technology',
+    isRead: false,
+    readAt: null,
+    createdAt: new Date(Date.now() - 5 * 3600 * 1000), // 5 hours ago
+  },
+  {
+    _id: 'notif_004',
+    title: 'Correction Requested: Private Clinic Certificate',
+    message: 'Dr. Rifky returned MED-2026-0792 for lack of University Health Center endorsement slip within the 7-day statutory window.',
+    type: 'CORRECTION',
+    recipientRole: 'sar',
+    relatedRequestId: 'MED-2026-0792',
+    department: 'Department of Information and Communication Technology',
     isRead: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    readAt: new Date(Date.now() - 6 * 3600 * 1000),
+    createdAt: new Date(Date.now() - 12 * 3600 * 1000),
   },
-
-  // --- HOD NOTIFICATIONS ---
   {
-    _id: 'notif_hod_1',
-    recipientRole: 'hod',
-    recipientDepartment: 'Department of Information and Communication Technology',
-    recipientEmail: 'hod@gmail.com',
-    title: 'Awaiting HOD Sign-Off: Repeat Exam Entry',
-    message: 'Dr. S. Kirushanth verified CA mark (24/30) for REP-2026-0105 (A.R. Fathima). Pending HOD Sign-off.',
-    type: 'approval_request',
-    priority: 'urgent',
-    processId: 'REP-2026-0105',
-    trackingNumber: 'REP-2026-0105',
-    targetTab: 'hod_command',
+    _id: 'notif_005',
+    title: 'Action Required: BST Industrial Training Leave',
+    message: 'Leave of absence request REQ-2026-0304 from R.P. Kumara (21BST005) forwarded for administrative documentation check prior to Dean review.',
+    type: 'ACTION_REQUIRED',
+    recipientRole: 'sar',
+    relatedRequestId: 'REQ-2026-0304',
+    department: 'Department of Biosystems Technology',
     isRead: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 25), // 25 mins ago
-  },
-  {
-    _id: 'notif_hod_2',
-    recipientRole: 'hod',
-    recipientDepartment: 'Department of Information and Communication Technology',
-    recipientEmail: 'hod@gmail.com',
-    title: 'Successfully Endorsed to Dean: REQ-2026-0420',
-    message: 'Your endorsement for K.M. Nuwais has been transferred to Faculty Executive Office (Dean Prof. Rifai Kariapper).',
-    type: 'endorsement',
-    priority: 'normal',
-    processId: 'REQ-2026-0420',
-    trackingNumber: 'REQ-2026-0420',
-    targetTab: 'hod_command',
-    isRead: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 90), // 90 mins ago
-  },
-  {
-    _id: 'notif_hod_3',
-    recipientRole: 'hod',
-    recipientDepartment: 'Department of Information and Communication Technology',
-    recipientEmail: 'hod@gmail.com',
-    title: 'Lecturer Submission: Academic Workload Verification',
-    message: 'Semester 05 CA moderation sheets submitted by Software Technologies (SWT) module leaders for HOD audit.',
-    type: 'workload',
-    priority: 'normal',
-    processId: '',
-    trackingNumber: '',
-    targetTab: 'ca_marks',
-    isRead: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 300), // 5 hours ago
-  },
-  {
-    _id: 'notif_hod_4',
-    recipientRole: 'hod',
-    recipientDepartment: 'Department of Information and Communication Technology',
-    recipientEmail: 'hod@gmail.com',
-    title: 'Faculty Board Meeting Notice',
-    message: 'The 48th Faculty of Technology Board Meeting chaired by Dean Prof. Rifai Kariapper is scheduled for Thursday.',
-    type: 'announcement',
-    priority: 'normal',
-    processId: '',
-    trackingNumber: '',
-    targetTab: 'overview',
-    isRead: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36), // 36 hours ago
+    readAt: null,
+    createdAt: new Date(Date.now() - 1 * 86400 * 1000), // 1 day ago
   },
 ];
 
-/**
- * Get notifications filtered by role, department, and email
- */
 exports.getNotifications = async (req, res) => {
   try {
-    const { role, department, email } = req.query;
+    const role = (req.query.role || 'sar').toLowerCase();
 
     if (getStatus()) {
-      let query = {};
-      if (role && role !== 'all') {
-        query.$or = [{ recipientRole: role.toLowerCase() }, { recipientRole: 'all' }];
-      }
-      if (email) {
-        if (query.$or) {
-          query.$or.push({ recipientEmail: email.toLowerCase() });
-        } else {
-          query.recipientEmail = email.toLowerCase();
-        }
-      }
-
-      const notifs = await Notification.find(query).sort({ createdAt: -1 }).limit(50);
-      if (notifs && notifs.length > 0) {
-        // Also apply department filter for HOD if provided
-        let filtered = notifs;
-        if (role === 'hod' && department && department !== 'ALL') {
-          filtered = notifs.filter(
-            n => n.recipientDepartment === 'ALL' ||
-                 n.recipientDepartment.toLowerCase().includes(department.toLowerCase()) ||
-                 department.toLowerCase().includes(n.recipientDepartment.toLowerCase())
-          );
-        }
-        const unreadCount = filtered.filter(n => !n.isRead).length;
-        return res.json({ success: true, count: filtered.length, unreadCount, data: filtered });
+      const dbNotifs = await Notification.find({ recipientRole: role }).sort({ createdAt: -1 });
+      if (dbNotifs && dbNotifs.length > 0) {
+        return res.json({ success: true, count: dbNotifs.length, data: dbNotifs });
       }
     }
 
-    // Fallback to memory
-    let filtered = [...memoryNotifications];
-    if (role && role !== 'all') {
-      filtered = filtered.filter(
-        n => n.recipientRole === role.toLowerCase() || n.recipientRole === 'all' || (email && n.recipientEmail === email)
-      );
-    }
-    if (role === 'hod' && department && department !== 'ALL') {
-      filtered = filtered.filter(
-        n => n.recipientDepartment === 'ALL' ||
-             n.recipientDepartment.toLowerCase().includes(department.toLowerCase()) ||
-             department.toLowerCase().includes(n.recipientDepartment.toLowerCase())
-      );
-    }
-
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const unreadCount = filtered.filter(n => !n.isRead).length;
-
-    return res.json({ success: true, count: filtered.length, unreadCount, data: filtered });
+    const filtered = memoryNotifications.filter(n => n.recipientRole.toLowerCase() === role);
+    return res.json({ success: true, count: filtered.length, data: filtered });
   } catch (error) {
     console.error('Error fetching notifications:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch notifications', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error retrieving notifications', error: error.message });
   }
 };
 
-/**
- * Mark a single notification as read
- */
 exports.markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
+    const now = new Date();
 
     if (getStatus()) {
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
-        await Notification.findByIdAndUpdate(id, { isRead: true });
+      const updated = await Notification.findByIdAndUpdate(
+        id,
+        { isRead: true, readAt: now },
+        { new: true }
+      );
+      if (updated) {
+        return res.json({ success: true, data: updated });
       }
     }
 
-    const found = memoryNotifications.find(n => n._id === id || n.id === id);
-    if (found) {
-      found.isRead = true;
+    const notif = memoryNotifications.find(n => n._id === id || String(n._id) === String(id));
+    if (notif) {
+      notif.isRead = true;
+      notif.readAt = now;
+      return res.json({ success: true, data: notif });
     }
 
-    res.json({ success: true, message: 'Notification marked as read' });
+    return res.status(404).json({ success: false, message: 'Notification not found' });
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    res.status(500).json({ success: false, message: 'Failed to update notification', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error updating notification', error: error.message });
   }
 };
 
-/**
- * Mark all notifications for role/email as read
- */
 exports.markAllAsRead = async (req, res) => {
   try {
-    const { role, email } = req.body;
+    const role = (req.body.role || req.query.role || 'sar').toLowerCase();
+    const now = new Date();
 
     if (getStatus()) {
-      let query = {};
-      if (role) query.recipientRole = role.toLowerCase();
-      if (email) query.recipientEmail = email.toLowerCase();
-      await Notification.updateMany(query, { isRead: true });
+      await Notification.updateMany(
+        { recipientRole: role, isRead: false },
+        { $set: { isRead: true, readAt: now } }
+      );
     }
 
-    memoryNotifications.forEach(n => {
-      if (!role || n.recipientRole === role.toLowerCase() || (email && n.recipientEmail === email.toLowerCase())) {
-        n.isRead = true;
+    memoryNotifications = memoryNotifications.map(n => {
+      if (n.recipientRole.toLowerCase() === role) {
+        return { ...n, isRead: true, readAt: now };
       }
+      return n;
     });
 
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
-    console.error('Error marking all notifications as read:', error);
-    res.status(500).json({ success: false, message: 'Failed to mark all as read', error: error.message });
+    console.error('Error marking all as read:', error);
+    res.status(500).json({ success: false, message: 'Server error updating notifications', error: error.message });
   }
 };
 
-/**
- * Helper function to create notification programmatically
- */
 exports.createNotification = async (notifData) => {
   try {
     const newNotif = {
-      _id: 'notif_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-      createdAt: new Date(),
+      _id: `notif_${Date.now()}`,
+      title: notifData.title,
+      message: notifData.message,
+      type: notifData.type || 'ADMIN_REVIEW',
+      recipientRole: (notifData.recipientRole || 'sar').toLowerCase(),
+      relatedRequestId: notifData.relatedRequestId || '',
+      department: notifData.department || 'Faculty of Technology',
       isRead: false,
-      ...notifData,
+      readAt: null,
+      createdAt: new Date(),
     };
 
-    memoryNotifications.unshift(newNotif);
-
     if (getStatus()) {
-      await Notification.create(notifData);
+      await Notification.create(newNotif);
     }
+    memoryNotifications.unshift(newNotif);
     return newNotif;
   } catch (err) {
-    console.warn('Failed to persist notification:', err.message);
+    console.warn('Failed to dispatch notification:', err.message);
   }
 };
 

@@ -491,8 +491,9 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
 
   // Filter events
   const filteredEvents = events.filter((evt) => {
+    const isAll = batchFilter === 'All Batches' || batchFilter === 'All';
     const matchesBatch =
-      batchFilter === 'All Batches' ||
+      isAll ||
       evt.batch === 'All Batches' ||
       evt.batch === batchFilter;
 
@@ -632,13 +633,22 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
             <div className="hod-filter-tabs">
               {batchesList.map((b) => {
-                const count = events.filter((e) => b.key === 'All Batches' || e.batch === b.key || e.batch === 'All Batches').length;
+                const isSelected =
+                  batchFilter === b.key ||
+                  (b.key === 'All Batches' && (batchFilter === 'All' || batchFilter === 'All Batches'));
+
+                const count =
+                  b.key === 'All Batches'
+                    ? events.length
+                    : events.filter((e) => e.batch === b.key || e.batch === 'All Batches').length;
+
                 return (
                   <button
                     key={b.key}
                     type="button"
-                    className={`hod-tab-btn ${batchFilter === b.key ? 'active' : ''}`}
+                    className={`hod-tab-btn ${isSelected ? 'active' : ''}`}
                     onClick={() => setBatchFilter(b.key)}
+                    style={{ cursor: 'pointer' }}
                   >
                     {b.label} ({count})
                   </button>
@@ -670,7 +680,7 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
                   type="button"
                   className={`hod-tab-btn ${semesterFilter === sem ? 'active' : ''}`}
                   onClick={() => setSemesterFilter(sem)}
-                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem' }}
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem', cursor: 'pointer' }}
                 >
                   {sem}
                 </button>
@@ -680,12 +690,12 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
         </div>
       </div>
 
-      {/* 3. Batch Color Legend Strip */}
+      {/* 3. Batch Color Legend Strip (Clickable to Filter by Batch) */}
       <div
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '0.6rem',
+          gap: '0.55rem',
           alignItems: 'center',
           background: '#ffffff',
           border: '1px solid #e2e8f0',
@@ -695,27 +705,47 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
           fontSize: '0.75rem',
         }}
       >
-        <span style={{ fontWeight: 700, color: '#0f2b5c' }}>Batch Tags:</span>
-        {Object.entries(BATCH_COLORS).map(([bKey, cfg]) => (
-          <span
-            key={bKey}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.15rem 0.5rem',
-              background: cfg.bg,
-              color: cfg.text,
-              border: `1px solid ${cfg.border}`,
-              borderRadius: '4px',
-              fontWeight: 700,
-            }}
-          >
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cfg.dot }}></span>
-            {cfg.label}
-          </span>
-        ))}
-        <span style={{ marginLeft: 'auto', color: '#64748b', fontSize: '0.75rem' }}>
+        <span style={{ fontWeight: 700, color: '#0f2b5c', marginRight: '0.25rem' }}>Filter by Batch:</span>
+        {Object.entries(BATCH_COLORS).map(([bKey, cfg]) => {
+          const isSelected =
+            batchFilter === bKey ||
+            (bKey === 'All Batches' && (batchFilter === 'All' || batchFilter === 'All Batches'));
+
+          return (
+            <button
+              key={bKey}
+              type="button"
+              onClick={() => setBatchFilter(bKey)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.25rem 0.65rem',
+                background: isSelected ? cfg.dot : cfg.bg,
+                color: isSelected ? '#ffffff' : cfg.text,
+                border: `1px solid ${isSelected ? cfg.dot : cfg.border}`,
+                borderRadius: '6px',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+              }}
+              title={`Click to filter by ${cfg.label}`}
+            >
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: isSelected ? '#ffffff' : cfg.dot,
+                }}
+              ></span>
+              {cfg.label}
+            </button>
+          );
+        })}
+        <span style={{ marginLeft: 'auto', color: '#64748b', fontSize: '0.73rem' }}>
           🏛️ Faculty directives are read-only • 🏢 HOD can manage ICT events
         </span>
       </div>
@@ -1072,44 +1102,124 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
         </div>
       )}
 
-      {/* 5. ADD / EDIT DEPARTMENT EVENT MODAL */}
+      {/* 5. ADD / EDIT DEPARTMENT EVENT SHORT FORM POPUP MODAL */}
       {isModalOpen && (
-        <div className="hod-modal-backdrop">
-          <div className="hod-modal-dialog" style={{ maxWidth: '580px' }}>
-            <div className="hod-modal-header">
-              <h3 className="hod-modal-title">
-                {editingEvent ? 'Edit Department Event' : 'Schedule Department Academic Event'}
-              </h3>
+        <div
+          className="hod-modal-overlay hod-modal-backdrop"
+          onClick={() => setIsModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '1rem',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div
+            className="hod-modal-card hod-modal-dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '470px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 100000,
+              animation: 'hodPopupIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              position: 'relative',
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              className="hod-modal-header"
+              style={{
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#f8fafc',
+              }}
+            >
+              <div>
+                <h3 className="hod-modal-title" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f2b5c' }}>
+                  {editingEvent ? 'Edit Department Event' : 'Add Department Event'}
+                </h3>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.74rem', color: '#64748b' }}>
+                  Quick milestone entry for Department of ICT
+                </p>
+              </div>
               <button
                 type="button"
-                className="hod-modal-close"
+                className="hod-modal-close-btn"
                 onClick={() => setIsModalOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.25rem',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  padding: '0.2rem 0.4rem',
+                  borderRadius: '4px',
+                  lineHeight: 1,
+                }}
               >
                 ✕
               </button>
             </div>
 
+            {/* Concise Short Form */}
             <form onSubmit={handleSaveEvent}>
-              <div className="hod-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div
+                className="hod-modal-body"
+                style={{
+                  padding: '1.1rem 1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                }}
+              >
+                {/* 1. Title */}
                 <div>
-                  <label className="hod-form-label">Event Title *</label>
+                  <label className="hod-form-label" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                    Event Title *
+                  </label>
                   <input
                     type="text"
                     className="hod-input"
-                    placeholder="e.g. 3rd Year CA 2 Mobile Apps Lab Evaluation"
+                    placeholder="e.g. CA 1 Practical Exam or Guest Lecture"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     required
+                    autoFocus
+                    style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                {/* 2. Batch & Type */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
                   <div>
-                    <label className="hod-form-label">Academic Batch *</label>
+                    <label className="hod-form-label" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                      Target Batch *
+                    </label>
                     <select
                       className="hod-select"
                       value={formBatch}
                       onChange={(e) => setFormBatch(e.target.value)}
+                      style={{ width: '100%', padding: '0.45rem 0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
                     >
                       <option value="All Batches">All Batches</option>
                       <option value="2025/2024">1st Year (2025/2024)</option>
@@ -1121,86 +1231,104 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
                   </div>
 
                   <div>
-                    <label className="hod-form-label">Semester *</label>
+                    <label className="hod-form-label" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                      Event Type *
+                    </label>
                     <select
                       className="hod-select"
-                      value={formSemester}
-                      onChange={(e) => setFormSemester(e.target.value)}
+                      value={formType}
+                      onChange={(e) => setFormType(e.target.value)}
+                      style={{ width: '100%', padding: '0.45rem 0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
                     >
-                      <option value="Semester 1">Semester 1</option>
-                      <option value="Semester 2">Semester 2</option>
-                      <option value="All Semesters">All Semesters</option>
+                      <option value="department_event">Department Event</option>
+                      <option value="assessment_ca">Continuous Assessment (CA)</option>
+                      <option value="end_semester_exam">End-Semester Exam (ESA)</option>
+                      <option value="medical_submission_deadline">Medical Deadline</option>
+                      <option value="exam_form_submission">Exam Form Submission</option>
+                      <option value="results_release">Results Release</option>
+                      <option value="study_leave">Study Leave</option>
+                      <option value="other">Other Note</option>
                     </select>
                   </div>
                 </div>
 
-                <div>
-                  <label className="hod-form-label">Event Milestone Type *</label>
-                  <select
-                    className="hod-select"
-                    value={formType}
-                    onChange={(e) => setFormType(e.target.value)}
-                  >
-                    <option value="department_event">Department Event</option>
-                    <option value="assessment_ca">Continuous Assessment (CA)</option>
-                    <option value="end_semester_exam">End-Semester Examination (ESA)</option>
-                    <option value="exam_form_submission">Exam Form Submission</option>
-                    <option value="medical_submission_deadline">Medical Submission Deadline</option>
-                    <option value="results_release">Results Release</option>
-                    <option value="study_leave">Study Leave</option>
-                    <option value="lecture_period">Lecture Weeks</option>
-                    <option value="semester_boundary">Semester Boundary</option>
-                    <option value="vacation">Vacation</option>
-                    <option value="public_holiday">Public Holiday</option>
-                    <option value="other">Other Academic Note</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                {/* 3. Dates */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
                   <div>
-                    <label className="hod-form-label">Start Date *</label>
+                    <label className="hod-form-label" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                      Date *
+                    </label>
                     <input
                       type="date"
                       className="hod-input"
                       value={formStartDate}
-                      onChange={(e) => setFormStartDate(e.target.value)}
+                      onChange={(e) => {
+                        setFormStartDate(e.target.value);
+                        if (!formEndDate || formEndDate < e.target.value) {
+                          setFormEndDate(e.target.value);
+                        }
+                      }}
                       required
+                      style={{ width: '100%', padding: '0.45rem 0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
                     />
                   </div>
 
                   <div>
-                    <label className="hod-form-label">End Date</label>
+                    <label className="hod-form-label" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                      End Date (Optional)
+                    </label>
                     <input
                       type="date"
                       className="hod-input"
                       value={formEndDate}
                       onChange={(e) => setFormEndDate(e.target.value)}
+                      style={{ width: '100%', padding: '0.45rem 0.65rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
                     />
                   </div>
                 </div>
 
+                {/* 4. Short Note / Venue */}
                 <div>
-                  <label className="hod-form-label">Milestone Description & Guidelines</label>
+                  <label className="hod-form-label" style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                    Short Note / Venue (Optional)
+                  </label>
                   <textarea
                     className="hod-textarea"
-                    rows="3"
-                    placeholder="Provide instructions, venue details, or staff in charge..."
+                    rows="2"
+                    placeholder="e.g. Software Lab 2, 09:00 AM. Bring student ID."
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
+                    style={{ width: '100%', padding: '0.45rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.82rem', resize: 'none' }}
                   ></textarea>
                 </div>
               </div>
 
-              <div className="hod-modal-footer">
+              {/* Modal Footer */}
+              <div
+                className="hod-modal-footer"
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  borderTop: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '0.5rem',
+                  background: '#f8fafc',
+                }}
+              >
                 <button
                   type="button"
                   className="hod-btn-outline"
                   onClick={() => setIsModalOpen(false)}
+                  style={{ padding: '0.45rem 0.9rem', fontSize: '0.82rem', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="hod-btn-endorse">
-                  {editingEvent ? 'Save Changes' : 'Schedule Event'}
+                <button
+                  type="submit"
+                  className="hod-btn-endorse"
+                  style={{ padding: '0.45rem 1.1rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {editingEvent ? 'Save Changes' : '+ Add Event'}
                 </button>
               </div>
             </form>
@@ -1208,71 +1336,131 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
         </div>
       )}
 
-      {/* 6. INSPECT EVENT MODAL */}
+      {/* 6. INSPECT EVENT POPUP MODAL */}
       {inspectEvent && (
-        <div className="hod-modal-backdrop">
-          <div className="hod-modal-dialog" style={{ maxWidth: '500px' }}>
-            <div className="hod-modal-header">
-              <h3 className="hod-modal-title">Calendar Event Dossier</h3>
+        <div
+          className="hod-modal-overlay hod-modal-backdrop"
+          onClick={() => setInspectEvent(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '1rem',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div
+            className="hod-modal-card hod-modal-dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '460px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 100000,
+              animation: 'hodPopupIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              position: 'relative',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div
+              className="hod-modal-header"
+              style={{
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#f8fafc',
+              }}
+            >
+              <h3 className="hod-modal-title" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f2b5c' }}>
+                Calendar Event Dossier
+              </h3>
               <button
                 type="button"
-                className="hod-modal-close"
+                className="hod-modal-close-btn"
                 onClick={() => setInspectEvent(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.25rem',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  padding: '0.2rem 0.4rem',
+                  lineHeight: 1,
+                }}
               >
                 ✕
               </button>
             </div>
 
-            <div className="hod-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
-              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>EVENT TITLE:</span>
-                <h4 style={{ margin: '0.2rem 0 0', color: '#0f2b5c', fontSize: '1rem' }}>{inspectEvent.title}</h4>
+            <div className="hod-modal-body" style={{ padding: '1.1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.85rem' }}>
+              <div style={{ background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>EVENT TITLE:</span>
+                <h4 style={{ margin: '0.15rem 0 0', color: '#0f2b5c', fontSize: '0.95rem', fontWeight: 800 }}>{inspectEvent.title}</h4>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem' }}>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Academic Batch:</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Academic Batch:</span>
                   <div style={{ fontWeight: 700, color: '#0f172a' }}>{inspectEvent.batch}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Semester:</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Semester:</span>
                   <div style={{ fontWeight: 700, color: '#0f172a' }}>{inspectEvent.semester}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Start Date:</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Start Date:</span>
                   <div style={{ fontWeight: 700, color: '#0f172a' }}>{inspectEvent.startDate}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>End Date:</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>End Date:</span>
                   <div style={{ fontWeight: 700, color: '#0f172a' }}>{inspectEvent.endDate || inspectEvent.startDate}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Governance Scope:</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Governance Scope:</span>
                   <div style={{ fontWeight: 700, color: inspectEvent.scope === 'faculty' ? '#b45309' : '#1e40af' }}>
                     {inspectEvent.scope === 'faculty' ? 'Faculty Directive (Read-Only)' : 'Department of ICT'}
                   </div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Authority / Author:</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Author:</span>
                   <div style={{ fontWeight: 600, color: '#0f172a' }}>
                     {inspectEvent.createdBy?.name || 'Academic Administration'}
                   </div>
                 </div>
               </div>
 
-              <div>
-                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Description:</span>
-                <p style={{ margin: '0.25rem 0 0', color: '#334155', lineHeight: 1.5, background: '#f8fafc', padding: '0.6rem', borderRadius: '4px' }}>
-                  {inspectEvent.description || 'No additional notes provided.'}
-                </p>
-              </div>
+              {inspectEvent.description && (
+                <div>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Description / Venue:</span>
+                  <p style={{ margin: '0.2rem 0 0', color: '#334155', lineHeight: 1.4, background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                    {inspectEvent.description}
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div className="hod-modal-footer">
+            <div className="hod-modal-footer" style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', background: '#f8fafc' }}>
               <button
                 type="button"
                 className="hod-btn-outline"
                 onClick={() => setInspectEvent(null)}
+                style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem', cursor: 'pointer' }}
               >
                 Close
               </button>
@@ -1283,3 +1471,4 @@ export default function DepartmentAcademicCalendar({ onNavigate }) {
     </div>
   );
 }
+
