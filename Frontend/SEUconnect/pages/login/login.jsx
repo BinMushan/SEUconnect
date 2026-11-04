@@ -50,6 +50,12 @@ const DEMO_ACCOUNTS = [
     roleKey: 'examination'
   },
   {
+    role: 'Management Assistant',
+    email: 'Fma@gmail.com',
+    password: '123456',
+    roleKey: 'fma'
+  },
+  {
     role: 'Super Admin',
     email: 'SuperAdmin@gmail.com',
     password: '123456',
