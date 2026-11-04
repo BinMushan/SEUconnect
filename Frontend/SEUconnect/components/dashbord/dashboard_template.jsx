@@ -459,7 +459,7 @@ export default function DashboardTemplate({
   // Determine if hero banner should display (hidden on pages like academic_profile)
   const shouldShowHero = showHeroBanner !== undefined
     ? showHeroBanner
-    : (currentActive === 'dashboard');
+    : (currentActive === 'dashboard' || currentActive === 'overview' || currentActive === 'home');
 
   // Role-tailored dynamic values
   const userName = user?.name || (roleKey === 'student' ? 'M.N.M. Afnan' : 'Portal User');

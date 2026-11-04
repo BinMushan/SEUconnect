@@ -440,8 +440,8 @@
 }
 
 .calendar-icon-btn:hover {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #f1f5f9;
+  color: #071732;
   transform: scale(1.08);
 }
 
@@ -486,9 +486,9 @@
 }
 
 .preset-pill-btn:hover {
-  background: #eff6ff;
-  border-color: #2563eb;
-  color: #1d4ed8;
+  background: #f1f5f9;
+  border-color: #071732;
+  color: #071732;
 }
 
 .leave-duration-badge {

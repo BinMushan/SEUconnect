@@ -4,7 +4,7 @@
   width: 100%;
   background-color: #f8fafc;
   color: #1e293b;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-dash-sans, 'Inter', system-ui, -apple-system, sans-serif);
   display: flex;
   flex-direction: column;
 }
@@ -282,23 +282,23 @@
 }
 .exam-process-card .std-search-input::placeholder { color: #6b7488; }
 .exam-process-card .std-search-input-box:focus-within {
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+  border-color: #0f2b5c;
+  box-shadow: 0 0 0 2px rgba(15, 43, 92, 0.15);
 }
 
 /* Blue button */
 .exam-process-card .std-find-process-btn {
   padding: 0 24px;
   border: none;
-  border-radius: 10px;
-  background: #1d4ed8;
+  border-radius: 8px;
+  background: #0f2b5c;
   color: #fff;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   
 }
-.exam-process-card .std-find-process-btn:hover { background: #1a44bd; }
+.exam-process-card .std-find-process-btn:hover { background: #081a38; }
 
 /* Suggested chips */
 .std-suggested-row {
@@ -556,7 +556,7 @@
 }
 
 .std-btn-clear:hover {
-  color: #1d4ed8;
+  color: #071732;
 }
 
 .std-queue-jump-btn {

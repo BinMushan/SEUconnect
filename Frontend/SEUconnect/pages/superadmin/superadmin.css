@@ -4,7 +4,7 @@
   width: 100%;
   background-color: #f8fafc;
   color: #1e293b;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-dash-sans, 'Inter', system-ui, -apple-system, sans-serif);
   display: flex;
   flex-direction: column;
 }
