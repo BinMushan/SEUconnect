@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import api, { enrolledStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
@@ -233,7 +234,13 @@ export default function Admin({ user, onLogout }) {
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [stats, setStats] = useState(INITIAL_STATS);
   const [batches, setBatches] = useState(INITIAL_BATCHES);
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [students, setStudents] = useState(() => {
+    const localEnrolled = enrolledStorage.getAll();
+    if (!localEnrolled || localEnrolled.length === 0) return INITIAL_STUDENTS;
+    const existingRegNos = new Set(INITIAL_STUDENTS.map(s => (s.regNo || '').toLowerCase()));
+    const additional = localEnrolled.filter(s => s.regNo && !existingRegNos.has(s.regNo.toLowerCase()));
+    return [...additional, ...INITIAL_STUDENTS];
+  });
   const [registrations, setRegistrations] = useState(INITIAL_REGISTRATIONS);
   const [medicals, setMedicals] = useState(INITIAL_MEDICALS);
   const [examinations] = useState(INITIAL_EXAMINATIONS);
@@ -340,7 +347,8 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 5. Add Student
-  const handleAddStudent = (newStudent) => {
+  const handleAddStudent = async (newStudent) => {
+    enrolledStorage.save(newStudent);
     setStudents((prev) => [newStudent, ...prev]);
     setStats((prev) => ({
       ...prev,
@@ -348,11 +356,20 @@ export default function Admin({ user, onLogout }) {
       activeAccounts: prev.activeAccounts + 1
     }));
     addAuditLog('Registered Student Account', `${newStudent.regNo} - ${newStudent.name} enrolled in ${newStudent.programme}.`);
-    showToast(`Student ${newStudent.name} (${newStudent.regNo}) registered successfully.`);
+    showToast(`Student ${newStudent.name} (${newStudent.regNo}) registered! Login: ${newStudent.email} / ${newStudent.tempPassword || 'Pass'}`);
+    try {
+      await api.createStudent({
+        ...newStudent,
+        tempPassword: newStudent.tempPassword
+      });
+    } catch (err) {
+      console.warn('Backend student sync:', err.message);
+    }
   };
 
   // 5.b Bulk Add Students (200+ Student Cohorts from Excel/CSV)
-  const handleBulkAddStudents = (newStudentsList, targetBatchId) => {
+  const handleBulkAddStudents = async (newStudentsList, targetBatchId) => {
+    enrolledStorage.saveBulk(newStudentsList);
     if (!newStudentsList || newStudentsList.length === 0) return;
 
     setStudents((prev) => [...newStudentsList, ...prev]);
@@ -379,7 +396,12 @@ export default function Admin({ user, onLogout }) {
       'Bulk Enrolled Students',
       `Imported ${newStudentsList.length} undergraduates into ${batchLabel} via pre-defined spreadsheet roster.`
     );
-    showToast(`Successfully enrolled ${newStudentsList.length} undergraduates into ${batchLabel}.`);
+    showToast(`Successfully enrolled ${newStudentsList.length} undergraduates into ${batchLabel}. Credentials active for immediate login.`);
+    try {
+      await api.bulkCreateStudents(newStudentsList);
+    } catch (err) {
+      console.warn('Backend bulk student sync:', err.message);
+    }
   };
 
   // 6. Update Student Status

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
+import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
+import { ROLE_WORKFLOW_TYPES } from '../../components/workflow/workflowNav.jsx';
 import {
   DEPT_INFO,
   INITIAL_STUDENTS,
@@ -18,12 +21,10 @@ import './dept_ma.css';
 import DeptMADashboardOverview from './components/DeptMADashboardOverview.jsx';
 import DeptMAStudents from './components/DeptMAStudents.jsx';
 import DeptMARegistrations from './components/DeptMARegistrations.jsx';
-import DeptMAMedicalApplications from './components/DeptMAMedicalApplications.jsx';
 import DeptMAAttendance from './components/DeptMAAttendance.jsx';
 import DeptMADocuments from './components/DeptMADocuments.jsx';
 import DeptMAReports from './components/DeptMAReports.jsx';
 import DeptMAAnnouncements from './components/DeptMAAnnouncements.jsx';
-import DeptMANotifications from './components/DeptMANotifications.jsx';
 import DeptMAProfile from './components/DeptMAProfile.jsx';
 
 export default function DeptMA({ user, onLogout }) {
@@ -232,14 +233,12 @@ export default function DeptMA({ user, onLogout }) {
         );
 
       case 'medical_applications':
+      case 'workflow_applications':
         return (
-          <DeptMAMedicalApplications
-            medicalApplications={medicalApplications}
-            deptInfo={DEPT_INFO}
-            onUpdateMedicalApplication={handleUpdateMedicalApplication}
-            onShowToast={showToast}
-            selectedAppFromParent={selectedMedicalApp}
-            onClearSelectedApp={() => setSelectedMedicalApp(null)}
+          <WorkflowDesk
+            types={ROLE_WORKFLOW_TYPES.dept_ma}
+            title="Subject Medical Applications"
+            subtitle="Students submit Subject Medical forms online to the Department MA. Review the application and give final approval - there is no SAR step."
           />
         );
 
@@ -287,15 +286,7 @@ export default function DeptMA({ user, onLogout }) {
         );
 
       case 'notifications':
-        return (
-          <DeptMANotifications
-            notifications={notifications}
-            onNavigate={(nav) => setActiveNav(nav)}
-            onMarkAllRead={handleMarkAllNotificationsRead}
-            onToggleRead={handleToggleNotificationRead}
-            onNotificationClick={handleNotificationClick}
-          />
-        );
+        return <NotificationCenter onNavigate={(nav) => setActiveNav(nav)} />;
 
       case 'profile':
         return <DeptMAProfile deptInfo={DEPT_INFO} user={effectiveUser} />;
