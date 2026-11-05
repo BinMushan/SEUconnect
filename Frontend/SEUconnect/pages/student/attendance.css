@@ -467,7 +467,39 @@
   .attendance-container .grid-3 {
     grid-template-columns: 1fr;
   }
+
+  .attendance-container .seu-table {
+    min-width: 700px;
+  }
+
+  .attendance-tab-nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .attendance-tab-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .attendance-tab-btn {
+    flex-shrink: 0;
+  }
+
+  .missed-lecture-callout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .missed-lecture-callout button {
+    width: 100%;
+    justify-content: center;
+  }
 }
+
 
 /* ==========================================================================
    Interactive Tab Bar for Attendance, Missed Lectures & Timetable

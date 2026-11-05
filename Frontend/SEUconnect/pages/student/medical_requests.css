@@ -501,3 +501,85 @@
   border-radius: 999px;
   font-weight: 600;
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS FOR MEDICAL REQUESTS
+   ========================================================================== */
+@media (max-width: 640px) {
+  .medical-card {
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    margin-bottom: 14px;
+  }
+
+  .stepper-container {
+    margin: 14px 0 20px 0;
+    padding: 0;
+  }
+
+  .step-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .medical-review-box {
+    padding: 14px 12px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .medical-review-box strong {
+    min-width: auto;
+    display: block;
+    margin-bottom: 2px;
+    color: #0f2b5c;
+  }
+
+  .medical-review-box .review-row {
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+
+  .medical-review-box .review-row:last-child {
+    border-bottom: none;
+  }
+
+  .medical-form-actions-between {
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .medical-form-actions-between button,
+  .medical-form-actions-right button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .date-presets-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .leave-duration-badge {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .medical-table {
+    min-width: 720px;
+  }
+}
+

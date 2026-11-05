@@ -141,7 +141,7 @@
 /* Grid */
 .welfare-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 1.25rem;
 }
 
@@ -495,3 +495,71 @@
     transform: translateY(0);
   }
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS FOR WELFARE & SCHOLARSHIPS
+   ========================================================================== */
+@media (max-width: 768px) {
+  .welfare-title {
+    font-size: 1.4rem;
+  }
+
+  .welfare-filters-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 0.85rem;
+  }
+
+  .welfare-filter-group {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .welfare-filter-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .welfare-tab-btn {
+    flex-shrink: 0;
+  }
+
+  .welfare-search-box {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .welfare-modal-content {
+    width: 100% !important;
+    max-width: 95vw !important;
+    margin: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .welfare-modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .welfare-modal-body {
+    padding: 1rem 1.25rem;
+  }
+
+  .welfare-modal-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .welfare-modal-footer {
+    flex-direction: column;
+    padding: 0.85rem 1rem;
+  }
+
+  .welfare-modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
