@@ -4,6 +4,7 @@ const { uploadImageBuffer } = require('../config/cloudinary');
 const { signToken } = require('../middleware/auth');
 const { verifyPassword, hashPassword, isHashed } = require('../utils/password');
 const { normalizeRole, deptCode } = require('../utils/roles');
+const { getCurriculumBySemester } = require('../config/curriculumTimetables');
 
 const publicUser = (user) => ({
   id: String(user._id || user.email),
@@ -25,7 +26,48 @@ const publicUser = (user) => ({
   address: user.address || '',
 });
 
+async function buildUserResponse(user) {
+  const base = publicUser(user);
+  if (base.role !== 'student') return base;
+
+  let studentDoc = null;
+  if (store.connected()) {
+    try {
+      studentDoc = await Student.findOne({
+        $or: [
+          { email: (user.email || '').toLowerCase() },
+          ...(user.regNo ? [{ studentId: user.regNo }] : [])
+        ]
+      });
+    } catch (e) {
+      console.warn('Student lookup error during auth:', e.message);
+    }
+  }
+
+  const effectiveSem = studentDoc?.currentSemester || user.semester || 'Year 1 Semester 1';
+  const cur = getCurriculumBySemester(effectiveSem);
+
+  return {
+    ...base,
+    semester: studentDoc?.currentSemester || user.semester || cur.semester,
+    batch: studentDoc?.batch || user.batch || '2025/2026',
+    sgpa: studentDoc?.gpaCgpa?.currentSgpa ?? cur.defaultSgpa,
+    cgpa: studentDoc?.gpaCgpa?.cgpa ?? cur.defaultCgpa,
+    credits: studentDoc?.gpaCgpa?.totalCreditsEarned ?? cur.totalCredits,
+    attendance: studentDoc?.attendance?.overallAttendancePercentage ?? 92.5,
+    enrolledCourses: (studentDoc?.semesterRegistrations?.[0]?.courses?.length > 0)
+      ? studentDoc.semesterRegistrations[0].courses
+      : cur.subjects,
+    timetable: cur.timetableSlots,
+    matrixColumns: cur.matrixColumns,
+    matrixDailyRows: cur.matrixDailyRows,
+    examModules: cur.examModules,
+    progressionData: cur.progressionData
+  };
+}
+
 exports.publicUser = publicUser;
+exports.buildUserResponse = buildUserResponse;
 
 exports.login = async (req, res) => {
   try {
@@ -46,11 +88,13 @@ exports.login = async (req, res) => {
       await store.users.save(user).catch(() => {});
     }
 
+    const userData = await buildUserResponse(user);
+
     return res.json({
       success: true,
       message: 'Login successful',
       token: signToken(user),
-      user: publicUser(user),
+      user: userData,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -90,7 +134,8 @@ exports.forgotPassword = async (req, res) => {
 exports.me = async (req, res) => {
   const user = await store.users.findByEmail(req.user.email);
   if (!user) return res.status(404).json({ success: false, message: 'Account no longer exists.' });
-  res.json({ success: true, user: publicUser(user) });
+  const userData = await buildUserResponse(user);
+  res.json({ success: true, user: userData });
 };
 
 exports.getUsers = async (req, res) => {
