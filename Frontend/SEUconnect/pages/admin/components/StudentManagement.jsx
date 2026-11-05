@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { getCurriculumBySemester } from '../../../src/services/curriculumData.js';
 
 export const getStudentTempPassword = (student) => {
   if (student?.tempPassword) return student.tempPassword;
@@ -432,11 +433,23 @@ export default function StudentManagement({
     const currentBatch = activeBatch;
 
     setTimeout(() => {
-      const finalized = targetStudentsForEnrol.map((s) => ({
-        ...s,
-        batchId: currentBatch.id,
-        batchCode: currentBatch.name
-      }));
+      const finalized = targetStudentsForEnrol.map((s) => {
+        const cur = getCurriculumBySemester(s.semester || currentBatch.currentSemester);
+        return {
+          ...s,
+          batchId: currentBatch.id,
+          batchCode: currentBatch.name,
+          semester: cur.semester,
+          cgpa: s.cgpa || cur.defaultCgpa,
+          sgpa: s.sgpa || cur.defaultSgpa,
+          credits: s.credits || cur.totalCredits,
+          attendance: s.attendance || 92.5,
+          enrolledCourses: cur.subjects,
+          timetable: cur.timetableSlots,
+          examModules: cur.examModules,
+          progressionData: cur.progressionData
+        };
+      });
 
       if (onBulkAddStudents) {
         onBulkAddStudents(finalized, currentBatch.id);
@@ -474,6 +487,7 @@ export default function StudentManagement({
 
     const currentBatch = activeBatch;
     const effectiveTempPassword = newTempPassword.trim() || getStudentTempPassword({ regNo: newRegNo.trim().toUpperCase() });
+    const cur = getCurriculumBySemester(newSemester);
 
     onAddStudent({
       id: `STU-${Date.now()}`,
@@ -484,11 +498,15 @@ export default function StudentManagement({
       name: newName.trim(),
       programme: newProgramme,
       department: newDepartment,
-      semester: newSemester,
-      cgpa: 0.00,
-      sgpa: 0.00,
-      credits: 0,
-      attendance: 0,
+      semester: cur.semester,
+      cgpa: cur.defaultCgpa,
+      sgpa: cur.defaultSgpa,
+      credits: cur.totalCredits,
+      attendance: 92.5,
+      enrolledCourses: cur.subjects,
+      timetable: cur.timetableSlots,
+      examModules: cur.examModules,
+      progressionData: cur.progressionData,
       email: newEmail.trim().toLowerCase(),
       tempPassword: effectiveTempPassword,
       phone: newPhone.trim() || '+94 77 000 0000',

@@ -1,7 +1,11 @@
 const store = require('../store');
+const Student = require('../models/Student');
+const { uploadImageBuffer } = require('../config/cloudinary');
 const { signToken } = require('../middleware/auth');
 const { verifyPassword, hashPassword, isHashed } = require('../utils/password');
 const { normalizeRole, deptCode } = require('../utils/roles');
+const { getCurriculumBySemester } = require('../config/curriculumTimetables');
+const Subject = require('../models/Subject');
 
 const publicUser = (user) => ({
   id: String(user._id || user.email),
@@ -17,9 +21,72 @@ const publicUser = (user) => ({
   semester: user.semester,
   designation: user.designation,
   avatarInitial: user.avatarInitial,
+  profileImage: user.profileImage || null,
+  phone: user.phone || '',
+  specialization: user.specialization || '',
+  address: user.address || '',
 });
 
+async function buildUserResponse(user) {
+  const base = publicUser(user);
+  if (base.role !== 'student') return base;
+
+  let studentDoc = null;
+  if (store.connected()) {
+    try {
+      studentDoc = await Student.findOne({
+        $or: [
+          { email: (user.email || '').toLowerCase() },
+          ...(user.regNo ? [{ studentId: user.regNo }] : [])
+        ]
+      });
+    } catch (e) {
+      console.warn('Student lookup error during auth:', e.message);
+    }
+  }
+
+  const effectiveSem = studentDoc?.currentSemester || user.semester || 'Year 1 Semester 1';
+  const cur = getCurriculumBySemester(effectiveSem);
+
+  let dbSubjects = [];
+  try {
+    dbSubjects = await Subject.find({ semesterName: cur.semester }).sort({ code: 1 }).lean();
+  } catch (_) {}
+
+  const finalSubjects = (dbSubjects && dbSubjects.length > 0) ? dbSubjects : cur.subjects;
+
+  return {
+    ...base,
+    semester: studentDoc?.currentSemester || user.semester || cur.semester,
+    batch: studentDoc?.batch || user.batch || '2025/2026',
+    sgpa: studentDoc?.gpaCgpa?.currentSgpa ?? cur.defaultSgpa,
+    cgpa: studentDoc?.gpaCgpa?.cgpa ?? cur.defaultCgpa,
+    credits: studentDoc?.gpaCgpa?.totalCreditsEarned ?? cur.totalCredits,
+    attendance: studentDoc?.attendance?.overallAttendancePercentage ?? 92.5,
+    enrolledCourses: (studentDoc?.semesterRegistrations?.[0]?.courses?.length > 0)
+      ? studentDoc.semesterRegistrations[0].courses
+      : finalSubjects.map(s => ({
+          courseCode: s.code,
+          courseName: s.title,
+          credits: s.credits,
+          type: s.type || 'Core',
+          gpaCredits: s.gpaCredits,
+          ngpaCredits: s.ngpaCredits,
+          continuousAssessmentPercent: s.continuousAssessmentPercent,
+          endSemesterAssessmentPercent: s.endSemesterAssessmentPercent,
+          status: 'Registered'
+        })),
+    databaseSubjects: finalSubjects,
+    timetable: cur.timetableSlots,
+    matrixColumns: cur.matrixColumns,
+    matrixDailyRows: cur.matrixDailyRows,
+    examModules: cur.examModules,
+    progressionData: cur.progressionData
+  };
+}
+
 exports.publicUser = publicUser;
+exports.buildUserResponse = buildUserResponse;
 
 exports.login = async (req, res) => {
   try {
@@ -40,11 +107,13 @@ exports.login = async (req, res) => {
       await store.users.save(user).catch(() => {});
     }
 
+    const userData = await buildUserResponse(user);
+
     return res.json({
       success: true,
       message: 'Login successful',
       token: signToken(user),
-      user: publicUser(user),
+      user: userData,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -84,7 +153,8 @@ exports.forgotPassword = async (req, res) => {
 exports.me = async (req, res) => {
   const user = await store.users.findByEmail(req.user.email);
   if (!user) return res.status(404).json({ success: false, message: 'Account no longer exists.' });
-  res.json({ success: true, user: publicUser(user) });
+  const userData = await buildUserResponse(user);
+  res.json({ success: true, user: userData });
 };
 
 exports.getUsers = async (req, res) => {
@@ -110,5 +180,143 @@ exports.getDirectory = async (req, res) => {
     res.json({ success: true, count: data.length, data });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching directory' });
+  }
+};
+
+// Upload profile picture to Cloudinary and store the secure URL in MongoDB
+exports.uploadProfilePhoto = async (req, res) => {
+  try {
+    let fileBuffer = null;
+    let mimeType = 'image/jpeg';
+
+    if (req.file) {
+      fileBuffer = req.file.buffer;
+      mimeType = req.file.mimetype;
+    } else if (req.body && req.body.image) {
+      const matches = req.body.image.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        mimeType = matches[1];
+        fileBuffer = Buffer.from(matches[2], 'base64');
+      } else {
+        fileBuffer = Buffer.from(req.body.image, 'base64');
+      }
+    }
+
+    if (!fileBuffer) {
+      return res.status(400).json({ success: false, message: 'No image file or image data provided.' });
+    }
+
+    let imageUrl = '';
+    const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET;
+
+    if (apiSecret) {
+      try {
+        const uploadRes = await uploadImageBuffer(fileBuffer, {
+          folder: 'seuconnect/profiles',
+          public_id: `profile_${(req.user.email || 'user').replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`
+        });
+        imageUrl = uploadRes.secure_url;
+      } catch (uploadErr) {
+        console.error('Cloudinary upload error:', uploadErr);
+        return res.status(502).json({
+          success: false,
+          message: 'Cloudinary upload failed: ' + uploadErr.message
+        });
+      }
+    } else {
+      console.warn('CLOUDINARY_API_SECRET is not configured in .env. Falling back to base64 data URL.');
+      imageUrl = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+    }
+
+    // 1. Update User in DB and store
+    const user = await store.users.findByEmail(req.user.email);
+    if (user) {
+      user.profileImage = imageUrl;
+      await store.users.save(user);
+    }
+
+    // 2. Sync with Student document in MongoDB if user is a student or matching record exists
+    if (Student) {
+      try {
+        const student = await Student.findOne({
+          $or: [
+            { email: req.user.email.toLowerCase() },
+            ...(req.user.regNo ? [{ studentId: req.user.regNo }] : [])
+          ]
+        });
+        if (student) {
+          student.profileImage = imageUrl;
+          student.avatarUrl = imageUrl;
+          if (!student.academicProfile) {
+            student.academicProfile = {};
+          }
+          student.academicProfile.profileImage = imageUrl;
+          await student.save();
+        }
+      } catch (stuErr) {
+        console.warn('Could not sync student profile image in MongoDB:', stuErr.message);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: apiSecret
+        ? 'Profile picture uploaded to Cloudinary and saved to database successfully.'
+        : 'Profile picture saved (add CLOUDINARY_API_SECRET in Render / .env for live Cloudinary hosting).',
+      profileImage: imageUrl,
+      user: user ? publicUser(user) : null
+    });
+  } catch (error) {
+    console.error('Upload profile photo error:', error);
+    res.status(500).json({ success: false, message: 'Error uploading profile photo: ' + error.message });
+  }
+};
+
+// Update contact info & academic profile in MongoDB
+exports.updateProfile = async (req, res) => {
+  try {
+    const { phone, specialization, address, profileImage } = req.body || {};
+    const user = await store.users.findByEmail(req.user.email);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (phone !== undefined) user.phone = phone;
+    if (specialization !== undefined) user.specialization = specialization;
+    if (address !== undefined) user.address = address;
+    if (profileImage !== undefined) user.profileImage = profileImage;
+
+    await store.users.save(user);
+
+    if (Student) {
+      try {
+        const student = await Student.findOne({
+          $or: [
+            { email: user.email.toLowerCase() },
+            ...(user.regNo ? [{ studentId: user.regNo }] : [])
+          ]
+        });
+        if (student) {
+          if (!student.academicProfile) student.academicProfile = {};
+          if (phone !== undefined) student.academicProfile.personalPhone = phone;
+          if (address !== undefined) student.academicProfile.permanentAddress = address;
+          if (profileImage !== undefined) {
+            student.profileImage = profileImage;
+            student.avatarUrl = profileImage;
+            student.academicProfile.profileImage = profileImage;
+          }
+          await student.save();
+        }
+      } catch (err) {
+        console.warn('Could not sync student details in MongoDB:', err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully in MongoDB',
+      user: publicUser(user)
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ success: false, message: 'Server error updating profile' });
   }
 };

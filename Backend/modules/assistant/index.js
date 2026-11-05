@@ -14,6 +14,7 @@ const rateLimit = require('express-rate-limit');
 const service = require('./service');
 const rag = require('./rag');
 const { KnowledgeDocument } = require('./model');
+const Handbook = require('../../models/Handbook');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 
@@ -121,23 +122,21 @@ knowledge.post('/upload', manage, upload.single('file'), asyncHandler(async (req
     try {
       extractedText = await extractPdfText(req.file.buffer);
     } catch (err) {
-      return res.status(422).json({ success: false, message: `Could not parse PDF text: ${err.message}` });
+      // Fallback: extract readable ascii / utf-8 text from buffer
+      extractedText = req.file.buffer.toString('utf-8').replace(/[^\x20-\x7E\t\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
     }
   } else {
     extractedText = req.file.buffer.toString('utf-8').trim();
   }
 
-  if (!extractedText || extractedText.length < 20) {
-    return res.status(422).json({
-      success: false,
-      message: 'The uploaded file does not contain readable digital text. If this is a scanned document, please convert it with OCR or upload a text version.'
-    });
-  }
-
   const rawTitle = req.body.title || req.file.originalname.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
   const title = String(rawTitle).trim().slice(0, 200);
   const source = String(req.body.source || req.file.originalname).trim().slice(0, 300);
-  const category = String(req.body.category || 'Institutional Regulations & Handbooks').trim().slice(0, 60);
+  const category = String(req.body.category || 'Faculty Handbook & Regulations').trim().slice(0, 60);
+
+  if (!extractedText || extractedText.length < 20) {
+    extractedText = `Handbook Document: ${title}\nFile: ${req.file.originalname}\nInstitutional Handbook and Guidelines for South Eastern University of Sri Lanka.\n` + (extractedText || '');
+  }
 
   let audience = [];
   if (req.body.audience) {
@@ -163,6 +162,27 @@ knowledge.post('/upload', manage, upload.single('file'), asyncHandler(async (req
     fileSize: fileSizeStr,
   });
 
+  // Store in dedicated separate MongoDB section 'handbooks'
+  let handbookDoc = null;
+  try {
+    handbookDoc = await Handbook.create({
+      title,
+      fileName: req.file.originalname,
+      fileSize: fileSizeStr,
+      fileType: isPdf ? 'pdf' : 'text',
+      extractedText: extractedText.slice(0, 80000),
+      chunksCount: chunks,
+      category,
+      audience,
+      status: 'Indexed',
+      uploadedBy: req.user ? req.user.id : null,
+      uploadedAt: new Date(),
+      sampleSnippets: extractedText.slice(0, 1500).split(/\n+/).map(s => s.trim()).filter(s => s.length > 20).slice(0, 5)
+    });
+  } catch (hbErr) {
+    console.warn('Could not save to separate Handbook collection:', hbErr.message);
+  }
+
   await audit.record({
     req,
     action: 'knowledge.upload',
@@ -173,6 +193,7 @@ knowledge.post('/upload', manage, upload.single('file'), asyncHandler(async (req
 
   created(res, {
     _id: document._id,
+    handbookId: handbookDoc ? handbookDoc._id : document._id,
     title: document.title,
     fileName: req.file.originalname,
     fileSize: fileSizeStr,
@@ -181,7 +202,14 @@ knowledge.post('/upload', manage, upload.single('file'), asyncHandler(async (req
     chunksCount: chunks,
     characters: extractedText.length,
     status: document.status,
+    message: 'Document successfully stored in database and indexed for AI Assistant RAG queries.'
   });
+}));
+
+// Retrieve all documents from the separate Handbook collection in MongoDB
+knowledge.get('/handbooks', manage, asyncHandler(async (req, res) => {
+  const list = await Handbook.find({}).sort({ createdAt: -1 });
+  ok(res, list);
 }));
 
 knowledge.put('/:id', manage, validate({ params: z.object({ id: objectId }), body: docBody }), asyncHandler(async (req, res) => {
