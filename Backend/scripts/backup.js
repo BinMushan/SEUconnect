@@ -48,7 +48,7 @@ const runBackup = async ({ outDir, collections } = {}) => {
 };
 
 if (require.main === module) {
-  require('dotenv').config({ quiet: true });
+  require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
   const connectDB = require('../config/db');
   const args = process.argv.slice(2);
   const opt = (name) => {

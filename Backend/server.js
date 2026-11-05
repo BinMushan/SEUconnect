@@ -1,4 +1,4 @@
-require('dotenv').config({ quiet: true });
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), quiet: true }); // always Backend/.env, whatever folder the server is started from
 const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');

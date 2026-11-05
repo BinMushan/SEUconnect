@@ -1,5 +1,5 @@
 // npm run migrate - applies pending migrations (they also run automatically on server start).
-require('dotenv').config({ quiet: true });
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
 const connectDB = require('../config/db');
 const { runMigrations } = require('../migrations/runner');
 
