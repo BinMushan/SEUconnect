@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getNavSectionsForRole, getRoleMetaData } from './roleNavConfigs.jsx';
+import { getNavSectionsForRole, getRoleMetaData, getTimeGreeting } from './roleNavConfigs.jsx';
 import api from '../../src/services/api.js';
 import SEUConnectAIAssistantModal from './SEUConnectAIAssistantModal.jsx';
 import './dashboard_template.css';
@@ -469,7 +469,7 @@ export default function DashboardTemplate({
   const userSemester = user?.semester || 'Semester 05';
   const userSpecialization = user?.specialization || 'Software Systems';
   const userRole = (user?.role ? user.role : (roleMeta.rolePill || 'STUDENT')).toUpperCase();
-  const greeting = greetingText || roleMeta.greeting || `Good Morning, ${userName}`;
+  const greeting = greetingText || roleMeta.greeting || `${getTimeGreeting()}, ${userName}`;
   const effectiveFacultyPill = facultyPillText || roleMeta.facultyPill || 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY';
   const effectiveMetaItems = metaItems || roleMeta.metaItems;
   const effectiveSearchPlaceholder = searchPlaceholder || (roleKey === 'student' ? 'Search portal resources, subjects, or forms...' : `Search ${userRole.toLowerCase()} resources, records, or files...`);
