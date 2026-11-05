@@ -1,43 +1,60 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import api from '../../src/services/api.js';
 import './medical_requests.css';
 
-// Default medical submissions matching the live portal exactly
-const INITIAL_SUBMISSIONS = [
-  {
-    id: 'MED-2026-0003',
-    leaveFrom: '10/29/2026',
-    leaveTo: '10/20/2026',
-    reason: 'i have sevice haedache',
-    medicalCenter: 'University Medical Center - SEUSL',
-    submittedOn: '10/18/2026',
-    status: 'Submitted',
-    remarks: 'Under administrative review by Faculty Committee'
-  },
-  {
-    id: 'MED-2026-0042',
-    leaveFrom: '9/8/2026',
-    leaveTo: '9/10/2026',
-    reason: 'Severe migraine and dehydration requiring clinical rest',
-    medicalCenter: 'District General Hospital, Kalmunai',
-    submittedOn: '9/22/2026',
-    status: 'Approved',
-    remarks: 'Approved by Faculty Board'
-  },
-  {
-    id: 'MED-2026-0012',
-    leaveFrom: '8/15/2026',
-    leaveTo: '8/18/2026',
-    reason: 'Acute viral bronchitis under medical supervision',
-    medicalCenter: 'University Medical Center - SEUSL',
-    submittedOn: '9/22/2026',
-    status: 'Approved',
-    remarks: 'Valid UMC endorsement confirmed. Attendance credited as Excused_Medical.'
-  }
-];
+const ABSENCE_TYPES = {
+  lecture: { label: 'Absent from lectures / practicals (Subject Medical)', type: 'subject_medical', to: 'Department MA' },
+  exam: { label: 'Absent from an examination or CA (Examination Medical)', type: 'exam_medical', to: 'Faculty MA' },
+};
 
-export default function MedicalRequests() {
+// "ICT3113 - Software Engineering" per line (or comma separated codes) -> [{ code, title }]
+const parseSubjects = (text) =>
+  text
+    .split(/\n|,/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [code, ...rest] = line.split(/\s+-\s+|\s{2,}/);
+      return { code: code.trim(), title: rest.join(' ').trim() };
+    });
+
+const toRow = (p) => ({
+  id: p.trackingNumber,
+  leaveFrom: p.formData?.medical?.fromDate || p.details?.absenceDate,
+  leaveTo: p.formData?.medical?.toDate || p.details?.endDate,
+  reason: p.formData?.medical?.reason || p.details?.reason,
+  medicalCenter: p.formData?.medical?.hospital || p.details?.hospitalClinic || '-',
+  submittedOn: new Date(p.createdAt).toLocaleDateString('en-GB'),
+  status: p.status,
+  remarks:
+    p.status === 'Returned for Correction'
+      ? p.returnDetails?.reason
+      : p.status === 'Declined'
+        ? p.declineDetails?.reason
+        : p.status === 'Approved'
+          ? 'Approved'
+          : `With ${p.currentAssignedRole === 'dept_ma' ? 'Department MA' : p.currentAssignedRole === 'fma' ? 'Faculty MA' : p.currentAssignedRole}`,
+});
+
+export default function MedicalRequests({ user }) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
+  const [submissions, setSubmissions] = useState([]);
+  const [absenceType, setAbsenceType] = useState('lecture');
+  const [subjectsText, setSubjectsText] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  const loadSubmissions = useCallback(async () => {
+    try {
+      const res = await api.getProcesses();
+      setSubmissions((res.data || []).filter((p) => p.type === 'subject_medical' || p.type === 'exam_medical').map(toRow));
+    } catch (err) {
+      setSubmitError(err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSubmissions();
+  }, [loadSubmissions]);
   const [successMessage, setSuccessMessage] = useState('');
 
   // Form Fields
@@ -54,6 +71,18 @@ export default function MedicalRequests() {
     e.preventDefault();
     if (!startDate || !endDate || !reason.trim()) {
       alert('Please fill in the medical leave dates and diagnosis/reason.');
+      return;
+    }
+    if (endDate < startDate) {
+      alert('The leave end date cannot be before the start date.');
+      return;
+    }
+    if (reason.trim().length < 10) {
+      alert('Please describe the medical reason in at least 10 characters.');
+      return;
+    }
+    if (parseSubjects(subjectsText).length === 0) {
+      alert('List at least one affected subject (for example: ICT3113 - Software Engineering).');
       return;
     }
     setCurrentStep(2);
@@ -73,42 +102,42 @@ export default function MedicalRequests() {
     setCurrentStep(4);
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newId = `MED-2026-00${String(submissions.length + 1).padStart(2, '0')}`;
-      const now = new Date();
-      const submittedDate = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    setSubmitError('');
+    const route = ABSENCE_TYPES[absenceType];
+    try {
+      const res = await api.createProcess({
+        type: route.type,
+        semester: user?.semester,
+        subjects: parseSubjects(subjectsText),
+        medical: {
+          reason: reason.trim(),
+          fromDate: startDate,
+          toDate: endDate,
+          doctorName: physicianName,
+          hospital: institution,
+          certificateNo: serialNumber,
+          documentName: attachedFile ? attachedFile.name : '',
+        },
+      });
+      await loadSubmissions();
+      setSuccessMessage(`${res.data.trackingNumber} submitted to the ${route.to}. You will be notified at every step.`);
 
-      const newSubmission = {
-        id: newId,
-        leaveFrom: startDate,
-        leaveTo: endDate,
-        reason: reason,
-        medicalCenter: institution,
-        submittedOn: submittedDate,
-        status: 'Submitted',
-        remarks: 'Under administrative review by Faculty Committee'
-      };
-
-      setSubmissions([newSubmission, ...submissions]);
-      setIsSubmitting(false);
-      setSuccessMessage('Medical request submitted successfully for Faculty Committee & Dean endorsement.');
-
-      // Reset form
       setStartDate('');
       setEndDate('');
       setReason('');
+      setSubjectsText('');
       setSerialNumber('');
       setPhysicianName('');
       setAttachedFile(null);
       setCurrentStep(1);
-
-      // Dismiss message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
-    }, 400);
+      setTimeout(() => setSuccessMessage(''), 6000);
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -267,6 +296,27 @@ export default function MedicalRequests() {
               />
             </div>
 
+            <div className="form-group">
+              <label className="form-label" htmlFor="med-type">
+                What did you miss? *
+              </label>
+              <select id="med-type" className="form-select" value={absenceType} onChange={(e) => setAbsenceType(e.target.value)}>
+                {Object.entries(ABSENCE_TYPES).map(([key, t]) => (
+                  <option key={key} value={key}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <span className="date-selected-hint">Goes to the {ABSENCE_TYPES[absenceType].to}.</span>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="med-subjects">
+                Affected subjects * (one per line, e.g. ICT3113 - Software Engineering)
+              </label>
+              <textarea id="med-subjects" className="form-textarea" rows="3" value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} />
+            </div>
+
             <div className="medical-form-actions-right">
               <button type="submit" className="btn-primary">
                 Next Step
@@ -399,6 +449,9 @@ export default function MedicalRequests() {
                 <strong>Reason:</strong> {reason || 'N/A'}
               </div>
               <div className="review-row">
+                <strong>Subjects:</strong> {parseSubjects(subjectsText).map((x) => x.code).join(', ')} ({ABSENCE_TYPES[absenceType].label})
+              </div>
+              <div className="review-row">
                 <strong>Medical Facility:</strong> {institution}
               </div>
               <div className="review-row">
@@ -408,6 +461,12 @@ export default function MedicalRequests() {
                 <strong>Attached File:</strong> {attachedFile ? attachedFile.name : 'Physical copy to be produced to Head of Dept'}
               </div>
             </div>
+
+            {submitError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.6rem 0.9rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
+                {submitError}
+              </div>
+            )}
 
             <div className="medical-form-actions-between">
               <button
@@ -423,7 +482,7 @@ export default function MedicalRequests() {
                 onClick={handleFinalSubmit}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Confirm & Submit to Faculty Board'}
+                {isSubmitting ? 'Submitting...' : `Confirm & Submit to ${ABSENCE_TYPES[absenceType].to}`}
               </button>
             </div>
           </div>
@@ -458,26 +517,19 @@ export default function MedicalRequests() {
                 submissions.map((sub) => (
                   <tr key={sub.id}>
                     <td>
-                      <div className="medical-id-cell">
-                        <div>MED-2026-</div>
-                        <div>{sub.id.replace('MED-2026-', '')}</div>
-                      </div>
+                      <div className="medical-id-cell">{sub.id}</div>
                     </td>
                     <td>
                       <div className="medical-period-cell">
-                        <div>
-                          {sub.leaveFrom || (sub.leavePeriod ? sub.leavePeriod.split('–')[0].trim() : (sub.id === 'MED-2026-0003' ? '10/29/2026' : sub.id === 'MED-2026-0042' ? '9/8/2026' : '8/15/2026'))} –
-                        </div>
-                        <div>
-                          {sub.leaveTo || (sub.leavePeriod ? sub.leavePeriod.split('–')[1]?.trim() : (sub.id === 'MED-2026-0003' ? '10/20/2026' : sub.id === 'MED-2026-0042' ? '9/10/2026' : '8/18/2026'))}
-                        </div>
+                        <div>{sub.leaveFrom} –</div>
+                        <div>{sub.leaveTo}</div>
                       </div>
                     </td>
                     <td>{sub.reason}</td>
                     <td>{sub.medicalCenter}</td>
                     <td>{sub.submittedOn}</td>
                     <td>
-                      <span className={sub.status === 'Approved' ? 'badge-approved' : 'badge-submitted'}>
+                      <span className={sub.status === 'Approved' ? 'badge-approved' : sub.status === 'Declined' || sub.status === 'Returned for Correction' ? 'badge-rejected' : 'badge-submitted'}>
                         {sub.status}
                       </span>
                     </td>
