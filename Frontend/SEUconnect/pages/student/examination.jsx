@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 import './examination.css';
 
 // Default examination registered modules matching the SEUConnect live production portal
@@ -72,6 +73,11 @@ const DEFAULT_EXAM_MODULES = [
 ];
 
 export default function StudentExamination({ user }) {
+  const cur = getCurriculumBySemester(user?.semester);
+  const examModulesList = (user?.examModules && user.examModules.length > 0)
+    ? user.examModules
+    : cur.examModules;
+
   const [activeModal, setActiveModal] = useState(null); // 'CA_REPEAT' | 'ESA_REPEAT' | null
   const [toastMessage, setToastMessage] = useState('');
   const [pivSlipNo, setPivSlipNo] = useState('');
@@ -83,9 +89,9 @@ export default function StudentExamination({ user }) {
   const regNo = user?.regNo || '22ICT085';
   const indexNo = user?.indexNo || 'ICT22085';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
-  const semester = user?.semester || 'Semester 5';
-  const academicYear = '2025/2026';
-  const overallAttendance = 87;
+  const semester = user?.semester || cur.semester;
+  const academicYear = user?.batch || '2025/2026';
+  const overallAttendance = user?.attendance !== undefined && user?.attendance !== null ? Number(user.attendance) : 92.5;
   const minThreshold = 80;
   const isOverallEligible = overallAttendance >= minThreshold;
 
@@ -202,7 +208,7 @@ export default function StudentExamination({ user }) {
               <span className="stat-label">REGISTERED EXAM MODULES</span>
               <span className="stat-badge stat-badge-subtle">Active</span>
             </div>
-            <div className="stat-value">{DEFAULT_EXAM_MODULES.length} Modules</div>
+            <div className="stat-value">{examModulesList.length} Modules</div>
             <div className="stat-subtext">Regular First Attempts</div>
           </div>
         </div>
@@ -241,7 +247,7 @@ export default function StudentExamination({ user }) {
       {/* 4. Current Semester Examination Enrollment & Eligibility Table */}
       <section className="seu-card exam-table-card">
         <div className="seu-card-header">
-          <h2 className="seu-card-title">Current Semester Examination Enrollment & Eligibility</h2>
+          <h2 className="seu-card-title">{semester} Examination Enrollment & Eligibility</h2>
         </div>
         <div className="table-responsive">
           <table className="seu-table exam-modules-table">
@@ -256,22 +262,22 @@ export default function StudentExamination({ user }) {
               </tr>
             </thead>
             <tbody>
-              {DEFAULT_EXAM_MODULES.map((module) => (
+              {examModulesList.map((module) => (
                 <tr key={module.code}>
                   <td className="exam-cell-code">
                     <strong>{module.code}</strong>
                   </td>
                   <td className="exam-cell-title">{module.title}</td>
                   <td className="exam-cell-credits">{module.credits} Credits</td>
-                  <td className="exam-cell-attendance">{module.attendancePercentage}%</td>
+                  <td className="exam-cell-attendance">{module.attendancePct || module.attendancePercentage || 92}%</td>
                   <td className="exam-cell-status">
                     <span className="badge badge-success">
-                      {module.eligibility}
+                      {module.eligibility || 'Eligible'}
                     </span>
                   </td>
                   <td className="exam-cell-attempt">
                     <span className="badge badge-neutral">
-                      {module.attemptCategory}
+                      {module.attemptCategory || 'FIRST_ATTEMPT'}
                     </span>
                   </td>
                 </tr>
@@ -374,7 +380,7 @@ export default function StudentExamination({ user }) {
             </tr>
           </thead>
           <tbody>
-            {DEFAULT_EXAM_MODULES.map((mod, idx) => (
+            {examModulesList.map((mod, idx) => (
               <tr key={mod.code}>
                 <td>{idx + 1}</td>
                 <td><strong>{mod.code}</strong></td>
@@ -441,7 +447,7 @@ export default function StudentExamination({ user }) {
               <div className="exam-form-group">
                 <label className="exam-form-label">Select Module(s) for Resit / Repeat</label>
                 <div className="exam-subject-checkbox-list">
-                  {DEFAULT_EXAM_MODULES.map((mod) => (
+                  {examModulesList.map((mod) => (
                     <label key={mod.code} className="exam-checkbox-item">
                       <input
                         type="checkbox"

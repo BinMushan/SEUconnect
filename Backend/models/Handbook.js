@@ -68,3 +68,4 @@ const HandbookSchema = new mongoose.Schema(
 HandbookSchema.index({ title: 'text', extractedText: 'text' });
 
 module.exports = mongoose.model('Handbook', HandbookSchema);
+
