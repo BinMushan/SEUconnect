@@ -217,7 +217,7 @@ export default function StudentGpaCgpa({ user }) {
   const indexNo = user?.indexNo || 'ICT22085';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
   const specialization = user?.specialization || 'Software Systems';
-  const cumulativeCgpa = 3.58;
+  const cumulativeCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? Number(user.cgpa).toFixed(2) : '3.58';
   const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1];
 
   const handlePrint = () => {

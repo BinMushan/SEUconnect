@@ -4,11 +4,16 @@
  * Every request carries the signed-in user's JWT; the backend decides what that user may see and do.
  */
 
-const API_BASE_URL =
-  import.meta.env?.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location?.hostname === 'localhost'
+const rawApiUrl = (import.meta.env?.VITE_API_URL || '').trim();
+const API_BASE_URL = (() => {
+  if (rawApiUrl) {
+    const clean = rawApiUrl.replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  return typeof window !== 'undefined' && window.location?.hostname === 'localhost'
     ? 'http://localhost:5000/api'
-    : '/api');
+    : '/api';
+})();
 const TOKEN_KEY = 'seuconnect_token';
 
 export const authToken = {
@@ -205,6 +210,26 @@ export const api = {
   getUsers: () => request('/auth/users'),
   // Staff directory, e.g. getDirectory({ role: 'lecturer', department }) for the lecturer picker.
   getDirectory: (params = {}) => request(`/auth/directory${qs(params)}`),
+  uploadProfilePhoto: async (file) => {
+    const token = authToken.get();
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const res = await fetch(`${API_BASE_URL}/auth/profile-photo`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: formData
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(body.message || `Profile upload failed (${res.status})`);
+    }
+    return body;
+  },
+  updateProfile: (data) => request('/auth/profile', json('PUT', data)),
 
   /* -------------------------------- applications ------------------------------- */
   // Applications visible to the signed-in user. scope: 'action' limits to items awaiting their action.
@@ -313,20 +338,30 @@ export const api = {
   /* ------------------- Knowledge Base (RAG Ingestion & Documents) ------------------- */
   getKnowledgeDocs: (params = {}) => request(`/v1/knowledge${qs(params)}`).then((b) => b.data || b),
   createKnowledgeDoc: (doc) => request('/v1/knowledge', json('POST', doc)).then((b) => b.data || b),
-  uploadKnowledgeFile: (formData) => {
+  uploadKnowledgeFile: async (formData) => {
     const token = authToken.get();
-    return fetch(`${API_BASE_URL}/v1/knowledge/upload`, {
-      method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: formData
-    }).then(async (res) => {
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || 'File upload failed');
-      return data.data || data;
-    });
+    let res;
+    try {
+      res = await fetch(`${API_BASE_URL}/v1/knowledge/upload`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: formData
+      });
+    } catch (networkErr) {
+      const err = new Error('Cannot reach backend server. Please verify the backend is running.');
+      err.network = true;
+      throw err;
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || `Upload failed (${res.status} ${res.statusText || ''})`.trim());
+    }
+    return data.data || data;
   },
+  getHandbooks: () => request('/v1/knowledge/handbooks').then((b) => b.data || b),
   retireKnowledgeDoc: (id) => request(`/v1/knowledge/${id}/retire`, json('POST', {})).then((b) => b.data || b),
 };
 
