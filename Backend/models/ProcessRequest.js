@@ -12,7 +12,7 @@ const StageSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ['student', 'lecturer', 'medical_officer', 'hod', 'dean', 'examination', 'admin', 'sar'],
+    enum: ['student', 'lecturer', 'medical_officer', 'hod', 'dean', 'examination', 'admin', 'sar', 'dept_ma', 'fma'],
   },
   status: {
     type: String,
@@ -38,6 +38,11 @@ const StageSchema = new mongoose.Schema({
   digitalStamp: {
     type: String,
     default: null,
+  },
+  // Status label shown while this stage is the current one (new workflows only).
+  pendingStatus: {
+    type: String,
+    default: '',
   },
 });
 
@@ -97,7 +102,26 @@ const ProcessRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Draft', 'Pending Lecturer', 'Pending Medical Verification', 'Pending HOD', 'Pending Dean', 'Pending SAR Review', 'Pending SAR Verification', 'Pending SAR Action', 'Pending Examination Branch', 'Admission Processing', 'Approved', 'Declined', 'Returned for Correction'],
+      enum: [
+        'Draft',
+        'Pending Lecturer',
+        'Pending Medical Verification',
+        'Pending HOD',
+        'Pending Dean',
+        'Pending SAR Review',
+        'Pending SAR Verification',
+        'Pending SAR Action',
+        'Pending SAR Senate Tracking',
+        'Pending Examination Branch',
+        'Pending Dept MA',
+        'Pending Faculty MA',
+        'Admission Processing',
+        'Admission Generated',
+        'In Progress',
+        'Approved',
+        'Declined',
+        'Returned for Correction',
+      ],
       default: 'Pending Lecturer',
     },
     priority: {
@@ -153,7 +177,34 @@ const ProcessRequestSchema = new mongoose.Schema(
       bankBranch: { type: String, default: "People's Bank" },
       date: { type: String, default: '' },
       receiptUrl: { type: String, default: '' },
+      fileName: { type: String, default: '' },
+      hasFile: { type: Boolean, default: false },
       verifiedBySAR: { type: Boolean, default: false },
+    },
+    // Uploaded voucher / receipt (kept apart so list responses can omit the payload).
+    receiptFile: {
+      name: { type: String, default: '' },
+      mime: { type: String, default: '' },
+      size: { type: Number, default: 0 },
+      dataUrl: { type: String, default: '', select: false },
+    },
+    // Full structured content of the submitted form (subjects, dates, declaration ...).
+    formData: { type: mongoose.Schema.Types.Mixed, default: {} },
+    academicYear: { type: String, default: '2025/2026' },
+    formSemester: { type: String, default: '' },
+    assignedLecturer: {
+      name: { type: String, default: '' },
+      email: { type: String, default: '' },
+      staffId: { type: String, default: '' },
+    },
+    resubmissionCount: { type: Number, default: 0 },
+    returnDetails: {
+      returnedBy: { type: String, default: null },
+      returnedByRole: { type: String, default: null },
+      returnedAt: { type: Date, default: null },
+      stage: { type: String, default: null },
+      stageKey: { type: String, default: null },
+      reason: { type: String, default: null },
     },
     admissionDetails: {
       admissionNo: { type: String, default: '' },
@@ -172,13 +223,18 @@ const ProcessRequestSchema = new mongoose.Schema(
     departmentList: {
       forwardedAt: { type: Date, default: null },
       department: { type: String, default: '' },
+      listRef: { type: String, default: '' },
+      sentBy: { type: String, default: '' },
       academicYear: { type: String, default: '2025/2026' },
-      handledBySAR: { type: Boolean, default: true },
+      handledBySAR: { type: Boolean, default: false },
     },
     stages: [StageSchema],
     auditLog: [AuditLogSchema],
   },
   { timestamps: true }
 );
+
+ProcessRequestSchema.index({ 'student.email': 1, type: 1 });
+ProcessRequestSchema.index({ type: 1, status: 1 });
 
 module.exports = mongoose.model('ProcessRequest', ProcessRequestSchema);
