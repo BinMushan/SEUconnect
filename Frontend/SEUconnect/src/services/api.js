@@ -117,6 +117,50 @@ export const enrolledStorage = {
     } catch (e) {
       return false;
     }
+  },
+  remove: (identifier) => {
+    try {
+      const clean = String(identifier || '').trim().toLowerCase();
+      if (!clean) return false;
+      let list = enrolledStorage.getAll();
+      const initialLen = list.length;
+      list = list.filter(s => {
+        const idMatch = s.id && String(s.id).toLowerCase() === clean;
+        const regMatch = (s.regNo && s.regNo.toLowerCase() === clean) || (s.studentId && s.studentId.toLowerCase() === clean);
+        const emailMatch = s.email && s.email.toLowerCase() === clean;
+        const indexMatch = s.indexNo && s.indexNo.toLowerCase() === clean;
+        return !(idMatch || regMatch || emailMatch || indexMatch);
+      });
+      if (list.length !== initialLen) {
+        localStorage.setItem('seuconnect_enrolled_students', JSON.stringify(list));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  },
+  update: (identifier, updatedFields) => {
+    try {
+      const clean = String(identifier || '').trim().toLowerCase();
+      if (!clean) return null;
+      const list = enrolledStorage.getAll();
+      const idx = list.findIndex(s => 
+        (s.id && String(s.id).toLowerCase() === clean) ||
+        (s.regNo && s.regNo.toLowerCase() === clean) ||
+        (s.studentId && s.studentId.toLowerCase() === clean) ||
+        (s.email && s.email.toLowerCase() === clean) ||
+        (s.indexNo && s.indexNo.toLowerCase() === clean)
+      );
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...updatedFields };
+        localStorage.setItem('seuconnect_enrolled_students', JSON.stringify(list));
+        return list[idx];
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 };
 
@@ -318,6 +362,24 @@ export const api = {
     } catch (e) {
       console.warn('Backend /api/student/bulk offline, cached in enrolledStorage', e.message);
       return { success: true, message: `${studentsList.length} students enrolled and cached locally`, count: studentsList.length };
+    }
+  },
+  updateStudent: async (identifier, studentData) => {
+    enrolledStorage.update(identifier, studentData);
+    try {
+      return await request(`/student/${encodeURIComponent(identifier)}`, json('PUT', studentData));
+    } catch (e) {
+      console.warn('Backend /api/student update offline, cached in enrolledStorage', e.message);
+      return { success: true, message: 'Student updated locally', data: studentData };
+    }
+  },
+  deleteStudent: async (identifier) => {
+    enrolledStorage.remove(identifier);
+    try {
+      return await request(`/student/${encodeURIComponent(identifier)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Backend /api/student delete offline, removed from enrolledStorage', e.message);
+      return { success: true, message: 'Student removed locally' };
     }
   },
 

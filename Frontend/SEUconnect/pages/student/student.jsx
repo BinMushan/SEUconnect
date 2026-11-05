@@ -117,17 +117,85 @@ export default function Student({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
   
   const currentCurriculum = getCurriculumBySemester(studentUser?.semester || user?.semester);
-  const progressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0)
+  const rawProgressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0)
     ? studentUser.progressionData
-    : currentCurriculum.progressionData;
+    : (currentCurriculum?.progressionData || []);
+
+  // Compute dynamic coordinates (x, y) so labels never overlap and curve bounds perfectly
+  const chartPoints = rawProgressionData.map((p, idx, arr) => {
+    const N = arr.length;
+    let x = 290;
+    if (N > 1) {
+      const minX = N >= 6 ? 75 : 85;
+      const maxX = N >= 6 ? 505 : 495;
+      x = Math.round(minX + idx * ((maxX - minX) / (N - 1)));
+    }
+    const sgpaVal = Math.max(2.5, Math.min(4.0, Number(p.sgpa) || 3.5));
+    const y = Number((165 - ((sgpaVal - 2.50) / 1.50) * 130).toFixed(1));
+    return {
+      ...p,
+      x,
+      y,
+      sgpaNum: Number(p.sgpa) || 0
+    };
+  });
 
   const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(0);
 
   useEffect(() => {
-    if (progressionData.length > 0) {
-      setSelectedSemesterIdx(progressionData.length - 1);
+    if (chartPoints.length > 0) {
+      setSelectedSemesterIdx(chartPoints.length - 1);
+    } else {
+      setSelectedSemesterIdx(0);
     }
-  }, [progressionData.length, studentUser?.semester]);
+  }, [chartPoints.length, studentUser?.semester]);
+
+  // Dynamic cubic bezier path & area generator (no trailing tails!)
+  const generateChartPaths = (pts) => {
+    if (!pts || pts.length === 0) {
+      return { linePath: '', areaPath: '' };
+    }
+    if (pts.length === 1) {
+      const p = pts[0];
+      const linePath = `M ${p.x - 45},${p.y} L ${p.x + 45},${p.y}`;
+      const areaPath = `M ${p.x - 45},${p.y} L ${p.x + 45},${p.y} L ${p.x + 45},165 L ${p.x - 45},165 Z`;
+      return { linePath, areaPath };
+    }
+
+    let linePath = `M ${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i];
+      const p1 = pts[i + 1];
+      const cpX1 = (p0.x + (p1.x - p0.x) * 0.45).toFixed(1);
+      const cpX2 = (p1.x - (p1.x - p0.x) * 0.45).toFixed(1);
+      linePath += ` C ${cpX1},${p0.y} ${cpX2},${p1.y} ${p1.x},${p1.y}`;
+    }
+
+    const firstX = pts[0].x;
+    const lastX = pts[pts.length - 1].x;
+    const areaPath = `${linePath} L ${lastX},165 L ${firstX},165 Z`;
+
+    return { linePath, areaPath };
+  };
+
+  const { linePath, areaPath } = generateChartPaths(chartPoints);
+
+  // Active semester for top stat boxes
+  const activeProg = chartPoints[selectedSemesterIdx] || chartPoints[chartPoints.length - 1] || {
+    semester: 'Sem 1',
+    fullLabel: 'Semester 1 (Current)',
+    sgpa: 3.75,
+    delta: '+0.00',
+    credits: 17,
+    standing: 'First Class Standing',
+    isFirstClass: true
+  };
+
+  // Cumulative degree requirements based on student's progression
+  const totalDegreeCreditsRequired = 130;
+  const creditsCompleted = chartPoints.reduce((sum, p) => sum + (Number(p.credits) || 0), 0);
+  const creditsRemaining = Math.max(0, totalDegreeCreditsRequired - creditsCompleted);
+  const degreeProgressPercent = Math.min(100, Math.round((creditsCompleted / totalDegreeCreditsRequired) * 100));
 
   const suggestedChips = [
     'CA Repeat Form',
@@ -598,8 +666,8 @@ export default function Student({ user, onLogout }) {
                     value={selectedSemesterIdx}
                     onChange={(e) => setSelectedSemesterIdx(Number(e.target.value))}
                   >
-                    {progressionData.map((p, idx) => (
-                      <option key={idx} value={idx}>{p.fullLabel}</option>
+                    {chartPoints.map((p, idx) => (
+                      <option key={idx} value={idx}>{p.fullLabel || p.semester}</option>
                     ))}
                   </select>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.5">
@@ -620,11 +688,11 @@ export default function Student({ user, onLogout }) {
                   </svg>
                 </div>
                 <div className="std-trend-box-content">
-                  <span className="std-trend-box-lbl">SEMESTER GPA ({progressionData[selectedSemesterIdx].semester})</span>
+                  <span className="std-trend-box-lbl">SEMESTER GPA ({activeProg.semester || 'Current'})</span>
                   <div className="std-trend-box-val-row">
-                    <span className="std-trend-box-val">{progressionData[selectedSemesterIdx].sgpa.toFixed(2)}</span>
-                    <span className={`std-trend-box-delta ${progressionData[selectedSemesterIdx].delta.startsWith('+') ? 'positive' : progressionData[selectedSemesterIdx].delta.startsWith('-') ? 'negative' : 'neutral'}`}>
-                      {progressionData[selectedSemesterIdx].delta}
+                    <span className="std-trend-box-val">{(Number(activeProg.sgpa) || 0).toFixed(2)}</span>
+                    <span className={`std-trend-box-delta ${(activeProg.delta || '').startsWith('+') ? 'positive' : (activeProg.delta || '').startsWith('-') ? 'negative' : 'neutral'}`}>
+                      {activeProg.delta || '+0.00'}
                     </span>
                   </div>
                 </div>
@@ -640,8 +708,8 @@ export default function Student({ user, onLogout }) {
                 <div className="std-trend-box-content">
                   <span className="std-trend-box-lbl">REGISTERED CREDITS</span>
                   <div className="std-trend-box-val-row">
-                    <span className="std-trend-box-val">{progressionData[selectedSemesterIdx].credits}</span>
-                    <span className="std-trend-box-denom">/ {progressionData[selectedSemesterIdx].credits} Cleared</span>
+                    <span className="std-trend-box-val">{activeProg.credits || 0}</span>
+                    <span className="std-trend-box-denom">/ {activeProg.credits || 0} Cleared</span>
                   </div>
                 </div>
               </div>
@@ -656,8 +724,8 @@ export default function Student({ user, onLogout }) {
                 </div>
                 <div className="std-trend-box-content">
                   <span className="std-trend-box-lbl">FACULTY STANDING</span>
-                  <div className={`std-trend-box-standing-badge ${progressionData[selectedSemesterIdx].isFirstClass ? 'first-class' : 'second-upper'}`}>
-                    <span>{progressionData[selectedSemesterIdx].standing}</span>
+                  <div className={`std-trend-box-standing-badge ${activeProg.isFirstClass ? 'first-class' : 'second-upper'}`}>
+                    <span>{activeProg.standing || 'First Class Standing'}</span>
                   </div>
                 </div>
               </div>
@@ -706,14 +774,16 @@ export default function Student({ user, onLogout }) {
                 <text x="36" y="129" className="std-axis-text">3.00</text>
                 <text x="36" y="169" className="std-axis-text">2.50</text>
 
-                {/* Gradient Area Fill Under Curve */}
-                <path
-                  d="M 80,51.2 C 115,53.2 150,64.5 185,66.5 C 220,66.8 255,67.1 290,67.4 C 325,71.4 360,76.0 395,80.0 C 430,80.0 465,80.0 500,80.0 L 500,165 L 80,165 Z"
-                  fill="url(#academicAreaGrad)"
-                />
+                {/* Gradient Area Fill Under Curve (Dynamic, perfectly bounded) */}
+                {areaPath && (
+                  <path
+                    d={areaPath}
+                    fill="url(#academicAreaGrad)"
+                  />
+                )}
 
                 {/* Vertical Drop Guideline on Selected Point */}
-                {progressionData.map((p, idx) => {
+                {chartPoints.map((p, idx) => {
                   if (selectedSemesterIdx !== idx) return null;
                   return (
                     <line
@@ -727,19 +797,22 @@ export default function Student({ user, onLogout }) {
                   );
                 })}
 
-                {/* Smooth Multi-Stop Academic Trend Line Curve */}
-                <path
-                  d="M 80,51.2 C 115,53.2 150,64.5 185,66.5 C 220,66.8 255,67.1 290,67.4 C 325,71.4 360,76.0 395,80.0 C 430,80.0 465,80.0 500,80.0"
-                  fill="none"
-                  stroke="url(#academicLineGrad)"
-                  strokeWidth="3.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                {/* Smooth Multi-Stop Academic Trend Line Curve (Dynamic, no trailing horizontal tail) */}
+                {linePath && (
+                  <path
+                    d={linePath}
+                    fill="none"
+                    stroke="url(#academicLineGrad)"
+                    strokeWidth="3.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )}
 
                 {/* Data Points & Interactive Floating Badges */}
-                {progressionData.map((p, idx) => {
+                {chartPoints.map((p, idx) => {
                   const isSelected = selectedSemesterIdx === idx;
+                  const sgpaFormatted = (Number(p.sgpa) || 0).toFixed(2);
 
                   return (
                     <g
@@ -772,7 +845,7 @@ export default function Student({ user, onLogout }) {
                             fontWeight="800"
                             letterSpacing="-0.01em"
                           >
-                            {p.sgpa.toFixed(2)} SGPA
+                            {sgpaFormatted} SGPA
                           </text>
                         </g>
                       ) : (
@@ -785,7 +858,7 @@ export default function Student({ user, onLogout }) {
                           fontWeight="700"
                           className="std-point-idle-lbl"
                         >
-                          {p.sgpa.toFixed(2)}
+                          {sgpaFormatted}
                         </text>
                       )}
 
@@ -846,7 +919,7 @@ export default function Student({ user, onLogout }) {
               </svg>
             </div>
 
-            {/* Bottom 3 Stat Segments Bar */}
+            {/* Bottom 3 Stat Segments Bar (Dynamic cohort metrics) */}
             <div className="std-trend-bottom-row">
               {/* Segment 1: Credits Completed */}
               <div className="std-bottom-stat-box">
@@ -857,7 +930,7 @@ export default function Student({ user, onLogout }) {
                 </div>
                 <div className="std-bottom-stat-info">
                   <span className="std-bottom-stat-lbl">Credits Completed</span>
-                  <span className="std-bottom-stat-val">78 <span className="std-bottom-stat-denom">/ 130 Minimum</span></span>
+                  <span className="std-bottom-stat-val">{creditsCompleted} <span className="std-bottom-stat-denom">/ {totalDegreeCreditsRequired} Minimum</span></span>
                 </div>
               </div>
 
@@ -871,7 +944,7 @@ export default function Student({ user, onLogout }) {
                 </div>
                 <div className="std-bottom-stat-info">
                   <span className="std-bottom-stat-lbl">Credits Remaining</span>
-                  <span className="std-bottom-stat-val">52 <span className="std-bottom-stat-denom">Cr to Graduate</span></span>
+                  <span className="std-bottom-stat-val">{creditsRemaining} <span className="std-bottom-stat-denom">Cr to Graduate</span></span>
                 </div>
               </div>
 
@@ -879,10 +952,10 @@ export default function Student({ user, onLogout }) {
               <div className="std-bottom-stat-box box-progress-col">
                 <div className="std-bottom-progress-head">
                   <span className="std-bottom-stat-lbl">Degree Completion</span>
-                  <span className="std-bottom-prog-badge">60%</span>
+                  <span className="std-bottom-prog-badge">{degreeProgressPercent}%</span>
                 </div>
                 <div className="std-bottom-prog-track">
-                  <div className="std-bottom-prog-fill" style={{ width: '60%' }}></div>
+                  <div className="std-bottom-prog-fill" style={{ width: `${degreeProgressPercent}%` }}></div>
                 </div>
               </div>
             </div>
