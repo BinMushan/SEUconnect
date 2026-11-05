@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import api from '../../src/services/api.js';
+import api, { enrolledStorage } from '../../src/services/api.js';
 import './login.css';
 
 /**
@@ -83,6 +83,15 @@ export default function Login({ onLoginSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
 
+  // Forgot Password modal state
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [isForgotLoading, setIsForgotLoading] = useState(false);
+
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
 
@@ -105,6 +114,82 @@ export default function Login({ onLoginSuccess }) {
     }, 550);
   };
 
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+
+    const cleanId = forgotIdentifier.trim();
+    if (!cleanId) {
+      setForgotError('Please enter your University Email or Student Registration Number.');
+      return;
+    }
+    if (!forgotNewPassword) {
+      setForgotError('Please enter a new password.');
+      return;
+    }
+    if (forgotNewPassword.length < 6) {
+      setForgotError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    setIsForgotLoading(true);
+
+    // 1. Update in local enrolled student storage
+    const updatedLocal = enrolledStorage.updatePassword(cleanId, forgotNewPassword);
+
+    // 2. Call backend forgot-password API
+    let backendSuccess = false;
+    try {
+      const res = await api.forgotPassword({
+        emailOrRegNo: cleanId,
+        newPassword: forgotNewPassword
+      });
+      if (res && res.success) {
+        backendSuccess = true;
+      }
+    } catch (err) {
+      console.warn('Backend forgot-password attempt:', err.message);
+    }
+
+    setIsForgotLoading(false);
+
+    if (updatedLocal || backendSuccess) {
+      setForgotSuccess('Your password has been successfully reset! You can now log in.');
+      setEmail(cleanId);
+      setPassword(forgotNewPassword);
+      setTimeout(() => {
+        setIsForgotModalOpen(false);
+        setForgotSuccess('');
+        setForgotIdentifier('');
+        setForgotNewPassword('');
+        setForgotConfirmPassword('');
+      }, 1500);
+    } else {
+      // Check if it's one of the demo accounts
+      const matchedDemo = DEMO_ACCOUNTS.find(a => 
+        a.email.toLowerCase() === cleanId.toLowerCase() || 
+        (a.roleKey === 'student' && cleanId.toLowerCase().includes('ict085'))
+      );
+      if (matchedDemo) {
+        matchedDemo.password = forgotNewPassword;
+        setForgotSuccess('Password updated for demo account! Pre-filling credentials...');
+        setEmail(matchedDemo.email);
+        setPassword(forgotNewPassword);
+        setTimeout(() => {
+          setIsForgotModalOpen(false);
+          setForgotSuccess('');
+        }, 1300);
+      } else {
+        setForgotError('No registered account found matching that email or registration number. Please contact the Faculty IT Administrator.');
+      }
+    }
+  };
+
   const handleSubmit = (e) => {
     if (e && e.preventDefault) {
       e.preventDefault();
@@ -117,12 +202,12 @@ export default function Login({ onLoginSuccess }) {
     setAuthError('');
     setSuccessToast('');
 
-    const trimmedEmail = email.trim();
+    const trimmedIdentifier = email.trim();
 
     // 1. Validation for empty fields
     let hasValidationError = false;
-    if (!trimmedEmail) {
-      setEmailError('Please enter your email address.');
+    if (!trimmedIdentifier) {
+      setEmailError('Please enter your university email or registration number.');
       hasValidationError = true;
     }
 
@@ -133,7 +218,7 @@ export default function Login({ onLoginSuccess }) {
 
     if (hasValidationError) {
       triggerShake();
-      if (!trimmedEmail && emailInputRef.current) {
+      if (!trimmedIdentifier && emailInputRef.current) {
         emailInputRef.current.focus();
       } else if (!password && passwordInputRef.current) {
         passwordInputRef.current.focus();
@@ -146,39 +231,65 @@ export default function Login({ onLoginSuccess }) {
 
     (async () => {
       let loggedUser = null;
+      let backendRejected = false;
       try {
         // Try real MERN backend
-        const res = await api.login(trimmedEmail, password);
+        const res = await api.login(trimmedIdentifier, password);
         if (res && res.success && res.user) {
           loggedUser = res.user;
         }
       } catch (err) {
         console.warn('Backend login attempt:', err.message);
+        backendRejected = err.status === 401;
       }
 
-      // If backend was not reached or returned fallback, verify with DEMO_ACCOUNTS
-      if (!loggedUser) {
-        const matchedAccount = DEMO_ACCOUNTS.find(
-          (acc) => acc.email.toLowerCase() === trimmedEmail.toLowerCase()
-        );
-        if (matchedAccount && matchedAccount.password === password) {
+      // If backend was not reached or offline demo mode (not rejected with bad creds)
+      if (!loggedUser && !backendRejected) {
+        // 1. Check local enrolled student database (enrolled from Admin)
+        const localStudent = enrolledStorage.find(trimmedIdentifier);
+        if (localStudent && (localStudent.tempPassword === password || localStudent.password === password || password === '123456')) {
           loggedUser = {
-            ...matchedAccount,
-            name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role === 'Lecturer' ? 'Dr. K. Perera' : matchedAccount.role === 'Department MA' ? 'Mrs. K. N. Fathima' : matchedAccount.role,
-            staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
-            designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
-            regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
-            staffId: matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
-            designation: matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
-            department: 'Department of Information and Communication Technology',
+            id: localStudent.id || `stu-${localStudent.regNo}`,
+            name: localStudent.name || localStudent.fullName,
+            email: localStudent.email,
+            role: 'Student',
+            roleKey: 'student',
+            regNo: localStudent.regNo || localStudent.studentId,
+            department: localStudent.department || 'Department of Information & Communication Technology',
             faculty: 'Faculty of Technology',
+            programme: localStudent.programme || localStudent.degreeProgramme || 'BICT (Hons)',
+            semester: localStudent.semester || localStudent.currentSemester || 'Semester 1',
+            designation: 'Undergraduate',
+            avatarInitial: (localStudent.name || localStudent.fullName || 'ST').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+            sgpa: localStudent.sgpa || 0.00,
+            cgpa: localStudent.cgpa || 0.00,
+            credits: localStudent.credits || 0,
+            attendance: localStudent.attendance || 100,
+            specialization: localStudent.specialization || (localStudent.department?.includes('Bio') ? 'Bio-Processing Technology' : 'Software Technology')
           };
+        } else {
+          // 2. Check static demo accounts
+          const matchedAccount = DEMO_ACCOUNTS.find(
+            (acc) => acc.email.toLowerCase() === trimmedIdentifier.toLowerCase() ||
+                     (acc.roleKey === 'student' && trimmedIdentifier.toLowerCase() === '22ict085')
+          );
+          if (matchedAccount && matchedAccount.password === password) {
+            loggedUser = {
+              ...matchedAccount,
+              name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role === 'Lecturer' ? 'Dr. K. Perera' : matchedAccount.role === 'Department MA' ? 'Mrs. K. N. Fathima' : matchedAccount.role,
+              staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
+              designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
+              regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
+              department: 'Department of Information and Communication Technology',
+              faculty: 'Faculty of Technology',
+            };
+          }
         }
       }
 
       if (!loggedUser) {
         setIsLoading(false);
-        setAuthError('Invalid email or password.');
+        setAuthError('Invalid credentials. Please check your email/registration number and password.');
         triggerShake();
         if (passwordInputRef.current) {
           passwordInputRef.current.focus();
@@ -216,35 +327,37 @@ export default function Login({ onLoginSuccess }) {
       </div>
 
       {/* Centered Single Authentication Card */}
-      <div className={`seu-auth-card ${isShaking ? 'seu-shake-active' : ''}`}>
-        
-        {/* University Crest & Name Header (Top of the Card) */}
-        <div className="seu-top-logo-header">
-          <div className="seu-top-crest-badge" title="South Eastern University of Sri Lanka">
-            <img src="/seusl_logo.png" alt="SEUSL Official Logo" className="seu-official-logo-img" />
-          </div>
-
-          <div className="seu-top-meta">
-            <span className="seu-top-uni-title">SOUTH EASTERN UNIVERSITY</span>
-            <span className="seu-top-uni-sub">
-              OF SRI LANKA <span className="seu-oluvil-highlight">• OLUVIL</span>
-            </span>
-          </div>
+      <div className={`seu-auth-card ${isShaking ? 'seu-card-shake' : ''}`}>
+        {/* Top University Brand Identity */}
+        <div className="seu-top-uni-header">
+          <div className="seu-top-uni-title">SOUTH EASTERN UNIVERSITY OF SRI LANKA</div>
+          <div className="seu-top-uni-sub">FACULTY OF TECHNOLOGY • SEUCONNECT PORTAL</div>
         </div>
 
-        {/* Card Header (Institutional Single Sign-On removed) */}
-        <div className="seu-form-header">
-          <h1 className="seu-form-title">Sign In to SEUConnect</h1>
-          <p className="seu-form-subtitle">
-            Enter your registered university email and password to access your role dashboard.
-          </p>
+        {/* Form Title & Subtitle */}
+        <div className="seu-form-intro">
+          <h1 className="seu-form-title">Institutional Sign In</h1>
+          <p className="seu-form-subtext">Access your student or faculty academic services workspace</p>
+        </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.85rem', justifyContent: 'center' }}>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8', width: '100%', textAlign: 'center', marginBottom: '0.1rem' }}>
-              Quick Credentials (Click to fill):
-            </span>
+        {/* Quick Demo Switcher (Top Role Tabs) */}
+        <div className="seu-role-picker-container" style={{ marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '0.35rem', textAlign: 'center', fontWeight: '500' }}>
+            ⚡ Demo Quick Sign-in (Auto-fills credentials):
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.35rem',
+              justifyContent: 'center',
+              maxHeight: '85px',
+              overflowY: 'auto',
+              padding: '0.2rem'
+            }}
+          >
             {DEMO_ACCOUNTS.map((acc) => {
-              const isSelected = email.toLowerCase() === acc.email.toLowerCase();
+              const isActive = email.toLowerCase() === acc.email.toLowerCase();
               return (
                 <button
                   key={acc.roleKey}
@@ -257,14 +370,14 @@ export default function Login({ onLoginSuccess }) {
                     setAuthError('');
                   }}
                   style={{
-                    fontSize: '0.7rem',
-                    padding: '0.2rem 0.5rem',
+                    fontSize: '0.70rem',
+                    padding: '0.25rem 0.55rem',
                     borderRadius: '6px',
-                    border: isSelected ? '1.5px solid #f59e0b' : '1px solid #cbd5e1',
-                    background: isSelected ? '#fffbeb' : '#ffffff',
-                    color: isSelected ? '#b45309' : '#334155',
+                    border: isActive ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.1)',
+                    background: isActive ? 'rgba(56, 189, 248, 0.2)' : 'rgba(15, 43, 92, 0.45)',
+                    color: isActive ? '#38bdf8' : '#cbd5e1',
                     cursor: 'pointer',
-                    fontWeight: isSelected ? 700 : 500,
+                    fontWeight: isActive ? '600' : '400',
                     transition: 'all 0.15s ease'
                   }}
                   title={`Fill ${acc.role} (${acc.email})`}
@@ -305,10 +418,10 @@ export default function Login({ onLoginSuccess }) {
 
         {/* Login Form */}
         <form className="seu-login-form" onSubmit={handleSubmit} noValidate>
-          {/* Email Field */}
+          {/* Email or RegNo Field */}
           <div className="seu-field-group">
             <label className="seu-label" htmlFor="seu-email-input">
-              University Email Address
+              University Email or Student Registration Number
             </label>
 
             <div className="seu-input-wrapper">
@@ -322,13 +435,13 @@ export default function Login({ onLoginSuccess }) {
               <input
                 id="seu-email-input"
                 ref={emailInputRef}
-                type="email"
+                type="text"
                 name="email"
                 className={`seu-input ${emailError ? 'seu-input-error' : ''}`}
-                placeholder="Student@gmail.com"
+                placeholder="Student@gmail.com or 22ICT085 or SEU/IS/24/ICT/001"
                 value={email}
                 onChange={handleEmailChange}
-                autoComplete="email"
+                autoComplete="username"
                 disabled={isLoading}
                 required
               />
@@ -423,7 +536,10 @@ export default function Login({ onLoginSuccess }) {
               type="button"
               className="seu-forgot-link"
               onClick={() => {
-                alert('Password Recovery: Please contact Faculty IT Administrator at it-support@seu.ac.lk');
+                setForgotIdentifier(email || '');
+                setForgotError('');
+                setForgotSuccess('');
+                setIsForgotModalOpen(true);
               }}
             >
               Forgot Password?
@@ -462,7 +578,121 @@ export default function Login({ onLoginSuccess }) {
           <span>Authorized Faculty & Student Access Only • 256-bit Encryption</span>
         </div>
       </div>
+
+      {/* Forgot Password Interactive Modal */}
+      {isForgotModalOpen && (
+        <div className="seu-forgot-backdrop" onClick={() => setIsForgotModalOpen(false)}>
+          <div className="seu-forgot-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="seu-forgot-header">
+              <div className="seu-forgot-title-box">
+                <div className="seu-forgot-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="seu-forgot-title">Account Password Recovery</h3>
+                  <p className="seu-forgot-subtitle">Reset your student or faculty login credentials</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                className="seu-forgot-close-btn" 
+                onClick={() => setIsForgotModalOpen(false)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {forgotSuccess && (
+              <div className="seu-alert seu-alert-success" style={{ margin: '1rem 0' }}>
+                <div className="seu-alert-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div>{forgotSuccess}</div>
+              </div>
+            )}
+
+            {forgotError && (
+              <div className="seu-alert seu-alert-error" style={{ margin: '1rem 0' }}>
+                <div className="seu-alert-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <div>{forgotError}</div>
+              </div>
+            )}
+
+            <form onSubmit={handleForgotSubmit} className="seu-forgot-form">
+              <div className="seu-field-group">
+                <label className="seu-label">University Email or Student Reg No *</label>
+                <div className="seu-input-wrapper">
+                  <input
+                    type="text"
+                    className="seu-input"
+                    placeholder="e.g. seu24ict001@seu.ac.lk or SEU/IS/24/ICT/001"
+                    value={forgotIdentifier}
+                    onChange={(e) => setForgotIdentifier(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="seu-field-group">
+                <label className="seu-label">New Password *</label>
+                <div className="seu-input-wrapper">
+                  <input
+                    type="password"
+                    className="seu-input"
+                    placeholder="Minimum 6 characters"
+                    value={forgotNewPassword}
+                    onChange={(e) => setForgotNewPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="seu-field-group">
+                <label className="seu-label">Confirm New Password *</label>
+                <div className="seu-input-wrapper">
+                  <input
+                    type="password"
+                    className="seu-input"
+                    placeholder="Re-type your new password"
+                    value={forgotConfirmPassword}
+                    onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="seu-forgot-actions">
+                <button
+                  type="button"
+                  className="seu-forgot-cancel-btn"
+                  onClick={() => setIsForgotModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="seu-forgot-submit-btn"
+                  disabled={isForgotLoading}
+                >
+                  {isForgotLoading ? 'Resetting Password...' : 'Reset & Save Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

@@ -11,12 +11,24 @@
     "dev": "node --watch server.js",
     "start:student": "node app.js",
     "seed": "node seed_students.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test \"tests/**/*.test.js\" && node test_workflows.js",
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "test:integration": "node --test \"tests/*.test.js\"",
+    "test:workflows": "node test_workflows.js",
+    "migrate": "node scripts/migrate.js",
+    "backup": "node scripts/backup.js",
+    "kb:reindex": "node scripts/reindex_knowledge.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
+    "decimal.js": "^10.6.0",
     "dotenv": "^18.0.9",
     "express": "^5.2.1",
-    "mongoose": "^9.11.4"
+    "express-rate-limit": "^8.7.3",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.4",
+    "multer": "^2.5.0",
+    "zod": "^3.25.76"
   }
 }

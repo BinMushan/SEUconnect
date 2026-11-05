@@ -1,4 +1,11 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
+
+// Legacy seeder: it writes denormalised student documents without department / programme / batch references.
+// Demo students are now created automatically (linked to the demo accounts) when the server starts.
+if (!process.argv.includes('--legacy')) {
+  console.log('npm run seed is deprecated: demo students are created automatically at server start. Use `node seed_students.js --legacy` to force the old seeder.');
+  process.exit(0);
+}
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const Student = require('./models/Student');
