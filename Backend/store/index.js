@@ -134,6 +134,24 @@ const notifications = {
   isReadBy(doc, user) {
     return (doc.readBy || []).includes(String(user.email || '').toLowerCase());
   },
+
+  async delete(id) {
+    if (connected()) {
+      if (isObjectId(String(id))) await Notification.findByIdAndDelete(id);
+    }
+    mem.notifications = mem.notifications.filter((n) => String(n._id) !== String(id));
+    return true;
+  },
+
+  async deleteAllForUser(user) {
+    const userNotifs = await this.forUser(user);
+    const ids = userNotifs.map((n) => String(n._id));
+    if (connected()) {
+      await Notification.deleteMany({ _id: { $in: ids } });
+    }
+    mem.notifications = mem.notifications.filter((n) => !ids.includes(String(n._id)));
+    return true;
+  },
 };
 
 /* -------------------------------- users -------------------------------- */

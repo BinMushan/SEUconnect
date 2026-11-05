@@ -1365,6 +1365,32 @@ body.dark-mode,
   transition: all 0.15s ease;
 }
 
+.seu-notif-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.seu-notif-clear-all-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.seu-notif-clear-all-btn:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .seu-notif-mark-all-btn:hover {
   background: #f1f5f9;
   color: #071732;
@@ -1554,6 +1580,37 @@ body.dark-mode,
   opacity: 1;
 }
 
+.seu-notif-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.seu-notif-delete-single-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 5px;
+  opacity: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.seu-notif-item:hover .seu-notif-delete-single-btn {
+  opacity: 1;
+}
+
+.seu-notif-delete-single-btn:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
 .seu-notif-mark-single-btn:hover {
   color: #071732;
   background: #e2e8f0;
@@ -1596,4 +1653,67 @@ body.dark-mode,
   text-align: center;
   color: #94a3b8;
   font-size: 0.82rem;
+}
+
+
+/* Dark mode notification styling */
+.dark-mode .seu-notif-dropdown {
+  background: #0b1325 !important;
+  border-color: #1a263c !important;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45) !important;
+}
+
+.dark-mode .seu-notif-header {
+  background: #0b1325 !important;
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .seu-notif-header-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-notif-item {
+  background: #0b1325 !important;
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .seu-notif-item:hover {
+  background: #111b2e !important;
+}
+
+.dark-mode .seu-notif-item.unread {
+  background: rgba(37, 99, 235, 0.12) !important;
+}
+
+.dark-mode .seu-notif-item-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-notif-item-msg {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .seu-notif-filter-bar {
+  background: #070e1b !important;
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .seu-notif-filter-btn.active {
+  background: #111b2e !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .seu-notif-footer {
+  background: #070e1b !important;
+  border-top-color: #1a263c !important;
+}
+
+.dark-mode .seu-notif-clear-all-btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+}
+
+.dark-mode .seu-notif-delete-single-btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
 }
