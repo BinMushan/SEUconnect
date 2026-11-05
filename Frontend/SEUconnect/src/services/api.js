@@ -333,20 +333,30 @@ export const api = {
   /* ------------------- Knowledge Base (RAG Ingestion & Documents) ------------------- */
   getKnowledgeDocs: (params = {}) => request(`/v1/knowledge${qs(params)}`).then((b) => b.data || b),
   createKnowledgeDoc: (doc) => request('/v1/knowledge', json('POST', doc)).then((b) => b.data || b),
-  uploadKnowledgeFile: (formData) => {
+  uploadKnowledgeFile: async (formData) => {
     const token = authToken.get();
-    return fetch(`${API_BASE_URL}/v1/knowledge/upload`, {
-      method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: formData
-    }).then(async (res) => {
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || 'File upload failed');
-      return data.data || data;
-    });
+    let res;
+    try {
+      res = await fetch(`${API_BASE_URL}/v1/knowledge/upload`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: formData
+      });
+    } catch (networkErr) {
+      const err = new Error('Cannot reach backend server. Please verify the backend is running.');
+      err.network = true;
+      throw err;
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || `Upload failed (${res.status} ${res.statusText || ''})`.trim());
+    }
+    return data.data || data;
   },
+  getHandbooks: () => request('/v1/knowledge/handbooks').then((b) => b.data || b),
   retireKnowledgeDoc: (id) => request(`/v1/knowledge/${id}/retire`, json('POST', {})).then((b) => b.data || b),
 };
 
