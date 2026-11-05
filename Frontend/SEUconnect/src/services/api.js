@@ -4,7 +4,8 @@
  * Every request carries the signed-in user's JWT; the backend decides what that user may see and do.
  */
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:5000/api';
+const rawApiUrl = (import.meta.env?.VITE_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
+const API_BASE_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
 const TOKEN_KEY = 'seuconnect_token';
 
 export const authToken = {
@@ -112,7 +113,8 @@ export const enrolledStorage = {
 };
 
 async function request(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
   const token = authToken.get();
   const config = {
     ...options,
