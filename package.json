@@ -1,0 +1,12 @@
+{
+  "name": "seuconnect-monorepo",
+  "private": true,
+  "workspaces": [
+    "Backend",
+    "Frontend/SEUconnect"
+  ],
+  "scripts": {
+    "build": "npm --prefix Frontend/SEUconnect run build",
+    "start": "node Backend/server.js"
+  }
+}
