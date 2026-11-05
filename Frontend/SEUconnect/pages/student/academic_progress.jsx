@@ -1,53 +1,6 @@
 import React, { useState } from 'react';
+import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 import './academic_progress.css';
-
-const GRADUATION_CHECKLIST = [
-  {
-    id: 'req-1',
-    metric: 'Total Credits Requirement',
-    prescribedTarget: '130 Credits',
-    candidateStatus: '78 Credits',
-    complianceStatus: 'In Progress',
-    badgeType: 'in-progress',
-    details: 'Completed: Year 1 (30), Year 2 (30), Year 3 Sem 1 (18). Remaining: 52 Credits in Semesters 6, 7 & 8.'
-  },
-  {
-    id: 'req-2',
-    metric: 'Minimum CGPA Requirement',
-    prescribedTarget: '2.00',
-    candidateStatus: '3.58',
-    complianceStatus: 'Satisfied',
-    badgeType: 'satisfied',
-    details: 'Current Cumulative GPA is 3.58, satisfying both the graduation minimum (2.00) and qualifying for Second Class Upper Division.'
-  },
-  {
-    id: 'req-3',
-    metric: 'Industrial Training / Internship',
-    prescribedTarget: 'Compulsory (6 Credits)',
-    candidateStatus: 'Scheduled Sem 7',
-    complianceStatus: 'Pending',
-    badgeType: 'pending',
-    details: '6-month industrial internship scheduled in Semester 7. Industrial Training Division placement process begins Semester 6.'
-  },
-  {
-    id: 'req-4',
-    metric: 'Final Year Capstone Project',
-    prescribedTarget: 'Compulsory (6 Credits)',
-    candidateStatus: 'Scheduled Sem 8',
-    complianceStatus: 'Pending',
-    badgeType: 'pending',
-    details: 'Individual research and industry problem-solving capstone project scheduled across Semesters 7 & 8.'
-  },
-  {
-    id: 'req-5',
-    metric: 'Attendance Standing',
-    prescribedTarget: 'Min 80%',
-    candidateStatus: 'In Standing',
-    complianceStatus: 'Satisfied',
-    badgeType: 'satisfied',
-    details: 'Overall current attendance standing is 87%, exceeding the institutional 80% exam qualification threshold.'
-  }
-];
 
 export default function StudentAcademicProgress({ user }) {
   const [selectedRequirement, setSelectedRequirement] = useState(null);
@@ -56,6 +9,74 @@ export default function StudentAcademicProgress({ user }) {
   const regNo = user?.regNo || '22ICT085';
   const indexNo = user?.indexNo || 'ICT22085';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
+
+  const curriculum = getCurriculumBySemester(user?.semester);
+  const progData = (user?.progressionData && user.progressionData.length > 0)
+    ? user.progressionData
+    : (curriculum?.progressionData || []);
+
+  const totalCredits = 130;
+  const creditsEarned = progData.reduce((sum, p) => sum + (Number(p.credits) || 0), 0);
+  const creditsRemaining = Math.max(0, totalCredits - creditsEarned);
+  const completionRate = Math.min(100, Math.round((creditsEarned / totalCredits) * 100));
+
+  const latestSgpa = progData.length > 0 ? Number(progData[progData.length - 1].sgpa) : 3.58;
+  const candidateCgpa = Number(user?.cgpa || latestSgpa || 3.58).toFixed(2);
+  const classStanding = Number(candidateCgpa) >= 3.70
+    ? 'First Class Standing'
+    : Number(candidateCgpa) >= 3.30
+      ? 'Second Class (Upper Division)'
+      : 'General Degree Standing';
+
+  const currentYearNum = curriculum?.yearNumber || 1;
+
+  const graduationChecklist = [
+    {
+      id: 'req-1',
+      metric: 'Total Credits Requirement',
+      prescribedTarget: '130 Credits',
+      candidateStatus: `${creditsEarned} Credits`,
+      complianceStatus: creditsEarned >= 130 ? 'Satisfied' : 'In Progress',
+      badgeType: creditsEarned >= 130 ? 'satisfied' : 'in-progress',
+      details: `Completed: ${creditsEarned} credits across registered semesters. Remaining: ${creditsRemaining} credits to graduate.`
+    },
+    {
+      id: 'req-2',
+      metric: 'Minimum CGPA Requirement',
+      prescribedTarget: '2.00',
+      candidateStatus: candidateCgpa,
+      complianceStatus: Number(candidateCgpa) >= 2.00 ? 'Satisfied' : 'Action Required',
+      badgeType: Number(candidateCgpa) >= 2.00 ? 'satisfied' : 'pending',
+      details: `Current Cumulative GPA is ${candidateCgpa}, satisfying the graduation minimum (2.00) and qualifying for ${classStanding}.`
+    },
+    {
+      id: 'req-3',
+      metric: 'Industrial Training / Internship',
+      prescribedTarget: 'Compulsory (6 Credits)',
+      candidateStatus: currentYearNum >= 4 ? 'Completed' : 'Scheduled Sem 7',
+      complianceStatus: currentYearNum >= 4 ? 'Satisfied' : 'Pending',
+      badgeType: currentYearNum >= 4 ? 'satisfied' : 'pending',
+      details: '6-month industrial internship scheduled in Semester 7. Placement process coordinated via Department Industrial Training Liaison.'
+    },
+    {
+      id: 'req-4',
+      metric: 'Final Year Capstone Project',
+      prescribedTarget: 'Compulsory (6 Credits)',
+      candidateStatus: currentYearNum >= 4 ? 'In Progress' : 'Scheduled Sem 8',
+      complianceStatus: currentYearNum >= 4 ? 'In Progress' : 'Pending',
+      badgeType: currentYearNum >= 4 ? 'in-progress' : 'pending',
+      details: 'Individual research and industry problem-solving capstone project scheduled across Semesters 7 & 8.'
+    },
+    {
+      id: 'req-5',
+      metric: 'Attendance Standing',
+      prescribedTarget: 'Min 80%',
+      candidateStatus: 'In Standing',
+      complianceStatus: 'Satisfied',
+      badgeType: 'satisfied',
+      details: 'Overall current attendance standing is above 80%, exceeding the institutional exam qualification threshold.'
+    }
+  ];
 
   const getComplianceBadgeClass = (badgeType) => {
     switch (badgeType) {
@@ -93,8 +114,8 @@ export default function StudentAcademicProgress({ user }) {
               <span className="stat-label">DEGREE COMPLETION RATE</span>
               <span className="stat-badge stat-badge-subtle">Degree Audit</span>
             </div>
-            <div className="stat-value">60%</div>
-            <div className="stat-subtext">78 / 130 Credits Earned</div>
+            <div className="stat-value">{completionRate}%</div>
+            <div className="stat-subtext">{creditsEarned} / {totalCredits} Credits Earned</div>
           </div>
         </div>
 
@@ -111,8 +132,8 @@ export default function StudentAcademicProgress({ user }) {
               <span className="stat-label">CUMULATIVE CGPA</span>
               <span className="stat-badge stat-badge-subtle">Standing</span>
             </div>
-            <div className="stat-value">3.58</div>
-            <div className="stat-subtext">Graduation Class: Second Class (Upper Division)</div>
+            <div className="stat-value">{candidateCgpa}</div>
+            <div className="stat-subtext">Graduation Class: {classStanding}</div>
           </div>
         </div>
 
@@ -129,8 +150,8 @@ export default function StudentAcademicProgress({ user }) {
               <span className="stat-label">REMAINING CREDIT LOAD</span>
               <span className="stat-badge stat-badge-subtle">To Graduate</span>
             </div>
-            <div className="stat-value">52 Credits</div>
-            <div className="stat-subtext">Semesters 6, 7 & 8</div>
+            <div className="stat-value">{creditsRemaining} Credits</div>
+            <div className="stat-subtext">{creditsRemaining > 0 ? `${creditsRemaining} Credits Remaining across Upcoming Semesters` : 'Graduation Credit Requirement Satisfied'}</div>
           </div>
         </div>
       </section>
@@ -139,24 +160,24 @@ export default function StudentAcademicProgress({ user }) {
       <section className="seu-card progress-meter-card">
         <div className="progress-meter-header">
           <span className="progress-meter-title">
-            Overall Degree Progress (BICT - 130 Total Credits)
+            Overall Degree Progress (BICT - {totalCredits} Total Credits)
           </span>
           <span className="progress-meter-percent">
-            60% Completed
+            {completionRate}% Completed
           </span>
         </div>
 
         {/* Green Progress Bar Track */}
         <div className="progress-bar-track">
-          <div className="progress-bar-fill" style={{ width: '60%' }}></div>
+          <div className="progress-bar-fill" style={{ width: `${completionRate}%` }}></div>
         </div>
 
         {/* 4-Stage Milestones */}
         <div className="progress-milestones-row">
-          <span>Year 1 (Completed)</span>
-          <span>Year 2 (Completed)</span>
-          <span>Year 3 (In Progress)</span>
-          <span>Year 4 (Upcoming)</span>
+          <span>Year 1 {currentYearNum > 1 ? '(Completed)' : currentYearNum === 1 ? '(In Progress)' : '(Upcoming)'}</span>
+          <span>Year 2 {currentYearNum > 2 ? '(Completed)' : currentYearNum === 2 ? '(In Progress)' : '(Upcoming)'}</span>
+          <span>Year 3 {currentYearNum > 3 ? '(Completed)' : currentYearNum === 3 ? '(In Progress)' : '(Upcoming)'}</span>
+          <span>Year 4 {currentYearNum >= 4 ? '(In Progress)' : '(Upcoming)'}</span>
         </div>
       </section>
 
@@ -177,7 +198,7 @@ export default function StudentAcademicProgress({ user }) {
               </tr>
             </thead>
             <tbody>
-              {GRADUATION_CHECKLIST.map((item) => (
+              {graduationChecklist.map((item) => (
                 <tr
                   key={item.id}
                   className="progress-table-row"
