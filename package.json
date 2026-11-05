@@ -10,6 +10,8 @@
     "start": "node Backend/server.js"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^6.1.0",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
     "decimal.js": "^10.6.0",
     "dotenv": "^18.0.9",
@@ -20,8 +22,7 @@
     "mongoose": "^9.11.4",
     "multer": "^2.5.0",
     "pdf-parse": "^2.4.5",
-    "zod": "^3.25.76",
     "vite": "^8.2.2",
-    "@vitejs/plugin-react": "^6.1.0"
+    "zod": "^3.25.76"
   }
 }

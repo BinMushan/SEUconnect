@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
 import './semester_registration.css';
 
 // Initial enrolled subjects matching the live SEUConnect system
@@ -141,8 +142,30 @@ const ALL_DEPARTMENT_MODULES = [
 
 export default function SemesterRegistration({ user }) {
   const maxCredits = 22;
-  const [enrolledSubjects, setEnrolledSubjects] = useState(INITIAL_ENROLLED_SUBJECTS);
+  const cur = getCurriculumBySemester(user?.semester);
+
+  const getInitialSubjects = () => {
+    if (user?.enrolledCourses && user.enrolledCourses.length > 0) {
+      return user.enrolledCourses.map((c, i) => ({
+        id: c.id || `sub-${i + 1}`,
+        code: c.courseCode || c.code,
+        title: c.courseName || c.title,
+        credits: c.credits || 3,
+        theoryHours: c.theoryHours || 30,
+        practicalHours: c.practicalHours || 30,
+        status: c.status || 'REGISTERED',
+        isGPA: c.isGPA !== undefined ? c.isGPA : true
+      }));
+    }
+    return cur.subjects;
+  };
+
+  const [enrolledSubjects, setEnrolledSubjects] = useState(getInitialSubjects);
   const [alertMessage, setAlertMessage] = useState(null);
+
+  useEffect(() => {
+    setEnrolledSubjects(getInitialSubjects());
+  }, [user?.semester]);
 
   // Dynamically calculate registered & remaining credit count
   const registeredCredits = enrolledSubjects.reduce((sum, item) => sum + item.credits, 0);
@@ -189,8 +212,8 @@ export default function SemesterRegistration({ user }) {
     <div className="semester-reg-container">
       {/* 1. Page Header */}
       <div className="page-header">
-        <h1>Semester Subject Registration & Add/Drop</h1>
-        <p>Enroll in compulsory and elective subjects for the current semester according to credit workload rules.</p>
+        <h1>{cur.semester} — Subject Registration & Add/Drop</h1>
+        <p>Enroll in compulsory and elective subjects for {cur.semester} according to credit workload rules.</p>
       </div>
 
       {/* 2. Alert Notification Banner */}

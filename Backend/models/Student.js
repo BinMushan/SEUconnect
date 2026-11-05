@@ -114,6 +114,10 @@ const StudentSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  profileImage: {
+    type: String,
+    default: ''
+  },
 
   // ---- Normalised academic identity (spec section 4). The embedded sections below are the legacy,
   // ---- denormalised demo data; new code reads courses/attendance/results from their own collections.
@@ -138,6 +142,7 @@ const StudentSchema = new mongoose.Schema({
 
   // 1. ACADEMIC PROFILE SECTION
   academicProfile: {
+    profileImage: { type: String, default: '' },
     personalEmail: { type: String, default: '' },
     personalPhone: { type: String, default: '+94 77 123 4567' },
     dob: { type: String, default: '2001-05-15' },

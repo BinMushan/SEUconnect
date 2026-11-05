@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import './attendance.css';
+import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 
 // 1. Official Course Directory matching the uploaded Department Timetable (Yr 2 - Sem II)
 const TIMETABLE_COURSES = [
@@ -630,7 +631,12 @@ const DATE_WISE_SESSIONS = [
   }
 ];
 
-export default function Attendance({ onNavigateMedical }) {
+export default function Attendance({ onNavigateMedical, user }) {
+  const cur = getCurriculumBySemester(user?.semester);
+  const activeTimetableCourses = (cur.subjects && cur.subjects.length > 0) ? cur.subjects : TIMETABLE_COURSES;
+  const activeMatrixColumns = (cur.matrixColumns && cur.matrixColumns.length > 0) ? cur.matrixColumns : MATRIX_COLUMNS;
+  const activeMatrixDailyRows = (cur.matrixDailyRows && cur.matrixDailyRows.length > 0) ? cur.matrixDailyRows : MATRIX_DAILY_ROWS;
+
   // Default tab set to the Daily Attendance Grid (Date x Subject Matrix) requested by the user
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
   const [matrixPeriod, setMatrixPeriod] = useState('1week'); // Default to Current Week (Monday to Friday)
@@ -652,7 +658,7 @@ export default function Attendance({ onNavigateMedical }) {
     }, 250);
   };
 
-  const overallPercentage = 87;
+  const overallPercentage = user?.attendance !== undefined && user?.attendance !== null ? Number(user.attendance) : 92.5;
   const minThreshold = 80;
   const isOverallEligible = overallPercentage >= minThreshold;
   const totalAttended = 88;
@@ -660,7 +666,7 @@ export default function Attendance({ onNavigateMedical }) {
   const totalMissedCount = DATE_WISE_SESSIONS.filter((s) => s.status === 'missed').length;
 
   // Filtered rows for the Daily Attendance Matrix strictly from Monday to Friday
-  const filteredMatrixRows = MATRIX_DAILY_ROWS.filter((row, index) => {
+  const filteredMatrixRows = activeMatrixDailyRows.filter((row, index) => {
     if (matrixPeriod === '1week') {
       return index < 5; // Current Week: Mon to Fri (5 days)
     } else if (matrixPeriod === '2weeks') {
@@ -964,7 +970,7 @@ export default function Attendance({ onNavigateMedical }) {
                     <span className="matrix-th-title">DATE</span>
                     <span className="matrix-th-sub">Day of Week</span>
                   </th>
-                  {MATRIX_COLUMNS.map((col) => (
+                  {activeMatrixColumns.map((col) => (
                     <th key={col.code}>
                       <span className="matrix-th-title">{col.code}</span>
                       <span className="matrix-th-sub">{col.title}</span>
@@ -980,7 +986,7 @@ export default function Attendance({ onNavigateMedical }) {
                         {row.date}
                         <span className="matrix-date-day">{row.day}</span>
                       </td>
-                      {MATRIX_COLUMNS.map((col) => {
+                      {activeMatrixColumns.map((col) => {
                         const status = row.records[col.code];
                         if (status === 'Attend') {
                           return (
@@ -1306,7 +1312,7 @@ export default function Attendance({ onNavigateMedical }) {
               Department of Information and Communication Technology
             </p>
             <p style={{ margin: '2px 0 0 0', fontSize: '0.80rem', fontWeight: 700, color: '#475569' }}>
-              Academic Batch 2022 / 2023 (Yr 2 - Sem II)
+              Academic Batch {user?.batch || '2025/2026'} ({cur.semester})
             </p>
           </div>
 
@@ -1323,7 +1329,60 @@ export default function Attendance({ onNavigateMedical }) {
                   <th style={{ width: '17%' }}>Friday</th>
                 </tr>
               </thead>
-              <tbody>
+              {cur.semester !== 'Year 2 Semester 2' ? (
+                <tbody>
+                  {[
+                    '8.30 - 9.30',
+                    '9.30 - 10.30',
+                    '10.30 - 11.30',
+                    '11.30 - 12.30',
+                    'LUNCH',
+                    '1.30 - 2.30',
+                    '2.30 - 3.30',
+                    '3.30 - 4.30',
+                    '4.30 - 5.30'
+                  ].map((tSlot) => {
+                    if (tSlot === 'LUNCH') {
+                      return (
+                        <tr key="lunch" className="timetable-lunch-row">
+                          <td className="timetable-time-cell">12.30 - 1.30</td>
+                          <td colSpan="5">LUNCH BREAK</td>
+                        </tr>
+                      );
+                    }
+                    const startH = tSlot.split(' - ')[0];
+                    return (
+                      <tr key={tSlot}>
+                        <td className="timetable-time-cell">{tSlot}</td>
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => {
+                          const slot = (cur.timetableSlots || []).find((s) => {
+                            if (s.day !== day) return false;
+                            if (s.time.includes(startH)) return true;
+                            if (startH === '9.30' && s.time.startsWith('8.30')) return true;
+                            if (startH === '10.30' && (s.time.startsWith('8.30') || s.time.startsWith('9.30'))) return true;
+                            if (startH === '2.30' && s.time.startsWith('1.30')) return true;
+                            if (startH === '3.30' && s.time.startsWith('1.30')) return true;
+                            return false;
+                          });
+                          return (
+                            <td key={day} className="timetable-slot-cell">
+                              {slot ? (
+                                <>
+                                  <span className="timetable-course-badge" style={{ fontStyle: 'normal' }}>{slot.code}</span>
+                                  <span className="timetable-venue-badge">({slot.venue || slot.title})</span>
+                                </>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              ) : (
+                <tbody>
                 {/* 8.30 - 9.30 */}
                 <tr>
                   <td className="timetable-time-cell">8.30 - 9.30</td>
@@ -1485,6 +1544,7 @@ export default function Attendance({ onNavigateMedical }) {
                   </td>
                 </tr>
               </tbody>
+              )}
             </table>
           </div>
 
@@ -1510,12 +1570,12 @@ export default function Attendance({ onNavigateMedical }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {TIMETABLE_COURSES.map((item) => (
-                    <tr key={item.id}>
-                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{item.id}</td>
+                  {activeTimetableCourses.map((item, idx) => (
+                    <tr key={item.id || idx}>
+                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{idx + 1}</td>
                       <td style={{ fontWeight: 700, color: '#0f172a' }}>{item.code}</td>
                       <td>{item.title}</td>
-                      <td style={{ fontWeight: 600 }}>{item.lecturer}</td>
+                      <td style={{ fontWeight: 600 }}>{item.lecturer || 'Faculty Lecturer'}</td>
                     </tr>
                   ))}
                 </tbody>

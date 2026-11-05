@@ -58,6 +58,22 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: 'U',
     },
+    profileImage: {
+      type: String,
+      default: null,
+    },
+    phone: {
+      type: String,
+      default: '',
+    },
+    specialization: {
+      type: String,
+      default: '',
+    },
+    address: {
+      type: String,
+      default: '',
+    },
     // Account security / lifecycle
     status: { type: String, enum: ['active', 'suspended', 'disabled'], default: 'active' },
     failedLogins: { type: Number, default: 0 },

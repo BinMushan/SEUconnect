@@ -15,6 +15,7 @@ import FacultyForms from './faculty_forms.jsx';
 import StudentNotifications from './notifications.jsx';
 import ApplicationTracker from './application_tracker.jsx';
 import StudentPenalties from './penalties_disciplinary.jsx';
+import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
 import './student.css';
 
 export default function Student({ user, onLogout }) {
@@ -114,15 +115,19 @@ export default function Student({ user, onLogout }) {
     if (!activeTab.startsWith('forms') && activeTab !== 'faculty_forms') setResubmitProcess(null);
   }, [activeTab]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(0); // Default to Semester 5 (current)
+  
+  const currentCurriculum = getCurriculumBySemester(studentUser?.semester || user?.semester);
+  const progressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0)
+    ? studentUser.progressionData
+    : currentCurriculum.progressionData;
 
-  const progressionData = [
-    { semester: 'Sem 1', fullLabel: 'Semester 1', sgpa: 3.82, delta: '+0.32', credits: 16, standing: 'First Class Standing', x: 80, y: 51.2, isFirstClass: true },
-    { semester: 'Sem 2', fullLabel: 'Semester 2', sgpa: 3.65, delta: '-0.17', credits: 18, standing: 'Second Class (Upper)', x: 185, y: 66.5, isFirstClass: false },
-    { semester: 'Sem 3', fullLabel: 'Semester 3', sgpa: 3.64, delta: '-0.01', credits: 16, standing: 'Second Class (Upper)', x: 290, y: 67.4, isFirstClass: false },
-    { semester: 'Sem 4', fullLabel: 'Semester 4', sgpa: 3.50, delta: '-0.14', credits: 14, standing: 'Second Class (Upper)', x: 395, y: 80.0, isFirstClass: false },
-    { semester: 'Sem 5', fullLabel: 'Semester 5 (Current)', sgpa: 3.50, delta: '±0.00', credits: 14, standing: 'Second Class (Upper)', x: 500, y: 80.0, isCurrent: true, isFirstClass: false },
-  ];
+  const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(0);
+
+  useEffect(() => {
+    if (progressionData.length > 0) {
+      setSelectedSemesterIdx(progressionData.length - 1);
+    }
+  }, [progressionData.length, studentUser?.semester]);
 
   const suggestedChips = [
     'CA Repeat Form',
@@ -318,6 +323,7 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'attendance' ? (
         <Attendance
+          user={studentUser || user}
           onNavigateMedical={() => {
             setActiveTab('medical_requests');
             if (typeof window !== 'undefined') {
@@ -424,9 +430,9 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">CURRENT SGPA</span>
-                <span className="std-stat-badge">{studentUser?.semester ? (studentUser.semester.toLowerCase().includes('sem') ? studentUser.semester.replace(/semester/i, 'Sem').trim() : `Sem ${studentUser.semester}`) : 'Sem 5'}</span>
+                <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
-              <div className="std-stat-number">{studentUser?.sgpa !== undefined && studentUser?.sgpa !== null ? Number(studentUser.sgpa).toFixed(2) : '3.50'}</div>
+              <div className="std-stat-number">{studentUser?.sgpa !== undefined && studentUser?.sgpa !== null ? Number(studentUser.sgpa).toFixed(2) : currentCurriculum.defaultSgpa.toFixed(2)}</div>
               <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
           </div>
@@ -444,8 +450,8 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">CURRENT CGPA</span>
                 <span className="std-stat-badge">Cumulative</span>
               </div>
-              <div className="std-stat-number">{studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa).toFixed(2) : '3.58'}</div>
-              <div className="std-stat-target">{(Number(studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? studentUser.cgpa : 3.58) >= 3.70) ? 'First Class Honours' : (Number(studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? studentUser.cgpa : 3.58) >= 3.30) ? 'Second Class (Upper Division)' : (Number(studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? studentUser.cgpa : 3.58) >= 3.00) ? 'Second Class (Lower Division)' : 'General Standing'}</div>
+              <div className="std-stat-number">{studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa).toFixed(2) : currentCurriculum.defaultCgpa.toFixed(2)}</div>
+              <div className="std-stat-target">{((studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa) : currentCurriculum.defaultCgpa) >= 3.70) ? 'First Class Honours' : ((studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa) : currentCurriculum.defaultCgpa) >= 3.30) ? 'Second Class (Upper Division)' : 'General Standing'}</div>
             </div>
           </div>
 
@@ -461,9 +467,9 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">ATTENDANCE STANDING</span>
-                <span className="std-stat-badge">{(Number(studentUser?.attendance !== undefined && studentUser?.attendance !== null ? studentUser.attendance : 87) >= 80) ? 'Eligible' : 'At Risk'}</span>
+                <span className="std-stat-badge">{(Number(studentUser?.attendance !== undefined && studentUser?.attendance !== null ? studentUser.attendance : 92.5) >= 80) ? 'Eligible' : 'At Risk'}</span>
               </div>
-              <div className="std-stat-number">{studentUser?.attendance !== undefined && studentUser?.attendance !== null ? `${studentUser.attendance}%` : '87%'}</div>
+              <div className="std-stat-number">{studentUser?.attendance !== undefined && studentUser?.attendance !== null ? `${studentUser.attendance}%` : '92.5%'}</div>
               <div className="std-stat-target">ESA Minimum: 80%</div>
             </div>
           </div>
@@ -481,10 +487,10 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">REGISTERED CREDITS</span>
-                <span className="std-stat-badge">Semester Load</span>
+                <span className="std-stat-badge">{currentCurriculum.semesterLabel} Load</span>
               </div>
-              <div className="std-stat-number">{studentUser?.credits !== undefined && studentUser?.credits !== null ? `${studentUser.credits} / 22` : '18 / 22'}</div>
-              <div className="std-stat-target">{Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : 18))} credits remaining</div>
+              <div className="std-stat-number">{studentUser?.credits !== undefined && studentUser?.credits !== null ? `${studentUser.credits} / 22` : `${currentCurriculum.totalCredits} / 22`}</div>
+              <div className="std-stat-target">{Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : currentCurriculum.totalCredits))} credits remaining</div>
             </div>
           </div>
         </section>
