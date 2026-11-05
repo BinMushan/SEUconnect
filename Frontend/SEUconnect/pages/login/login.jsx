@@ -95,6 +95,8 @@ export default function Login({ onLoginSuccess }) {
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
 
+
+
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
     if (emailError) setEmailError('');
@@ -207,7 +209,7 @@ export default function Login({ onLoginSuccess }) {
     // 1. Validation for empty fields
     let hasValidationError = false;
     if (!trimmedIdentifier) {
-      setEmailError('Please enter your university email or registration number.');
+      setEmailError('Please enter your university email.');
       hasValidationError = true;
     }
 
@@ -289,7 +291,7 @@ export default function Login({ onLoginSuccess }) {
 
       if (!loggedUser) {
         setIsLoading(false);
-        setAuthError('Invalid credentials. Please check your email/registration number and password.');
+        setAuthError('Invalid credentials. Please check your email and password.');
         triggerShake();
         if (passwordInputRef.current) {
           passwordInputRef.current.focus();
@@ -327,199 +329,206 @@ export default function Login({ onLoginSuccess }) {
       </div>
 
       {/* Centered Single Authentication Card */}
-      <div className={`seu-auth-card ${isShaking ? 'seu-card-shake' : ''}`}>
-        {/* Top University Brand Identity */}
-        <div className="seu-top-uni-header">
-          <div className="seu-top-uni-title">SOUTH EASTERN UNIVERSITY OF SRI LANKA</div>
-          <div className="seu-top-uni-sub">FACULTY OF TECHNOLOGY • SEUCONNECT PORTAL</div>
-        </div>
-
-        {/* Form Title & Subtitle */}
-        <div className="seu-form-intro">
-          <h1 className="seu-form-title">Institutional Sign In</h1>
-          <p className="seu-form-subtext">Access your student or faculty academic services workspace</p>
-        </div>
-
-        {/* Success Alert Banner */}
-        {successToast && (
-          <div className="seu-alert seu-alert-success" role="status" aria-live="polite">
-            <div className="seu-alert-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-            </div>
-            <div>{successToast}</div>
-          </div>
-        )}
-
-        {/* Error Alert Banner */}
-        {authError && (
-          <div className="seu-alert seu-alert-error" role="alert" aria-live="assertive">
-            <div className="seu-alert-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            </div>
-            <div>{authError}</div>
-          </div>
-        )}
-
-        {/* Login Form */}
-        <form className="seu-login-form" onSubmit={handleSubmit} noValidate>
-          {/* Email or RegNo Field */}
-          <div className="seu-field-group">
-            <label className="seu-label" htmlFor="seu-email-input">
-              University Email or Student Registration Number
-            </label>
-
-            <div className="seu-input-wrapper">
-              <span className="seu-input-icon-left">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-              </span>
-
-              <input
-                id="seu-email-input"
-                ref={emailInputRef}
-                type="text"
-                name="email"
-                className={`seu-input ${emailError ? 'seu-input-error' : ''}`}
-                placeholder="Student@gmail.com or 22ICT085 or SEU/IS/24/ICT/001"
-                value={email}
-                onChange={handleEmailChange}
-                autoComplete="username"
-                disabled={isLoading}
-                required
-              />
-            </div>
-
-            {emailError && (
-              <div className="seu-inline-error">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                {emailError}
-              </div>
-            )}
-          </div>
-
-          {/* Password Field */}
-          <div className="seu-field-group">
-            <label className="seu-label" htmlFor="seu-password-input">
-              Password
-            </label>
-
-            <div className="seu-input-wrapper">
-              <span className="seu-input-icon-left">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </span>
-
-              <input
-                id="seu-password-input"
-                ref={passwordInputRef}
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                className={`seu-input seu-input-has-toggle ${passwordError ? 'seu-input-error' : ''}`}
-                placeholder="••••••••"
-                value={password}
-                onChange={handlePasswordChange}
-                autoComplete="current-password"
-                disabled={isLoading}
-                required
-              />
-
-              <button
-                type="button"
-                className="seu-toggle-password-btn"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
-            </div>
-
-            {passwordError && (
-              <div className="seu-inline-error">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                {passwordError}
-              </div>
-            )}
-          </div>
-
-          {/* Remember Me & Forgot Password */}
-          <div className="seu-form-options">
-            <label className="seu-remember-label">
-              <input
-                type="checkbox"
-                className="seu-checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                disabled={isLoading}
-              />
-              <span>Remember this device</span>
-            </label>
-
-            <button
-              type="button"
-              className="seu-forgot-link"
-              onClick={() => {
-                setForgotIdentifier(email || '');
-                setForgotError('');
-                setForgotSuccess('');
-                setIsForgotModalOpen(true);
-              }}
-            >
-              Forgot Password?
-            </button>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="seu-submit-btn"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span className="seu-spinner" aria-hidden="true" />
-                <span>Signing in...</span>
-              </>
-            ) : (
-              <>
-                <span>Sign In</span>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </>
-            )}
-          </button>
-        </form>
-
+      <div className={`seu-auth-card ${isShaking ? 'seu-card-shake' : ''}`}>
+        {/* Top University Brand Identity with Official Crest Logo */}
+        <div className="seu-top-logo-header">
+          <div className="seu-top-crest-badge">
+            <img src="/seusl_logo.png" alt="SEUSL Official Crest" className="seu-official-logo-img" />
+          </div>
+          <div className="seu-top-meta">
+            <div className="seu-top-uni-title">SOUTH EASTERN UNIVERSITY OF SRI LANKA</div>
+            <div className="seu-top-uni-sub">
+              FACULTY OF TECHNOLOGY • <span className="seu-oluvil-highlight">SEUCONNECT PORTAL</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Title & Subtitle with proper margins */}
+        <div className="seu-form-intro">
+          <h1 className="seu-form-title">Institutional Sign In</h1>
+          <p className="seu-form-subtext">Access your student or faculty academic services workspace</p>
+        </div>
+
+        {/* Success Alert Banner */}
+        {successToast && (
+          <div className="seu-alert seu-alert-success" role="status" aria-live="polite">
+            <div className="seu-alert-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <div>{successToast}</div>
+          </div>
+        )}
+
+        {/* Error Alert Banner */}
+        {authError && (
+          <div className="seu-alert seu-alert-error" role="alert" aria-live="assertive">
+            <div className="seu-alert-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div>{authError}</div>
+          </div>
+        )}
+
+        {/* Institutional Sign In Form */}
+        <form className="seu-login-form" onSubmit={handleSubmit} noValidate>
+          {/* Email Field */}
+          <div className="seu-field-group">
+            <label className="seu-label" htmlFor="seu-email-input">
+              University Email
+            </label>
+
+            <div className="seu-input-wrapper">
+              <span className="seu-input-icon-left">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </span>
+
+              <input
+                id="seu-email-input"
+                ref={emailInputRef}
+                type="email"
+                name="email"
+                className={`seu-input ${emailError ? 'seu-input-error' : ''}`}
+                placeholder="student@seu.ac.lk or name@seu.ac.lk"
+                value={email}
+                onChange={handleEmailChange}
+                autoComplete="username"
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            {emailError && (
+              <div className="seu-inline-error">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {emailError}
+              </div>
+            )}
+          </div>
+
+          {/* Password Field */}
+          <div className="seu-field-group">
+            <label className="seu-label" htmlFor="seu-password-input">
+              Password
+            </label>
+
+            <div className="seu-input-wrapper">
+              <span className="seu-input-icon-left">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+
+              <input
+                id="seu-password-input"
+                ref={passwordInputRef}
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                className={`seu-input seu-input-has-toggle ${passwordError ? 'seu-input-error' : ''}`}
+                placeholder="••••••••"
+                value={password}
+                onChange={handlePasswordChange}
+                autoComplete="current-password"
+                disabled={isLoading}
+                required
+              />
+
+              <button
+                type="button"
+                className="seu-toggle-password-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {passwordError && (
+              <div className="seu-inline-error">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {passwordError}
+              </div>
+            )}
+          </div>
+
+          {/* Remember Me & Forgot Password */}
+          <div className="seu-form-options">
+            <label className="seu-remember-label">
+              <input
+                type="checkbox"
+                className="seu-checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={isLoading}
+              />
+              <span>Remember this device</span>
+            </label>
+
+            <button
+              type="button"
+              className="seu-forgot-link"
+              onClick={() => {
+                setForgotIdentifier(email || '');
+                setForgotError('');
+                setForgotSuccess('');
+                setIsForgotModalOpen(true);
+              }}
+            >
+              Forgot Password?
+            </button>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="seu-submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="seu-spinner" aria-hidden="true" />
+                <span>Signing in...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In</span>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </>
+            )}
+          </button>
+        </form>
+
         {/* Security Footer */}
         <div className="seu-security-footer">
           <svg className="seu-security-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
