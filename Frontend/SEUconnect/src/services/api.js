@@ -246,6 +246,8 @@ export const api = {
   getUnreadCount: () => request('/notifications/unread-count'),
   markNotificationRead: (id) => request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT' }),
   markAllNotificationsRead: () => request('/notifications/mark-all-read', { method: 'PUT' }),
+  deleteNotification: (id) => request(`/notifications/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  deleteAllNotifications: () => request('/notifications/clear-all', { method: 'DELETE' }),
 
   /* ------------------------------ statistics & reports ----------------------------- */
   getStats: () => request('/stats'),
