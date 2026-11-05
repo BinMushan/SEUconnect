@@ -158,17 +158,23 @@ const embed = async (texts, { query = false } = {}) => {
   if (!apiKey()) return null;
   try {
     const model = embedModel();
-    const data = await post(`${API}/${model}:batchEmbedContents`, {
-      requests: texts.map((text) => ({
-        model: `models/${model}`,
-        content: { parts: [{ text: String(text).slice(0, 8000) }] },
-        taskType: query ? 'RETRIEVAL_QUERY' : 'RETRIEVAL_DOCUMENT',
-        outputDimensionality: EMBED_DIMENSIONS,
-      })),
-    });
-    const vectors = (data.embeddings || []).map((e) => e.values);
-    if (vectors.length !== texts.length || vectors.some((v) => !Array.isArray(v) || !v.length)) return null;
-    return { model: `${model}/${EMBED_DIMENSIONS}`, vectors };
+    const BATCH_SIZE = 50;
+    const allVectors = [];
+    for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+      const slice = texts.slice(i, i + BATCH_SIZE);
+      const data = await post(`${API}/${model}:batchEmbedContents`, {
+        requests: slice.map((text) => ({
+          model: `models/${model}`,
+          content: { parts: [{ text: String(text).slice(0, 8000) }] },
+          taskType: query ? 'RETRIEVAL_QUERY' : 'RETRIEVAL_DOCUMENT',
+          outputDimensionality: EMBED_DIMENSIONS,
+        })),
+      });
+      const vectors = (data.embeddings || []).map((e) => e.values);
+      if (vectors.length !== slice.length || vectors.some((v) => !Array.isArray(v) || !v.length)) return null;
+      allVectors.push(...vectors);
+    }
+    return { model: `${model}/${EMBED_DIMENSIONS}`, vectors: allVectors };
   } catch (err) {
     logger.warn('Embedding request failed; using keyword retrieval', { error: err.message });
     return null;

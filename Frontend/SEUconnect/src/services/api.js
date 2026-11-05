@@ -308,6 +308,25 @@ export const api = {
   assistantAgent: () => request('/v1/assistant/agent').then((b) => b.data),
   assistantChat: ({ message, conversationId }) =>
     request('/v1/assistant/chat', json('POST', { message, ...(conversationId ? { conversationId } : {}) })).then((b) => b.data),
+
+  /* ------------------- Knowledge Base (RAG Ingestion & Documents) ------------------- */
+  getKnowledgeDocs: (params = {}) => request(`/v1/knowledge${qs(params)}`).then((b) => b.data || b),
+  createKnowledgeDoc: (doc) => request('/v1/knowledge', json('POST', doc)).then((b) => b.data || b),
+  uploadKnowledgeFile: (formData) => {
+    const token = authToken.get();
+    return fetch(`${API_BASE_URL}/v1/knowledge/upload`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: formData
+    }).then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'File upload failed');
+      return data.data || data;
+    });
+  },
+  retireKnowledgeDoc: (id) => request(`/v1/knowledge/${id}/retire`, json('POST', {})).then((b) => b.data || b),
 };
 
 export default api;
