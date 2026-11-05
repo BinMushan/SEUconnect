@@ -907,6 +907,37 @@
   }
 }
 
+@media (max-width: 480px) {
+  .seu-dash-topbar {
+    padding: 0 0.5rem;
+    height: 56px;
+  }
+
+  .seu-topbar-search-wrapper {
+    max-width: 140px;
+  }
+
+  .seu-notif-dropdown {
+    position: fixed !important;
+    top: 58px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: none !important;
+    border-radius: 12px;
+  }
+
+  .seu-dash-hero-banner {
+    margin: 0.75rem 0.5rem;
+    padding: 1rem 0.75rem;
+  }
+
+  .seu-dash-body-content {
+    padding: 1rem 0.5rem 2rem 0.5rem;
+  }
+}
+
+
 
 /* ==========================================================================
    DESKTOP SIDEBAR MINIMIZE & FULL SCREEN TOGGLE (EDGE BUTTON)
