@@ -72,21 +72,24 @@ const writeChunks = async (doc) => {
       ...(embedded ? { embedding: embedded.vectors[i], embeddingModel: embedded.model } : {}),
     }))
   );
+  doc.chunksCount = parts.length;
+  await doc.save();
   return parts.length;
 };
 
 /** Creates or replaces a document and its chunks. */
-const ingest = async ({ title, source, category, audience = [], status = 'active', content, seedKey, createdBy = null }) => {
+const ingest = async ({ title, source, category, audience = [], status = 'active', content, seedKey, createdBy = null, fileName = null, fileSize = null }) => {
   let doc = seedKey ? await KnowledgeDocument.findOne({ seedKey }) : null;
   if (doc) {
     // built-in documents are refreshed only when their text changed, so a retired/edited copy is never resurrected silently
-    if (doc.content === content && doc.title === title && doc.source === source && String(doc.audience) === String(audience) && doc.status === status) return { document: doc, chunks: 0, unchanged: true };
-    Object.assign(doc, { title, source, category, audience, status, content, version: doc.version + 1, retiredAt: null });
+    if (doc.content === content && doc.title === title && doc.source === source && String(doc.audience) === String(audience) && doc.status === status) return { document: doc, chunks: doc.chunksCount || 0, unchanged: true };
+    Object.assign(doc, { title, source, category, audience, status, content, version: doc.version + 1, retiredAt: null, ...(fileName ? { fileName } : {}), ...(fileSize ? { fileSize } : {}) });
   } else {
-    doc = new KnowledgeDocument({ title, source, category, audience, status, content, seedKey, createdBy });
+    doc = new KnowledgeDocument({ title, source, category, audience, status, content, seedKey, createdBy, ...(fileName ? { fileName } : {}), ...(fileSize ? { fileSize } : {}) });
   }
   await doc.save();
-  return { document: doc, chunks: await writeChunks(doc), unchanged: false };
+  const chunks = await writeChunks(doc);
+  return { document: doc, chunks, unchanged: false };
 };
 
 const retire = async (id) => {
