@@ -19,6 +19,8 @@ const statsRoutes = require('./routes/statsRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const academicCalendarRoutes = require('./routes/academicCalendarRoutes');
 const studentRouter = require('./router/studentRouter');
+const subjectRoutes = require('./routes/subjectRoutes');
+const { seedHandbookSubjects } = require('./config/subjectSeeder');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -55,6 +57,7 @@ app.use((req, res, next) => {
     req.url.startsWith('/notifications') ||
     req.url.startsWith('/stats') ||
     req.url.startsWith('/student') ||
+    req.url.startsWith('/subjects') ||
     req.url.startsWith('/academic-calendar') ||
     req.url.startsWith('/v1')
   )) {
@@ -88,6 +91,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/academic-calendar', academicCalendarRoutes);
 app.use('/api/student', studentRouter);
+app.use('/api/subjects', subjectRoutes);
 
 // ---- Versioned API: modular academic management (requires MongoDB) ----
 app.use('/api/v1', (req, res, next) => (getStatus() ? next() : next(unavailable('The academic management API needs the MongoDB connection.'))));
@@ -107,6 +111,7 @@ const startServer = async () => {
   try {
     await connectDB();
     await seedDatabase();
+    await seedHandbookSubjects();
     await bootstrap();
   } catch (err) {
     logger.error('Bootstrap failed', { error: err.stack });
