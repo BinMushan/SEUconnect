@@ -13,6 +13,7 @@ import StudentWelfare from './welfare_scholarships.jsx';
 import StudentSocieties from './societies_clubs.jsx';
 import FacultyForms from './faculty_forms.jsx';
 import StudentNotifications from './notifications.jsx';
+import ApplicationTracker from './application_tracker.jsx';
 import StudentPenalties from './penalties_disciplinary.jsx';
 import './student.css';
 
@@ -20,6 +21,7 @@ export default function Student({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
+      if (hash.includes('track')) return 'track_applications';
       if (hash.includes('notification')) return 'notifications';
       if (hash.includes('penalt') || hash.includes('disciplin')) return 'penalties_disciplinary';
       if (hash.includes('dashboard') || hash === 'student' || hash === '/student' || hash === '') return 'dashboard'; else if (hash.includes('form') || hash.includes('circular') || hash.includes('voucher') || hash.includes('piv')) {
@@ -48,7 +50,9 @@ export default function Student({ user, onLogout }) {
   useEffect(() => {
     const handleHashSync = () => {
       const hash = (window.location.hash.replace('#', '') || window.location.pathname).toLowerCase();
-      if (hash.includes('notification')) {
+      if (hash.includes('track')) {
+        setActiveTab('track_applications');
+      } else if (hash.includes('notification')) {
         setActiveTab('notifications');
       } else if (hash.includes('penalt') || hash.includes('disciplin')) {
         setActiveTab('penalties_disciplinary');
@@ -98,6 +102,17 @@ export default function Student({ user, onLogout }) {
     }
   }, [activeTab]);
   const [studentUser, setStudentUser] = useState(user);
+  useEffect(() => {
+    if (user) {
+      setStudentUser(user);
+    }
+  }, [user]);
+  // A returned application the student is correcting (opens the matching form pre-filled).
+  const [resubmitProcess, setResubmitProcess] = useState(null);
+
+  useEffect(() => {
+    if (!activeTab.startsWith('forms') && activeTab !== 'faculty_forms') setResubmitProcess(null);
+  }, [activeTab]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSemesterIdx, setSelectedSemesterIdx] = useState(0); // Default to Semester 5 (current)
 
@@ -348,10 +363,28 @@ export default function Student({ user, onLogout }) {
         <StudentSocieties
           user={studentUser || user}
         />
+      ) : activeTab === 'track_applications' ? (
+        <ApplicationTracker
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
+          onResubmit={(process) => {
+            setResubmitProcess(process);
+            setActiveTab('forms_all');
+            if (typeof window !== 'undefined') {
+              window.location.hash = '#student/forms_all';
+            }
+          }}
+        />
       ) : activeTab === 'faculty_forms' || activeTab === 'forms_all' || activeTab === 'forms_exam' || activeTab === 'forms_medical' || activeTab === 'forms_piv' || activeTab.startsWith('forms') ? (
         <FacultyForms
           user={studentUser || user}
           activeSubTab={activeTab}
+          resubmitProcess={resubmitProcess}
+          onResubmitDone={() => {}}
           onNavigate={(id) => {
             setActiveTab(id);
             if (typeof window !== 'undefined') {
@@ -391,9 +424,9 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">CURRENT SGPA</span>
-                <span className="std-stat-badge">Sem 5</span>
+                <span className="std-stat-badge">{studentUser?.semester ? (studentUser.semester.toLowerCase().includes('sem') ? studentUser.semester.replace(/semester/i, 'Sem').trim() : `Sem ${studentUser.semester}`) : 'Sem 5'}</span>
               </div>
-              <div className="std-stat-number">3.50</div>
+              <div className="std-stat-number">{studentUser?.sgpa !== undefined && studentUser?.sgpa !== null ? Number(studentUser.sgpa).toFixed(2) : '3.50'}</div>
               <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
           </div>
@@ -411,8 +444,8 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">CURRENT CGPA</span>
                 <span className="std-stat-badge">Cumulative</span>
               </div>
-              <div className="std-stat-number">3.58</div>
-              <div className="std-stat-target">Second Class (Upper Division)</div>
+              <div className="std-stat-number">{studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa).toFixed(2) : '3.58'}</div>
+              <div className="std-stat-target">{(Number(studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? studentUser.cgpa : 3.58) >= 3.70) ? 'First Class Honours' : (Number(studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? studentUser.cgpa : 3.58) >= 3.30) ? 'Second Class (Upper Division)' : (Number(studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? studentUser.cgpa : 3.58) >= 3.00) ? 'Second Class (Lower Division)' : 'General Standing'}</div>
             </div>
           </div>
 
@@ -428,9 +461,9 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">ATTENDANCE STANDING</span>
-                <span className="std-stat-badge">Eligible</span>
+                <span className="std-stat-badge">{(Number(studentUser?.attendance !== undefined && studentUser?.attendance !== null ? studentUser.attendance : 87) >= 80) ? 'Eligible' : 'At Risk'}</span>
               </div>
-              <div className="std-stat-number">87%</div>
+              <div className="std-stat-number">{studentUser?.attendance !== undefined && studentUser?.attendance !== null ? `${studentUser.attendance}%` : '87%'}</div>
               <div className="std-stat-target">ESA Minimum: 80%</div>
             </div>
           </div>
@@ -450,8 +483,8 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">REGISTERED CREDITS</span>
                 <span className="std-stat-badge">Semester Load</span>
               </div>
-              <div className="std-stat-number">18 / 22</div>
-              <div className="std-stat-target">4 credits remaining</div>
+              <div className="std-stat-number">{studentUser?.credits !== undefined && studentUser?.credits !== null ? `${studentUser.credits} / 22` : '18 / 22'}</div>
+              <div className="std-stat-target">{Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : 18))} credits remaining</div>
             </div>
           </div>
         </section>

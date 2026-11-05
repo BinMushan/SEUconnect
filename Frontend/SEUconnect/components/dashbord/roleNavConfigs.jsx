@@ -1,4 +1,5 @@
 import React from 'react';
+import { workflowNavItem, notificationNavItem } from '../workflow/workflowNav.jsx';
 
 /**
  * Common SVG Icons for Navigation Items
@@ -188,6 +189,7 @@ export const STUDENT_NAV_SECTIONS = [
           { id: 'forms_academic', label: 'Academic & Registration' },
         ],
       },
+      { id: 'track_applications', label: 'Track Applications', icon: Icons.clipboardCheck },
       { id: 'notifications', label: 'Notifications', icon: Icons.bell },
       { id: 'penalties_disciplinary', label: 'Penalties / Disciplinary', icon: Icons.alertCircle },
     ],
@@ -250,6 +252,7 @@ export const HOD_NAV_SECTIONS = [
   {
     title: 'APPROVALS & WORKFLOWS',
     items: [
+      workflowNavItem('ECA / ESA & Exam Forms'),
       { id: 'pending_hod_approvals', label: 'Department Approvals Desk', icon: Icons.checkSquare },
       { id: 'ca_moderation', label: 'CA Marks Moderation', icon: Icons.chart },
       { id: 'repeat_sanctions', label: 'Repeat Exam Endorsements', icon: Icons.award },
@@ -261,6 +264,7 @@ export const HOD_NAV_SECTIONS = [
     items: [
       { id: 'attendance_audit', label: '80% Attendance Audit', icon: Icons.clipboardCheck },
       { id: 'department_reports', label: 'Department Board Minutes', icon: Icons.fileText },
+      notificationNavItem(),
     ],
   },
 ];
@@ -494,6 +498,13 @@ export function getNavSectionsForRole(roleKey) {
 /**
  * Returns role-tailored metadata and greeting for DashboardTemplate header
  */
+export function getTimeGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
 export function getRoleMetaData(user) {
   const roleKey = (user?.roleKey || user?.role || 'student').toLowerCase();
 
@@ -502,7 +513,7 @@ export function getRoleMetaData(user) {
     case 'faculty_ma':
       return {
         rolePill: 'FMA',
-        greeting: `Good Morning, ${user?.name || "Mr. MMM. Kamil"}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || "Mr. MMM. Kamil"}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-FMA-002' },
@@ -515,7 +526,7 @@ export function getRoleMetaData(user) {
     case 'department_ma':
       return {
         rolePill: 'DMA',
-        greeting: `Welcome, ${user?.name || 'Mrs. K. N. Fathima'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Mrs. K. N. Fathima'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • DEPARTMENT OF ICT',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-DMA-008' },
@@ -527,7 +538,7 @@ export function getRoleMetaData(user) {
     case 'lecturer':
       return {
         rolePill: 'LEC',
-        greeting: `Welcome, ${user?.name || 'Dr. S. Kirushanth'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Dr. S. Kirushanth'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ACADEMIC DESK',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-ICT-104' },
@@ -539,7 +550,7 @@ export function getRoleMetaData(user) {
     case 'hod':
       return {
         rolePill: 'HOD',
-        greeting: `Welcome, ${user?.name || 'M.J Ahamed Sabani'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'M.J Ahamed Sabani'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • HOD COMMAND',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-ICT-001' },
@@ -551,7 +562,7 @@ export function getRoleMetaData(user) {
     case 'sar':
       return {
         rolePill: 'SAR',
-        greeting: `Welcome, ${user?.name || 'Mr. K.L.M. Riyas'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Mr. K.L.M. Riyas'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ADMINISTRATIVE DIVISION',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-SAR-001' },
@@ -563,7 +574,7 @@ export function getRoleMetaData(user) {
     case 'dean':
       return {
         rolePill: 'DEAN',
-        greeting: `Welcome, ${user?.name || 'Prof. Rifai Kariapper'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Prof. Rifai Kariapper'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • DEAN EXECUTIVE',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-FOT-001' },
@@ -575,7 +586,7 @@ export function getRoleMetaData(user) {
     case 'examination':
       return {
         rolePill: 'EXAM',
-        greeting: `Welcome, ${user?.name || 'Dr. (Mrs.) R. Fathima'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Dr. (Mrs.) R. Fathima'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY EXAMINATION & MEDICAL REGISTRY',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-EXAM-012' },
@@ -587,7 +598,7 @@ export function getRoleMetaData(user) {
     case 'admin':
       return {
         rolePill: 'ADM',
-        greeting: `Welcome, ${user?.name || 'Eng. K. Thanushan'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Faculty Administrator'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY • ADMIN CONSOLE',
         metaItems: [
           { label: 'Staff ID:', value: user?.staffId || 'STAFF-SYS-005' },
@@ -599,7 +610,7 @@ export function getRoleMetaData(user) {
     case 'superadmin':
       return {
         rolePill: 'ROOT',
-        greeting: `Welcome, ${user?.name || 'Director Information Services'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'Director Information Services'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • CENTRAL IT & INFRASTRUCTURE',
         metaItems: [
           { label: 'Staff ID:', value: 'STAFF-ROOT-001' },
@@ -612,12 +623,12 @@ export function getRoleMetaData(user) {
     default:
       return {
         rolePill: 'STU',
-        greeting: `Good Morning, ${user?.name || 'M.N.M. Afnan'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || 'M.N.M. Afnan'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
         metaItems: [
-          { label: 'Reg No:', value: user?.regNo || '22ICT085' },
-          { label: 'Programme:', value: user?.programme || 'BICT (Hons)' },
-          { label: 'Current:', value: user?.semester || 'Semester 05' },
+          { label: 'Reg No:', value: user?.regNo || user?.studentId || '22ICT085' },
+          { label: 'Programme:', value: user?.programme || user?.degreeProgramme || 'BICT (Hons)' },
+          { label: 'Current:', value: user?.semester || user?.currentSemester || 'Semester 05' },
           { label: 'Specialization:', value: user?.specialization || 'Software Systems' },
         ],
       };
