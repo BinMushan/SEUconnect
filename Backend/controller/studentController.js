@@ -275,8 +275,28 @@ exports.updateAcademicProfile = async (req, res) => {
 
     if (req.body.fullName) student.fullName = req.body.fullName;
     if (req.body.phone) student.academicProfile.personalPhone = req.body.phone;
+    if (req.body.profileImage) {
+      student.profileImage = req.body.profileImage;
+      student.avatarUrl = req.body.profileImage;
+      student.academicProfile.profileImage = req.body.profileImage;
+    }
 
     await student.save();
+
+    // Also sync User record in MongoDB and store
+    try {
+      const store = require('../store');
+      const user = await store.users.findByEmail(student.email);
+      if (user) {
+        if (req.body.phone) user.phone = req.body.phone;
+        if (req.body.profileImage) user.profileImage = req.body.profileImage;
+        if (req.body.specialization) user.specialization = req.body.specialization;
+        if (req.body.address) user.address = req.body.address;
+        await store.users.save(user);
+      }
+    } catch (uErr) {
+      console.warn('Syncing User record from student update failed:', uErr.message);
+    }
 
     res.status(200).json({
       success: true,

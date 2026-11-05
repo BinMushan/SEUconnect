@@ -939,8 +939,12 @@ export default function DashboardTemplate({
               onClick={() => handleItemClick('academic_profile')}
               style={{ cursor: 'pointer' }}
             >
-              <div className="seu-user-avatar-circle">
-                {userInitial}
+              <div className="seu-user-avatar-circle" style={{ overflow: 'hidden' }}>
+                {user?.profileImage ? (
+                  <img src={user.profileImage} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  userInitial
+                )}
               </div>
               <div className="seu-user-name-meta">
                 <span className="seu-user-display-name">{userName}</span>
