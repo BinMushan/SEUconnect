@@ -47,45 +47,7 @@ export default function DeptMADashboardOverview({
 
   return (
     <div className="dept-ma-dashboard-view">
-      {/* 1. Header Banner */}
-      <div className="dept-ma-header-banner">
-        <div className="dept-ma-header-content">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-            <span className="dept-ma-badge-pill dept-code">DEPT-MA DESK</span>
-            <span className="dept-ma-badge-pill">{deptInfo.currentAcademicYear}</span>
-            <span className="dept-ma-badge-pill" style={{ background: 'rgba(56, 189, 248, 0.25)', borderColor: '#38bdf8' }}>
-              SEUSL Faculty of Technology
-            </span>
-          </div>
-          <h1>Department Management Assistant Portal</h1>
-          <div className="dept-ma-header-sub">
-            <span>🏛️ {deptInfo.departmentName}</span>
-            <span>•</span>
-            <span>👤 Officer: <strong>{deptInfo.assignedMA.name}</strong> ({deptInfo.assignedMA.staffId})</span>
-            <span>•</span>
-            <span>📍 {deptInfo.location}</span>
-          </div>
-        </div>
-
-        <div className="dept-ma-header-actions">
-          <button
-            type="button"
-            className="dept-ma-btn-ghost-light"
-            onClick={() => onNavigate('medical_applications')}
-          >
-            Medical Queue ({pendingMedicals + pendingLecturerMedicals})
-          </button>
-          <button
-            type="button"
-            className="dept-ma-btn-ghost-light"
-            onClick={() => onNavigate('student_requests')}
-          >
-            Student Requests ({pendingStudentRequests})
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Key Metrics Summary Grid: All Seven Administrative Responsibilities */}
+{/* 2. Key Metrics Summary Grid */}
       <div className="dept-ma-stats-grid">
         {/* Metric 1: Student & Lecturer Medical Applications */}
         <div className="dept-ma-stat-card" onClick={() => onNavigate('medical_applications')}>

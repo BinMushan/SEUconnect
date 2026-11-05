@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
+import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
+import { ROLE_WORKFLOW_TYPES } from '../../components/workflow/workflowNav.jsx';
 import ProcessTrackerModal from '../../components/workflow/ProcessTrackerModal.jsx';
 import ApproveModal from '../../components/workflow/ApproveModal.jsx';
 import DeclineReasonModal from '../../components/workflow/DeclineReasonModal.jsx';
@@ -114,6 +117,16 @@ export default function HOD({ user, onLogout }) {
 
   const renderActiveView = () => {
     switch (activeNav) {
+      case 'notifications':
+        return <NotificationCenter onNavigate={setActiveNav} />;
+      case 'workflow_applications':
+        return (
+          <WorkflowDesk
+            types={ROLE_WORKFLOW_TYPES.hod}
+            title="ECA / ESA & Examination Forms"
+            subtitle="Department-wise lists sent by the Examination Branch, Examination Forms for approval, and final ECA / ESA approvals."
+          />
+        );
       case 'department_overview':
         return <DepartmentOverview onNavigate={setActiveNav} />;
       case 'academic_staff':

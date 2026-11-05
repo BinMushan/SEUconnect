@@ -3,17 +3,21 @@
    Aligned with https://seuconnect-frontend.onrender.com/student/notifications
    ========================================================================== */
 
-.seu-notif-container {  padding: 0 0 40px 0;
-
+.seu-notif-container {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.15rem;
   width: 100%;
+  height: calc(100vh - 125px);
+  max-height: calc(100vh - 125px);
+  padding: 0 0 10px 0;
+  box-sizing: border-box;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: #0f172a;
 }
 
 .seu-notif-header {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -36,10 +40,11 @@
 
 /* Toolbar Card */
 .seu-notif-toolbar {
+  flex-shrink: 0;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -111,11 +116,36 @@
   border-color: #94a3b8;
 }
 
-/* Notifications List */
+/* Notifications List - Full scrolling within this box only */
 .seu-notif-list {
+  flex: 1;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  padding-right: 6px;
+  padding-bottom: 2rem;
+  box-sizing: border-box;
+}
+
+.seu-notif-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.seu-notif-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.seu-notif-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.seu-notif-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .seu-notif-card {
@@ -239,6 +269,18 @@
    RESPONSIVE DESIGN (MOBILE)
    ========================================================================== */
 @media (max-width: 640px) {
+  .seu-notif-container {
+    height: auto;
+    max-height: none;
+    padding-bottom: 30px;
+  }
+
+  .seu-notif-list {
+    overflow-y: visible !important;
+    max-height: none !important;
+    padding-bottom: 1rem;
+  }
+
   .seu-notif-header h1 {
     font-size: 1.35rem;
   }

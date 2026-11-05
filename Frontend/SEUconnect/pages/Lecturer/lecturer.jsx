@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
+import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
+import { workflowNavItem, ROLE_WORKFLOW_TYPES } from '../../components/workflow/workflowNav.jsx';
 import ToastStack from './components/ToastStack.jsx';
 
 import LecturerDashboard from './LecturerDashboard.jsx';
@@ -41,6 +44,10 @@ const LECTURER_NAV_SECTIONS = [
         ),
       },
     ],
+  },
+  {
+    title: 'EXAMINATION WORKFLOWS',
+    items: [workflowNavItem('ECA / ESA & Exam Forms')],
   },
   {
     title: 'ACADEMIC',
@@ -324,6 +331,14 @@ export default function Lecturer({ user, onLogout }) {
 
   const renderModuleContent = () => {
     switch (currentPath) {
+      case 'workflow_applications':
+        return (
+          <WorkflowDesk
+            types={ROLE_WORKFLOW_TYPES.lecturer}
+            title="ECA / ESA Checks & Examination Forms"
+            subtitle="Check assigned ECA / ESA applications and review Examination Forms submitted to you by students."
+          />
+        );
       case 'enrollment':
         return (
           <StudentEnrollment
@@ -454,8 +469,12 @@ export default function Lecturer({ user, onLogout }) {
         onNavigate={handleNavigate}
         className="lecturer-portal"
         facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
-        greetingText={`Good Morning, ${INITIAL_LECTURER_INFO.fullName}`}
-        metaItems={LECTURER_META_CHIPS}
+        greetingText={`Good Morning, ${user?.name || INITIAL_LECTURER_INFO.fullName}`}
+        metaItems={[
+          { label: 'Lecturer ID:', value: user?.staffId || LECTURER_META_CHIPS[0].value },
+          { label: 'Department:', value: (user?.department || LECTURER_META_CHIPS[1].value).replace('Department of Information and Communication Technology', 'Department of ICT') },
+          LECTURER_META_CHIPS[2],
+        ]}
         navSections={LECTURER_NAV_SECTIONS}
         actionButtons={lecturerHeroActions}
         notificationCount={unreadNotifCount}

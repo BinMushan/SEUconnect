@@ -115,6 +115,27 @@ const StudentSchema = new mongoose.Schema({
     default: ''
   },
 
+  // ---- Normalised academic identity (spec section 4). The embedded sections below are the legacy,
+  // ---- denormalised demo data; new code reads courses/attendance/results from their own collections.
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  registrationNo: { type: String, trim: true },
+  departmentRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', index: true },
+  programmeRef: { type: mongoose.Schema.Types.ObjectId, ref: 'DegreeProgramme', index: true },
+  batchRef: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicBatch', index: true },
+  specializationRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Specialization', default: null },
+  admissionYear: { type: Number },
+  currentYear: { type: Number, min: 1, max: 8, default: 1 },
+  currentSemesterNumber: { type: Number, min: 1, max: 4, default: 1 },
+  status: { type: String, enum: ['Active', 'On Leave', 'Suspended', 'Graduated', 'Withdrawn'], default: 'Active', index: true },
+  accountStatus: { type: String, enum: ['active', 'suspended', 'disabled'], default: 'active' },
+  contact: { phone: { type: String, default: '' }, address: { type: String, default: '' }, personalEmail: { type: String, default: '' } },
+  statusHistory: [
+    { _id: false, from: String, to: String, reason: String, by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, at: { type: Date, default: Date.now } },
+  ],
+  progressionHistory: [
+    { _id: false, fromYear: Number, fromSemester: Number, toYear: Number, toSemester: Number, by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, at: { type: Date, default: Date.now } },
+  ],
+
   // 1. ACADEMIC PROFILE SECTION
   academicProfile: {
     personalEmail: { type: String, default: '' },
@@ -213,6 +234,11 @@ const StudentSchema = new mongoose.Schema({
   timestamps: true,
   collection: 'students' // Explicitly stores in 'students' collection in MongoDB
 });
+
+StudentSchema.index({ registrationNo: 1 }, { unique: true, sparse: true });
+// sparse would still index explicit nulls (user defaults to null), so only linked accounts are constrained
+StudentSchema.index({ user: 1 }, { unique: true, partialFilterExpression: { user: { $type: 'objectId' } } });
+StudentSchema.index({ departmentRef: 1, batchRef: 1, status: 1 });
 
 // Helper virtual to return URL-safe student identifier
 StudentSchema.virtual('id').get(function() {

@@ -62,33 +62,196 @@ exports.getStudentByIdentifier = async (req, res) => {
 // @route   POST /api/student
 exports.createStudent = async (req, res) => {
   try {
-    const { studentId, indexNo, email, fullName } = req.body;
+    const {
+      studentId,
+      regNo,
+      indexNo,
+      email,
+      fullName,
+      name,
+      tempPassword,
+      password,
+      department,
+      degreeProgramme,
+      programme,
+      currentSemester,
+      semester,
+      batch
+    } = req.body;
 
-    // Check if student already exists
-    const existing = await Student.findOne({
-      $or: [{ studentId }, { indexNo }, { email: email?.toLowerCase() }]
-    });
+    const effectiveId = (studentId || regNo || '').trim().toUpperCase();
+    const effectiveEmail = (email || '').trim().toLowerCase();
+    const effectiveName = (fullName || name || '').trim();
+    const effectiveIndex = (indexNo || effectiveId).trim().toUpperCase();
+    const effectiveProgramme = degreeProgramme || programme || 'BICT (Hons)';
+    const effectiveDepartment = department || 'Department of Information and Communication Technology';
+    const effectiveSemester = currentSemester || semester || 'Semester 1';
+    const rawPassword = tempPassword || password || '123456';
 
-    if (existing) {
+    if (!effectiveId || !effectiveEmail || !effectiveName) {
       return res.status(400).json({
         success: false,
-        message: `Student already exists with registration number, index, or email.`
+        message: 'Registration Number, Full Name, and Email are required.'
       });
     }
 
-    const student = await Student.create(req.body);
+    const { hashPassword } = require('../utils/password');
+    const store = require('../store');
+
+    // 1. Create or update User account in store & DB so student can log in
+    const userData = {
+      name: effectiveName,
+      email: effectiveEmail,
+      password: hashPassword(rawPassword),
+      role: 'student',
+      roleKey: 'student',
+      regNo: effectiveId,
+      department: effectiveDepartment,
+      faculty: 'Faculty of Technology',
+      programme: effectiveProgramme,
+      semester: effectiveSemester,
+      designation: 'Undergraduate',
+      avatarInitial: effectiveName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'ST',
+      status: 'active'
+    };
+
+    await store.users.createOrUpdate(userData);
+
+    // 2. Create or update Student document in Student collection
+    let studentDoc = null;
+    if (store.connected()) {
+      const existing = await Student.findOne({
+        $or: [{ studentId: effectiveId }, { indexNo: effectiveIndex }, { email: effectiveEmail }]
+      });
+
+      if (existing) {
+        Object.assign(existing, {
+          fullName: effectiveName,
+          email: effectiveEmail,
+          department: effectiveDepartment,
+          degreeProgramme: effectiveProgramme,
+          currentSemester: effectiveSemester,
+          batch: batch || '2025/2026'
+        });
+        studentDoc = await existing.save();
+      } else {
+        studentDoc = await Student.create({
+          studentId: effectiveId,
+          indexNo: effectiveIndex,
+          fullName: effectiveName,
+          email: effectiveEmail,
+          faculty: 'Faculty of Technology',
+          department: effectiveDepartment,
+          degreeProgramme: effectiveProgramme,
+          currentSemester: effectiveSemester,
+          batch: batch || '2025/2026',
+          academicStatus: 'Good Standing',
+          academicProfile: {
+            personalPhone: req.body.phone || '+94 77 123 4567',
+            personalEmail: effectiveEmail,
+            guardianName: 'Parent / Guardian',
+            permanentAddress: 'Oluvil Campus, Sri Lanka',
+            gender: 'Male'
+          },
+          attendance: {
+            overallAttendancePercentage: 100.0,
+            totalLectures: 0,
+            attendedLectures: 0,
+            eligibilityStatus: 'Eligible',
+            subjectRecords: []
+          },
+          semesterRegistrations: [],
+          results: [],
+          examinations: []
+        });
+      }
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Student record and separate database section created successfully!',
-      data: student
+      message: `Student ${effectiveName} (${effectiveId}) enrolled successfully! Login account created.`,
+      data: studentDoc || userData
     });
   } catch (error) {
+    console.error('Create student error:', error);
     res.status(400).json({
       success: false,
-      message: 'Failed to create student record',
-      error: error.message
+      message: 'Failed to create student record: ' + error.message
     });
+  }
+};
+
+exports.createStudentsBulk = async (req, res) => {
+  try {
+    const { students = [] } = req.body;
+    if (!Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please provide an array of students to enroll.' });
+    }
+
+    const { hashPassword } = require('../utils/password');
+    const store = require('../store');
+    let createdCount = 0;
+
+    for (const s of students) {
+      const effectiveId = (s.studentId || s.regNo || '').trim().toUpperCase();
+      const effectiveEmail = (s.email || '').trim().toLowerCase();
+      const effectiveName = (s.fullName || s.name || '').trim();
+      const effectiveIndex = (s.indexNo || effectiveId).trim().toUpperCase();
+      const effectiveProgramme = s.degreeProgramme || s.programme || 'BICT (Hons)';
+      const effectiveDepartment = s.department || 'Department of Information and Communication Technology';
+      const effectiveSemester = s.currentSemester || s.semester || 'Semester 1';
+      const rawPassword = s.tempPassword || s.password || '123456';
+
+      if (!effectiveId || !effectiveEmail) continue;
+
+      const userData = {
+        name: effectiveName || effectiveId,
+        email: effectiveEmail,
+        password: hashPassword(rawPassword),
+        role: 'student',
+        roleKey: 'student',
+        regNo: effectiveId,
+        department: effectiveDepartment,
+        faculty: 'Faculty of Technology',
+        programme: effectiveProgramme,
+        semester: effectiveSemester,
+        designation: 'Undergraduate',
+        avatarInitial: (effectiveName || 'ST').split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase(),
+        status: 'active'
+      };
+      await store.users.createOrUpdate(userData);
+
+      if (store.connected()) {
+        await Student.findOneAndUpdate(
+          { $or: [{ studentId: effectiveId }, { email: effectiveEmail }] },
+          {
+            $set: {
+              studentId: effectiveId,
+              indexNo: effectiveIndex,
+              fullName: effectiveName,
+              email: effectiveEmail,
+              faculty: 'Faculty of Technology',
+              department: effectiveDepartment,
+              degreeProgramme: effectiveProgramme,
+              currentSemester: effectiveSemester,
+              batch: s.batch || s.batchCode || '2025/2026',
+              academicStatus: 'Good Standing'
+            }
+          },
+          { upsert: true, new: true }
+        );
+      }
+      createdCount++;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully enrolled ${createdCount} students with database sections and login credentials.`,
+      count: createdCount
+    });
+  } catch (error) {
+    console.error('Bulk student creation error:', error);
+    res.status(500).json({ success: false, message: 'Server error during bulk enrollment: ' + error.message });
   }
 };
 

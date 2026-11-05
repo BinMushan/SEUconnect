@@ -1,4 +1,16 @@
+let AUTH = {};
+const originalFetch = fetch;
+// Every route except /health and /auth/login now needs a bearer token.
+globalThis.fetch = (url, opts = {}) => originalFetch(url, { ...opts, headers: { ...AUTH, ...(opts.headers || {}) } });
+
 async function testApi() {
+  const login = await originalFetch('http://localhost:5000/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'examination@gmail.com', password: '123456' }),
+  }).then((r) => r.json());
+  AUTH = { Authorization: `Bearer ${login.token}` };
+
   console.log('>>> TESTING SEUCONNECT STUDENT BACKEND API ENDPOINTS <<<\n');
 
   // 1. Health check

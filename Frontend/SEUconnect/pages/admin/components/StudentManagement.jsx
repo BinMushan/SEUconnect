@@ -1,5 +1,18 @@
 import { useState, useRef } from 'react';
 
+export const getStudentTempPassword = (student) => {
+  if (student?.tempPassword) return student.tempPassword;
+  if (!student?.regNo) return 'Seu@2024Pass';
+  const parts = student.regNo.split('/');
+  if (parts.length >= 4) {
+    const yr = parts[2] || '24';
+    const dept = parts[3] || 'ICT';
+    const num = parts[4] || '001';
+    return `Seu@${yr}${dept}${num}`;
+  }
+  return `Seu@${student.regNo.replace(/[^a-zA-Z0-9]/g, '')}`;
+};
+
 export default function StudentManagement({
   batches = [],
   students = [],
@@ -48,6 +61,7 @@ export default function StudentManagement({
   const [newDepartment, setNewDepartment] = useState('Department of Information & Communication Technology');
   const [newSemester, setNewSemester] = useState('Semester 1');
   const [newEmail, setNewEmail] = useState('');
+  const [newTempPassword, setNewTempPassword] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -175,12 +189,12 @@ export default function StudentManagement({
 
   // Download official CSV template
   const handleDownloadTemplate = () => {
-    const csvHeader = 'Registration No,Index No,Full Name,Degree Programme,Department,Starting Semester,University Email,Mobile\n';
+    const csvHeader = 'Registration No,Index No,Full Name,Degree Programme,Department,Starting Semester,University Email,Temporary Password,Mobile\n';
     const sampleRows = [
-      'SEU/IS/24/ICT/001,SEU/IS/24/ICT/001,A.B. Perera,BICT (Hons),Department of Information & Communication Technology,Semester 1,seu24ict001@seu.ac.lk,+94771234567',
-      'SEU/IS/24/ICT/002,SEU/IS/24/ICT/002,K.L. Fernando,BICT (Hons),Department of Information & Communication Technology,Semester 1,seu24ict002@seu.ac.lk,+94772345678',
-      'SEU/IS/24/BST/001,SEU/IS/24/BST/001,M.N. Silva,BST (Hons),Department of Bio Systems Technology,Semester 1,seu24bst001@seu.ac.lk,+94713456789',
-      'SEU/IS/24/BST/002,SEU/IS/24/BST/002,S.K. Mohamed,BST (Hons),Department of Bio Systems Technology,Semester 1,seu24bst002@seu.ac.lk,+94774567890'
+      'SEU/IS/24/ICT/001,SEU/IS/24/ICT/001,A.B. Perera,BICT (Hons),Department of Information & Communication Technology,Semester 1,seu24ict001@seu.ac.lk,Seu@24ICT001,+94771234567',
+      'SEU/IS/24/ICT/002,SEU/IS/24/ICT/002,K.L. Fernando,BICT (Hons),Department of Information & Communication Technology,Semester 1,seu24ict002@seu.ac.lk,Seu@24ICT002,+94772345678',
+      'SEU/IS/24/BST/001,SEU/IS/24/BST/001,M.N. Silva,BST (Hons),Department of Bio Systems Technology,Semester 1,seu24bst001@seu.ac.lk,Seu@24BST001,+94713456789',
+      'SEU/IS/24/BST/002,SEU/IS/24/BST/002,S.K. Mohamed,BST (Hons),Department of Bio Systems Technology,Semester 1,seu24bst002@seu.ac.lk,Seu@24BST002,+94774567890'
     ].join('\n');
 
     const blob = new Blob([csvHeader + sampleRows], { type: 'text/csv;charset=utf-8;' });
@@ -241,6 +255,7 @@ export default function StudentManagement({
           credits: 0,
           attendance: 0,
           email: `seu${prefix}ict${numStr}@seu.ac.lk`,
+          tempPassword: `Seu@${prefix}ICT${numStr}`,
           phone: `+94 77 ${Math.floor(1000000 + (i * 71329) % 9000000)}`,
           status: 'Active',
           welfare: 'Pending Verification',
@@ -271,6 +286,7 @@ export default function StudentManagement({
           credits: 0,
           attendance: 0,
           email: `seu${prefix}bst${numStr}@seu.ac.lk`,
+          tempPassword: `Seu@${prefix}BST${numStr}`,
           phone: `+94 71 ${Math.floor(1000000 + (i * 84913) % 9000000)}`,
           status: 'Active',
           welfare: 'Pending Verification',
@@ -318,6 +334,7 @@ export default function StudentManagement({
         const deptIdx = getIdx(['dept', 'department']);
         const semIdx = getIdx(['sem', 'semester']);
         const emailIdx = getIdx(['email', 'mail']);
+        const passIdx = getIdx(['pass', 'password', 'temp', 'credential']);
         const phoneIdx = getIdx(['phone', 'mobile', 'contact']);
 
         if (regIdx === -1 && nameIdx === -1) {
@@ -354,6 +371,7 @@ export default function StudentManagement({
           const programme = cols[progIdx] || (isBST ? 'BST (Hons)' : 'BICT (Hons)');
           const department = cols[deptIdx] || (isBST ? 'Department of Bio Systems Technology' : 'Department of Information & Communication Technology');
           const email = cols[emailIdx] || `${reg.toLowerCase().replace(/[^a-z0-9]/g, '')}@seu.ac.lk`;
+          const tempPassword = (passIdx !== -1 && cols[passIdx]) ? cols[passIdx].trim() : getStudentTempPassword({ regNo: reg });
           const phone = cols[phoneIdx] || '+94 77 000 0000';
           const semester = cols[semIdx] || currentBatch.currentSemester?.split(' ')[0] || 'Semester 1';
           const indexNo = cols[indexIdx] || reg;
@@ -373,6 +391,7 @@ export default function StudentManagement({
             credits: 0,
             attendance: 0,
             email: email.toLowerCase(),
+            tempPassword,
             phone,
             status: 'Active',
             welfare: 'Pending Verification',
@@ -454,6 +473,7 @@ export default function StudentManagement({
     }
 
     const currentBatch = activeBatch;
+    const effectiveTempPassword = newTempPassword.trim() || getStudentTempPassword({ regNo: newRegNo.trim().toUpperCase() });
 
     onAddStudent({
       id: `STU-${Date.now()}`,
@@ -470,6 +490,7 @@ export default function StudentManagement({
       credits: 0,
       attendance: 0,
       email: newEmail.trim().toLowerCase(),
+      tempPassword: effectiveTempPassword,
       phone: newPhone.trim() || '+94 77 000 0000',
       status: 'Active',
       welfare: 'Pending Verification',
@@ -482,6 +503,7 @@ export default function StudentManagement({
     setNewIndexNo('');
     setNewName('');
     setNewEmail('');
+    setNewTempPassword('');
     setNewPhone('');
     setFormError('');
     setIsAddModalOpen(false);
@@ -983,6 +1005,24 @@ export default function StudentManagement({
                         <td>
                           <div style={{ fontWeight: 600, color: '#0f172a' }}>{student.name}</div>
                           <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{student.email}</div>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
+                            <span style={{ fontSize: '0.67rem', color: '#64748b', fontWeight: 500 }}>Pass:</span>
+                            <code
+                              style={{
+                                fontSize: '0.68rem',
+                                background: '#f8fafc',
+                                color: '#0369a1',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                fontWeight: 600,
+                                fontFamily: 'monospace',
+                                border: '1px solid #e2e8f0'
+                              }}
+                              title="Temporary Initial Password"
+                            >
+                              {student.tempPassword || getStudentTempPassword(student)}
+                            </code>
+                          </div>
                         </td>
 
                         <td>
@@ -1330,6 +1370,12 @@ export default function StudentManagement({
                   <span style={{ fontWeight: 600 }}>{selectedStudent.email}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span style={{ color: '#64748b' }}>Temporary Password:</span>
+                  <code style={{ fontWeight: 700, color: '#0369a1', background: '#f0f9ff', padding: '2px 8px', borderRadius: '4px', border: '1px solid #bae6fd' }}>
+                    {selectedStudent.tempPassword || getStudentTempPassword(selectedStudent)}
+                  </code>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f1f5f9' }}>
                   <span style={{ color: '#64748b' }}>Contact Phone:</span>
                   <span style={{ fontWeight: 600 }}>{selectedStudent.phone}</span>
                 </div>
@@ -1537,7 +1583,17 @@ export default function StudentManagement({
                         className="adm-input"
                         placeholder="SEU/IS/24/ICT/001"
                         value={newRegNo}
-                        onChange={(e) => setNewRegNo(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewRegNo(val);
+                          if (!newTempPassword || newTempPassword.startsWith('Seu@')) {
+                            setNewTempPassword(getStudentTempPassword({ regNo: val }));
+                          }
+                          if (!newEmail || newEmail.endsWith('@seu.ac.lk')) {
+                            const clean = val.toLowerCase().replace(/[^a-z0-9]/g, '');
+                            if (clean) setNewEmail(`${clean}@seu.ac.lk`);
+                          }
+                        }}
                         required
                       />
                     </div>
@@ -1608,6 +1664,17 @@ export default function StudentManagement({
                     </div>
 
                     <div className="adm-form-group">
+                      <label className="adm-label">Contact Mobile Number</label>
+                      <input
+                        type="text"
+                        className="adm-input"
+                        placeholder="+94 77 123 4567"
+                        value={newPhone}
+                        onChange={(e) => setNewPhone(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="adm-form-group">
                       <label className="adm-label">University Email *</label>
                       <input
                         type="email"
@@ -1619,14 +1686,32 @@ export default function StudentManagement({
                       />
                     </div>
 
-                    <div className="adm-form-group full-width">
-                      <label className="adm-label">Contact Mobile Number</label>
+                    <div className="adm-form-group">
+                      <label className="adm-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Temporary Password *</span>
+                        <button
+                          type="button"
+                          onClick={() => setNewTempPassword(getStudentTempPassword({ regNo: newRegNo || '24/ICT/001' }))}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#2563eb',
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                        >
+                          Auto Generate
+                        </button>
+                      </label>
                       <input
                         type="text"
                         className="adm-input"
-                        placeholder="+94 77 123 4567"
-                        value={newPhone}
-                        onChange={(e) => setNewPhone(e.target.value)}
+                        placeholder="e.g. Seu@24ICT001"
+                        value={newTempPassword}
+                        onChange={(e) => setNewTempPassword(e.target.value)}
+                        required
                       />
                     </div>
                   </div>
@@ -1901,6 +1986,7 @@ export default function StudentManagement({
                             <th>Department</th>
                             <th>Programme</th>
                             <th>Email Address</th>
+                            <th>Temp Password</th>
                             <th>Starting Sem</th>
                             <th>GPA</th>
                             <th>Credits</th>
@@ -1929,6 +2015,21 @@ export default function StudentManagement({
                                 </td>
                                 <td style={{ color: '#64748b' }}>{stu.programme}</td>
                                 <td style={{ color: '#64748b' }}>{stu.email}</td>
+                                <td>
+                                  <code
+                                    style={{
+                                      fontSize: '0.68rem',
+                                      background: '#f1f5f9',
+                                      color: '#0369a1',
+                                      padding: '1px 5px',
+                                      borderRadius: '4px',
+                                      fontWeight: 600,
+                                      border: '1px solid #e2e8f0'
+                                    }}
+                                  >
+                                    {stu.tempPassword || getStudentTempPassword(stu)}
+                                  </code>
+                                </td>
                                 <td>{stu.semester}</td>
                                 <td>
                                   <span style={{ fontWeight: 700, color: '#0f172a' }}>

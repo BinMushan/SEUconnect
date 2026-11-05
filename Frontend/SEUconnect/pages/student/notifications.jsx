@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import api from '../../src/services/api.js';
 import './notifications.css';
 
 const DEFAULT_NOTIFICATIONS = [
@@ -56,30 +57,93 @@ const DEFAULT_NOTIFICATIONS = [
   }
 ];
 
-export default function StudentNotifications({ user, onNavigate }) {
+const PRIORITY_LABEL = { urgent: 'Urgent', high: 'High', normal: 'Normal' };
+
+// Live notifications come from the workflow engine; the static faculty circulars stay below them.
+const fromServer = (n) => ({
+  _id: n._id,
+  title: n.title,
+  message: n.message,
+  type: 'Application',
+  priority: PRIORITY_LABEL[String(n.priority).toLowerCase()] || 'Normal',
+  isRead: n.isRead,
+  actionId: n.targetTab || 'track_applications',
+  actionText: 'Track Application',
+  createdAt: n.createdAt,
+  live: true,
+});
+
+export default function StudentNotifications({ onNavigate }) {
   const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
   const [selectedFilter, setSelectedFilter] = useState('All');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    try {
+      const res = await api.getNotifications();
+      const live = (res.data || []).map(fromServer);
+      setNotifications((prev) => [...live, ...prev.filter((n) => !n.live)]);
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 20000);
+    return () => clearInterval(timer);
+  }, [load]);
 
   // Mark single notification as read
-  const handleMarkAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-    );
+  const handleDeleteNotification = async (id) => {
+    setNotifications((prev) => prev.filter((n) => n._id !== id));
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
+      if (!deleted.includes(String(id))) {
+        deleted.push(String(id));
+        localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+      }
+    } catch (_) {}
+    const target = notifications.find((n) => n._id === id);
+    if (target?.live) await api.deleteNotification(id).catch(() => {});
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
+      notifications.forEach((n) => {
+        if (!deleted.includes(String(n._id))) deleted.push(String(n._id));
+      });
+      localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+    } catch (_) {}
+    setNotifications([]);
+    await api.deleteAllNotifications().catch(() => {});
+  };
+
+  const handleMarkAsRead = async (id) => {
+    setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
+    const target = notifications.find((n) => n._id === id);
+    if (target?.live) await api.markNotificationRead(id).catch(() => {});
   };
 
   // Mark all as read
-  const handleMarkAllAsRead = () => {
+  const handleMarkAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    await api.markAllNotificationsRead().catch(() => {});
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const filters = ['All', 'Unread', 'High & Urgent', 'Examination', 'Academic', 'Forms'];
+  const filters = ['All', 'Unread', 'High & Urgent', 'Applications', 'Examination', 'Academic', 'Forms'];
 
   const filteredNotifications = notifications.filter((item) => {
     if (selectedFilter === 'Unread') return !item.isRead;
     if (selectedFilter === 'High & Urgent') return item.priority === 'High' || item.priority === 'Urgent';
+    if (selectedFilter === 'Applications') return item.type === 'Application';
     if (selectedFilter === 'Examination') return item.type === 'Examination';
     if (selectedFilter === 'Academic') return item.type === 'Academic';
     if (selectedFilter === 'Forms') return item.type === 'Forms';
@@ -142,8 +206,29 @@ export default function StudentNotifications({ user, onNavigate }) {
               Mark All as Read
             </button>
           )}
+          {notifications.length > 0 && (
+            <button
+              type="button"
+              className="seu-notif-btn-secondary"
+              onClick={handleClearAll}
+              style={{ color: '#ef4444' }}
+              title="Delete and clear all notifications"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Clear All
+            </button>
+          )}
         </div>
       </div>
+
+      {error && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.6rem 0.9rem', borderRadius: '8px', fontSize: '0.84rem', marginBottom: '0.8rem' }}>
+          Live application notifications are unavailable: {error}
+        </div>
+      )}
 
       {/* Notifications List */}
       <div className="seu-notif-list">
@@ -219,6 +304,7 @@ export default function StudentNotifications({ user, onNavigate }) {
                     </button>
                   )}
 
+
                   {!notif.isRead && (
                     <button
                       type="button"
@@ -231,6 +317,22 @@ export default function StudentNotifications({ user, onNavigate }) {
                       Mark as Read
                     </button>
                   )}
+
+
+                  <button
+                    type="button"
+                    className="seu-notif-btn-secondary"
+                    onClick={() => handleDeleteNotification(notif._id)}
+                    title="Delete notification"
+                    style={{ color: '#ef4444' }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Delete
+                  </button>
+
                 </div>
               </div>
             </div>
