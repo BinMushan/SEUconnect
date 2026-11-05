@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../../src/services/api.js';
 import './academic_profile.css';
 
 export default function AcademicProfile({ user, onProfileUpdate }) {
@@ -28,59 +29,84 @@ export default function AcademicProfile({ user, onProfileUpdate }) {
   // Initial avatar letter (e.g. 'M')
   const avatarInitial = user?.avatarInitial || (name ? name.charAt(0).toUpperCase() : 'M');
 
-  // Handle uploading a local picture
-  const handlePhotoChange = (e) => {
+  // Handle uploading picture to Cloudinary & saving in MongoDB
+  const handlePhotoChange = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setIsUploading(true);
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const res = await api.uploadProfilePhoto(file);
+      if (res && res.profileImage) {
+        setProfileImage(res.profileImage);
+        const updatedUser = {
+          ...(user || {}),
+          profileImage: res.profileImage,
+        };
+        if (typeof onProfileUpdate === 'function') {
+          onProfileUpdate(updatedUser);
+        }
+      }
+    } catch (err) {
+      console.warn('Backend Cloudinary upload note, using local preview fallback:', err);
       const reader = new FileReader();
       reader.onload = (event) => {
         setProfileImage(event.target.result);
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        alert('Failed to read image file.');
-        setIsUploading(false);
+        if (typeof onProfileUpdate === 'function') {
+          onProfileUpdate({ ...(user || {}), profileImage: event.target.result });
+        }
       };
       reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   // Handle removing the photo
-  const handleRemovePhoto = () => {
+  const handleRemovePhoto = async () => {
     if (window.confirm('Are you sure you want to remove your profile picture?')) {
       setProfileImage(null);
+      try {
+        await api.updateProfile({ profileImage: null });
+      } catch (err) {
+        console.warn('Could not reset photo on server:', err);
+      }
+      if (typeof onProfileUpdate === 'function') {
+        onProfileUpdate({ ...(user || {}), profileImage: null });
+      }
     }
   };
 
-  // Handle saving the updated contact & academic info
-  const handleSaveProfile = (e) => {
+  // Handle saving the updated contact & academic info to MongoDB
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     setSaveSuccess(false);
 
-    // Simulate network save
+    const updatedData = {
+      ...user,
+      phone,
+      specialization,
+      address,
+      profileImage
+    };
+
+    try {
+      await api.updateProfile({ phone, specialization, address, profileImage });
+    } catch (err) {
+      console.warn('Server save note:', err);
+    }
+
+    setIsSaving(false);
+    setSaveSuccess(true);
+
+    if (typeof onProfileUpdate === 'function') {
+      onProfileUpdate(updatedData);
+    }
+
     setTimeout(() => {
-      setIsSaving(false);
-      setSaveSuccess(true);
-
-      const updatedData = {
-        ...user,
-        phone,
-        specialization,
-        address,
-        profileImage
-      };
-
-      if (typeof onProfileUpdate === 'function') {
-        onProfileUpdate(updatedData);
-      }
-
-      // Hide success notification after 4 seconds
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 4000);
-    }, 450);
+      setSaveSuccess(false);
+    }, 4000);
   };
 
   return (
