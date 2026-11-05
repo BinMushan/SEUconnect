@@ -64,12 +64,14 @@ const chunkText = (content) => {
 const writeChunks = async (doc) => {
   await KnowledgeChunk.deleteMany({ document: doc._id });
   const parts = chunkText(doc.content);
-  const embedded = await llm.embed(parts.map((t) => `${doc.title}\n${t}`));
+  // Embed up to the first 40 chunks synchronously to stay fast (< 2s) and prevent timeouts on large handbooks
+  const syncParts = parts.slice(0, 40);
+  const embedded = await llm.embed(syncParts.map((t) => `${doc.title}\n${t}`));
   await KnowledgeChunk.insertMany(
     parts.map((text, i) => ({
       document: doc._id, title: doc.title, source: doc.source, category: doc.category, audience: doc.audience,
       status: doc.status, ord: i, text,
-      ...(embedded ? { embedding: embedded.vectors[i], embeddingModel: embedded.model } : {}),
+      ...(embedded && embedded.vectors && embedded.vectors[i] ? { embedding: embedded.vectors[i], embeddingModel: embedded.model } : {}),
     }))
   );
   doc.chunksCount = parts.length;
