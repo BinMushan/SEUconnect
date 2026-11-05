@@ -1745,3 +1745,912 @@
 .dark-mode .dept-ma-history-section-header {
   border-bottom-color: #1e293b !important;
 }
+
+
+/* ==========================================================================
+   SEVEN OFFICIAL RESPONSIBILITIES SUPPLEMENTARY STYLING & DARK MODE
+   ========================================================================== */
+
+.dept-ma-requests-section,
+.dept-ma-mahapola-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Dark mode overrides for cards, dossiers, checklists and workspaces */
+.dark-mode .dept-ma-requests-section,
+.dark-mode .dept-ma-mahapola-section {
+  color: #f1f5f9;
+}
+
+.dark-mode [style*="background: rgb(248, 250, 252)"],
+.dark-mode [style*="background: #f8fafc"],
+.dark-mode [style*="background: rgb(241, 245, 249)"],
+.dark-mode [style*="background: #f1f5f9"] {
+  background: #111a36 !important;
+  color: #f1f5f9 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode [style*="background: rgb(255, 255, 255)"],
+.dark-mode [style*="background: #ffffff"] {
+  background: #0d1527 !important;
+  color: #f1f5f9 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode [style*="color: rgb(15, 23, 42)"],
+.dark-mode [style*="color: #0f172a"],
+.dark-mode [style*="color: rgb(30, 41, 59)"],
+.dark-mode [style*="color: #1e293b"] {
+  color: #f8fafc !important;
+}
+
+.dark-mode [style*="color: rgb(71, 85, 105)"],
+.dark-mode [style*="color: #475569"],
+.dark-mode [style*="color: rgb(100, 116, 139)"],
+.dark-mode [style*="color: #64748b"] {
+  color: #94a3b8 !important;
+}
+
+.dark-mode [style*="border-color: rgb(226, 232, 240)"],
+.dark-mode [style*="border-color: #e2e8f0"],
+.dark-mode [style*="border-color: rgb(203, 213, 225)"],
+.dark-mode [style*="border-color: #cbd5e1"] {
+  border-color: #1e293b !important;
+}
+
+
+/* ==========================================================================
+   MODERNIZED DEPARTMENT MA NOTIFICATIONS CENTER
+   ========================================================================== */
+
+.dept-ma-notifications-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* 1. Header Card */
+.dept-ma-notif-header-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.35rem 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dept-ma-notif-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.dept-ma-notif-header-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dept-ma-notif-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-notif-header-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.dept-ma-notif-header-desc {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.dept-ma-notif-stats-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dept-ma-notif-stat-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dept-ma-notif-stat-pill.total {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.dept-ma-notif-stat-pill.unread {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.dept-ma-notif-stat-pill.neutral {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.dept-ma-mark-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.58rem 1.15rem;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dept-ma-mark-all-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 2. Controls & Categories Toolbar */
+.dept-ma-notif-toolbar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.dept-ma-notif-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-notif-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.dept-ma-notif-tab:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.dept-ma-notif-tab.is-active {
+  color: #0284c7;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  font-weight: 700;
+}
+
+.dept-ma-notif-tab-badge {
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.dept-ma-notif-tab-badge.is-active {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.dept-ma-notif-search-wrap {
+  flex: 1;
+  max-width: 360px;
+  min-width: 240px;
+}
+
+.dept-ma-notif-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.dept-ma-notif-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.dept-ma-notif-search-input {
+  width: 100%;
+  padding: 0.52rem 2rem 0.52rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.dept-ma-notif-search-input:focus {
+  border-color: #0284c7;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.dept-ma-notif-search-clear {
+  position: absolute;
+  right: 0.65rem;
+  background: transparent;
+  border: none;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dept-ma-notif-search-clear:hover {
+  color: #0f172a;
+}
+
+/* 3. Status Bar */
+.dept-ma-notif-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #64748b;
+  padding: 0 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dept-ma-notif-status-text strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.dept-ma-notif-hint-pill {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.08);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+/* 4. Notification Cards List */
+.dept-ma-notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dept-ma-notif-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.15rem;
+  padding: 1.15rem 1.35rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  text-align: left;
+  width: 100%;
+}
+
+.dept-ma-notif-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+  border-color: #cbd5e1;
+}
+
+.dept-ma-notif-card.is-unread {
+  border-left: 4px solid #0284c7;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.05);
+}
+
+.dept-ma-notif-card.is-unread:hover {
+  background: #fcfdfe;
+  border-left-color: #0284c7;
+  border-color: #94a3b8;
+  box-shadow: 0 8px 22px rgba(2, 132, 199, 0.1);
+}
+
+.dept-ma-notif-card.is-read {
+  border-left: 4px solid transparent;
+  background: #fdfefe;
+  opacity: 0.95;
+}
+
+.dept-ma-notif-card.is-read:hover {
+  opacity: 1;
+  background: #ffffff;
+}
+
+/* Icon Box */
+.dept-ma-notif-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.dept-ma-notif-card:hover .dept-ma-notif-icon-box {
+  transform: scale(1.05);
+}
+
+/* Theme Variant Accents for Icon Box */
+.dept-ma-notif-icon-box.theme-teal {
+  background: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
+}
+
+.dept-ma-notif-icon-box.theme-blue {
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+}
+
+.dept-ma-notif-icon-box.theme-indigo {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+.dept-ma-notif-icon-box.theme-amber {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.dept-ma-notif-icon-box.theme-purple {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+.dept-ma-notif-icon-box.theme-emerald {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.dept-ma-notif-icon-box.theme-rose {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
+
+.dept-ma-notif-icon-box.theme-slate {
+  background: rgba(100, 116, 139, 0.1);
+  color: #475569;
+}
+
+/* Main Notification Body */
+.dept-ma-notif-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dept-ma-notif-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.15rem;
+}
+
+.dept-ma-notif-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dept-ma-notif-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: 6px;
+  letter-spacing: 0.01em;
+}
+
+.dept-ma-notif-badge.badge-teal {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #ccfbf1;
+}
+
+.dept-ma-notif-badge.badge-blue {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #e0f2fe;
+}
+
+.dept-ma-notif-badge.badge-indigo {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #e0e7ff;
+}
+
+.dept-ma-notif-badge.badge-amber {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
+}
+
+.dept-ma-notif-badge.badge-purple {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border: 1px solid #ede9fe;
+}
+
+.dept-ma-notif-badge.badge-emerald {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #d1fae5;
+}
+
+.dept-ma-notif-badge.badge-rose {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #ffe4e6;
+}
+
+.dept-ma-notif-badge.badge-slate {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+/* Unread Pill */
+.dept-ma-notif-unread-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 0.12rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.dept-ma-notif-unread-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0284c7;
+}
+
+/* Timestamp */
+.dept-ma-notif-time-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Title */
+.dept-ma-notif-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dept-ma-notif-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.dept-ma-notif-card.is-read .dept-ma-notif-title {
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Message */
+.dept-ma-notif-desc {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Bottom Footer */
+.dept-ma-notif-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed #f1f5f9;
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+.dept-ma-notif-dest-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: #0284c7;
+}
+
+.dept-ma-notif-click-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.dept-ma-notif-card:hover .dept-ma-notif-click-hint {
+  color: #0284c7;
+}
+
+/* Empty State Card */
+.dept-ma-notif-empty-card {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.dept-ma-notif-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.dept-ma-notif-empty-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dept-ma-notif-empty-desc {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+.dept-ma-empty-reset-btn {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  padding: 0.5rem 1rem;
+}
+
+/* ==========================================================================
+   DARK MODE OVERRIDES FOR NOTIFICATIONS CENTER
+   ========================================================================== */
+
+.dark-mode .dept-ma-notif-header-card,
+.dark-mode .dept-ma-notif-toolbar-card {
+  background: #0d1527 !important;
+  border-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .dept-ma-notif-header-title,
+.dark-mode .dept-ma-notif-title,
+.dark-mode .dept-ma-notif-empty-title,
+.dark-mode .dept-ma-notif-status-text strong {
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-notif-header-desc,
+.dark-mode .dept-ma-notif-desc,
+.dark-mode .dept-ma-notif-empty-desc,
+.dark-mode .dept-ma-notif-status-text {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .dept-ma-notif-stat-pill.total,
+.dark-mode .dept-ma-notif-stat-pill.neutral,
+.dark-mode .dept-ma-notif-tab-badge {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+.dark-mode .dept-ma-notif-stat-pill.unread {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-tab {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .dept-ma-notif-tab:hover {
+  background: #162444 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .dept-ma-notif-tab.is-active {
+  background: rgba(56, 189, 248, 0.15) !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-tab-badge.is-active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .dept-ma-notif-search-input {
+  background: #111a36 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-notif-search-input:focus {
+  border-color: #38bdf8 !important;
+  background: #131f3c !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18) !important;
+}
+
+.dark-mode .dept-ma-notif-search-clear {
+  color: #64748b !important;
+}
+
+.dark-mode .dept-ma-notif-search-clear:hover {
+  color: #f8fafc !important;
+}
+
+.dark-mode .dept-ma-notif-card {
+  background: #0d1527 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-notif-card.is-unread {
+  background: #111e38 !important;
+  border-color: #334155 #1e293b #1e293b #38bdf8 !important;
+  border-left: 4px solid #38bdf8 !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.dark-mode .dept-ma-notif-card.is-unread:hover {
+  background: #162546 !important;
+  border-color: #475569 #1e293b #1e293b #38bdf8 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark-mode .dept-ma-notif-card.is-read {
+  background: #0a1120 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-notif-card.is-read:hover {
+  background: #0f1930 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .dept-ma-notif-card.is-read .dept-ma-notif-title {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .dept-ma-notif-footer-row {
+  border-top-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-notif-dest-tag {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-click-hint {
+  color: #64748b !important;
+}
+
+.dark-mode .dept-ma-notif-card:hover .dept-ma-notif-click-hint {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-unread-pill {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-unread-dot {
+  background: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-empty-card {
+  background: #0d1527 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-mode .dept-ma-notif-empty-icon {
+  background: #162444 !important;
+  color: #94a3b8 !important;
+}
+
+/* Dark mode theme variants for icon boxes & badges */
+.dark-mode .dept-ma-notif-icon-box.theme-teal {
+  background: rgba(20, 184, 166, 0.2) !important;
+  color: #2dd4bf !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-teal {
+  background: rgba(20, 184, 166, 0.15) !important;
+  color: #5eead4 !important;
+  border-color: rgba(45, 212, 191, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-blue {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-blue {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #7dd3fc !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-indigo {
+  background: rgba(129, 140, 248, 0.2) !important;
+  color: #818cf8 !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-indigo {
+  background: rgba(129, 140, 248, 0.15) !important;
+  color: #a5b4fc !important;
+  border-color: rgba(129, 140, 248, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-amber {
+  background: rgba(251, 191, 36, 0.2) !important;
+  color: #fbbf24 !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-amber {
+  background: rgba(251, 191, 36, 0.15) !important;
+  color: #fcd34d !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-purple {
+  background: rgba(167, 139, 250, 0.2) !important;
+  color: #a78bfa !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-purple {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: #c4b5fd !important;
+  border-color: rgba(167, 139, 250, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-emerald {
+  background: rgba(52, 211, 153, 0.2) !important;
+  color: #34d399 !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-emerald {
+  background: rgba(52, 211, 153, 0.15) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(52, 211, 153, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-rose {
+  background: rgba(251, 113, 133, 0.2) !important;
+  color: #fb7185 !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-rose {
+  background: rgba(251, 113, 133, 0.15) !important;
+  color: #fda4af !important;
+  border-color: rgba(251, 113, 133, 0.3) !important;
+}
+
+.dark-mode .dept-ma-notif-icon-box.theme-slate {
+  background: rgba(148, 163, 184, 0.2) !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .dept-ma-notif-badge.badge-slate {
+  background: rgba(148, 163, 184, 0.15) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dept-ma-notif-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.15rem;
+  }
+  .dept-ma-notif-header-right {
+    width: 100%;
+  }
+  .dept-ma-mark-all-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .dept-ma-notif-toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dept-ma-notif-search-wrap {
+    max-width: 100%;
+  }
+  .dept-ma-notif-card {
+    padding: 1rem;
+    gap: 0.85rem;
+  }
+  .dept-ma-notif-icon-box {
+    width: 38px;
+    height: 38px;
+  }
+}
