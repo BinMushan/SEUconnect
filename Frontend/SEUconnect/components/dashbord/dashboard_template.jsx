@@ -566,7 +566,7 @@ export default function DashboardTemplate({
         {/* Brand Header */}
         <div className="seu-sidebar-brand">
           <div className="seu-sidebar-logo-box">
-            <img src="/seusl_logo_white.png?v=3" alt="SEUSL Logo" className="seu-sidebar-logo-img" />
+            <img src="/seusl_logo.png?v=3" alt="SEUSL Official Crest" className="seu-sidebar-logo-img" />
           </div>
           <div className="seu-sidebar-brand-meta">
             <span className="seu-sidebar-brand-name">SEUConnect</span>
