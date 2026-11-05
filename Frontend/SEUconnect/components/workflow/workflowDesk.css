@@ -1,0 +1,107 @@
+/* Shared workflow desk (queues, detail drawer, tracker) - used by every role */
+.wfd-root { display: flex; flex-direction: column; gap: 1.1rem; font-family: inherit; color: #0f172a; }
+.wfd-head h2 { margin: 0; font-size: 1.35rem; color: #0f2b5c; }
+.wfd-head p { margin: 0.25rem 0 0; color: #64748b; font-size: 0.88rem; }
+
+.wfd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+.wfd-stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.8rem 1rem; text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.wfd-stat:hover { border-color: #071732; box-shadow: 0 2px 8px rgba(7, 23, 50, .08); }
+.wfd-stat.active { border-color: #0f2b5c; box-shadow: 0 0 0 2px rgba(15, 43, 92, .15); }
+.wfd-stat b { display: block; font-size: 1.6rem; color: #0f2b5c; line-height: 1.1; }
+.wfd-stat span { font-size: 0.74rem; text-transform: uppercase; letter-spacing: .04em; color: #64748b; }
+
+.wfd-toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.wfd-toolbar input, .wfd-toolbar select { padding: 0.5rem 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; background: #fff; }
+.wfd-toolbar input { min-width: 220px; flex: 1; }
+
+.wfd-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.wfd-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.wfd-table th { text-align: left; background: #f8fafc; color: #475569; font-weight: 600; padding: 0.65rem 0.9rem; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+.wfd-table td { padding: 0.7rem 0.9rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.wfd-table tr.clickable { cursor: pointer; }
+.wfd-table tr.clickable:hover td { background: #f1f5f9; }
+.wfd-sub { color: #64748b; font-size: 0.76rem; }
+.wfd-empty { padding: 2.5rem 1rem; text-align: center; color: #64748b; }
+.wfd-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.7rem 1rem; border-radius: 10px; font-size: 0.86rem; }
+
+.wfd-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.74rem; font-weight: 600; white-space: nowrap; }
+.wfd-badge.pending { background: #fef3c7; color: #92400e; }
+.wfd-badge.good { background: #dcfce7; color: #166534; }
+.wfd-badge.bad { background: #fee2e2; color: #991b1b; }
+.wfd-badge.warn { background: #ffedd5; color: #9a3412; }
+.wfd-badge.info { background: #dbeafe; color: #1e40af; }
+.wfd-type { background: #e0e7ff; color: #3730a3; }
+.wfd-action-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; margin-right: 6px; }
+
+.wfd-btn { border: 1px solid #cbd5e1; background: #fff; color: #0f172a; padding: 0.5rem 0.95rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.wfd-btn:hover:not(:disabled) { background: #071732; color: #fff; border-color: #071732; }
+.wfd-btn:disabled { opacity: .55; cursor: not-allowed; }
+.wfd-btn.primary { background: #0f2b5c; color: #fff; border-color: #0f2b5c; }
+.wfd-btn.primary:hover:not(:disabled) { background: #071732; }
+.wfd-btn.danger { color: #b91c1c; border-color: #fecaca; }
+.wfd-btn.danger:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+.wfd-btn.sm { padding: 0.3rem 0.65rem; font-size: 0.78rem; }
+
+.wfd-overlay { position: fixed; inset: 0; background: rgba(7, 23, 50, .55); z-index: 1200; display: flex; justify-content: flex-end; }
+.wfd-drawer { background: #fff; width: min(760px, 100%); height: 100%; overflow-y: auto; padding: 1.4rem 1.6rem 2rem; box-shadow: -8px 0 30px rgba(0, 0, 0, .2); }
+.wfd-drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+.wfd-drawer-head h3 { margin: 0; color: #0f2b5c; font-size: 1.15rem; }
+.wfd-close { border: none; background: transparent; font-size: 1.5rem; line-height: 1; cursor: pointer; color: #475569; }
+.wfd-section { margin-top: 1.2rem; }
+.wfd-section h4 { margin: 0 0 .55rem; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+.wfd-kv { display: grid; grid-template-columns: 170px 1fr; gap: .35rem .8rem; font-size: .86rem; }
+.wfd-kv dt { color: #64748b; }
+.wfd-kv dd { margin: 0; }
+
+.wfd-route { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; font-size: .76rem; color: #475569; }
+.wfd-route span.arrow { color: #94a3b8; }
+
+.wfd-timeline { list-style: none; margin: 0; padding: 0; }
+.wfd-timeline li { position: relative; padding: 0 0 1rem 1.7rem; font-size: .85rem; }
+.wfd-timeline li::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: -2px; width: 2px; background: #e2e8f0; }
+.wfd-timeline li:last-child::before { display: none; }
+.wfd-timeline li i { position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #cbd5e1; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
+.wfd-timeline li.COMPLETED i { background: #16a34a; box-shadow: 0 0 0 1px #16a34a; }
+.wfd-timeline li.CURRENT i { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, .3); }
+.wfd-timeline li.DECLINED i { background: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
+.wfd-timeline li.RETURNED i { background: #ea580c; box-shadow: 0 0 0 1px #ea580c; }
+.wfd-timeline b { display: block; color: #0f172a; }
+
+.wfd-subjects { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.wfd-subjects th, .wfd-subjects td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid #f1f5f9; }
+
+.wfd-actions { margin-top: 1.4rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; display: flex; flex-direction: column; gap: .7rem; }
+.wfd-actions textarea, .wfd-actions select, .wfd-actions input { width: 100%; padding: .5rem .65rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: .86rem; font-family: inherit; box-sizing: border-box; }
+.wfd-actions label { font-size: .78rem; font-weight: 600; color: #475569; }
+.wfd-btn-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.wfd-note { font-size: .82rem; color: #475569; background: #eff6ff; border: 1px solid #bfdbfe; padding: .6rem .8rem; border-radius: 8px; }
+.wfd-note.warn { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+
+.wfd-toast { position: fixed; right: 1.2rem; bottom: 1.2rem; z-index: 1400; background: #0f2b5c; color: #fff; padding: .75rem 1.1rem; border-radius: 10px; font-size: .88rem; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); max-width: 360px; }
+.wfd-toast.error { background: #b91c1c; }
+
+.wfd-lists { display: grid; gap: 1rem; }
+.wfd-list-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem 1.2rem; }
+.wfd-list-card header { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin-bottom: .6rem; }
+
+@media print {
+  .wfd-overlay { position: static; background: none; }
+  .wfd-actions, .wfd-close, .wfd-btn { display: none !important; }
+}
+
+/* Student progress stepper */
+.wfd-stepper { list-style: none; display: flex; flex-wrap: wrap; gap: .3rem 1.4rem; padding: 0; margin: .9rem 0 .4rem; }
+.wfd-stepper li { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: #64748b; }
+.wfd-stepper li i { width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; display: inline-block; }
+.wfd-stepper li.COMPLETED i { background: #16a34a; }
+.wfd-stepper li.COMPLETED { color: #166534; }
+.wfd-stepper li.CURRENT i { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, .3); }
+.wfd-stepper li.CURRENT { color: #92400e; font-weight: 600; }
+.wfd-stepper li.DECLINED i { background: #dc2626; }
+.wfd-stepper li.RETURNED i { background: #ea580c; }
+.wfd-card + .wfd-card { margin-top: .8rem; }
+
+/* Notification center rows */
+.wfd-notice { display: flex; align-items: center; gap: .9rem; width: 100%; text-align: left; background: #fff; border: none; border-bottom: 1px solid #f1f5f9; padding: .8rem 1rem; cursor: pointer; font-family: inherit; }
+.wfd-notice:hover { background: #f1f5f9; }
+.wfd-notice-body { display: flex; flex-direction: column; gap: .15rem; flex: 1; font-size: .86rem; }
