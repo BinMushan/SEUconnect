@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import api, { enrolledStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
@@ -33,6 +34,7 @@ import UserRoleManagement from './components/UserRoleManagement.jsx';
 import SettingsManagement from './components/SettingsManagement.jsx';
 import NotificationsManagement from './components/NotificationsManagement.jsx';
 import CourseAllocationManagement from './components/CourseAllocationManagement.jsx';
+import InputDataManagement from './components/InputDataManagement.jsx';
 
 /**
  * Admin Navigation Sections customized for Faculty Administration
@@ -192,6 +194,19 @@ const ADMIN_NAV_SECTIONS = [
     title: 'SYSTEM & SECURITY',
     items: [
       {
+        id: 'input_data',
+        label: 'Input Data',
+        badge: 'RAG',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+        )
+      },
+      {
         id: 'users_roles',
         label: 'User & Role Management',
         icon: (
@@ -219,7 +234,13 @@ export default function Admin({ user, onLogout }) {
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [stats, setStats] = useState(INITIAL_STATS);
   const [batches, setBatches] = useState(INITIAL_BATCHES);
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [students, setStudents] = useState(() => {
+    const localEnrolled = enrolledStorage.getAll();
+    if (!localEnrolled || localEnrolled.length === 0) return INITIAL_STUDENTS;
+    const existingRegNos = new Set(INITIAL_STUDENTS.map(s => (s.regNo || '').toLowerCase()));
+    const additional = localEnrolled.filter(s => s.regNo && !existingRegNos.has(s.regNo.toLowerCase()));
+    return [...additional, ...INITIAL_STUDENTS];
+  });
   const [registrations, setRegistrations] = useState(INITIAL_REGISTRATIONS);
   const [medicals, setMedicals] = useState(INITIAL_MEDICALS);
   const [examinations] = useState(INITIAL_EXAMINATIONS);
@@ -326,7 +347,8 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 5. Add Student
-  const handleAddStudent = (newStudent) => {
+  const handleAddStudent = async (newStudent) => {
+    enrolledStorage.save(newStudent);
     setStudents((prev) => [newStudent, ...prev]);
     setStats((prev) => ({
       ...prev,
@@ -334,11 +356,20 @@ export default function Admin({ user, onLogout }) {
       activeAccounts: prev.activeAccounts + 1
     }));
     addAuditLog('Registered Student Account', `${newStudent.regNo} - ${newStudent.name} enrolled in ${newStudent.programme}.`);
-    showToast(`Student ${newStudent.name} (${newStudent.regNo}) registered successfully.`);
+    showToast(`Student ${newStudent.name} (${newStudent.regNo}) registered! Login: ${newStudent.email} / ${newStudent.tempPassword || 'Pass'}`);
+    try {
+      await api.createStudent({
+        ...newStudent,
+        tempPassword: newStudent.tempPassword
+      });
+    } catch (err) {
+      console.warn('Backend student sync:', err.message);
+    }
   };
 
   // 5.b Bulk Add Students (200+ Student Cohorts from Excel/CSV)
-  const handleBulkAddStudents = (newStudentsList, targetBatchId) => {
+  const handleBulkAddStudents = async (newStudentsList, targetBatchId) => {
+    enrolledStorage.saveBulk(newStudentsList);
     if (!newStudentsList || newStudentsList.length === 0) return;
 
     setStudents((prev) => [...newStudentsList, ...prev]);
@@ -365,7 +396,12 @@ export default function Admin({ user, onLogout }) {
       'Bulk Enrolled Students',
       `Imported ${newStudentsList.length} undergraduates into ${batchLabel} via pre-defined spreadsheet roster.`
     );
-    showToast(`Successfully enrolled ${newStudentsList.length} undergraduates into ${batchLabel}.`);
+    showToast(`Successfully enrolled ${newStudentsList.length} undergraduates into ${batchLabel}. Credentials active for immediate login.`);
+    try {
+      await api.bulkCreateStudents(newStudentsList);
+    } catch (err) {
+      console.warn('Backend bulk student sync:', err.message);
+    }
   };
 
   // 6. Update Student Status
@@ -463,28 +499,39 @@ export default function Admin({ user, onLogout }) {
     showToast(`Intake Batch ${newBatch.name} onboarded successfully.`);
   };
 
-  // 17. Assign & Reassign Staff Roles (Lecturers, HODs, Dean, Exam Officers)
+  // 17. Assign & Reassign Roles (All 10 System Roles)
   const handleAssignRole = (userId, { role, department, designation }) => {
+    const roleKey =
+      role === 'Head of Department (HOD)' ? 'hod' :
+      role === 'Faculty Dean' ? 'dean' :
+      role === 'Senior Assistant Registrar (SAR)' ? 'sar' :
+      role === 'Examination Officer' ? 'examination' :
+      role === 'Lecturer' ? 'lecturer' :
+      role === 'Department Management Assistant (Dept MA)' ? 'dept_ma' :
+      role === 'Faculty Management Assistant (FMA)' ? 'fma' :
+      role === 'Student' ? 'student' :
+      role === 'Super Admin' ? 'superadmin' : 'admin';
+
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? {
         ...u,
         role,
-        roleKey: role === 'Head of Department (HOD)' ? 'hod' : role === 'Faculty Dean' ? 'dean' : role === 'Examination Officer' ? 'examination' : role === 'Lecturer' ? 'lecturer' : 'admin',
+        roleKey,
         department,
         designation,
-        isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Examination Officer'].includes(role)
+        isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(role)
       } : u))
     );
     const target = users.find((u) => u.id === userId);
-    addAuditLog('Reassigned Staff Role', `${target?.name} assigned as "${role}" in ${department}.`);
+    addAuditLog('Reassigned User Role', `${target?.name} assigned as "${role}" in ${department}.`);
     showToast(`Role for ${target?.name} updated to ${role}.`);
   };
 
-  // 18. Appoint New Staff Member
+  // 18. Appoint New Staff Member / Provision User Account with Temp Password
   const handleAppointUser = (newStaff) => {
     setUsers((prev) => [newStaff, ...prev]);
-    addAuditLog('Appointed Staff Member', `${newStaff.name} appointed as ${newStaff.role} (${newStaff.department}).`);
-    showToast(`Staff member ${newStaff.name} appointed as ${newStaff.role}.`);
+    addAuditLog('Provisioned User Account', `${newStaff.name} created as ${newStaff.role} (${newStaff.email}).`);
+    showToast(`User account for ${newStaff.name} (${newStaff.role}) provisioned with temporary password.`);
   };
 
   // 19. Promote Batch to Next Semester & Auto-Shift Enrolled Subjects
@@ -595,6 +642,8 @@ export default function Admin({ user, onLogout }) {
       setCurrentSection('forms_guidance');
     } else if (q.includes('welfare') || q.includes('mahapola') || q.includes('bursary')) {
       setCurrentSection('welfare_scholarships');
+    } else if (q.includes('input') || q.includes('data') || q.includes('date') || q.includes('rag') || q.includes('by-law') || q.includes('knowledge')) {
+      setCurrentSection('input_data');
     } else {
       setCurrentSection('student_management');
     }
@@ -830,6 +879,13 @@ export default function Admin({ user, onLogout }) {
           penalties={penalties}
           onClearPenalty={handleClearPenalty}
           onAddPenalty={handleAddPenalty}
+        />
+      )}
+
+      {currentSection === 'input_data' && (
+        <InputDataManagement
+          onShowToast={showToast}
+          onAddAuditLog={addAuditLog}
         />
       )}
 

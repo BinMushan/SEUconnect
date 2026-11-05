@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './fma.css';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
+import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
+import { workflowNavItem, notificationNavItem, ROLE_WORKFLOW_TYPES } from '../../components/workflow/workflowNav.jsx';
 import FMA_Overview from './FMA_Overview.jsx';
 import Subject_Registration from './Subject_Registration.jsx';
 import RecordBook_Renewal from './RecordBook_Renewal.jsx';
@@ -29,11 +32,15 @@ const FMA_NAV_SECTIONS = [
     ]
   },
   {
+    title: 'EXAMINATION MEDICALS',
+    items: [workflowNavItem('Examination Medical Intake'), notificationNavItem()]
+  },
+  {
     title: 'STUDENT REGISTRATION & ENROLMENT',
     items: [
       {
         id: 'subject_reg',
-        label: 'Subject Registration (§7.2)',
+        label: 'Subject Registration',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -45,7 +52,7 @@ const FMA_NAV_SECTIONS = [
       },
       {
         id: 'record_renewal',
-        label: 'Record Books & PIVs (§7.5-6)',
+        label: 'Record Books & PIVs',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -57,7 +64,7 @@ const FMA_NAV_SECTIONS = [
       },
       {
         id: 'student_leave',
-        label: 'Academic Leave & Medicals (§7.4)',
+        label: 'Academic Leave & Medicals',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -71,7 +78,7 @@ const FMA_NAV_SECTIONS = [
     items: [
       {
         id: 'training',
-        label: 'Industrial Training Diaries (§3.8)',
+        label: 'Industrial Training Diaries',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="7" width="20" height="14" rx="2" />
@@ -81,7 +88,7 @@ const FMA_NAV_SECTIONS = [
       },
       {
         id: 'streaming',
-        label: 'Specialization Streaming (§3.9)',
+        label: 'Specialization Streaming',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -90,7 +97,7 @@ const FMA_NAV_SECTIONS = [
       },
       {
         id: 'clearance',
-        label: 'Letters & Clearance (§7.8)',
+        label: 'Letters & Clearance',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -126,6 +133,16 @@ export default function FMA({ user, onLogout }) {
 
   const renderActiveModule = () => {
     switch (activePage) {
+      case 'notifications':
+        return <NotificationCenter onNavigate={setActivePage} />;
+      case 'workflow_applications':
+        return (
+          <WorkflowDesk
+            types={ROLE_WORKFLOW_TYPES.fma}
+            title="Examination Medical Intake"
+            subtitle="Receive Examination Medical forms submitted by students and route them to the SAR for the Faculty Board MA / Dean Office stage."
+          />
+        );
       case 'subject_reg':
         return <Subject_Registration />;
       case 'record_renewal':
@@ -156,13 +173,16 @@ export default function FMA({ user, onLogout }) {
       activeItem={activePage}
       onNavigate={setActivePage}
       navSections={FMA_NAV_SECTIONS}
-      greetingText="Good Morning, Management Assistant"
+      showHeroBanner={activePage === 'overview'}
+      facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
+      greetingText={`Good Morning, ${fmaUser?.name || 'Mr. MMM. Kamil'}`}
       notificationCount={4}
       searchPlaceholder="Search student reg no, course codes, bank PIV vouchers..."
       metaItems={[
-        { label: 'Office:', value: 'Dean’s Office' },
-        { label: 'Faculty:', value: 'Technology' },
-        { label: 'Role:', value: 'Management Assistant Gr. I' }
+        { label: 'Staff ID:', value: fmaUser.staffId || 'STAFF-FMA-002' },
+        { label: 'Office:', value: 'Office of the Dean' },
+        { label: 'Faculty:', value: 'Faculty of Technology' },
+        { label: 'Role:', value: 'Faculty Management Assistant' }
       ]}
       actionButtons={
         <>
@@ -171,13 +191,23 @@ export default function FMA({ user, onLogout }) {
             className="seu-btn-gpa-report"
             onClick={() => setActivePage('subject_reg')}
           >
-            Subject Forms
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="6" />
+              <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+            </svg>
+            Review Enrolments
           </button>
           <button
             type="button"
             className="seu-btn-faculty-forms"
             onClick={() => setActivePage('record_renewal')}
           >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="2" />
+              <line x1="7" y1="3" x2="7" y2="21" />
+              <circle cx="14" cy="9" r="2" />
+              <line x1="11" y1="15" x2="17" y2="15" />
+            </svg>
             Verify PIV Slips
           </button>
         </>

@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ['student', 'lecturer', 'hod', 'dean', 'examination', 'admin', 'superadmin', 'sar', 'dept_ma', 'department_ma'],
+      enum: ['student', 'lecturer', 'hod', 'dean', 'examination', 'admin', 'superadmin', 'sar', 'dept_ma', 'department_ma', 'fma', 'faculty_ma', 'faculty_admin', 'demonstrator'],
     },
     roleKey: {
       type: String,
@@ -58,6 +58,17 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: 'U',
     },
+    // Account security / lifecycle
+    status: { type: String, enum: ['active', 'suspended', 'disabled'], default: 'active' },
+    failedLogins: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
+    lastLoginAt: { type: Date, default: null },
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangedAt: { type: Date, default: null },
+    // Bump to invalidate every issued token for this user.
+    tokenVersion: { type: Number, default: 0 },
+    // Normalised link to the Department collection (the free-text `department` stays for the legacy UI).
+    departmentRef: { type: require('mongoose').Schema.Types.ObjectId, ref: 'Department', default: null },
   },
   { timestamps: true }
 );

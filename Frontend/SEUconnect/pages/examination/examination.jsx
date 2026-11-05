@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useRef } from "react";
 import "./examination.css";
 import DashboardTemplate from "../../components/dashbord/dashboard_template";
+import WorkflowDesk from "../../components/workflow/WorkflowDesk.jsx";
+import NotificationCenter from "../../components/workflow/NotificationCenter.jsx";
+import { workflowNavItem, notificationNavItem, ROLE_WORKFLOW_TYPES } from "../../components/workflow/workflowNav.jsx";
 import ExamEntry from "./Exam_Entry";
 import Eligibility_Verification from "./Eligibility_Verification";
 import Repeat_Candidates from "./Repeat_Candidates";
@@ -60,6 +63,10 @@ const EXAM_NAV_SECTIONS = [
         ),
       },
     ],
+  },
+  {
+    title: "EXAMINATION FORM WORKFLOWS",
+    items: [workflowNavItem("ECA, ESA, Forms & Medicals"), notificationNavItem()],
   },
   {
     title: "EXAMINATIONS",
@@ -678,6 +685,17 @@ export default function Examination({ user, onLogout }) {
   // Picks which page to show under the banner
   const renderPage = () => {
     switch (activePage) {
+      case "notifications":
+        return <NotificationCenter onNavigate={setActivePage} />;
+      case "workflow_applications":
+        return (
+          <WorkflowDesk
+            types={ROLE_WORKFLOW_TYPES.examination}
+            title="Examination Branch - Form Workflows"
+            subtitle="Verify ECA / ESA applications and send department-wise lists to the HOD, complete Examination Form checks, and give final approval on Examination Medicals."
+            showDepartmentLists
+          />
+        );
       case "exam_entry":
         return <ExamEntry />;
       case "eligibility":

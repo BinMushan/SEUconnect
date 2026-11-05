@@ -441,11 +441,11 @@
 }
 
 .seu-ai-chip-btn:hover {
-  background: #eff6ff !important;
-  border-color: #3b82f6 !important;
-  color: #1d4ed8 !important;
+  background: #f1f5f9 !important;
+  border-color: #071732 !important;
+  color: #071732 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(59, 130, 246, 0.15) !important;
+  box-shadow: 0 3px 8px rgba(7, 23, 50, 0.15) !important;
 }
 
 /* 5. Message Rows */
@@ -606,9 +606,9 @@
 }
 
 .seu-ai-link-btn:hover {
-  background: #2563eb !important;
+  background: #071732 !important;
   color: #ffffff !important;
-  border-color: #2563eb !important;
+  border-color: #071732 !important;
 }
 
 /* Typing Indicator (Three Pulsing Dots) */
@@ -732,7 +732,7 @@
 }
 
 .seu-ai-send-btn:hover:not(:disabled) {
-  background: #1d4ed8 !important;
+  background: #071732 !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4) !important;
 }
@@ -1059,7 +1059,7 @@ body.dark-mode .seu-ai-esc-hint {
 }
 
 .seu-chatgpt-capsule-send-btn:hover:not(:disabled) {
-  background: #1d4ed8 !important;
+  background: #071732 !important;
   transform: scale(1.05) !important;
 }
 
