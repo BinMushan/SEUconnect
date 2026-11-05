@@ -72,6 +72,8 @@ export default function Notifications({
         targetRoute = 'ca-esa';
       } else if (notif.category === 'Attendance reminders' || notif.title.toLowerCase().includes('attendance')) {
         targetRoute = 'attendance';
+      } else if (notif.category === 'Examination Branch' || notif.title.toLowerCase().includes('eca')) {
+        targetRoute = 'eca-review';
       } else if (notif.category === 'Student requests' || notif.title.toLowerCase().includes('repeat')) {
         targetRoute = 'results';
       } else {
@@ -83,6 +85,8 @@ export default function Notifications({
     if (onShowToast) {
       if (targetRoute.includes('medical')) {
         onShowToast('Navigating to Student Medical Approval & Verification', 'info');
+      } else if (targetRoute.includes('eca')) {
+        onShowToast('Navigating to Assigned ECA Applications Review', 'info');
       }
     }
 
@@ -102,6 +106,7 @@ export default function Notifications({
 
   const categories = [
     'All',
+    'Examination Branch',
     'Medical requests',
     'Missing CA marks',
     'Attendance reminders',

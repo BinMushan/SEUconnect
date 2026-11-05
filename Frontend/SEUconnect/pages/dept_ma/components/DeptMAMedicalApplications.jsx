@@ -2,12 +2,27 @@ import React, { useState, useMemo } from 'react';
 
 export default function DeptMAMedicalApplications({
   medicalApplications,
+  lecturerMedicals = [],
   deptInfo,
   onUpdateMedicalApplication,
+  onUpdateLecturerMedical,
   onShowToast,
   selectedAppFromParent,
   onClearSelectedApp,
 }) {
+  // Top-level Desk Workspace Switcher
+  const [currentDesk, setCurrentDesk] = useState('STUDENTS'); // 'STUDENTS' | 'LECTURERS'
+
+  // Lecturer Medical Handling State
+  const [selectedLecturerMed, setSelectedLecturerMed] = useState(null);
+  const [lecSearchQuery, setLecSearchQuery] = useState('');
+  const [lecFilterStatus, setLecFilterStatus] = useState('ALL');
+  const [lecCertAuthentic, setLecCertAuthentic] = useState(true);
+  const [lecLeaveFormComplete, setLecLeaveFormComplete] = useState(true);
+  const [lecCoverageConfirmed, setLecCoverageConfirmed] = useState(true);
+  const [lecDepartmentNotes, setLecDepartmentNotes] = useState('');
+  const [lecTargetAuthority, setLecTargetAuthority] = useState('Head of Department (M.J Ahamed Sabani)');
+
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [inspectedApp, setInspectedApp] = useState(selectedAppFromParent || null);
@@ -41,6 +56,103 @@ export default function DeptMAMedicalApplications({
       escalated: medicalApplications.filter((m) => m.status === 'Escalated').length,
     };
   }, [medicalApplications]);
+
+  // Lecturer Medical Counts
+  const lecCounts = useMemo(() => {
+    return {
+      all: lecturerMedicals.length,
+      pending: lecturerMedicals.filter((m) => m.status === 'Pending Verification').length,
+      forwardedHOD: lecturerMedicals.filter((m) => m.status === 'Verified & Forwarded to HOD').length,
+      forwardedDean: lecturerMedicals.filter((m) => m.status === 'Forwarded to Dean / AR').length,
+    };
+  }, [lecturerMedicals]);
+
+  // Filtered Lecturer Medicals
+  const filteredLecturerMedicals = useMemo(() => {
+    const q = lecSearchQuery.trim().toLowerCase();
+    return lecturerMedicals.filter((m) => {
+      if (q) {
+        const matches =
+          m.trackingNumber.toLowerCase().includes(q) ||
+          m.lecturer.name.toLowerCase().includes(q) ||
+          m.lecturer.staffId.toLowerCase().includes(q) ||
+          m.medicalCertNo.toLowerCase().includes(q) ||
+          m.medicalInstitution.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+      if (lecFilterStatus !== 'ALL' && m.status !== lecFilterStatus) return false;
+      return true;
+    });
+  }, [lecturerMedicals, lecSearchQuery, lecFilterStatus]);
+
+  const handleOpenLecturerInspect = (med) => {
+    setSelectedLecturerMed(med);
+    setLecCertAuthentic(med.verificationChecks?.medicalCertAuthentic ?? true);
+    setLecLeaveFormComplete(med.verificationChecks?.leaveFormComplete ?? true);
+    setLecCoverageConfirmed(med.verificationChecks?.substituteCoverageVerified ?? true);
+    setLecDepartmentNotes(med.departmentNotes || '');
+    setLecTargetAuthority('Head of Department (M.J Ahamed Sabani)');
+  };
+
+  const handleForwardLecturerMedical = (e) => {
+    e.preventDefault();
+    if (!selectedLecturerMed) return;
+
+    const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const newStatus = lecTargetAuthority.includes('HOD')
+      ? 'Verified & Forwarded to HOD'
+      : 'Forwarded to Dean / AR';
+
+    const newHistory = [
+      ...(selectedLecturerMed.forwardingHistory || []),
+      {
+        stage: `Forwarded to ${lecTargetAuthority}`,
+        actor: `${deptInfo.assignedMA.name} (Dept MA)`,
+        timestamp,
+        remarks: lecDepartmentNotes || `Completeness verified and forwarded to ${lecTargetAuthority}.`,
+      },
+    ];
+
+    const updated = {
+      ...selectedLecturerMed,
+      status: newStatus,
+      verificationChecks: {
+        medicalCertAuthentic: lecCertAuthentic,
+        leaveFormComplete: lecLeaveFormComplete,
+        substituteCoverageVerified: lecCoverageConfirmed,
+      },
+      departmentNotes: lecDepartmentNotes || 'Completeness verified by Department MA.',
+      forwardingHistory: newHistory,
+    };
+
+    if (typeof onUpdateLecturerMedical === 'function') {
+      onUpdateLecturerMedical(updated);
+    }
+    setSelectedLecturerMed(null);
+    onShowToast(`Lecturer medical request ${updated.trackingNumber} for ${updated.lecturer.name} forwarded to ${lecTargetAuthority}.`, 'success');
+  };
+
+  const handleDownloadLecturerDoc = (docName) => {
+    try {
+      const blob = new Blob(
+        [
+          `SOUTH EASTERN UNIVERSITY OF SRI LANKA\nFACULTY OF TECHNOLOGY - DEPARTMENT OF ICT\n\nOFFICIAL ACADEMIC STAFF MEDICAL LEAVE RECORD\nFile: ${docName}\nLecturer: ${selectedLecturerMed?.lecturer.name} (${selectedLecturerMed?.lecturer.staffId})\nLeave Period: ${selectedLecturerMed?.absenceStartDate} to ${selectedLecturerMed?.absenceEndDate} (${selectedLecturerMed?.totalDays} days)\nHospital: ${selectedLecturerMed?.medicalInstitution} - Medical Cert No: ${selectedLecturerMed?.medicalCertNo}\n\nVerified authentic by Department Management Assistant on ${new Date().toISOString().split('T')[0]}.`
+        ],
+        { type: 'text/plain;charset=utf-8;' }
+      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', docName.replace('.pdf', '') + '.txt');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      onShowToast(`Downloaded lecturer medical document: ${docName}`, 'success');
+    } catch {
+      onShowToast(`Failed to download ${docName}`, 'error');
+    }
+  };
 
   // Filtered applications
   const filteredApps = useMemo(() => {
@@ -233,6 +345,37 @@ export default function DeptMAMedicalApplications({
 
   return (
     <div className="dept-ma-medical-applications-section">
+      {/* Top Workspace Desk Switcher */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          marginBottom: '1.25rem',
+          borderBottom: '1px solid #e2e8f0',
+          paddingBottom: '0.75rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <button
+          type="button"
+          className={`dept-ma-btn-action ${currentDesk === 'STUDENTS' ? 'primary' : 'secondary'}`}
+          style={{ padding: '0.55rem 1.15rem', fontSize: '0.85rem' }}
+          onClick={() => setCurrentDesk('STUDENTS')}
+        >
+          Student Subject Medical Desk ({counts.pending} Pending)
+        </button>
+        <button
+          type="button"
+          className={`dept-ma-btn-action ${currentDesk === 'LECTURERS' ? 'primary' : 'secondary'}`}
+          style={{ padding: '0.55rem 1.15rem', fontSize: '0.85rem' }}
+          onClick={() => setCurrentDesk('LECTURERS')}
+        >
+          Lecturer Medical Handling Desk ({lecCounts.pending} Pending)
+        </button>
+      </div>
+
+      {currentDesk === 'STUDENTS' ? (
+        <>
       {/* 1. Workflow Pipeline Header */}
       <div className="dept-ma-med-workflow-bar">
         <div className="dept-ma-workflow-step completed">
@@ -956,6 +1099,483 @@ export default function DeptMAMedicalApplications({
               </button>
             </div>
           </div>
+        </div>
+      )}
+        </>
+      ) : (
+        /* LECTURER MEDICAL HANDLING DESK (Responsibility 1) */
+        <div className="dept-ma-lecturer-med-desk">
+          {/* Header Notice Banner */}
+          <div className="dept-ma-panel-card" style={{ marginBottom: '1.5rem', background: '#ffffff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <span className="dept-ma-badge-pill dept-code">RESPONSIBILITY 1</span>
+                  <span className="dept-ma-badge-pill">ACADEMIC STAFF MEDICAL DESK</span>
+                </div>
+                <h2 style={{ margin: '0 0 0.35rem 0', fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>
+                  Lecturer Medical Handling Desk
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                  Receive, review, track, and process lecturer-related medical certificates and leave requests according to authorized departmental procedure. Verify document completeness and forward to HOD & Dean / AR.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '0.6rem 1rem',
+                  fontSize: '0.8rem',
+                  color: '#334155',
+                }}
+              >
+                🏛️ <strong>Institutional Authority:</strong> Verification & routing only. Final leave approval authority rests with HOD & Dean.
+              </div>
+            </div>
+          </div>
+
+          {/* KPI Statistics */}
+          <div className="dept-ma-stats-grid" style={{ marginBottom: '1.75rem' }}>
+            <div className="dept-ma-stat-card">
+              <div className="dept-ma-stat-top">
+                <span className="dept-ma-stat-label">Total Lecturer Requests</span>
+                <div className="dept-ma-stat-icon-wrap blue">👨‍🏫</div>
+              </div>
+              <div className="dept-ma-stat-value">{lecCounts.all}</div>
+              <div className="dept-ma-stat-sub">Academic staff medical submissions</div>
+            </div>
+
+            <div className="dept-ma-stat-card">
+              <div className="dept-ma-stat-top">
+                <span className="dept-ma-stat-label">Pending Verification</span>
+                <div className="dept-ma-stat-icon-wrap amber">⏳</div>
+              </div>
+              <div className="dept-ma-stat-value" style={{ color: '#b45309' }}>
+                {lecCounts.pending}
+              </div>
+              <div className="dept-ma-stat-sub">Awaiting completeness audit</div>
+            </div>
+
+            <div className="dept-ma-stat-card">
+              <div className="dept-ma-stat-top">
+                <span className="dept-ma-stat-label">Forwarded to HOD</span>
+                <div className="dept-ma-stat-icon-wrap indigo">🏛️</div>
+              </div>
+              <div className="dept-ma-stat-value" style={{ color: '#4338ca' }}>
+                {lecCounts.forwardedHOD}
+              </div>
+              <div className="dept-ma-stat-sub">Handover endorsed & routed to Head</div>
+            </div>
+
+            <div className="dept-ma-stat-card">
+              <div className="dept-ma-stat-top">
+                <span className="dept-ma-stat-label">Forwarded to Dean / AR</span>
+                <div className="dept-ma-stat-icon-wrap emerald">📋</div>
+              </div>
+              <div className="dept-ma-stat-value" style={{ color: '#047857' }}>
+                {lecCounts.forwardedDean}
+              </div>
+              <div className="dept-ma-stat-sub">Academic establishment leave ledger</div>
+            </div>
+          </div>
+
+          {/* Toolbar */}
+          <div className="dept-ma-toolbar">
+            <div className="dept-ma-toolbar-left">
+              <div className="dept-ma-search-input-wrap">
+                <span className="dept-ma-search-icon">🔍</span>
+                <input
+                  type="text"
+                  className="dept-ma-search-input"
+                  placeholder="Search by lecturer name, staff ID, cert no, or hospital..."
+                  value={lecSearchQuery}
+                  onChange={(e) => setLecSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <select
+                className="dept-ma-filter-select"
+                value={lecFilterStatus}
+                onChange={(e) => setLecFilterStatus(e.target.value)}
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="Pending Verification">Pending Verification</option>
+                <option value="Verified & Forwarded to HOD">Verified & Forwarded to HOD</option>
+                <option value="Forwarded to Dean / AR">Forwarded to Dean / AR</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="dept-ma-table-container">
+            <div className="dept-ma-table-wrapper">
+              <table className="dept-ma-table">
+                <thead>
+                  <tr>
+                    <th>Tracking No & Date</th>
+                    <th>Lecturer Details</th>
+                    <th>Leave Period & Total Days</th>
+                    <th>Medical Institution & Doctor</th>
+                    <th>Lecture Handover Coverage</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLecturerMedicals.length > 0 ? (
+                    filteredLecturerMedicals.map((med) => (
+                      <tr key={med.id}>
+                        <td>
+                          <span className="dept-ma-tracking-pill">{med.trackingNumber}</span>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '0.2rem' }}>
+                            {med.absenceStartDate}
+                          </div>
+                        </td>
+                        <td>
+                          <strong>{med.lecturer.name}</strong>
+                          <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                            {med.lecturer.staffId} • {med.lecturer.designation}
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: '700', color: '#0f172a' }}>
+                            {med.totalDays} day(s)
+                          </span>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {med.absenceStartDate} to {med.absenceEndDate}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#0284c7' }}>
+                            {med.leaveType}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ fontSize: '0.82rem', fontWeight: '600', color: '#0f172a' }}>
+                            {med.medicalInstitution}
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {med.doctorName}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#059669', fontFamily: 'monospace' }}>
+                            Cert: {med.medicalCertNo}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ fontSize: '0.8rem', fontWeight: '600', color: '#334155' }}>
+                            Substitute: {med.handoverPlan.substituteLecturer.split('(')[0]}
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {med.handoverPlan.coveredModules}
+                          </div>
+                          <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>
+                            ✓ {med.handoverPlan.status}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`dept-ma-status-badge ${
+                              med.status.includes('Forwarded')
+                                ? 'active'
+                                : med.status === 'Pending Verification'
+                                ? 'pending'
+                                : 'confirmed'
+                            }`}
+                          >
+                            {med.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="dept-ma-btn-action primary"
+                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.76rem', whiteSpace: 'nowrap' }}
+                            onClick={() => handleOpenLecturerInspect(med)}
+                          >
+                            Inspect & Verify
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                        No lecturer medical applications found matching current filter options.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Modal */}
+          {selectedLecturerMed && (
+            <div className="dept-ma-modal-backdrop" onClick={() => setSelectedLecturerMed(null)}>
+              <div
+                className="dept-ma-modal-content"
+                onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: '820px' }}
+              >
+                {/* Header */}
+                <div className="dept-ma-modal-header">
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span className="dept-ma-tracking-pill">{selectedLecturerMed.trackingNumber}</span>
+                      <span className="dept-ma-badge-pill">{selectedLecturerMed.leaveType}</span>
+                    </div>
+                    <h3 className="dept-ma-modal-title">
+                      Academic Staff Medical Leave: {selectedLecturerMed.lecturer.name}
+                    </h3>
+                    <p className="dept-ma-modal-subtitle">
+                      {selectedLecturerMed.lecturer.designation} • Staff ID: {selectedLecturerMed.lecturer.staffId} • {selectedLecturerMed.lecturer.department}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="dept-ma-modal-close"
+                    onClick={() => setSelectedLecturerMed(null)}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="dept-ma-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {/* Medical Details Card */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                      gap: '0.75rem',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '1rem',
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>LEAVE DURATION</span>
+                      <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a' }}>
+                        {selectedLecturerMed.totalDays} Calendar Days
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        {selectedLecturerMed.absenceStartDate} to {selectedLecturerMed.absenceEndDate}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>HOSPITAL / CLINIC</span>
+                      <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a' }}>
+                        {selectedLecturerMed.medicalInstitution}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        Doctor: {selectedLecturerMed.doctorName}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>MEDICAL CERTIFICATE NO</span>
+                      <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0284c7', fontFamily: 'monospace' }}>
+                        {selectedLecturerMed.medicalCertNo}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>SUBSTITUTE LECTURER</span>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#0f172a' }}>
+                        {selectedLecturerMed.handoverPlan.substituteLecturer}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>
+                        ✓ {selectedLecturerMed.handoverPlan.status}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Handover Details */}
+                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem' }}>
+                    <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '700' }}>LECTURE COVERAGE & HANDOVER PLAN</span>
+                    <p style={{ margin: '0.35rem 0 0.2rem 0', fontSize: '0.86rem', fontWeight: '600', color: '#0f172a' }}>
+                      Covered Modules: {selectedLecturerMed.handoverPlan.coveredModules}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: '#475569' }}>
+                      Notes: {selectedLecturerMed.handoverPlan.handoverNotes}
+                    </p>
+                  </div>
+
+                  {/* Attached Documents */}
+                  <div>
+                    <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '700', display: 'block', marginBottom: '0.4rem' }}>
+                      ATTACHED OFFICIAL DOCUMENTS ({selectedLecturerMed.documents?.length || 0})
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {selectedLecturerMed.documents?.map((doc, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            padding: '0.6rem 0.9rem',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>📄</span>
+                            <span style={{ fontSize: '0.84rem', fontWeight: '600', color: '#0f172a' }}>{doc.name}</span>
+                            <span style={{ fontSize: '0.74rem', color: '#64748b' }}>({doc.fileSize} • {doc.type})</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="dept-ma-btn-action secondary"
+                            style={{ padding: '0.3rem 0.65rem', fontSize: '0.74rem' }}
+                            onClick={() => handleDownloadLecturerDoc(doc.name)}
+                          >
+                            Download Document
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Verification & Forwarding Form */}
+                  <form onSubmit={handleForwardLecturerMedical} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div
+                      style={{
+                        background: '#eff6ff',
+                        border: '1px solid #bfdbfe',
+                        borderRadius: '10px',
+                        padding: '1rem',
+                      }}
+                    >
+                      <strong style={{ display: 'block', fontSize: '0.86rem', color: '#1e40af', marginBottom: '0.75rem' }}>
+                        Department MA Completeness Verification Checklist
+                      </strong>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#1e3a8a', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={lecCertAuthentic}
+                            onChange={(e) => setLecCertAuthentic(e.target.checked)}
+                          />
+                          Official Medical Certificate verified (Doctor registration & institution seal checked)
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#1e3a8a', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={lecLeaveFormComplete}
+                            onChange={(e) => setLecLeaveFormComplete(e.target.checked)}
+                          />
+                          Academic Staff Leave Application Form completed and signed
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.84rem', color: '#1e3a8a', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={lecCoverageConfirmed}
+                            onChange={(e) => setLecCoverageConfirmed(e.target.checked)}
+                          />
+                          Lecture / practical substitute arrangement confirmed by designated substitute lecturer
+                        </label>
+                      </div>
+
+                      <div style={{ marginTop: '0.85rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#1e40af', marginBottom: '0.3rem' }}>
+                          FORWARDING DESTINATION
+                        </label>
+                        <select
+                          className="dept-ma-filter-select"
+                          style={{ width: '100%', background: '#ffffff' }}
+                          value={lecTargetAuthority}
+                          onChange={(e) => setLecTargetAuthority(e.target.value)}
+                        >
+                          <option value="Head of Department (M.J Ahamed Sabani)">
+                            Head of Department (M.J Ahamed Sabani) — Department Recommendation
+                          </option>
+                          <option value="Senior Assistant Registrar (Academic Establishment) & Dean">
+                            Senior Assistant Registrar (Academic Establishment) & Dean — Faculty Board
+                          </option>
+                          <option value="University Health Centre (Chief Medical Officer)">
+                            University Health Centre (Chief Medical Officer) — Medical Endorsement
+                          </option>
+                        </select>
+                      </div>
+
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#1e40af', marginBottom: '0.3rem' }}>
+                          DEPARTMENT MA ADMINISTRATIVE NOTES
+                        </label>
+                        <textarea
+                          rows="2"
+                          style={{
+                            width: '100%',
+                            borderRadius: '6px',
+                            border: '1px solid #bfdbfe',
+                            padding: '0.5rem',
+                            fontSize: '0.84rem',
+                            fontFamily: 'inherit',
+                          }}
+                          placeholder="Add administrative notes regarding leave period, substitute coverage, or medical certificate..."
+                          value={lecDepartmentNotes}
+                          onChange={(e) => setLecDepartmentNotes(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Forwarding History */}
+                    {selectedLecturerMed.forwardingHistory?.length > 0 && (
+                      <div>
+                        <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '700', display: 'block', marginBottom: '0.35rem' }}>
+                          PROCESSING & FORWARDING HISTORY
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                          {selectedLecturerMed.forwardingHistory.map((h, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                fontSize: '0.78rem',
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '6px',
+                                padding: '0.5rem 0.75rem',
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600', color: '#0f172a' }}>
+                                <span>{h.stage}</span>
+                                <span style={{ color: '#64748b', fontWeight: '400' }}>{h.timestamp}</span>
+                              </div>
+                              <div style={{ color: '#475569', marginTop: '0.15rem' }}>
+                                {h.actor}: {h.remarks}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <div className="dept-ma-modal-footer">
+                      <button
+                        type="button"
+                        className="dept-ma-btn-action secondary"
+                        onClick={() => setSelectedLecturerMed(null)}
+                      >
+                        Close
+                      </button>
+                      <button
+                        type="submit"
+                        className="dept-ma-btn-action primary"
+                      >
+                        Verify Completeness & Forward
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
