@@ -1158,7 +1158,52 @@
     width: 100%;
     justify-content: space-between;
   }
+
+  .adm-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .adm-modal-card {
+    max-width: 100% !important;
+    max-height: 95vh !important;
+    border-radius: 12px;
+  }
+
+  .adm-modal-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .adm-modal-body {
+    padding: 1rem !important;
+  }
+
+  .adm-modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .adm-modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .adm-batch-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    text-align: center;
+  }
+
+  .adm-page-nav {
+    justify-content: center;
+  }
 }
+
 
 /* ==========================================================================
    9. BATCH MANAGEMENT & INTAKE HIERARCHY

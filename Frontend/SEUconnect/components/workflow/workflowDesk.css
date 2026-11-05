@@ -105,3 +105,102 @@
 .wfd-notice { display: flex; align-items: center; gap: .9rem; width: 100%; text-align: left; background: #fff; border: none; border-bottom: 1px solid #f1f5f9; padding: .8rem 1rem; cursor: pointer; font-family: inherit; }
 .wfd-notice:hover { background: #f1f5f9; }
 .wfd-notice-body { display: flex; flex-direction: column; gap: .15rem; flex: 1; font-size: .86rem; }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS FOR WORKFLOW DESK & DRAWER
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wfd-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .wfd-stat {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .wfd-stat b {
+    font-size: 1.3rem;
+  }
+
+  .wfd-stat span {
+    font-size: 0.68rem;
+  }
+
+  .wfd-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wfd-toolbar input,
+  .wfd-toolbar select {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.82rem;
+  }
+
+  .wfd-card {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+
+  .wfd-table {
+    min-width: 650px;
+  }
+
+  .wfd-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1.1rem 1rem 2rem;
+  }
+
+  .wfd-drawer-head {
+    align-items: center;
+  }
+
+  .wfd-drawer-head h3 {
+    font-size: 1.05rem;
+  }
+
+  .wfd-kv {
+    grid-template-columns: 1fr;
+    gap: 0.2rem 0;
+  }
+
+  .wfd-kv dt {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.8rem;
+  }
+
+  .wfd-kv dd {
+    margin-bottom: 0.5rem;
+    font-size: 0.84rem;
+  }
+
+  .wfd-actions {
+    padding: 0.85rem;
+  }
+
+  .wfd-btn-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .wfd-btn-row .wfd-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .wfd-toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
+    text-align: center;
+  }
+}
+

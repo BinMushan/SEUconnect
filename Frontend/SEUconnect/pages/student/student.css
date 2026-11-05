@@ -1624,3 +1624,68 @@
   color: #0f2b54;
   transform: translateX(2px);
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS FOR STUDENT DASHBOARD & ACADEMIC TREND
+   ========================================================================== */
+@media (max-width: 900px) {
+  .std-trend-top-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .std-trend-bottom-row {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .std-trend-card {
+    padding: 1.15rem 1rem;
+    border-radius: 14px;
+  }
+
+  .std-trend-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .std-trend-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .std-sem-select-wrapper {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .std-trend-top-metrics {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .std-trend-top-box {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .std-chart-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  .std-chart-wrapper svg {
+    min-width: 520px;
+  }
+
+  .std-trend-bottom-row {
+    padding: 0.85rem 1rem;
+  }
+
+  .std-quick-actions-card {
+    border-radius: 14px;
+  }
+}
+
