@@ -1,7 +1,7 @@
 // npm run kb:reindex - rebuilds the chunks (and their embeddings) of every non-retired knowledge document.
 // Run it after setting GEMINI_API_KEY, after changing GEMINI_EMBED_MODEL, or when documents were added while
 // the embedding service was unreachable (those documents are searched by keyword only until reindexed).
-require('dotenv').config({ quiet: true });
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
 const connectDB = require('../config/db');
 
 (async () => {

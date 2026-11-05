@@ -2,7 +2,7 @@ const dns = require('dns');
 dns.setServers(['8.8.8.8', '1.1.1.1']); // Fix Node.js SRV resolution issue on Windows
 
 const mongoose = require('mongoose');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const uri = process.env.MONGODB_URI;
 
