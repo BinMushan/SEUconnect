@@ -7,20 +7,48 @@ export default function DeptMAAttendance({
   onShowToast,
 }) {
   const [selectedSubject, setSelectedSubject] = useState(attendanceSubjects[0] || null);
+  const [filterBatch, setFilterBatch] = useState('ALL');
+  const [filterSemester, setFilterSemester] = useState('ALL');
   const [filterThreshold, setFilterThreshold] = useState('ALL');
   const [searchStudent, setSearchStudent] = useState('');
 
-  // Calculate departmental averages
+  // Options
+  const batches = useMemo(() => ['ALL', ...deptInfo.activeBatches], [deptInfo]);
+  const semesters = ['ALL', 'Semester 3', 'Semester 4', 'Semester 6'];
+
+  // Filtered subjects list
+  const filteredSubjects = useMemo(() => {
+    return attendanceSubjects.filter((s) => {
+      if (filterBatch !== 'ALL' && s.batch !== filterBatch) return false;
+      if (filterSemester !== 'ALL' && s.semester !== filterSemester) return false;
+      return true;
+    });
+  }, [attendanceSubjects, filterBatch, filterSemester]);
+
+  // Department average and flagged counts
   const overallAvg = (
     attendanceSubjects.reduce((acc, s) => acc + s.avgAttendance, 0) / (attendanceSubjects.length || 1)
   ).toFixed(1);
 
   const totalFlagged = attendanceSubjects.reduce((acc, s) => acc + s.flaggedStudentsCount, 0);
-
   const pendingLecturerSubmissions = attendanceSubjects.filter((s) => s.pendingLecturerEntry);
 
-  // Student list for selected subject
-  const studentList = INITIAL_STUDENT_ATTENDANCE_SWT21022;
+  // Student list for selected subject with dynamic 80% threshold calculation
+  const studentList = useMemo(() => {
+    const conducted = selectedSubject?.conductedSessions || 24;
+    return INITIAL_STUDENT_ATTENDANCE_SWT21022.map((stu) => {
+      const attended = stu.attended;
+      const medical = stu.medical || 0;
+      const effectiveRate = Math.min(100, Number((((attended + medical) / conducted) * 100).toFixed(1)));
+      const status = effectiveRate >= 80 ? 'ELIGIBLE' : effectiveRate >= 70 ? 'AT_RISK' : 'BARRED';
+      return {
+        ...stu,
+        total: conducted,
+        effectiveRate,
+        status,
+      };
+    });
+  }, [selectedSubject]);
 
   const filteredStudentList = useMemo(() => {
     const q = searchStudent.trim().toLowerCase();
@@ -35,10 +63,21 @@ export default function DeptMAAttendance({
     });
   }, [studentList, searchStudent, filterThreshold]);
 
+  // Export Subject Roster
   const handleExportAttendanceReport = () => {
     try {
-      const headers = ['Subject Code', 'Subject Name', 'Batch', 'Semester', 'Lecturer', 'Conducted Sessions', 'Average Attendance %', 'Flagged (<80%)', 'Status'];
-      const rows = attendanceSubjects.map((s) => [
+      const headers = [
+        'Subject Code',
+        'Subject Name',
+        'Batch',
+        'Semester',
+        'Course Lecturer',
+        'Conducted Sessions',
+        'Average Attendance %',
+        'Flagged (<80%)',
+        'Audit Standing',
+      ];
+      const rows = filteredSubjects.map((s) => [
         `"${s.code}"`,
         `"${s.name}"`,
         `"${s.batch}"`,
@@ -54,7 +93,7 @@ export default function DeptMAAttendance({
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `SEUConnect_Attendance_Summary_${deptInfo.departmentCode}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `SEUConnect_Attendance_Summary_${deptInfo.departmentCode}_${filterBatch}_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -65,9 +104,82 @@ export default function DeptMAAttendance({
     }
   };
 
+  // Export Student 80% Standing Roster for Selected Subject
+  const handleExportStudentRosterCSV = () => {
+    try {
+      const headers = [
+        'Registration No',
+        'Student Full Name',
+        'Subject Code',
+        'Total Lectures (N)',
+        'Sessions Attended (P)',
+        'Approved Medicals (M)',
+        'Effective Attendance Rate % [(P+M)/N*100]',
+        '80% Threshold Status',
+        'End-Semester Examination Qualification',
+      ];
+      const rows = filteredStudentList.map((stu) => [
+        `"${stu.regNo}"`,
+        `"${stu.name}"`,
+        `"${selectedSubject?.code || 'SWT21022'}"`,
+        `"${stu.total}"`,
+        `"${stu.attended}"`,
+        `"${stu.medical || 0}"`,
+        `"${stu.effectiveRate.toFixed(1)}%"`,
+        `"${stu.status}"`,
+        `"${stu.status === 'ELIGIBLE' ? 'Qualified' : stu.status === 'AT_RISK' ? 'Conditional Warning' : 'Barred - Requires Senate Concession'}"`,
+      ]);
+      const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `SEUConnect_80Percent_Audit_${selectedSubject?.code || 'SWT21022'}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      onShowToast(`Student 80% attendance standing roster for ${selectedSubject?.code} exported.`, 'success');
+    } catch {
+      onShowToast('Failed to export student standing roster.', 'error');
+    }
+  };
+
   return (
     <div className="dept-ma-attendance-section">
-      {/* 1. Missing Lecturer Entry Alert */}
+      {/* 1. Official Responsibility Header with KaTeX KaTeX/Formula Banner */}
+      <div className="dept-ma-panel-card" style={{ marginBottom: '1.5rem', background: '#ffffff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+              <span className="dept-ma-badge-pill dept-code">RESPONSIBILITY 4</span>
+              <span className="dept-ma-badge-pill">80% STATUTORY AUDIT DESK</span>
+            </div>
+            <h2 style={{ margin: '0 0 0.35rem 0', fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>
+              Calculating 80% Attendance & Examination Qualification
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+              Statutory Formula: <strong>Attendance % = [(Attended Classes + Approved Medical Excuses) / Total Eligible Conducted Classes] × 100</strong>.
+              Audit students against the mandatory 80% threshold and identify at-risk candidates for Faculty Board review.
+            </p>
+          </div>
+
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              padding: '0.6rem 1rem',
+              fontSize: '0.8rem',
+              color: '#334155',
+            }}
+          >
+            🔒 <strong>Audit Mode:</strong> Lecturer-submitted records are strictly locked. Dept MA verifies calculations and reports standing without unauthorized modifications.
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Pending Lecturer Entry Alert */}
       {pendingLecturerSubmissions.length > 0 && (
         <div
           style={{
@@ -107,7 +219,7 @@ export default function DeptMAAttendance({
         </div>
       )}
 
-      {/* 2. Top Summary KPI Cards */}
+      {/* 3. Top Summary KPI Cards */}
       <div className="dept-ma-stats-grid" style={{ marginBottom: '1.75rem' }}>
         <div className="dept-ma-stat-card">
           <div className="dept-ma-stat-top">
@@ -117,7 +229,7 @@ export default function DeptMAAttendance({
           <div className="dept-ma-stat-value" style={{ color: '#047857' }}>
             {overallAvg}%
           </div>
-          <div className="dept-ma-stat-sub">Across all {attendanceSubjects.length} taught subjects</div>
+          <div className="dept-ma-stat-sub">Across all {attendanceSubjects.length} curriculum modules</div>
         </div>
 
         <div className="dept-ma-stat-card">
@@ -137,24 +249,56 @@ export default function DeptMAAttendance({
             <div className="dept-ma-stat-icon-wrap blue">📚</div>
           </div>
           <div className="dept-ma-stat-value">{attendanceSubjects.length}</div>
-          <div className="dept-ma-stat-sub">ICT Department Active Curriculum</div>
+          <div className="dept-ma-stat-sub">Active curriculum in ICT Department</div>
         </div>
       </div>
 
-      {/* 3. Subject Attendance Overview Table */}
+      {/* 4. Subject Attendance Overview Table */}
       <div className="dept-ma-panel-card" style={{ marginBottom: '2rem' }}>
-        <div className="dept-ma-panel-header">
-          <div className="dept-ma-panel-title">
-            <span>📊</span>
-            <span>Subject-wise Attendance Tracking & 80% Audit Status</span>
+        <div className="dept-ma-panel-header" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div>
+            <div className="dept-ma-panel-title">
+              <span>📊</span>
+              <span>Subject-wise Attendance Tracking & 80% Audit Status</span>
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>
+              Filter by batch or semester to generate focused audit reports.
+            </div>
           </div>
-          <button
-            type="button"
-            className="dept-ma-btn-action secondary"
-            onClick={handleExportAttendanceReport}
-          >
-            📥 Export Attendance Summary (CSV)
-          </button>
+
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <select
+              className="dept-ma-filter-select"
+              value={filterBatch}
+              onChange={(e) => setFilterBatch(e.target.value)}
+            >
+              {batches.map((b) => (
+                <option key={b} value={b}>
+                  {b === 'ALL' ? 'All Batches' : `Batch: ${b}`}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="dept-ma-filter-select"
+              value={filterSemester}
+              onChange={(e) => setFilterSemester(e.target.value)}
+            >
+              {semesters.map((sem) => (
+                <option key={sem} value={sem}>
+                  {sem === 'ALL' ? 'All Semesters' : sem}
+                </option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              className="dept-ma-btn-action secondary"
+              onClick={handleExportAttendanceReport}
+            >
+              Export Subject Summary (CSV)
+            </button>
+          </div>
         </div>
 
         <div className="dept-ma-table-wrapper">
@@ -169,11 +313,11 @@ export default function DeptMAAttendance({
                 <th>Average Attendance</th>
                 <th>Flagged &lt;80%</th>
                 <th>Audit Status</th>
-                <th>Actions</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {attendanceSubjects.map((sub) => {
+              {filteredSubjects.map((sub) => {
                 const isSelected = selectedSubject?.code === sub.code;
                 return (
                   <tr
@@ -241,10 +385,10 @@ export default function DeptMAAttendance({
         </div>
       </div>
 
-      {/* 4. Drill-Down: Student Attendance Roster for Selected Subject */}
+      {/* 5. Drill-Down: Student Attendance Standing Roster for Selected Subject */}
       {selectedSubject && (
         <div className="dept-ma-panel-card">
-          <div className="dept-ma-panel-header">
+          <div className="dept-ma-panel-header" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
               <div className="dept-ma-panel-title">
                 <span>👥</span>
@@ -253,15 +397,15 @@ export default function DeptMAAttendance({
                 </span>
               </div>
               <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                Batch: {selectedSubject.batch} • Lecturer: {selectedSubject.lecturer} • Statutory Regulation: 80% Minimum Attendance
+                Batch: {selectedSubject.batch} • Course Lecturer: {selectedSubject.lecturer} • Conducted Sessions: {selectedSubject.conductedSessions}
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input
                 type="text"
                 className="dept-ma-search-input"
-                style={{ width: '200px', paddingLeft: '0.85rem' }}
+                style={{ width: '180px', paddingLeft: '0.85rem' }}
                 placeholder="Filter student..."
                 value={searchStudent}
                 onChange={(e) => setSearchStudent(e.target.value)}
@@ -277,6 +421,14 @@ export default function DeptMAAttendance({
                 <option value="AT_RISK">At Risk (70% - 79%)</option>
                 <option value="BARRED">Barred (&lt; 70%)</option>
               </select>
+
+              <button
+                type="button"
+                className="dept-ma-btn-action secondary"
+                onClick={handleExportStudentRosterCSV}
+              >
+                Export Student Roster (CSV)
+              </button>
             </div>
           </div>
 
@@ -286,12 +438,12 @@ export default function DeptMAAttendance({
                 <tr>
                   <th className="col-reg-no">Reg No</th>
                   <th className="col-student-name">Student Full Name</th>
-                  <th className="col-total-lectures">Total Lectures</th>
-                  <th className="col-sessions-attended">Sessions Attended</th>
-                  <th className="col-approved-medicals">Approved Medicals</th>
-                  <th className="col-effective-rate">Effective Attendance %</th>
+                  <th className="col-total-lectures">Total Sessions (N)</th>
+                  <th className="col-sessions-attended">Attended (P)</th>
+                  <th className="col-approved-medicals">Approved Medicals (M)</th>
+                  <th className="col-effective-rate">Effective Rate %</th>
                   <th className="col-statutory-standing">80% Statutory Standing</th>
-                  <th className="col-notes">Notes</th>
+                  <th className="col-notes">Concession & Exam Qualification</th>
                 </tr>
               </thead>
               <tbody>
@@ -345,9 +497,21 @@ export default function DeptMAAttendance({
                         </span>
                       </td>
                       <td className="col-notes">
-                        {stu.status === 'ELIGIBLE' && 'Qualified for End Semester Exam'}
-                        {stu.status === 'AT_RISK' && 'Warning issued; pending medical justification'}
-                        {stu.status === 'BARRED' && 'Requires Faculty Board Concession'}
+                        {stu.status === 'ELIGIBLE' && (
+                          <span style={{ color: '#059669', fontWeight: '600' }}>
+                            Qualified for End-Semester Exam
+                          </span>
+                        )}
+                        {stu.status === 'AT_RISK' && (
+                          <span style={{ color: '#b45309', fontWeight: '600' }}>
+                            Warning issued; medical excuse reconciliation required
+                          </span>
+                        )}
+                        {stu.status === 'BARRED' && (
+                          <span style={{ color: '#dc2626', fontWeight: '700' }}>
+                            Barred — Requires Faculty Board Special Concession
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -360,4 +524,3 @@ export default function DeptMAAttendance({
     </div>
   );
 }
-

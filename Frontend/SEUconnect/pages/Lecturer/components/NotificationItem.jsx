@@ -7,6 +7,17 @@ import React from 'react';
 export default function NotificationItem({ notification, onToggleRead, onClick }) {
   const getCategoryTheme = (category) => {
     switch (category) {
+      case 'Examination Branch':
+        return {
+          color: 'blue',
+          icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <path d="m9 15 2 2 4-4" />
+            </svg>
+          ),
+        };
       case 'Medical requests':
         return {
           color: 'teal',
@@ -93,21 +104,6 @@ export default function NotificationItem({ notification, onToggleRead, onClick }
       </div>
 
       <div className="lec-notif-right">
-        <button
-          type="button"
-          className="lec-notif-action-chip"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onClick) onClick(notification);
-          }}
-          title={`Click to open ${notification.actionLabel || 'action'}`}
-        >
-          <span>{notification.actionLabel || 'Open Action'}</span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-
         {!notification.isRead && (
           <span className="lec-unread-indicator-dot" title="Unread Alert"></span>
         )}
