@@ -24,6 +24,96 @@ export default function DeptMAStudents({
     notes: '',
   });
 
+  // Student Document Dossier State
+  const [newDocTitle, setNewDocTitle] = useState('');
+  const [newDocCategory, setNewDocCategory] = useState('Registration Slips');
+  const [newDocSemester, setNewDocSemester] = useState('Semester 3');
+
+  const defaultDossierDocs = [
+    {
+      id: 'DOC-STU-01',
+      title: 'Course Registration Confirmation Slip (Signed)',
+      category: 'Registration Slips',
+      semester: 'Semester 3',
+      uploadDate: '2026-10-14',
+      size: '520 KB',
+      type: 'PDF',
+      uploadedBy: 'Mrs. K. N. Fathima (Dept MA)',
+    },
+    {
+      id: 'DOC-STU-02',
+      title: 'G.C.E. Advanced Level Official Certificate',
+      category: 'Admission Credentials',
+      semester: 'Enrollment',
+      uploadDate: '2023-01-10',
+      size: '1.4 MB',
+      type: 'PDF',
+      uploadedBy: 'AR Office (Academic Branch)',
+    },
+    {
+      id: 'DOC-STU-03',
+      title: 'National Identity Card (NIC) Copy & Photo Slip',
+      category: 'Identity Verification',
+      semester: 'Enrollment',
+      uploadDate: '2023-01-10',
+      size: '780 KB',
+      type: 'PDF',
+      uploadedBy: 'AR Office (Academic Branch)',
+    },
+    {
+      id: 'DOC-STU-04',
+      title: 'Continuous Assessment Medical Excuse Endorsement Dossier',
+      category: 'Medical Concessions',
+      semester: 'Semester 3',
+      uploadDate: '2026-10-25',
+      size: '890 KB',
+      type: 'PDF',
+      uploadedBy: 'Mrs. K. N. Fathima (Dept MA)',
+    },
+    {
+      id: 'DOC-STU-05',
+      title: 'Student Undertaking & Code of Conduct Agreement',
+      category: 'Affidavits & Undertakings',
+      semester: 'Enrollment',
+      uploadDate: '2023-01-12',
+      size: '430 KB',
+      type: 'PDF',
+      uploadedBy: 'Office of the Dean',
+    },
+  ];
+
+  const handleDownloadStudentDoc = (doc) => {
+    try {
+      const blob = new Blob(
+        [
+          `SOUTH EASTERN UNIVERSITY OF SRI LANKA\nFACULTY OF TECHNOLOGY - DEPARTMENT OF ICT\n\nOFFICIAL STUDENT ACADEMIC DOSSIER RECORD\nDocument: ${doc.title}\nCategory: ${doc.category} (${doc.semester})\nStudent: ${selectedStudent?.name} (${selectedStudent?.regNo})\nAcademic Batch: ${selectedStudent?.batch} • Degree: ${selectedStudent?.programme}\nArchived by: ${doc.uploadedBy} on ${doc.uploadDate}\n\nVerified certified copy on record in ICT Department Archives.`
+        ],
+        { type: 'text/plain;charset=utf-8;' }
+      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${selectedStudent?.regNo}_${doc.category.replace(/\s+/g, '_')}_${doc.id}.txt`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      onShowToast(`Downloaded student document: ${doc.title}`, 'success');
+    } catch {
+      onShowToast(`Failed to download document.`, 'error');
+    }
+  };
+
+  const handleUploadDossierDoc = (e) => {
+    e.preventDefault();
+    if (!newDocTitle.trim()) {
+      onShowToast('Please provide a document title.', 'error');
+      return;
+    }
+    onShowToast(`Document "${newDocTitle}" successfully archived into ${selectedStudent?.regNo} dossier.`, 'success');
+    setNewDocTitle('');
+  };
+
   // Filter options
   const batches = useMemo(() => ['ALL', ...deptInfo.activeBatches], [deptInfo]);
   const semesters = useMemo(
@@ -328,7 +418,18 @@ export default function DeptMAStudents({
                   setIsEditMode(true);
                 }}
               >
-                ✏️ Update Permitted Details
+                Update Permitted Details
+              </button>
+              <button
+                type="button"
+                className={`dept-ma-btn-action ${activeTab === 'dossier' ? 'primary' : 'secondary'}`}
+                style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
+                onClick={() => {
+                  setActiveTab('dossier');
+                  setIsEditMode(false);
+                }}
+              >
+                Student Documents Dossier
               </button>
             </div>
 
@@ -493,6 +594,149 @@ export default function DeptMAStudents({
                       <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Regular Load</div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'dossier' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {/* Header Notice */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '0.85rem 1.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <div>
+                      <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>
+                        Authorized Student Academic Documents Dossier (Responsibility 6)
+                      </strong>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                        Dossier for {selectedStudent.name} ({selectedStudent.regNo}) • Organized by document type, batch, and semester.
+                      </div>
+                    </div>
+                    <span className="dept-ma-badge-pill" style={{ background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
+                      5 Verified Documents On Record
+                    </span>
+                  </div>
+
+                  {/* Documents List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {defaultDossierDocs.map((doc) => (
+                      <div
+                        key={doc.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          padding: '0.75rem 1rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ fontSize: '1.2rem' }}>📄</span>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>
+                              {doc.title}
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                              {doc.category} • {doc.semester} • Uploaded by {doc.uploadedBy} on {doc.uploadDate} ({doc.size})
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="dept-ma-btn-action secondary"
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                          onClick={() => handleDownloadStudentDoc(doc)}
+                        >
+                          Download
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Upload New Document Form */}
+                  <form
+                    onSubmit={handleUploadDossierDoc}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <strong style={{ fontSize: '0.84rem', color: '#0f172a' }}>
+                      Archive New Document to Student Dossier
+                    </strong>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: '700', marginBottom: '0.2rem' }}>
+                          DOCUMENT TITLE
+                        </label>
+                        <input
+                          type="text"
+                          className="dept-ma-search-input"
+                          style={{ paddingLeft: '0.75rem', width: '100%' }}
+                          placeholder="e.g. Semester 4 Add/Drop Slip..."
+                          value={newDocTitle}
+                          onChange={(e) => setNewDocTitle(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: '700', marginBottom: '0.2rem' }}>
+                          DOCUMENT CATEGORY
+                        </label>
+                        <select
+                          className="dept-ma-filter-select"
+                          style={{ width: '100%', background: '#ffffff' }}
+                          value={newDocCategory}
+                          onChange={(e) => setNewDocCategory(e.target.value)}
+                        >
+                          <option value="Registration Slips">Registration Slips</option>
+                          <option value="Admission Credentials">Admission Credentials</option>
+                          <option value="Identity Verification">Identity Verification</option>
+                          <option value="Medical Concessions">Medical Concessions</option>
+                          <option value="Affidavits & Undertakings">Affidavits & Undertakings</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: '700', marginBottom: '0.2rem' }}>
+                          SEMESTER
+                        </label>
+                        <select
+                          className="dept-ma-filter-select"
+                          style={{ width: '100%', background: '#ffffff' }}
+                          value={newDocSemester}
+                          onChange={(e) => setNewDocSemester(e.target.value)}
+                        >
+                          <option value="Semester 1">Semester 1</option>
+                          <option value="Semester 2">Semester 2</option>
+                          <option value="Semester 3">Semester 3</option>
+                          <option value="Semester 4">Semester 4</option>
+                          <option value="Semester 5">Semester 5</option>
+                          <option value="Semester 6">Semester 6</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+                      <button type="submit" className="dept-ma-btn-action primary" style={{ fontSize: '0.78rem' }}>
+                        Archive Document to Dossier
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
 

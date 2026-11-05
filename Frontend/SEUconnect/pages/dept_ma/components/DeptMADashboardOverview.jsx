@@ -6,103 +6,129 @@ export default function DeptMADashboardOverview({
   subjects,
   registrations,
   medicalApplications,
+  lecturerMedicals = [],
+  caApplications = [],
+  arPackages = [],
+  studentRequests = [],
+  mahapolaBursary = [],
   attendanceSubjects,
   notifications,
   auditLog,
   onNavigate,
   onOpenMedicalModal,
 }) {
-  // Statistics calculations
+  // 1. Statistics calculations across all 7 official responsibilities
   const totalStudents = students.length;
   const totalSubjects = subjects.length;
+
+  // Resp 1: Student & Lecturer Medicals
   const pendingMedicals = medicalApplications.filter(
     (m) => m.status === 'Pending Verification' || m.status === 'Submitted' || m.status === 'Under Review'
   ).length;
-  const approvedMedicals = medicalApplications.filter((m) => m.status === 'Approved').length;
-  const rejectedMedicals = medicalApplications.filter((m) => m.status === 'Rejected').length;
+  const pendingLecturerMedicals = lecturerMedicals.filter((m) => m.status === 'Pending Verification').length;
 
+  // Resp 2: CA Applications for In-Charge Signing
+  const pendingCASignings = caApplications.filter((c) => c.status === 'Pending MA Verification').length;
+
+  // Resp 3: AR Office Registration Packages
+  const pendingARPackages = arPackages.filter((p) => p.status.includes('Pending')).length;
+
+  // Resp 4: 80% Attendance Audit
   const avgDeptAttendance = (
     attendanceSubjects.reduce((acc, curr) => acc + curr.avgAttendance, 0) / (attendanceSubjects.length || 1)
   ).toFixed(1);
-
   const flaggedAttendanceCount = attendanceSubjects.reduce((acc, curr) => acc + curr.flaggedStudentsCount, 0);
 
-  const pendingRegistrationsCount = registrations.filter(
-    (r) => r.status === 'Pending Verification' || r.status === 'Incomplete Documents'
-  ).length;
+  // Resp 5: Student Request Letters
+  const pendingStudentRequests = studentRequests.filter((r) => r.status === 'Pending MA Review').length;
+
+  // Resp 7: Mahapola & Bursary Incomplete / Pending
+  const pendingScholarships = mahapolaBursary.filter((s) => s.departmentStatus === 'Incomplete Documents' || s.departmentStatus === 'Under Verification').length;
 
   return (
     <div className="dept-ma-dashboard-view">
-      {/* 2. Key Metrics Summary Grid */}
+{/* 2. Key Metrics Summary Grid */}
       <div className="dept-ma-stats-grid">
-        {/* Metric 1: Total Students */}
-        <div className="dept-ma-stat-card" onClick={() => onNavigate('students')}>
-          <div className="dept-ma-stat-top">
-            <span className="dept-ma-stat-label">Total Department Students</span>
-            <div className="dept-ma-stat-icon-wrap blue">👥</div>
-          </div>
-          <div className="dept-ma-stat-value">{totalStudents}</div>
-          <div className="dept-ma-stat-sub">
-            Across <strong>{deptInfo.activeBatches.length}</strong> active batches in BICT (Hons)
-          </div>
-        </div>
-
-        {/* Metric 2: Registered Subjects */}
-        <div className="dept-ma-stat-card" onClick={() => onNavigate('subject_registrations')}>
-          <div className="dept-ma-stat-top">
-            <span className="dept-ma-stat-label">Registered Subjects</span>
-            <div className="dept-ma-stat-icon-wrap indigo">📚</div>
-          </div>
-          <div className="dept-ma-stat-value">{totalSubjects}</div>
-          <div className="dept-ma-stat-sub">
-            <strong>{pendingRegistrationsCount}</strong> registrations require MA verification
-          </div>
-        </div>
-
-        {/* Metric 3: Pending Subject Medicals */}
+        {/* Metric 1: Student & Lecturer Medical Applications */}
         <div className="dept-ma-stat-card" onClick={() => onNavigate('medical_applications')}>
           <div className="dept-ma-stat-top">
-            <span className="dept-ma-stat-label">Pending Medical Applications</span>
+            <span className="dept-ma-stat-label">Medical Applications</span>
             <div className="dept-ma-stat-icon-wrap amber">🩺</div>
           </div>
           <div className="dept-ma-stat-value" style={{ color: '#b45309' }}>
-            {pendingMedicals}
+            {pendingMedicals + pendingLecturerMedicals}
           </div>
           <div className="dept-ma-stat-sub">
-            Awaiting <strong>14-day rule verification</strong> & approval
+            {pendingMedicals} Student medicals • {pendingLecturerMedicals} Lecturer medicals
           </div>
         </div>
 
-        {/* Metric 4: Approved & Rejected Medicals */}
-        <div className="dept-ma-stat-card" onClick={() => onNavigate('medical_applications')}>
+        {/* Metric 2: CA Application Signing Desk */}
+        <div className="dept-ma-stat-card" onClick={() => onNavigate('subject_registrations')}>
           <div className="dept-ma-stat-top">
-            <span className="dept-ma-stat-label">Processed Medicals</span>
-            <div className="dept-ma-stat-icon-wrap emerald">✅</div>
+            <span className="dept-ma-stat-label">CA In-Charge Signings</span>
+            <div className="dept-ma-stat-icon-wrap indigo">🖋️</div>
           </div>
-          <div className="dept-ma-stat-value" style={{ color: '#047857' }}>
-            {approvedMedicals + rejectedMedicals}
+          <div className="dept-ma-stat-value" style={{ color: '#4338ca' }}>
+            {pendingCASignings}
           </div>
           <div className="dept-ma-stat-sub">
-            <span style={{ color: '#059669', fontWeight: '700' }}>{approvedMedicals} Approved</span>
-            <span>•</span>
-            <span style={{ color: '#dc2626', fontWeight: '700' }}>{rejectedMedicals} Rejected</span>
+            Continuous Assessment repeat slips awaiting MA verification
           </div>
         </div>
 
-        {/* Metric 5: Attendance Summary */}
+        {/* Metric 3: AR Office Subject Registrations */}
+        <div className="dept-ma-stat-card" onClick={() => onNavigate('subject_registrations')}>
+          <div className="dept-ma-stat-top">
+            <span className="dept-ma-stat-label">AR Registration Packages</span>
+            <div className="dept-ma-stat-icon-wrap blue">📦</div>
+          </div>
+          <div className="dept-ma-stat-value">{arPackages.length}</div>
+          <div className="dept-ma-stat-sub">
+            {pendingARPackages > 0 ? `${pendingARPackages} awaiting advisor & HOD sign-off` : 'All packages dispatched'}
+          </div>
+        </div>
+
+        {/* Metric 4: 80% Attendance Audit */}
         <div className="dept-ma-stat-card" onClick={() => onNavigate('attendance_records')}>
           <div className="dept-ma-stat-top">
-            <span className="dept-ma-stat-label">Attendance Standing</span>
+            <span className="dept-ma-stat-label">80% Attendance Audit</span>
             <div className="dept-ma-stat-icon-wrap purple">📊</div>
           </div>
           <div className="dept-ma-stat-value">{avgDeptAttendance}%</div>
           <div className="dept-ma-stat-sub">
-            <strong>{flaggedAttendanceCount}</strong> students below statutory 80% threshold
+            <strong style={{ color: '#b45309' }}>{flaggedAttendanceCount}</strong> students below 80% threshold
+          </div>
+        </div>
+
+        {/* Metric 5: Student Request Letters */}
+        <div className="dept-ma-stat-card" onClick={() => onNavigate('student_requests')}>
+          <div className="dept-ma-stat-top">
+            <span className="dept-ma-stat-label">Student Request Letters</span>
+            <div className="dept-ma-stat-icon-wrap emerald">📬</div>
+          </div>
+          <div className="dept-ma-stat-value" style={{ color: '#047857' }}>
+            {studentRequests.length}
+          </div>
+          <div className="dept-ma-stat-sub">
+            {pendingStudentRequests} pending review & departmental routing
+          </div>
+        </div>
+
+        {/* Metric 6: Mahapola & Bursary Documents */}
+        <div className="dept-ma-stat-card" onClick={() => onNavigate('mahapola_bursary')}>
+          <div className="dept-ma-stat-top">
+            <span className="dept-ma-stat-label">Mahapola & Bursary</span>
+            <div className="dept-ma-stat-icon-wrap blue">🎓</div>
+          </div>
+          <div className="dept-ma-stat-value">{mahapolaBursary.length}</div>
+          <div className="dept-ma-stat-sub">
+            {pendingScholarships > 0 ? `${pendingScholarships} under verification / incomplete` : 'All certified to Welfare'}
           </div>
         </div>
       </div>
 
-      {/* 3. Quick Actions Toolbar */}
+      {/* 3. Quick Operations Toolbar (All buttons without arrow icons) */}
       <div className="dept-ma-quick-actions-bar">
         <div className="dept-ma-quick-actions-title">
           <span>⚡</span>
@@ -114,35 +140,49 @@ export default function DeptMADashboardOverview({
             className="dept-ma-btn-action primary"
             onClick={() => onNavigate('medical_applications')}
           >
-            🩺 Verify Medical Queue
+            Medical Applications Desk
           </button>
           <button
             type="button"
             className="dept-ma-btn-action secondary"
             onClick={() => onNavigate('subject_registrations')}
           >
-            📝 Validate Registrations
+            Subject Registrations & CA
           </button>
           <button
             type="button"
             className="dept-ma-btn-action secondary"
             onClick={() => onNavigate('attendance_records')}
           >
-            📈 Track 80% Attendance
+            Attendance 80% Audit
+          </button>
+          <button
+            type="button"
+            className="dept-ma-btn-action secondary"
+            onClick={() => onNavigate('student_requests')}
+          >
+            Student Request Letters
+          </button>
+          <button
+            type="button"
+            className="dept-ma-btn-action secondary"
+            onClick={() => onNavigate('mahapola_bursary')}
+          >
+            Mahapola & Bursary
           </button>
           <button
             type="button"
             className="dept-ma-btn-action secondary"
             onClick={() => onNavigate('department_documents')}
           >
-            📁 Department Documents
+            Department Documents
           </button>
           <button
             type="button"
             className="dept-ma-btn-action emerald"
             onClick={() => onNavigate('reports')}
           >
-            📑 Generate Reports
+            Generate Reports
           </button>
         </div>
       </div>
@@ -156,7 +196,7 @@ export default function DeptMADashboardOverview({
               <span>📌</span>
               <span>Pending Tasks & Urgent Actions</span>
             </div>
-            <span className="dept-ma-panel-badge">{notifications.filter(n => !n.read).length} Unresolved</span>
+            <span className="dept-ma-panel-badge">{notifications.filter((n) => !n.read).length} Unresolved</span>
           </div>
 
           <div className="dept-ma-tasks-list">
@@ -303,4 +343,3 @@ export default function DeptMADashboardOverview({
     </div>
   );
 }
-
