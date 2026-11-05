@@ -126,3 +126,4 @@ SubjectSchema.index({ year: 1, semester: 1 });
 SubjectSchema.index({ semesterName: 1 });
 
 module.exports = mongoose.models.Subject || mongoose.model('Subject', SubjectSchema);
+
