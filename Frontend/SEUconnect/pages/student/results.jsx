@@ -1,274 +1,71 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { api } from '../../src/services/api';
 import './results.css';
 
-// Master Academic Results matching the SEUConnect live production portal
-const ALL_RESULTS_DATA = [
-  // Semester 1
-  {
-    id: 'res-1',
-    semester: 1,
-    semLabel: 'Sem 1',
-    code: 'ICT11012',
-    title: 'Foundation of Information Technology',
-    credits: 2,
-    caMark: 36,
-    esaMark: 48,
-    finalMark: 84,
-    grade: 'A',
-    gradePoint: 4.00,
-    qualityPoints: 8.00,
-    status: 'Passed'
-  },
-  {
-    id: 'res-2',
-    semester: 1,
-    semLabel: 'Sem 1',
-    code: 'ICT11023',
-    title: 'Structured Programming Fundamentals',
-    credits: 3,
-    caMark: 34,
-    esaMark: 42,
-    finalMark: 76,
-    grade: 'A-',
-    gradePoint: 3.70,
-    qualityPoints: 11.10,
-    status: 'Passed'
-  },
+const pct = (v) => (v === null || v === undefined ? '—' : Number(v).toFixed(1));
 
-  // Semester 2
-  {
-    id: 'res-3',
-    semester: 2,
-    semLabel: 'Sem 2',
-    code: 'ICT12013',
-    title: 'Object Oriented Programming',
-    credits: 3,
-    caMark: 35,
-    esaMark: 45,
-    finalMark: 80,
-    grade: 'A',
-    gradePoint: 4.00,
-    qualityPoints: 12.00,
-    status: 'Passed'
-  },
-  {
-    id: 'res-4',
-    semester: 2,
-    semLabel: 'Sem 2',
-    code: 'ICT12023',
-    title: 'Mathematics for Computing',
-    credits: 3,
-    caMark: 30,
-    esaMark: 41,
-    finalMark: 71,
-    grade: 'B+',
-    gradePoint: 3.30,
-    qualityPoints: 9.90,
-    status: 'Passed'
-  },
-
-  // Semester 3
-  {
-    id: 'res-5',
-    semester: 3,
-    semLabel: 'Sem 3',
-    code: 'ICT21013',
-    title: 'Data Structures and Algorithms',
-    credits: 3,
-    caMark: 36,
-    esaMark: 46,
-    finalMark: 82,
-    grade: 'A',
-    gradePoint: 4.00,
-    qualityPoints: 12.00,
-    status: 'Passed'
-  },
-  {
-    id: 'res-6',
-    semester: 3,
-    semLabel: 'Sem 3',
-    code: 'ICT21023',
-    title: 'Database Management Systems',
-    credits: 3,
-    caMark: 33,
-    esaMark: 43,
-    finalMark: 76,
-    grade: 'A-',
-    gradePoint: 3.70,
-    qualityPoints: 11.10,
-    status: 'Passed'
-  },
-  {
-    id: 'res-7',
-    semester: 3,
-    semLabel: 'Sem 3',
-    code: 'ICT21032',
-    title: 'Computer Organization & Architecture',
-    credits: 2,
-    caMark: 28,
-    esaMark: 39,
-    finalMark: 67,
-    grade: 'B',
-    gradePoint: 3.00,
-    qualityPoints: 6.00,
-    status: 'Passed'
-  },
-
-  // Semester 4
-  {
-    id: 'res-8',
-    semester: 4,
-    semLabel: 'Sem 4',
-    code: 'ICT22013',
-    title: 'Software Engineering & Design',
-    credits: 3,
-    caMark: 34,
-    esaMark: 44,
-    finalMark: 78,
-    grade: 'A-',
-    gradePoint: 3.70,
-    qualityPoints: 11.10,
-    status: 'Passed'
-  },
-  {
-    id: 'res-9',
-    semester: 4,
-    semLabel: 'Sem 4',
-    code: 'ICT22023',
-    title: 'Operating Systems & System Admin',
-    credits: 3,
-    caMark: 32,
-    esaMark: 40,
-    finalMark: 72,
-    grade: 'B+',
-    gradePoint: 3.30,
-    qualityPoints: 9.90,
-    status: 'Passed'
-  },
-
-  // Semester 5 (Current)
-  {
-    id: 'res-10',
-    semester: 5,
-    semLabel: 'Sem 5',
-    code: 'ICT22011',
-    title: 'Web Application Development',
-    credits: 3,
-    caMark: 36,
-    esaMark: '—',
-    finalMark: 36,
-    grade: 'Pending',
-    gradePoint: 3.70,
-    qualityPoints: 11.10,
-    status: 'In Progress'
-  },
-  {
-    id: 'res-11',
-    semester: 5,
-    semLabel: 'Sem 5',
-    code: 'ICT22043',
-    title: 'Mobile Application Development',
-    credits: 3,
-    caMark: 34,
-    esaMark: '—',
-    finalMark: 34,
-    grade: 'Pending',
-    gradePoint: 3.30,
-    qualityPoints: 9.90,
-    status: 'In Progress'
-  },
-  {
-    id: 'res-12',
-    semester: 5,
-    semLabel: 'Sem 5',
-    code: 'ICT31013',
-    title: 'Computer Networks & Security',
-    credits: 3,
-    caMark: 35,
-    esaMark: '—',
-    finalMark: 35,
-    grade: 'Pending',
-    gradePoint: 3.70,
-    qualityPoints: 11.10,
-    status: 'In Progress'
-  },
-  {
-    id: 'res-13',
-    semester: 5,
-    semLabel: 'Sem 5',
-    code: 'ICT31023',
-    title: 'Enterprise Architecture & Cloud Systems',
-    credits: 3,
-    caMark: 32,
-    esaMark: '—',
-    finalMark: 32,
-    grade: 'Pending',
-    gradePoint: 3.00,
-    qualityPoints: 9.00,
-    status: 'In Progress'
-  },
-  {
-    id: 'res-14',
-    semester: 5,
-    semLabel: 'Sem 5',
-    code: 'ICT31032',
-    title: 'Advanced Database Systems',
-    credits: 3,
-    caMark: 37,
-    esaMark: '—',
-    finalMark: 37,
-    grade: 'Pending',
-    gradePoint: 4.00,
-    qualityPoints: 12.00,
-    status: 'In Progress'
-  },
-  {
-    id: 'res-15',
-    semester: 5,
-    semLabel: 'Sem 5',
-    code: 'ICT31043',
-    title: 'Human Computer Interaction (HCI)',
-    credits: 3,
-    caMark: 35,
-    esaMark: '—',
-    finalMark: 35,
-    grade: 'Pending',
-    gradePoint: 3.70,
-    qualityPoints: 11.10,
-    status: 'In Progress'
-  }
-];
-
-// Precalculated GPAs matching the official SEUConnect records
-const SEMESTER_GPA_MAP = {
-  All: 3.58,
-  '1': 3.82,
-  '2': 3.65,
-  '3': 3.64,
-  '4': 3.50,
-  '5': 3.50
-};
-
-const CUMULATIVE_CGPA = 3.58;
+// Flatten the published transcript (GET /api/v1/transcripts/me) into one row per course.
+function transcriptToRows(transcript) {
+  const rows = [];
+  (transcript?.semesters || []).forEach((sem) => {
+    const number = sem.semester?.number ?? 0;
+    sem.courses.forEach((c) => {
+      const comps = c.componentMarks || [];
+      const weighted = (field) => {
+        const parts = comps.filter((m) => m[field] !== null && m[field] !== undefined);
+        return parts.length ? parts.reduce((sum, m) => sum + (m[field] * (m.weightInCourse ?? 100)) / 100, 0) / (parts.reduce((sum, m) => sum + (m.weightInCourse ?? 100), 0) / 100) : null;
+      };
+      rows.push({
+        id: `${c.code}-${number}-${c.attempt ?? 1}`,
+        semester: number,
+        semLabel: `Sem ${number}`,
+        code: c.code,
+        title: c.title,
+        credits: c.credits,
+        caMark: pct(weighted('caPercent')),
+        esaMark: pct(weighted('esaPercent')),
+        finalMark: c.finalMark ?? 0,
+        grade: c.grade || 'Pending',
+        gradePoint: c.gradePoint ?? 0,
+        qualityPoints: (c.gradePoint ?? 0) * c.credits,
+        status: c.passed ? 'Passed' : 'Failed',
+      });
+    });
+  });
+  return rows;
+}
 
 export default function StudentResults({ user }) {
   const [selectedSemester, setSelectedSemester] = useState('All');
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const candidateName = user?.name || 'M.N.M. Afnan';
-  const regNo = user?.regNo || '22ICT085';
-  const indexNo = user?.indexNo || 'ICT22085';
-  const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
+  const [transcript, setTranscript] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
-  // Filter modules based on selected semester
-  const filteredModules = useMemo(() => {
-    if (selectedSemester === 'All') {
-      return ALL_RESULTS_DATA;
-    }
-    return ALL_RESULTS_DATA.filter((m) => m.semester.toString() === selectedSemester);
-  }, [selectedSemester]);
+  useEffect(() => {
+    let live = true;
+    api
+      .getMyTranscript()
+      .then((t) => live && setTranscript(t))
+      .catch((e) => live && setLoadError(e.message || 'Could not load results.'));
+    return () => {
+      live = false;
+    };
+  }, []);
 
-  const currentSgpa = SEMESTER_GPA_MAP[selectedSemester] || 3.58;
+  const allRows = useMemo(() => transcriptToRows(transcript), [transcript]);
+  const semesterNumbers = useMemo(() => [...new Set(allRows.map((r) => r.semester))].sort((x, y) => x - y), [allRows]);
+  const student = transcript?.student;
+  const candidateName = student?.fullName || user?.name || '';
+  const regNo = student?.registrationNo || user?.regNo || '';
+  const indexNo = student?.studentId || user?.indexNo || '';
+  const programme = student?.programmeRef?.name || student?.programmeRef?.code || user?.programme || '';
+
+  const filteredModules = useMemo(() => (selectedSemester === 'All' ? allRows : allRows.filter((m) => m.semester.toString() === selectedSemester)), [allRows, selectedSemester]);
+
+  const cumulativeGpa = transcript?.cumulative?.gpa ?? null;
+  const semesterGpa = selectedSemester === 'All' ? cumulativeGpa : (transcript?.semesters || []).find((x) => String(x.semester?.number) === selectedSemester)?.sgpa ?? null;
+  const fmt = (v) => (v === null || v === undefined ? '—' : Number(v).toFixed(2));
 
   const handlePrint = () => {
     window.print();
@@ -320,22 +117,22 @@ export default function StudentResults({ user }) {
             onChange={(e) => setSelectedSemester(e.target.value)}
           >
             <option value="All">All Semesters</option>
-            <option value="1">Semester 1</option>
-            <option value="2">Semester 2</option>
-            <option value="3">Semester 3</option>
-            <option value="4">Semester 4</option>
-            <option value="5">Semester 5 (Current)</option>
+            {semesterNumbers.map((n) => (
+              <option key={n} value={String(n)}>
+                Semester {n}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="results-gpa-metrics-group">
           <div className="results-gpa-item">
             <span className="results-gpa-label">SEMESTER GPA: </span>
-            <strong className="results-gpa-value val-sgpa">{currentSgpa.toFixed(2)}</strong>
+            <strong className="results-gpa-value val-sgpa">{fmt(semesterGpa)}</strong>
           </div>
           <div className="results-gpa-item">
             <span className="results-gpa-label">CUMULATIVE CGPA: </span>
-            <strong className="results-gpa-value val-cgpa">{CUMULATIVE_CGPA.toFixed(2)}</strong>
+            <strong className="results-gpa-value val-cgpa">{fmt(cumulativeGpa)}</strong>
           </div>
         </div>
       </section>
@@ -365,6 +162,13 @@ export default function StudentResults({ user }) {
               </tr>
             </thead>
             <tbody>
+              {!filteredModules.length && (
+                <tr>
+                  <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                    {loadError || (transcript ? 'No published results yet. Results appear here once the examination branch publishes them.' : 'Loading results...')}
+                  </td>
+                </tr>
+              )}
               {filteredModules.map((item) => (
                 <tr
                   key={item.id}
@@ -413,7 +217,7 @@ export default function StudentResults({ user }) {
           <div><strong>Index No:</strong> {indexNo}</div>
           <div><strong>Degree Programme:</strong> {programme}</div>
           <div><strong>Filter:</strong> {selectedSemester === 'All' ? 'All Semesters' : `Semester ${selectedSemester}`}</div>
-          <div><strong>Cumulative CGPA:</strong> {CUMULATIVE_CGPA.toFixed(2)}</div>
+          <div><strong>Cumulative CGPA:</strong> {fmt(cumulativeGpa)}</div>
         </div>
 
         <table className="print-results-table">
@@ -450,8 +254,8 @@ export default function StudentResults({ user }) {
         </table>
 
         <div className="print-results-footer">
-          <div><strong>Semester GPA:</strong> {currentSgpa.toFixed(2)}</div>
-          <div><strong>Cumulative CGPA:</strong> {CUMULATIVE_CGPA.toFixed(2)}</div>
+          <div><strong>Semester GPA:</strong> {fmt(semesterGpa)}</div>
+          <div><strong>Cumulative CGPA:</strong> {fmt(cumulativeGpa)}</div>
           <div><strong>Academic Standing:</strong> Second Class (Upper Division)</div>
         </div>
 
@@ -491,11 +295,11 @@ export default function StudentResults({ user }) {
               <div className="results-modal-score-card">
                 <div className="results-modal-score-item">
                   <span className="results-modal-score-label">Continuous Assessment (CA)</span>
-                  <strong className="results-modal-score-val">{selectedRow.caMark} / 40</strong>
+                  <strong className="results-modal-score-val">{selectedRow.caMark} %</strong>
                 </div>
                 <div className="results-modal-score-item">
                   <span className="results-modal-score-label">End Semester Exam (ESA)</span>
-                  <strong className="results-modal-score-val">{selectedRow.esaMark} / 60</strong>
+                  <strong className="results-modal-score-val">{selectedRow.esaMark} %</strong>
                 </div>
                 <div className="results-modal-score-item highlight-score">
                   <span className="results-modal-score-label">Final Weighted Mark</span>

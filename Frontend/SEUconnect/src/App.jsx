@@ -11,6 +11,28 @@ import Examination from '../pages/examination/examination.jsx';
 import FMA from '../pages/fma/fma.jsx';
 import DeptMA from '../pages/dept_ma/dept_ma.jsx';
 import RoleSwitcherBar from '../components/workflow/RoleSwitcherBar.jsx';
+import api from './services/api.js';
+
+const USER_KEY = 'seuconnect_user';
+const ROLE_KEYS = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma', 'dept_ma', 'department_ma'];
+
+const readStoredUser = () => {
+  try {
+    return JSON.parse(window.sessionStorage.getItem(USER_KEY) || 'null');
+  } catch {
+    return null;
+  }
+};
+const storeUser = (user) => {
+  try {
+    if (user) window.sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    else window.sessionStorage.removeItem(USER_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+};
+
+const canonicalRole = (role) => (role === 'department_ma' ? 'dept_ma' : role);
 
 const DEFAULT_USERS_BY_ROLE = {
   student: {
@@ -139,22 +161,55 @@ const DEFAULT_USERS_BY_ROLE = {
 };
 
 function getInitialAuthState() {
-  if (typeof window === 'undefined') return { page: 'login', user: null };
+  if (typeof window === 'undefined') return { page: 'login', user: null, needsSession: false };
   const rawHash = window.location.hash ? window.location.hash.replace(/^#/, '').trim() : '';
   const cleanPath = (rawHash || window.location.pathname).replace(/^\//, '').toLowerCase();
-  const matchedRole = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma', 'dept_ma', 'department_ma'].find(
-    (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
-  );
-  if (matchedRole) {
-    return { page: matchedRole, user: DEFAULT_USERS_BY_ROLE[matchedRole] };
+  const matchedRole = ROLE_KEYS.find((role) => cleanPath === role || cleanPath.startsWith(`${role}/`));
+  if (!matchedRole) return { page: 'login', user: null, needsSession: false };
+
+  // Reload / deep link: reuse the stored session when it belongs to this role.
+  const stored = readStoredUser();
+  if (stored && api.hasSession() && canonicalRole(stored.roleKey || stored.role) === canonicalRole(matchedRole)) {
+    return { page: matchedRole, user: stored, needsSession: false };
   }
-  return { page: 'login', user: null };
+  return { page: matchedRole, user: DEFAULT_USERS_BY_ROLE[matchedRole], needsSession: true };
 }
 
 function App() {
   const [initialState] = useState(getInitialAuthState);
   const [currentUser, setCurrentUser] = useState(initialState.user);
   const [currentPage, setCurrentPage] = useState(initialState.page);
+  // False while a demo persona is being signed in (deep link / reload without a valid token).
+  const [sessionReady, setSessionReady] = useState(!initialState.needsSession);
+
+  // Demo personas share the seeded password; signing in gives every API call a real token.
+  const signInPersona = async (roleKey) => {
+    const persona = DEFAULT_USERS_BY_ROLE[roleKey];
+    try {
+      const res = await api.login(persona.email, '123456');
+      storeUser(res.user);
+      return res.user;
+    } catch (err) {
+      console.warn(`Could not sign in demo persona ${roleKey}:`, err.message);
+      api.logout();
+      storeUser(null);
+      return persona;
+    }
+  };
+
+  useEffect(() => {
+    if (sessionReady) return undefined;
+    let cancelled = false;
+    signInPersona(initialState.page).then((user) => {
+      if (cancelled) return;
+      setCurrentUser(user);
+      setSessionReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync state with URL hash or pathname
   useEffect(() => {
@@ -185,22 +240,28 @@ function App() {
 
   const handleLoginSuccess = (user) => {
     const roleKey = (user.roleKey || user.role || 'student').toLowerCase();
+    storeUser(user);
+    setSessionReady(true);
     setCurrentUser(user);
     setCurrentPage(roleKey);
     window.location.hash = `#${roleKey}`;
   };
 
   const handleLogout = () => {
+    api.logout();
+    storeUser(null);
     setCurrentUser(null);
     setCurrentPage('login');
     window.location.hash = '';
   };
 
-  const handleSwitchRole = (roleObj) => {
+  const handleSwitchRole = async (roleObj) => {
     const targetKey = roleObj.key.toLowerCase();
-    const targetUser = DEFAULT_USERS_BY_ROLE[targetKey];
+    setSessionReady(false);
+    const targetUser = await signInPersona(targetKey);
     setCurrentUser(targetUser);
     setCurrentPage(targetKey);
+    setSessionReady(true);
     window.location.hash = `#${targetKey}`;
   };
 
@@ -241,7 +302,11 @@ function App() {
           onSwitchRole={handleSwitchRole}
         />
       )}
-      {renderPortal()}
+      {currentPage !== 'login' && !sessionReady ? (
+        <div style={{ padding: '4rem', textAlign: 'center', color: '#475569' }}>Signing in…</div>
+      ) : (
+        <React.Fragment key={currentUser?.email || currentPage}>{renderPortal()}</React.Fragment>
+      )}
     </div>
   );
 }
