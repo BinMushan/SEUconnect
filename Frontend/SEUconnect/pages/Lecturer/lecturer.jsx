@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
 import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
@@ -13,10 +13,12 @@ import Attendance from './Attendance.jsx';
 import CAESA from './CAESA.jsx';
 import Results from './Results.jsx';
 import Announcements from './Announcements.jsx';
+import Notifications from './Notifications.jsx';
 import LecturerProfile from './LecturerProfile.jsx';
 import MedicalVerification from './MedicalVerification.jsx';
+import ECAReview from './ECAReview.jsx';
 
-import { INITIAL_LECTURER_INFO, INITIAL_NOTIFICATIONS } from './lecturerMockData.js';
+import { INITIAL_LECTURER_INFO, INITIAL_NOTIFICATIONS, INITIAL_ASSIGNED_ECA_APPLICATIONS } from './lecturerMockData.js';
 import './lecturer.css';
 
 /**
@@ -117,6 +119,7 @@ const LECTURER_NAV_SECTIONS = [
           </svg>
         ),
       },
+
     ],
   },
   {
@@ -166,7 +169,21 @@ export default function Lecturer({ user, onLogout }) {
   // Lifted Notifications state synchronized with topbar badge
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
 
+  // Assigned ECA Applications state
+  const [ecaApplications, setEcaApplications] = useState(INITIAL_ASSIGNED_ECA_APPLICATIONS);
+  const pendingEcaCount = ecaApplications.filter((a) => a.status === 'Pending Lecturer Review').length;
+
+  const handleUpdateEcaApplication = (updatedApp) => {
+    setEcaApplications((prev) =>
+      prev.map((app) => (app.id === updatedApp.id ? updatedApp : app))
+    );
+  };
+
   const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
+
+  // Selected ECA application ID for direct navigation via notification
+  const [selectedEcaAppId, setSelectedEcaAppId] = useState(null);
+  const [navSource, setNavSource] = useState('dashboard');
 
   const navigate = (targetPath) => {
     const clean = targetPath.replace(/^\//, '') || 'dashboard';
@@ -194,6 +211,12 @@ export default function Lecturer({ user, onLogout }) {
     if (params?.subjectCode) {
       setSelectedSubjectCode(params.subjectCode);
     }
+    if (params?.applicationId) {
+      setSelectedEcaAppId(params.applicationId);
+    } else {
+      setSelectedEcaAppId(null);
+    }
+    setNavSource('notifications');
     navigate(targetRoute);
   };
 
@@ -212,7 +235,11 @@ export default function Lecturer({ user, onLogout }) {
   // Convert current path to active sidebar id
   const activeNavId = (currentPath === '' || currentPath === 'dashboard')
     ? 'dashboard'
-    : (currentPath === 'medical-verification' ? 'notifications' : currentPath);
+    : (currentPath === 'medical-verification'
+        ? 'notifications'
+        : (currentPath === 'eca-review'
+            ? (navSource === 'notifications' ? 'notifications' : 'dashboard')
+            : currentPath));
 
   const handleNavigate = (targetId) => {
     if (targetId === 'academic_profile') {
@@ -246,6 +273,9 @@ export default function Lecturer({ user, onLogout }) {
     } else if (q.includes('announc') || q.includes('notice') || q.includes('publish') || q.includes('circ')) {
       navigate('announcements');
       showToast('Navigated to Announcements Feed', 'info');
+    } else if (q.includes('eca') || q.includes('repeat exam') || q.includes('exam application') || q.includes('assigned eca')) {
+      navigate('eca-review');
+      showToast('Navigated to Assigned ECA Applications Review', 'info');
     } else if (q.includes('medic') || q.includes('mc') || q.includes('concession') || q.includes('doctor') || q.includes('sick')) {
       navigate('medical-verification');
       showToast('Navigated to Student Medical Approval & Verification', 'info');
@@ -364,7 +394,29 @@ export default function Lecturer({ user, onLogout }) {
       case 'announcements':
         return <Announcements onShowToast={showToast} />;
       case 'notifications':
-        return <NotificationCenter onNavigate={navigate} />;
+        return (
+          <Notifications
+            notifications={notifications}
+            onToggleRead={handleToggleNotificationRead}
+            onMarkSingleRead={handleMarkSingleRead}
+            onMarkAllAsRead={handleMarkAllNotificationsRead}
+            onNavigateNotification={handleNotificationNavigate}
+            onShowToast={showToast}
+          />
+        );
+      case 'eca-review':
+        return (
+          <ECAReview
+            applications={ecaApplications}
+            initialApplicationId={selectedEcaAppId}
+            onUpdateApplication={handleUpdateEcaApplication}
+            onShowToast={showToast}
+            onNavigateBack={() => {
+              setSelectedEcaAppId(null);
+              navigate(navSource === 'notifications' ? 'notifications' : 'dashboard');
+            }}
+          />
+        );
       case 'medical-verification':
         return (
           <MedicalVerification
@@ -379,9 +431,15 @@ export default function Lecturer({ user, onLogout }) {
         return (
           <LecturerDashboard
             user={user}
+            assignedEcaCount={pendingEcaCount}
+            ecaApplications={ecaApplications}
             onNavigateModule={(modId, params) => {
               if (params?.subjectCode) {
                 setSelectedSubjectCode(params.subjectCode);
+              }
+              if (modId === 'eca-review') {
+                setSelectedEcaAppId(null);
+                setNavSource('dashboard');
               }
               navigate(modId);
             }}

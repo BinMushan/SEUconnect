@@ -116,7 +116,8 @@ export const enrolledStorage = {
 };
 
 async function request(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
   const token = authToken.get();
   const config = {
     ...options,

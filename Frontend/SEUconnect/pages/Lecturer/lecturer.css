@@ -9470,3 +9470,1696 @@
   background: #070d18 !important;
   border-color: #1a263c !important;
 }
+
+
+/* ==========================================================================
+   ASSIGNED ECA APPLICATIONS REVIEW MODULE & DASHBOARD INTEGRATION
+   Faculty of Technology Continuous Assessment (ECA) Repeat Workflow
+   ========================================================================== */
+
+/* 1. Dashboard Assigned ECA Banner */
+.lec-assigned-eca-section {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.lec-assigned-eca-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid #0284c7;
+  border-radius: 14px;
+  padding: 1.35rem 1.6rem;
+  box-shadow: 0 4px 14px -3px rgba(15, 23, 42, 0.06);
+  transition: all 0.2s ease;
+}
+
+.lec-assigned-eca-card:hover {
+  box-shadow: 0 6px 20px -4px rgba(2, 132, 199, 0.12);
+  border-color: #cbd5e1;
+}
+
+.lec-assigned-eca-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  flex: 1;
+}
+
+.lec-assigned-eca-icon-box {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  background: #e0f2fe;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.lec-assigned-eca-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.lec-assigned-eca-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.lec-eca-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.lec-eca-badge.badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.lec-eca-badge.badge-completed {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.lec-assigned-eca-desc {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0 0 0.5rem 0;
+}
+
+.lec-assigned-eca-meta-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.lec-eca-meta-tag {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+}
+
+.lec-btn-eca-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.6rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: #0284c7;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+.lec-btn-eca-check:hover {
+  background: #0369a1;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  transform: translateY(-1px);
+}
+
+/* 2. ECA Review Main View */
+.lec-eca-review-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.25rem 0 2.5rem;
+}
+
+.lec-workflow-notice-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 10px;
+  padding: 0.95rem 1.25rem;
+  color: #92400e;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.lec-workflow-notice-icon {
+  color: #d97706;
+  min-width: 22px;
+  margin-top: 1px;
+}
+
+.lec-header-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lec-btn-guidelines-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.52rem 0.95rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lec-btn-guidelines-trigger:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* 3. Stats Strip */
+.lec-eca-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.lec-eca-stat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.95rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 74px;
+}
+
+.lec-eca-stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  transform: translateY(-1px);
+}
+
+.lec-eca-stat-card.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.lec-stat-indicator {
+  width: 10px;
+  height: 38px;
+  border-radius: 5px;
+}
+
+.indicator-amber { background: #f59e0b; }
+.indicator-indigo { background: #6366f1; }
+.indicator-emerald { background: #10b981; }
+.indicator-rose { background: #f43f5e; }
+
+.lec-stat-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.lec-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+}
+
+/* 4. Filter Bar */
+.lec-eca-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.lec-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  flex: 1;
+  min-width: 260px;
+  color: #64748b;
+}
+
+.lec-search-box input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.88rem;
+  color: #1e293b;
+  outline: none;
+}
+
+.lec-clear-search-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.lec-filter-dropdowns {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lec-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.lec-filter-group select {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  color: #1e293b;
+  outline: none;
+  cursor: pointer;
+}
+
+/* 5. Table Card */
+.lec-eca-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.lec-table-header-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.lec-reset-filters-link {
+  background: none;
+  border: none;
+  color: #0284c7;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.lec-eca-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.lec-eca-table thead tr {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lec-eca-table th {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lec-eca-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+
+.lec-eca-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.lec-eca-table tbody tr.lec-row-highlight {
+  background: #fffdf5;
+}
+
+.lec-eca-table td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.lec-cell-tracking {
+  font-family: monospace;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f2b5c;
+}
+
+.lec-cell-sub {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.lec-cell-student-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.lec-cell-subject {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.25rem;
+}
+
+.lec-subject-pill {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.74rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+}
+
+.lec-subject-title {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.lec-cell-missed-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.lec-cell-resit-info {
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.35;
+}
+
+.lec-voucher-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.lec-voucher-no {
+  font-family: monospace;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.lec-voucher-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.lec-sar-tag {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Status Badges */
+.lec-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lec-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.lec-status-review {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.lec-status-forwarded {
+  background: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.lec-status-approved {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.lec-status-returned {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Table action buttons */
+.lec-btn-inspect-primary {
+  padding: 0.45rem 0.95rem;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lec-btn-inspect-primary:hover {
+  background: #0369a1;
+}
+
+.lec-btn-inspect-secondary {
+  padding: 0.45rem 0.95rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lec-btn-inspect-secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* 6. Inspection & Verification Modal */
+.lec-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.lec-inspect-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1080px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  animation: lecModalFadeIn 0.2s ease-out;
+}
+
+@keyframes lecModalFadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.lec-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lec-modal-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.lec-modal-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0284c7;
+  letter-spacing: 0.05em;
+}
+
+.lec-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.lec-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lec-modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.lec-modal-close-btn:hover {
+  color: #0f172a;
+}
+
+.lec-modal-notice-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.75rem;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  font-size: 0.82rem;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+.lec-modal-notice-banner svg {
+  color: #3b82f6;
+  min-width: 20px;
+}
+
+/* Stepper Box */
+.lec-stepper-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.75rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.lec-stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  opacity: 0.6;
+}
+
+.lec-stepper-item.completed {
+  opacity: 1;
+}
+
+.lec-stepper-item.current {
+  opacity: 1;
+}
+
+.lec-step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lec-stepper-item.completed .lec-step-circle {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.lec-stepper-item.current .lec-step-circle {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+.lec-step-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.lec-step-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.lec-step-desc {
+  font-size: 0.68rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.lec-step-divider {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 0.75rem;
+  min-width: 20px;
+}
+
+.lec-step-divider.completed {
+  background: #10b981;
+}
+
+/* Modal Body Grid */
+.lec-modal-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.lec-modal-col-left,
+.lec-modal-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.lec-info-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.15rem;
+}
+
+.lec-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.lec-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.75rem 0;
+}
+
+.lec-sar-verified-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.lec-card-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.lec-card-grid-1 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.lec-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.lec-field-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lec-field-val {
+  font-size: 0.85rem;
+  color: #1e293b;
+}
+
+.lec-field-val.strong {
+  font-weight: 700;
+}
+
+.lec-field-val.italic {
+  font-style: italic;
+  color: #475569;
+}
+
+/* Document & Attachment box */
+.lec-doc-attachment-box {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.lec-doc-file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #0284c7;
+}
+
+.lec-doc-filename {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.lec-doc-meta {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.lec-btn-preview-doc,
+.lec-btn-view-voucher {
+  padding: 0.45rem 0.95rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.lec-btn-preview-doc:hover,
+.lec-btn-view-voucher:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.lec-btn-view-voucher {
+  margin-top: 0.85rem;
+  width: 100%;
+  display: block;
+  text-align: center;
+}
+
+/* Remarks Section */
+.lec-remarks-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0 0 0.65rem 0;
+  line-height: 1.4;
+}
+
+.lec-quick-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+}
+
+.lec-chip-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.lec-chip-btn {
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lec-chip-btn:hover {
+  background: #bae6fd;
+}
+
+.lec-remarks-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  color: #1e293b;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+}
+
+.lec-remarks-textarea:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.lec-readonly-remarks-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.lec-readonly-text {
+  font-size: 0.85rem;
+  color: #334155;
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+/* Audit Timeline */
+.lec-audit-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lec-audit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.lec-audit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0284c7;
+  margin-top: 5px;
+}
+
+.lec-audit-content {
+  flex: 1;
+}
+
+.lec-audit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.lec-audit-actor {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.lec-audit-time {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.lec-audit-comment {
+  font-size: 0.78rem;
+  color: #475569;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+
+.lec-no-audit {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Modal Footer */
+.lec-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.75rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lec-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lec-footer-notice {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.lec-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lec-btn-secondary {
+  padding: 0.55rem 1.15rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lec-btn-secondary:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.lec-btn-return-correction {
+  padding: 0.55rem 1.25rem;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #991b1b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lec-btn-return-correction:hover {
+  background: #fecaca;
+}
+
+.lec-btn-mark-checked {
+  padding: 0.55rem 1.35rem;
+  background: #0284c7;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+  transition: all 0.15s ease;
+}
+
+.lec-btn-mark-checked:hover {
+  background: #0369a1;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+}
+
+.lec-forwarded-pill {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3730a3;
+  background: #e0e7ff;
+  border: 1px solid #c7d2fe;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+}
+
+.lec-approved-pill {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+}
+
+/* 7. Return Submodal */
+.lec-return-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.lec-return-modal-body {
+  padding: 1.25rem 1.5rem;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.lec-return-textarea {
+  width: 100%;
+  margin-top: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+}
+
+.lec-return-textarea:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+/* 8. Preview Submodal */
+.lec-preview-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.lec-preview-modal-body {
+  padding: 1.5rem;
+  background: #f8fafc;
+}
+
+.lec-voucher-sheet,
+.lec-med-sheet {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.lec-voucher-header {
+  border-bottom: 2px solid #0f2b5c;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.lec-bank-logo {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f2b5c;
+  letter-spacing: 0.05em;
+}
+
+.lec-voucher-type {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.lec-voucher-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.lec-voucher-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 0.35rem;
+}
+
+.lec-voucher-row.highlight {
+  background: #eff6ff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-bottom: none;
+  color: #1e40af;
+}
+
+.lec-voucher-stamp {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lec-stamp-box {
+  border: 2px dashed #059669;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  text-align: center;
+  color: #059669;
+  background: #f0fdf4;
+}
+
+.lec-stamp-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.lec-stamp-text {
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.lec-stamp-officer {
+  font-size: 0.62rem;
+  margin-top: 0.2rem;
+}
+
+.lec-med-header {
+  border-bottom: 2px solid #0284c7;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.lec-med-header h3 {
+  font-size: 0.95rem;
+  color: #0f172a;
+  margin: 0;
+}
+
+.lec-med-header p {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0.15rem 0 0 0;
+}
+
+.lec-med-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+}
+
+.lec-med-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.lec-med-endorsement {
+  margin-top: 0.75rem;
+  padding: 0.65rem;
+  background: #f1f5f9;
+  border-left: 3px solid #0284c7;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  font-style: italic;
+  color: #334155;
+}
+
+/* 9. Guidelines Modal */
+.lec-guidelines-modal-card {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: lecModalFadeIn 0.2s ease-out;
+}
+
+.lec-guidelines-modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  background: #ffffff;
+}
+
+.lec-guideline-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lec-guideline-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #bfdbfe;
+}
+
+.lec-guideline-item p {
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ==========================================================================
+   DARK MODE OVERRIDES FOR ASSIGNED ECA MODULE
+   ========================================================================== */
+.dark-mode .lec-assigned-eca-card {
+  background: linear-gradient(135deg, #0b1325 0%, #070d18 100%) !important;
+  border-color: #1a263c !important;
+  border-left-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-assigned-eca-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-assigned-eca-desc {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-assigned-eca-icon-box {
+  background: #0c4a6e !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-eca-meta-tag {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-workflow-notice-box {
+  background: #2a1f07 !important;
+  border-color: #78350f !important;
+  color: #fde68a !important;
+}
+
+.dark-mode .lec-workflow-notice-icon {
+  color: #f59e0b !important;
+}
+
+.dark-mode .lec-eca-stat-card {
+  background: #0b1325 !important;
+  border-color: #1a263c !important;
+}
+
+.dark-mode .lec-eca-stat-card:hover {
+  border-color: #334155 !important;
+}
+
+.dark-mode .lec-eca-stat-card.active {
+  background: #082f49 !important;
+  border-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-stat-num {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-stat-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-eca-filter-bar {
+  background: #0b1325 !important;
+  border-color: #1a263c !important;
+}
+
+.dark-mode .lec-search-box {
+  background: #070d18 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .lec-search-box input {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-filter-group select {
+  background: #070d18 !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-eca-table-card {
+  background: #0b1325 !important;
+  border-color: #1a263c !important;
+}
+
+.dark-mode .lec-table-header-info {
+  background: #070d18 !important;
+  border-bottom-color: #1a263c !important;
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-eca-table thead tr {
+  background: #070d18 !important;
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .lec-eca-table th {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-eca-table tbody tr {
+  border-bottom-color: #131d35 !important;
+}
+
+.dark-mode .lec-eca-table tbody tr:hover {
+  background: #0f1c35 !important;
+}
+
+.dark-mode .lec-eca-table tbody tr.lec-row-highlight {
+  background: #181d2a !important;
+}
+
+.dark-mode .lec-cell-tracking {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-cell-student-name {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-subject-pill {
+  background: #1e3a8a !important;
+  color: #bfdbfe !important;
+}
+
+.dark-mode .lec-subject-title {
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .lec-cell-resit-info {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-voucher-no {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-btn-inspect-secondary {
+  background: #131d35 !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-btn-inspect-secondary:hover {
+  background: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .lec-inspect-modal-card,
+.dark-mode .lec-return-modal-card,
+.dark-mode .lec-preview-modal-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-modal-header {
+  background: #070d18 !important;
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .lec-modal-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-modal-notice-banner {
+  background: #082f49 !important;
+  border-bottom-color: #0c4a6e !important;
+  color: #bae6fd !important;
+}
+
+.dark-mode .lec-stepper-box {
+  background: #070d18 !important;
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .lec-step-name {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-step-divider {
+  background: #1e293b !important;
+}
+
+.dark-mode .lec-info-card {
+  background: #070d18 !important;
+  border-color: #1a263c !important;
+}
+
+.dark-mode .lec-card-title {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-field-val {
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .lec-doc-attachment-box {
+  background: #0b1325 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .lec-doc-filename {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-btn-preview-doc,
+.dark-mode .lec-btn-view-voucher {
+  background: #131d35 !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-chip-btn {
+  background: #082f49 !important;
+  border-color: #0c4a6e !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-remarks-textarea,
+.dark-mode .lec-return-textarea {
+  background: #070d18 !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-readonly-remarks-box {
+  background: #0b1325 !important;
+  border-color: #1a263c !important;
+}
+
+.dark-mode .lec-readonly-text {
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .lec-audit-actor {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-audit-comment {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-modal-footer {
+  background: #070d18 !important;
+  border-top-color: #1a263c !important;
+}
+
+.dark-mode .lec-btn-secondary {
+  background: #131d35 !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-voucher-sheet,
+.dark-mode .lec-med-sheet {
+  background: #070d18 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .lec-preview-modal-body {
+  background: #0b1325 !important;
+}
+
+.dark-mode .lec-bank-logo {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-voucher-header {
+  border-bottom-color: #38bdf8 !important;
+}
+
+.dark-mode .lec-voucher-body {
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .lec-voucher-row {
+  border-bottom-color: #1a263c !important;
+}
+
+.dark-mode .lec-voucher-row.highlight {
+  background: #082f49 !important;
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-med-header h3 {
+  color: #f8fafc !important;
+}
+
+.dark-mode .lec-med-body {
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .lec-med-endorsement {
+  background: #0b1325 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Compact, Readable ECA Review Table Enhancements */
+.lec-regno-tag {
+  font-family: monospace;
+  font-weight: 700;
+  color: #0f2b5c;
+}
+
+.lec-date-label {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.lec-cell-assessment-summary {
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.35;
+  margin-top: 0.2rem;
+}
+
+.lec-status-cell-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.lec-fee-cleared-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #047857;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Dark mode overrides for table enhancements */
+.dark-mode .lec-regno-tag {
+  color: #38bdf8 !important;
+}
+
+.dark-mode .lec-date-label {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .lec-cell-assessment-summary {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .lec-fee-cleared-tag {
+  background: #064e3b !important;
+  color: #a7f3d0 !important;
+  border-color: #047857 !important;
+}
+
+
+.dark-mode .lec-btn-guidelines-trigger {
+  background: #131d35 !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .lec-btn-guidelines-trigger:hover {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+.dark-mode .lec-guidelines-modal-card {
+  background: #0b1325 !important;
+  border: 1px solid #1a263c !important;
+}
+
+.dark-mode .lec-guidelines-modal-body {
+  background: #0b1325 !important;
+}
+
+.dark-mode .lec-guideline-badge {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+  border-color: #1d4ed8 !important;
+}
+
+.dark-mode .lec-guideline-item p {
+  color: #cbd5e1 !important;
+}
