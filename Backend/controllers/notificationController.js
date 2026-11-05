@@ -1,167 +1,108 @@
-const Notification = require('../models/Notification');
-const { getStatus } = require('../config/db');
+const store = require('../store');
 
-// Seed notifications for in-memory fallback
-let memoryNotifications = [
-  {
-    _id: 'notif_001',
-    title: 'New BST Student Request Submitted',
-    message: 'K.M. Dilshan (22BST012) submitted a Field Practical Medical Excuse (BST 3113 & BST 3122). Administrative review required.',
-    type: 'NEW_SUBMISSION',
-    recipientRole: 'sar',
-    relatedRequestId: 'MED-2026-0910',
-    department: 'Department of Biosystems Technology',
-    isRead: false,
-    readAt: null,
-    createdAt: new Date(Date.now() - 25 * 60 * 1000), // 25 mins ago
-  },
-  {
-    _id: 'notif_002',
-    title: 'HOD Endorsement Received: ICT 2223 Repeat Form',
-    message: 'Dr. M.A. Rifky (HOD ICT) has endorsed the Repeat Examination form for A.R. Fathima (22ICT041). Pending final Faculty Board scheduling.',
-    type: 'HOD_ENDORSED',
-    recipientRole: 'sar',
-    relatedRequestId: 'REP-2026-0105',
-    department: 'Department of Information and Communication Technology',
-    isRead: false,
-    readAt: null,
-    createdAt: new Date(Date.now() - 2 * 3600 * 1000), // 2 hours ago
-  },
-  {
-    _id: 'notif_003',
-    title: 'Dean Sanctioned: Medical Leave Approval',
-    message: 'Prof. U.L. Abdul Majeed (Dean) confirmed final executive approval for MED-2026-0640 (M.N.M. Afnan). Ready for archiving in faculty register.',
-    type: 'DEAN_APPROVED',
-    recipientRole: 'sar',
-    relatedRequestId: 'MED-2026-0640',
-    department: 'Department of Information and Communication Technology',
-    isRead: false,
-    readAt: null,
-    createdAt: new Date(Date.now() - 5 * 3600 * 1000), // 5 hours ago
-  },
-  {
-    _id: 'notif_004',
-    title: 'Correction Requested: Private Clinic Certificate',
-    message: 'Dr. Rifky returned MED-2026-0792 for lack of University Health Center endorsement slip within the 7-day statutory window.',
-    type: 'CORRECTION',
-    recipientRole: 'sar',
-    relatedRequestId: 'MED-2026-0792',
-    department: 'Department of Information and Communication Technology',
-    isRead: true,
-    readAt: new Date(Date.now() - 6 * 3600 * 1000),
-    createdAt: new Date(Date.now() - 12 * 3600 * 1000),
-  },
-  {
-    _id: 'notif_005',
-    title: 'Action Required: BST Industrial Training Leave',
-    message: 'Leave of absence request REQ-2026-0304 from R.P. Kumara (21BST005) forwarded for administrative documentation check prior to Dean review.',
-    type: 'ACTION_REQUIRED',
-    recipientRole: 'sar',
-    relatedRequestId: 'REQ-2026-0304',
-    department: 'Department of Biosystems Technology',
-    isRead: false,
-    readAt: null,
-    createdAt: new Date(Date.now() - 1 * 86400 * 1000), // 1 day ago
-  },
-];
+const shape = (doc, user) => {
+  const n = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+  const isRead = store.notifications.isReadBy(doc, user);
+  return {
+    _id: String(n._id),
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    priority: n.priority,
+    trackingNumber: n.trackingNumber || n.relatedRequestId || '',
+    relatedRequestId: n.relatedRequestId || '',
+    targetTab: n.targetTab || '',
+    department: n.department,
+    isRead,
+    createdAt: n.createdAt,
+  };
+};
 
+// Notifications for the signed-in user (role + department + personal), newest first.
 exports.getNotifications = async (req, res) => {
   try {
-    const role = (req.query.role || 'sar').toLowerCase();
-
-    if (getStatus()) {
-      const dbNotifs = await Notification.find({ recipientRole: role }).sort({ createdAt: -1 });
-      if (dbNotifs && dbNotifs.length > 0) {
-        return res.json({ success: true, count: dbNotifs.length, data: dbNotifs });
-      }
-    }
-
-    const filtered = memoryNotifications.filter(n => n.recipientRole.toLowerCase() === role);
-    return res.json({ success: true, count: filtered.length, data: filtered });
+    const list = await store.notifications.forUser(req.user);
+    const data = list.map((n) => shape(n, req.user));
+    res.json({ success: true, count: data.length, unreadCount: data.filter((n) => !n.isRead).length, data });
   } catch (error) {
     console.error('Error fetching notifications:', error);
-    res.status(500).json({ success: false, message: 'Server error retrieving notifications', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error retrieving notifications' });
+  }
+};
+
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const list = await store.notifications.forUser(req.user);
+    res.json({ success: true, unreadCount: list.filter((n) => !store.notifications.isReadBy(n, req.user)).length });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error retrieving notifications' });
+  }
+};
+
+const markRead = async (doc, user) => {
+  const email = String(user.email || '').toLowerCase();
+  if (!doc.readBy.includes(email)) {
+    doc.readBy.push(email);
+    doc.isRead = true;
+    doc.readAt = new Date();
+    await store.notifications.save(doc);
   }
 };
 
 exports.markAsRead = async (req, res) => {
   try {
-    const { id } = req.params;
-    const now = new Date();
-
-    if (getStatus()) {
-      const updated = await Notification.findByIdAndUpdate(
-        id,
-        { isRead: true, readAt: now },
-        { new: true }
-      );
-      if (updated) {
-        return res.json({ success: true, data: updated });
-      }
-    }
-
-    const notif = memoryNotifications.find(n => n._id === id || String(n._id) === String(id));
-    if (notif) {
-      notif.isRead = true;
-      notif.readAt = now;
-      return res.json({ success: true, data: notif });
-    }
-
-    return res.status(404).json({ success: false, message: 'Notification not found' });
+    const doc = await store.notifications.find(req.params.id);
+    const visible = doc && (await store.notifications.forUser(req.user)).some((n) => String(n._id) === String(doc._id));
+    if (!visible) return res.status(404).json({ success: false, message: 'Notification not found' });
+    await markRead(doc, req.user);
+    res.json({ success: true, data: shape(doc, req.user) });
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    res.status(500).json({ success: false, message: 'Server error updating notification', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error updating notification' });
   }
 };
 
 exports.markAllAsRead = async (req, res) => {
   try {
-    const role = (req.body.role || req.query.role || 'sar').toLowerCase();
-    const now = new Date();
-
-    if (getStatus()) {
-      await Notification.updateMany(
-        { recipientRole: role, isRead: false },
-        { $set: { isRead: true, readAt: now } }
-      );
-    }
-
-    memoryNotifications = memoryNotifications.map(n => {
-      if (n.recipientRole.toLowerCase() === role) {
-        return { ...n, isRead: true, readAt: now };
-      }
-      return n;
-    });
-
+    const list = await store.notifications.forUser(req.user);
+    for (const doc of list) await markRead(doc, req.user);
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
     console.error('Error marking all as read:', error);
-    res.status(500).json({ success: false, message: 'Server error updating notifications', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error updating notifications' });
   }
 };
 
-exports.createNotification = async (notifData) => {
+exports.deleteNotification = async (req, res) => {
   try {
-    const newNotif = {
-      _id: `notif_${Date.now()}`,
-      title: notifData.title,
-      message: notifData.message,
-      type: notifData.type || 'ADMIN_REVIEW',
-      recipientRole: (notifData.recipientRole || 'sar').toLowerCase(),
-      relatedRequestId: notifData.relatedRequestId || '',
-      department: notifData.department || 'Faculty of Technology',
-      isRead: false,
-      readAt: null,
-      createdAt: new Date(),
-    };
-
-    if (getStatus()) {
-      await Notification.create(newNotif);
-    }
-    memoryNotifications.unshift(newNotif);
-    return newNotif;
-  } catch (err) {
-    console.warn('Failed to dispatch notification:', err.message);
+    await store.notifications.delete(req.params.id);
+    res.json({ success: true, message: 'Notification deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    res.status(500).json({ success: false, message: 'Server error deleting notification' });
   }
 };
 
+exports.deleteAllNotifications = async (req, res) => {
+  try {
+    await store.notifications.deleteAllForUser(req.user);
+    res.json({ success: true, message: 'All notifications cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing notifications:', error);
+    res.status(500).json({ success: false, message: 'Server error clearing notifications' });
+  }
+};
+
+// Used by controllers to deliver the notifications produced by workflow transitions.
+exports.dispatch = async (events = []) => {
+  for (const e of events) {
+    try {
+      await store.notifications.create(e);
+    } catch (err) {
+      console.warn('Failed to dispatch notification:', err.message);
+    }
+  }
+};
+
+// Back-compat helper for older call sites.
+exports.createNotification = (data) => exports.dispatch([data]);
