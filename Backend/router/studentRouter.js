@@ -33,6 +33,8 @@ const ownRecordOrStaff = async (req, res, next) => {
 router.get('/', authorize(...STAFF), studentController.getAllStudents);
 router.post('/bulk', authorize('admin', 'superadmin'), studentController.createStudentsBulk);
 router.post('/', authorize('admin', 'superadmin'), studentController.createStudent);
+router.put('/:identifier', authorize('admin', 'superadmin'), studentController.updateStudent);
+router.delete('/:identifier', authorize('admin', 'superadmin'), studentController.deleteStudent);
 
 router.get('/find', ownRecordOrStaff, (req, res) => {
   req.params.identifier = req.query.id || req.query.studentId || req.query.indexNo;
