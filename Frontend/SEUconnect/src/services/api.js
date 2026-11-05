@@ -4,8 +4,11 @@
  * Every request carries the signed-in user's JWT; the backend decides what that user may see and do.
  */
 
-const rawApiUrl = (import.meta.env?.VITE_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
-const API_BASE_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
+const API_BASE_URL =
+  import.meta.env?.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location?.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : '/api');
 const TOKEN_KEY = 'seuconnect_token';
 
 export const authToken = {
@@ -306,6 +309,25 @@ export const api = {
   assistantAgent: () => request('/v1/assistant/agent').then((b) => b.data),
   assistantChat: ({ message, conversationId }) =>
     request('/v1/assistant/chat', json('POST', { message, ...(conversationId ? { conversationId } : {}) })).then((b) => b.data),
+
+  /* ------------------- Knowledge Base (RAG Ingestion & Documents) ------------------- */
+  getKnowledgeDocs: (params = {}) => request(`/v1/knowledge${qs(params)}`).then((b) => b.data || b),
+  createKnowledgeDoc: (doc) => request('/v1/knowledge', json('POST', doc)).then((b) => b.data || b),
+  uploadKnowledgeFile: (formData) => {
+    const token = authToken.get();
+    return fetch(`${API_BASE_URL}/v1/knowledge/upload`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: formData
+    }).then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'File upload failed');
+      return data.data || data;
+    });
+  },
+  retireKnowledgeDoc: (id) => request(`/v1/knowledge/${id}/retire`, json('POST', {})).then((b) => b.data || b),
 };
 
 export default api;
