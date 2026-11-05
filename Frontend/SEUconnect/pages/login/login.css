@@ -177,27 +177,28 @@
   40%, 60% { transform: translate3d(6px, 0, 0); }
 }
 
-/* University Logo & Crest Header at Top of Card - Increased Logo Size */
+/* University Logo & Crest Header at Top of Card */
 .seu-top-logo-header {
   display: flex;
   align-items: center;
-  gap: 1.15rem;
+  gap: 1rem;
   padding-bottom: 1.15rem;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 1.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .seu-top-crest-badge {
-  width: 70px;
-  height: 70px;
+  width: 58px;
+  height: 58px;
   flex-shrink: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: rgba(15, 43, 92, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 4px;
   box-sizing: border-box;
 }
 
@@ -212,27 +213,27 @@
 .seu-top-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
 .seu-top-uni-title {
   font-family: var(--font-sans);
-  font-size: 1.02rem;
+  font-size: 0.94rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: #ffffff;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .seu-top-uni-sub {
   font-family: var(--font-sans);
-  font-size: 0.88rem;
+  font-size: 0.80rem;
   letter-spacing: 0.04em;
-  color: #ffffff;
+  color: #cbd5e1;
   font-weight: 600;
   text-transform: uppercase;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .seu-oluvil-highlight {
@@ -240,25 +241,127 @@
   font-weight: 700;
 }
 
+/* Card wide for registration */
+.seu-auth-card.seu-auth-card-wide {
+  max-width: 530px;
+}
+
+/* Auth Mode Switcher */
+.seu-auth-mode-toggle {
+  display: flex;
+  background: rgba(7, 18, 36, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.25rem;
+  gap: 0.35rem;
+  margin-bottom: 1.35rem;
+}
+
+.seu-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seu-mode-btn:hover {
+  color: #f8fafc;
+}
+
+.seu-mode-btn.seu-mode-active {
+  background: #0f2b5c;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
 /* Form Headings */
-.seu-form-header {
+.seu-form-header,
+.seu-form-intro {
   margin-bottom: 1.35rem;
 }
 
 .seu-form-title {
   font-family: var(--font-display);
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   font-weight: 700;
   color: #ffffff;
-  margin: 0 0 0.35rem 0;
+  margin: 0 0 0.45rem 0;
   letter-spacing: -0.01em;
 }
 
-.seu-form-subtitle {
+.seu-form-subtitle,
+.seu-form-subtext {
   font-size: 0.86rem;
   color: var(--seu-text-muted);
   margin: 0;
   line-height: 1.45;
+}
+
+/* Registration Grid */
+.seu-reg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.95rem;
+}
+
+.seu-reg-full-width {
+  grid-column: 1 / -1;
+}
+
+/* Select element */
+.seu-select {
+  width: 100%;
+  height: 44px;
+  background: var(--seu-input-bg);
+  border: 1px solid var(--seu-input-border);
+  border-radius: 8px;
+  color: var(--seu-text-main);
+  padding: 0 0.85rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.seu-select:focus {
+  border-color: var(--seu-input-focus);
+  box-shadow: 0 0 0 3px var(--seu-input-focus-shadow);
+}
+
+.seu-select option {
+  background: #071224;
+  color: #f8fafc;
+}
+
+/* Help note box */
+.seu-login-help-note {
+  margin-top: 1.15rem;
+  padding: 0.75rem 0.95rem;
+  background: rgba(15, 43, 92, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.seu-login-help-note code {
+  color: #38bdf8;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
 /* Alert Banners */

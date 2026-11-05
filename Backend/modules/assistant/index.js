@@ -14,6 +14,29 @@ const rateLimit = require('express-rate-limit');
 const service = require('./service');
 const rag = require('./rag');
 const { KnowledgeDocument } = require('./model');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+
+const extractPdfText = async (buffer) => {
+  const pdfModule = require('pdf-parse');
+  if (typeof pdfModule === 'function') {
+    const data = await pdfModule(buffer);
+    return (data.text || '').trim();
+  } else if (pdfModule && pdfModule.PDFParse) {
+    const parser = new pdfModule.PDFParse({ data: buffer });
+    const res = await parser.getText();
+    if (typeof parser.destroy === 'function') {
+      try { await parser.destroy(); } catch (_) {}
+    }
+    return (res?.text || '').trim();
+  }
+  throw new Error('Unsupported pdf-parse version');
+};
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 35 * 1024 * 1024 }, // 35 MB
+});
 const { z, validate, objectId } = require('../../core/validate');
 const { listQuery, paginate, buildSort } = require('../../core/pagination');
 const { asyncHandler, ok, created, notFound } = require('../../core/http');
@@ -30,7 +53,7 @@ extendCatalog({
     ...Object.fromEntries(
       ALL_ROLES.map((r) => [
         r,
-        [{ key: 'assistant.use', scope: 'own' }, ...(r === 'admin' ? [{ key: 'knowledge.manage', scope: 'system' }] : []), ...(r === 'faculty_admin' ? [{ key: 'knowledge.manage', scope: 'faculty' }] : [])],
+        [{ key: 'assistant.use', scope: 'own' }, ...((r === 'admin' || r === 'superadmin') ? [{ key: 'knowledge.manage', scope: 'system' }] : []), ...(r === 'faculty_admin' ? [{ key: 'knowledge.manage', scope: 'faculty' }] : [])],
       ])
     ),
   },
@@ -68,7 +91,9 @@ const docBody = z.object({
   category: z.string().trim().max(60).optional(),
   audience: z.array(z.string().trim().min(1)).max(20).default([]),
   status: z.enum(['active', 'needs_confirmation']).default('active'),
-  content: z.string().trim().min(20).max(60000),
+  content: z.string().trim().min(20).max(10000000),
+  fileName: z.string().optional(),
+  fileSize: z.string().optional(),
 });
 
 knowledge.get('/', manage, validate({ query: listQuery.and(z.object({ status: z.enum(['active', 'needs_confirmation', 'retired']).optional() })) }),
@@ -79,9 +104,84 @@ knowledge.get('/', manage, validate({ query: listQuery.and(z.object({ status: z.
   }));
 
 knowledge.post('/', manage, validate({ body: docBody }), asyncHandler(async (req, res) => {
-  const { document, chunks } = await rag.ingest({ ...req.body, createdBy: req.user.id });
+  const { document, chunks } = await rag.ingest({ ...req.body, createdBy: req.user ? req.user.id : null });
   await audit.record({ req, action: 'knowledge.create', entityType: 'KnowledgeDocument', entityId: document._id, after: { title: document.title, audience: document.audience, status: document.status } });
   created(res, { _id: document._id, title: document.title, chunks });
+}));
+
+knowledge.post('/upload', manage, upload.single('file'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No file uploaded. Please select a PDF or text document.' });
+  }
+
+  let extractedText = '';
+  const isPdf = req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf');
+
+  if (isPdf) {
+    try {
+      extractedText = await extractPdfText(req.file.buffer);
+    } catch (err) {
+      return res.status(422).json({ success: false, message: `Could not parse PDF text: ${err.message}` });
+    }
+  } else {
+    extractedText = req.file.buffer.toString('utf-8').trim();
+  }
+
+  if (!extractedText || extractedText.length < 20) {
+    return res.status(422).json({
+      success: false,
+      message: 'The uploaded file does not contain readable digital text. If this is a scanned document, please convert it with OCR or upload a text version.'
+    });
+  }
+
+  const rawTitle = req.body.title || req.file.originalname.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+  const title = String(rawTitle).trim().slice(0, 200);
+  const source = String(req.body.source || req.file.originalname).trim().slice(0, 300);
+  const category = String(req.body.category || 'Institutional Regulations & Handbooks').trim().slice(0, 60);
+
+  let audience = [];
+  if (req.body.audience) {
+    try {
+      audience = typeof req.body.audience === 'string' ? JSON.parse(req.body.audience) : req.body.audience;
+    } catch {
+      audience = [String(req.body.audience)];
+    }
+    if (!Array.isArray(audience)) audience = [audience];
+  }
+
+  const fileSizeStr = `${(req.file.size / (1024 * 1024)).toFixed(2)} MB`;
+
+  const { document, chunks } = await rag.ingest({
+    title,
+    source,
+    category,
+    audience,
+    status: req.body.status || 'active',
+    content: extractedText,
+    createdBy: req.user ? req.user.id : null,
+    fileName: req.file.originalname,
+    fileSize: fileSizeStr,
+  });
+
+  await audit.record({
+    req,
+    action: 'knowledge.upload',
+    entityType: 'KnowledgeDocument',
+    entityId: document._id,
+    after: { title: document.title, fileName: req.file.originalname, chunks, characters: extractedText.length }
+  });
+
+  created(res, {
+    _id: document._id,
+    title: document.title,
+    fileName: req.file.originalname,
+    fileSize: fileSizeStr,
+    category: document.category,
+    audience: document.audience,
+    chunksCount: chunks,
+    characters: extractedText.length,
+    status: document.status,
+  });
 }));
 
 knowledge.put('/:id', manage, validate({ params: z.object({ id: objectId }), body: docBody }), asyncHandler(async (req, res) => {

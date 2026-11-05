@@ -16,7 +16,10 @@ const KnowledgeDocumentSchema = new Schema(
     category: { type: String, trim: true, default: 'general', maxlength: 60 },
     audience: { type: [String], default: [] },
     status: { type: String, enum: STATUSES, default: 'active', index: true },
-    content: { type: String, required: true, maxlength: 60000 },
+    content: { type: String, required: true, maxlength: 10000000 },
+    chunksCount: { type: Number, default: 0 },
+    fileName: { type: String, default: undefined },
+    fileSize: { type: String, default: undefined },
     version: { type: Number, default: 1 },
     seedKey: { type: String, default: undefined }, // identifies built-in documents so seeding stays idempotent
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
