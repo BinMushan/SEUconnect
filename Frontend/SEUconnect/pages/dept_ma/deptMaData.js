@@ -1406,6 +1406,42 @@ export const INITIAL_NOTIFICATIONS = [
     type: 'medical',
     actionNav: 'medical_applications',
   },
+  {
+    id: 'NOTIF-05',
+    title: 'Student Request Letter Received',
+    message: 'F. Shafana (2022/ICT/04) submitted request letter REQ-2026-031 for Semester Leave of Absence.',
+    time: '3 days ago',
+    read: false,
+    type: 'student_request',
+    actionNav: 'student_requests',
+  },
+  {
+    id: 'NOTIF-06',
+    title: 'Department Faculty Board Notice',
+    message: 'Faculty Board meeting scheduled for 2026-11-12 regarding Semester II Examination timetables and marks submission.',
+    time: '4 days ago',
+    read: true,
+    type: 'announcement',
+    actionNav: 'announcements',
+  },
+  {
+    id: 'NOTIF-07',
+    title: 'Lecturer Medical Leave Submitted',
+    message: 'Dr. K. Kirushanth submitted medical leave cert LM-2026-001 with lecture handover plan.',
+    time: '5 days ago',
+    read: false,
+    type: 'lecturer_medical',
+    actionNav: 'medical_applications',
+  },
+  {
+    id: 'NOTIF-08',
+    title: 'Mahapola 80% Attendance Audit Notice',
+    message: 'Welfare Division requested certified 80% attendance roster for Batch 2022/2023 monthly stipend release.',
+    time: '1 week ago',
+    read: true,
+    type: 'mahapola',
+    actionNav: 'mahapola_bursary',
+  },
 ];
 
 // 9. AUDIT LOG LEDGER
