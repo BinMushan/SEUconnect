@@ -340,55 +340,6 @@ export default function Login({ onLoginSuccess }) {
           <p className="seu-form-subtext">Access your student or faculty academic services workspace</p>
         </div>
 
-        {/* Quick Demo Switcher (Top Role Tabs) */}
-        <div className="seu-role-picker-container" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '0.35rem', textAlign: 'center', fontWeight: '500' }}>
-            ⚡ Demo Quick Sign-in (Auto-fills credentials):
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.35rem',
-              justifyContent: 'center',
-              maxHeight: '85px',
-              overflowY: 'auto',
-              padding: '0.2rem'
-            }}
-          >
-            {DEMO_ACCOUNTS.map((acc) => {
-              const isActive = email.toLowerCase() === acc.email.toLowerCase();
-              return (
-                <button
-                  key={acc.roleKey}
-                  type="button"
-                  onClick={() => {
-                    setEmail(acc.email);
-                    setPassword(acc.password);
-                    setEmailError('');
-                    setPasswordError('');
-                    setAuthError('');
-                  }}
-                  style={{
-                    fontSize: '0.70rem',
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '6px',
-                    border: isActive ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.1)',
-                    background: isActive ? 'rgba(56, 189, 248, 0.2)' : 'rgba(15, 43, 92, 0.45)',
-                    color: isActive ? '#38bdf8' : '#cbd5e1',
-                    cursor: 'pointer',
-                    fontWeight: isActive ? '600' : '400',
-                    transition: 'all 0.15s ease'
-                  }}
-                  title={`Fill ${acc.role} (${acc.email})`}
-                >
-                  {acc.roleKey.toUpperCase() === 'SAR' ? '📋 SAR (Admin)' : acc.roleKey.toUpperCase() === 'HOD' ? '🏛️ HOD' : acc.roleKey.toUpperCase() === 'DEAN' ? '📜 Dean' : acc.role}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Success Alert Banner */}
         {successToast && (
           <div className="seu-alert seu-alert-success" role="status" aria-live="polite">

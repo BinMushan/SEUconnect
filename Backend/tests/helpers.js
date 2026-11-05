@@ -5,7 +5,7 @@
 process.env.NODE_ENV = 'test';
 process.env.SEED_DEMO_DATA = 'false';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
-require('dotenv').config({ quiet: true });
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
 
 const mongoose = require('mongoose');
 
