@@ -4,11 +4,16 @@
  * Every request carries the signed-in user's JWT; the backend decides what that user may see and do.
  */
 
-const API_BASE_URL =
-  import.meta.env?.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location?.hostname === 'localhost'
+const rawApiUrl = (import.meta.env?.VITE_API_URL || '').trim();
+const API_BASE_URL = (() => {
+  if (rawApiUrl) {
+    const clean = rawApiUrl.replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  return typeof window !== 'undefined' && window.location?.hostname === 'localhost'
     ? 'http://localhost:5000/api'
-    : '/api');
+    : '/api';
+})();
 const TOKEN_KEY = 'seuconnect_token';
 
 export const authToken = {

@@ -777,3 +777,4 @@ export function getCurriculumBySemester(semesterName) {
   const normalized = normalizeSemester(semesterName);
   return CURRICULUM_DATA[normalized] || CURRICULUM_DATA['Year 1 Semester 1'];
 }
+

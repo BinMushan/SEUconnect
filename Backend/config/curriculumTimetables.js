@@ -783,3 +783,4 @@ module.exports = {
   normalizeSemester,
   getCurriculumBySemester
 };
+
