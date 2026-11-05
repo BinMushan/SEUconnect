@@ -1,32 +1,53 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+const Student = require('../models/Student');
+const { authenticate, authorize } = require('../middleware/auth');
 const studentController = require('../controller/studentController');
 
-// 1. List all students or create student
-router.get('/', studentController.getAllStudents);
-router.post('/', studentController.createStudent);
+const STAFF = ['lecturer', 'hod', 'dean', 'sar', 'examination', 'dept_ma', 'fma', 'admin', 'superadmin'];
 
-// 2. Query helper route (e.g. /api/student/find?id=2021/ICT/85)
-router.get('/find', (req, res, next) => {
-  if (req.query.id || req.query.studentId || req.query.indexNo) {
-    req.params.identifier = req.query.id || req.query.studentId || req.query.indexNo;
-    return studentController.getStudentByIdentifier(req, res);
+router.use(authenticate);
+
+// Student records live only in MongoDB.
+router.use((req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ success: false, message: 'Student records require a database connection.' });
   }
   next();
 });
 
-// 3. Section specific endpoints for a student
-router.put('/:identifier/profile', studentController.updateAcademicProfile);
-router.get('/:identifier/attendance', studentController.getStudentAttendance);
-router.get('/:identifier/medical', studentController.getStudentMedicalRequests);
-router.post('/:identifier/medical', studentController.submitMedicalRequest);
-router.get('/:identifier/examinations', studentController.getStudentExaminations);
-router.get('/:identifier/results', studentController.getStudentResults);
-router.get('/:identifier/gpa', studentController.getStudentGpa);
-router.get('/:identifier/progress', studentController.getStudentProgress);
-router.post('/:identifier/register-courses', studentController.registerSemesterCourses);
+// Students may only read / update their own record; staff may access any record.
+const ownRecordOrStaff = async (req, res, next) => {
+  if (STAFF.includes(req.user.role)) return next();
+  const id = decodeURIComponent(req.params.identifier || req.query.id || req.query.studentId || req.query.indexNo || '');
+  const conditions = [{ studentId: id }, { indexNo: id }, { email: id.toLowerCase() }];
+  if (/^[0-9a-fA-F]{24}$/.test(id)) conditions.push({ _id: id });
+  const record = await Student.findOne({ $or: conditions }).select('email');
+  if (!record || record.email !== req.user.email) {
+    return res.status(403).json({ success: false, message: 'You can only access your own student record.' });
+  }
+  next();
+};
 
-// 4. Get full student document by identifier (studentId, indexNo, or _id)
-router.get('/:identifier', studentController.getStudentByIdentifier);
+router.get('/', authorize(...STAFF), studentController.getAllStudents);
+router.post('/bulk', authorize('admin', 'superadmin'), studentController.createStudentsBulk);
+router.post('/', authorize('admin', 'superadmin'), studentController.createStudent);
+
+router.get('/find', ownRecordOrStaff, (req, res) => {
+  req.params.identifier = req.query.id || req.query.studentId || req.query.indexNo;
+  return studentController.getStudentByIdentifier(req, res);
+});
+
+router.put('/:identifier/profile', ownRecordOrStaff, studentController.updateAcademicProfile);
+router.get('/:identifier/attendance', ownRecordOrStaff, studentController.getStudentAttendance);
+router.get('/:identifier/medical', ownRecordOrStaff, studentController.getStudentMedicalRequests);
+router.post('/:identifier/medical', ownRecordOrStaff, studentController.submitMedicalRequest);
+router.get('/:identifier/examinations', ownRecordOrStaff, studentController.getStudentExaminations);
+router.get('/:identifier/results', ownRecordOrStaff, studentController.getStudentResults);
+router.get('/:identifier/gpa', ownRecordOrStaff, studentController.getStudentGpa);
+router.get('/:identifier/progress', ownRecordOrStaff, studentController.getStudentProgress);
+router.post('/:identifier/register-courses', ownRecordOrStaff, studentController.registerSemesterCourses);
+router.get('/:identifier', ownRecordOrStaff, studentController.getStudentByIdentifier);
 
 module.exports = router;

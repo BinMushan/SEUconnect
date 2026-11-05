@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import './seu_ai_assistant.css';
-import { askGemini } from '../../src/services/geminiService';
+import { api } from '../../src/services/api';
+import { detectSuggestedActions } from '../../src/services/assistantActions';
 
 /**
  * SEUConnect AI Assistant - Gemini & ChatGPT Inspired Interface
@@ -10,101 +11,9 @@ import { askGemini } from '../../src/services/geminiService';
  * - Iconic Gemini / ChatGPT landing view on first open with centered headline & floating capsule input
  * - Dynamic transition from landing to active conversation stream upon first query
  * - Full-screen background blur (backdrop-filter: blur(18px))
- * - Role-tailored institutional intelligence calibrated with South Eastern University of Sri Lanka regulations
+ * - One agent per role: the server decides who is asking and answers only from that role's data and knowledge
  * - Interactive suggestion chips and direct navigation links into portal sections
  */
-
-const KNOWLEDGE_RESPONSES = [
-  {
-    keywords: ['medical', 'sick', 'doctor', 'hospital', 'clinic', 'excuse', 'absence', 'health'],
-    title: 'Medical Submission & Concessions Guideline',
-    summary: 'Under SEUSL Faculty of Technology Examination By-Laws (Section 7.4):',
-    points: [
-      '**Strict 7-Day Deadline**: Official medical certificates must be submitted within 7 calendar days of the absence date.',
-      '**CMO / UMO Endorsement**: Private medical certificates must be validated and endorsed by the Chief Medical Officer (CMO) at the University Health Centre, Oluvil Campus.',
-      '**ESA Concession**: Approved medical excuses restore attendance eligibility back to active standing for Continuous Assessment (CA) and End Semester Assessment (ESA).'
-    ],
-    actions: [
-      { label: 'Submit Medical Form Online', tab: 'medical_requests' },
-      { label: 'Download Medical Submission PDF', tab: 'forms_medical' }
-    ]
-  },
-  {
-    keywords: ['repeat', 'ca repeat', 'exam repeat', 'resit', 'failed', 'esa repeat', 'rescrutiny'],
-    title: 'Examination Repeat & Continuous Assessment (CA) Rules',
-    summary: 'SEUSL Technology Faculty repeat candidate regulations:',
-    points: [
-      '**Remittance Fee**: LKR 400/= per course unit for both Continuous Assessment (CA) repeat and End Semester Assessment (ESA) repeat.',
-      '**Bank Account**: Remit fee to South Eastern University of Sri Lanka, People\'s Bank Addalaichenai Branch, Account No: **228 1001 9000 1704**.',
-      '**Mandatory PIV Voucher**: Retain the original bank-stamped Pay-In-Voucher (PIV) and attach it to your repeat registration form.',
-      '**Grade Ceiling**: Maximum attainable grade for a repeat attempt is capped at Grade "C" (2.00 GP).'
-    ],
-    actions: [
-      { label: 'Open Exam Registrations', tab: 'examinations' },
-      { label: 'Download PIV Bank Voucher', tab: 'forms_piv' },
-      { label: 'Repeat Examination Form', tab: 'forms_exam' }
-    ]
-  },
-  {
-    keywords: ['attendance', '80%', 'percentage', 'absent', 'eligibility', 'debarred', 'standing'],
-    title: 'Attendance Regulations & 80% ESA Eligibility',
-    summary: 'Attendance criteria enforced by the Faculty Board:',
-    points: [
-      '**80% Minimum Threshold**: Students must maintain at least 80% cumulative attendance in lectures and practical sessions separately.',
-      '**Debarring Clause**: Candidates with attendance under 80% without an approved CMO medical waiver are barred from sitting the ESA examination.',
-      '**Warning Level**: Students with 75% - 79% attendance receive a yellow provisional standing requiring immediate remediation.'
-    ],
-    actions: [
-      { label: 'Inspect My Attendance Grid', tab: 'attendance' },
-      { label: 'Submit Absence Medical', tab: 'medical_requests' }
-    ]
-  },
-  {
-    keywords: ['gpa', 'cgpa', 'sgpa', 'grade', 'first class', 'second class', 'calculation', 'formula'],
-    title: 'SGPA & Cumulative CGPA Classification System',
-    summary: 'Weighted GPA calculation according to SEUSL By-law standards:',
-    points: [
-      '**SGPA Formula**: Sum of (Credit Value × Grade Point) divided by Total Semester Registered Credits.',
-      '**First Class Honours**: Cumulative CGPA of **3.70 or above** with no repeating units.',
-      '**Second Class (Upper Division)**: Cumulative CGPA of **3.30 to 3.69**.',
-      '**Second Class (Lower Division)**: Cumulative CGPA of **3.00 to 3.29**.',
-      '**General Degree Pass**: Cumulative CGPA of **2.00 to 2.99** with minimum graduation credits cleared.'
-    ],
-    actions: [
-      { label: 'Check GPA / CGPA Analytics', tab: 'gpa_cgpa' },
-      { label: 'View Academic Progress', tab: 'academic_progress' }
-    ]
-  },
-  {
-    keywords: ['form', 'forms', 'piv', 'voucher', 'download', 'pdf', 'blank form', 'template'],
-    title: 'Faculty Forms & Official Templates Catalog',
-    summary: 'Available printable and digital submission forms:',
-    points: [
-      '**SEU-PIV-VOUCHER**: People\'s Bank 3-way Pay In Voucher for exam and institutional fees.',
-      '**SEU-FORM-EX-01**: Application for End Semester Examination entry and repeat candidacy.',
-      '**SEU-FORM-MED-03**: Official Medical Excuse form for lecture and exam concession.',
-      '**SEU-FORM-RESCRUTINY**: Application for re-scrutinization of marks & final grades.'
-    ],
-    actions: [
-      { label: 'Browse All Faculty Forms', tab: 'forms_all' },
-      { label: 'Open PIV Voucher Template', tab: 'forms_piv' }
-    ]
-  },
-  {
-    keywords: ['officer', 'dean', 'hod', 'sar', 'cmo', 'contact', 'email', 'phone', 'staff'],
-    title: 'Key Faculty Officials & Administrative Contacts',
-    summary: 'Faculty of Technology leadership contacts:',
-    points: [
-      '**Dean of Faculty**: Prof. Rifai Kariapper (Dean\'s Office, Oluvil Campus)',
-      '**Head of Dept (ICT)**: Mr. M.J. Ahamed Sabani (Department of ICT)',
-      '**Senior Assistant Registrar (SAR)**: Mr. K.L.M. Riyas (Administrative Division)',
-      '**Chief Medical Officer (CMO)**: University Health Centre, SEUSL Oluvil (Daily 08:30 AM - 04:30 PM)'
-    ],
-    actions: [
-      { label: 'Institutional Guidance', tab: 'process_guidance' }
-    ]
-  }
-];
 
 export default function SEUConnectAIAssistantModal({
   user,
@@ -116,6 +25,8 @@ export default function SEUConnectAIAssistantModal({
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [agent, setAgent] = useState(null);
+  const [conversationId, setConversationId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const landingInputRef = useRef(null);
@@ -123,9 +34,50 @@ export default function SEUConnectAIAssistantModal({
 
   const userFirstName = user?.name ? user.name.split(' ')[0] : 'there';
 
+  // 'loading' | 'ready' | 'error' - shown in the header so a failure is visible instead of an endless "Connecting..."
+  const [agentStatus, setAgentStatus] = useState('loading');
+  const [agentError, setAgentError] = useState('');
+  const [retryTick, setRetryTick] = useState(0);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    let live = true;
+    setAgentStatus('loading');
+    api
+      .assistantAgent()
+      .then((a) => {
+        if (!live) return;
+        setAgent(a);
+        setAgentStatus('ready');
+        setAgentError('');
+      })
+      .catch((err) => {
+        if (!live) return;
+        setAgentStatus('error');
+        setAgentError(
+          err.network
+            ? 'Cannot reach the SEUConnect server. Start the backend (npm start in the Backend folder) and press Retry.'
+            : err.status === 401
+              ? 'Your session has expired. Please sign in again.'
+              : err.status === 404
+                ? 'The running server does not have the assistant yet. Restart the backend so it loads the latest version.'
+                : `The assistant is unavailable (${err.message}).`
+        );
+      });
+    return () => {
+      live = false;
+    };
+  }, [retryTick]);
+
+  // while the server is unreachable, keep trying quietly (every 5 s, up to 6 times) so it connects by itself once it is up
+  useEffect(() => {
+    if (agentStatus !== 'error' || retryTick >= 6) return undefined;
+    const timer = setTimeout(() => setRetryTick((n) => n + 1), 5000);
+    return () => clearTimeout(timer);
+  }, [agentStatus, retryTick]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -169,100 +121,46 @@ export default function SEUConnectAIAssistantModal({
   // Reset conversation to initial Gemini landing screen
   const handleResetChat = () => {
     setMessages([]);
+    setConversationId(null);
     setInputText('');
   };
 
-  // Match response from institutional knowledge base
-  const generateResponse = (query) => {
-    const lower = query.toLowerCase();
-
-    for (const item of KNOWLEDGE_RESPONSES) {
-      const match = item.keywords.some((kw) => lower.includes(kw));
-      if (match) {
-        let text = `### ${item.title}\n${item.summary}\n\n`;
-        text += item.points.map((p) => `• ${p}`).join('\n\n');
-        return {
-          text,
-          actions: item.actions || null
-        };
-      }
-    }
-
-    // Default institutional intelligence fallback
-    return {
-      text: `Thank you for your inquiry regarding **"${query}"**.\n\nAccording to **SEUSL Technology Faculty Academic Regulations**:\n\n• For continuous assessment or lecture concerns, consult your module coordinator or Department Head (**Mr. M.J. Ahamed Sabani**).\n• For official requests (Leave, Medicals, Repeat Exams, PIV vouchers), please use the digital forms in the portal under **Faculty Forms** or navigate through **Process Guidance**.\n• Official submissions must carry your University Registration Number (**${user?.regNo || '22ICT085'}**).\n\nWould you like me to guide you to any specific portal section?`,
-      actions: [
-        { label: 'View Process Guidance', tab: 'process_guidance' },
-        { label: 'Browse Faculty Forms', tab: 'forms_all' }
-      ]
-    };
-  };
-
-  // Send message with Gemini AI integration & institutional fallback
+  // Ask the server-side agent for this user's role (answers come from the database + role-filtered knowledge base)
   const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputText).trim();
-    if (!text) return;
+    if (!text || isTyping) return;
+    const stamp = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    const userMsg = {
-      id: `usr-${Date.now()}`,
-      sender: 'user',
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    const currentHistory = [...messages, userMsg];
-    setMessages(currentHistory);
+    setMessages((prev) => [...prev, { id: `usr-${Date.now()}`, sender: 'user', text, timestamp: stamp() }]);
     setInputText('');
     setIsTyping(true);
 
     try {
-      // 1. Attempt generation via Google Gemini API
-      const geminiResult = await askGemini({
-        prompt: text,
-        history: messages,
-        user
-      });
-
-      if (geminiResult && geminiResult.success && geminiResult.text) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            sender: 'assistant',
-            text: geminiResult.text,
-            actions: geminiResult.actions || null,
-            model: geminiResult.model,
-            isGemini: true,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }
-        ]);
-      } else {
-        // 2. Seamless institutional knowledge base fallback
-        const fallbackReply = generateResponse(text);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            sender: 'assistant',
-            text: fallbackReply.text,
-            actions: fallbackReply.actions,
-            isGemini: false,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }
-        ]);
-      }
-    } catch (err) {
-      console.warn('[Chatbot] Gemini processing error:', err);
-      const fallbackReply = generateResponse(text);
+      const res = await api.assistantChat({ message: text, conversationId });
+      setConversationId(res.conversationId);
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
           sender: 'assistant',
-          text: fallbackReply.text,
-          actions: fallbackReply.actions,
-          isGemini: false,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          text: res.answer,
+          actions: detectSuggestedActions(`${text} ${res.answer}`, agent?.key),
+          sources: res.sources || [],
+          mode: res.mode,
+          model: res.model,
+          timestamp: stamp()
+        }
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          sender: 'assistant',
+          text: err.status === 401 ? 'Your session has expired. Please sign in again.' : err.network ? 'I cannot reach the SEUConnect server right now. Please try again in a moment.' : `Sorry, I could not answer that (${err.message}).`,
+          sources: [],
+          mode: 'error',
+          timestamp: stamp()
         }
       ]);
     } finally {
@@ -312,10 +210,20 @@ export default function SEUConnectAIAssistantModal({
                 <path d="M9 16h6" />
               </svg>
             </div>
-            <span className="seu-ai-title-text">SEUConnect AI Assistant</span>
-            <div className="seu-ai-badge-status" title="Connected to Google Gemini Live API">
-              <span className="seu-ai-pulse-dot" />
-              <span>Gemini AI Connected</span>
+            <span className="seu-ai-title-text">{agent ? agent.name : 'SEUConnect AI Assistant'}</span>
+            <div
+              className="seu-ai-badge-status"
+              title={agentStatus === 'error' ? agentError : agent ? `Answers are limited to what the ${agent.role} role may see` : 'Connecting'}
+              style={agentStatus === 'error' ? { background: '#fef2f2', color: '#b91c1c', borderColor: '#fecaca' } : undefined}
+            >
+              <span className="seu-ai-pulse-dot" style={agentStatus === 'error' ? { background: '#dc2626', animation: 'none' } : undefined} />
+              <span>
+                {agentStatus === 'ready' && agent
+                  ? `${agent.role} · ${agent.llm ? 'AI + knowledge' : 'knowledge mode'}`
+                  : agentStatus === 'error'
+                    ? 'Offline'
+                    : 'Connecting...'}
+              </span>
             </div>
           </div>
 
@@ -376,7 +284,7 @@ export default function SEUConnectAIAssistantModal({
                     type="button"
                     className="seu-chatgpt-capsule-plus"
                     title="Faculty Knowledge Topics"
-                    onClick={() => handleSendMessage('What are the main student academic services and regulations?')}
+                    onClick={() => agent?.starters?.[0] && handleSendMessage(agent.starters[0])}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
                       <line x1="12" y1="5" x2="12" y2="19" />
@@ -417,38 +325,20 @@ export default function SEUConnectAIAssistantModal({
                 </form>
 
                 {/* ChatGPT Minimalist Suggestion Chips Below Capsule */}
+                {agentStatus === 'error' && (
+                  <div role="alert" style={{ margin: '14px auto 0', maxWidth: 560, textAlign: 'center', color: '#b91c1c', fontSize: '0.85rem' }}>
+                    {agentError}{' '}
+                    <button type="button" className="seu-chatgpt-chip" style={{ marginLeft: 6 }} onClick={() => setRetryTick((n) => n + 1)}>
+                      Retry
+                    </button>
+                  </div>
+                )}
                 <div className="seu-chatgpt-chips-row">
-                  <button
-                    type="button"
-                    className="seu-chatgpt-chip"
-                    onClick={() => handleSendMessage('What are the rules for submitting a medical excuse?')}
-                  >
-                    <span>📋</span> Medical excuse 7-day rule
-                  </button>
-
-                  <button
-                    type="button"
-                    className="seu-chatgpt-chip"
-                    onClick={() => handleSendMessage('How do I apply for a repeat exam or CA repeat?')}
-                  >
-                    <span>🎓</span> Repeat exam & fee details
-                  </button>
-
-                  <button
-                    type="button"
-                    className="seu-chatgpt-chip"
-                    onClick={() => handleSendMessage('How is SGPA and CGPA calculated for BICT/BST?')}
-                  >
-                    <span>📊</span> Calculate SGPA & CGPA
-                  </button>
-
-                  <button
-                    type="button"
-                    className="seu-chatgpt-chip"
-                    onClick={() => handleSendMessage('What are the bank account details for People\'s Bank PIV?')}
-                  >
-                    <span>💳</span> People's Bank PIV account
-                  </button>
+                  {(agent?.starters || []).map((q) => (
+                    <button key={q} type="button" className="seu-chatgpt-chip" onClick={() => handleSendMessage(q)}>
+                      {q}
+                    </button>
+                  ))}
                 </div>
 
               </div>
@@ -534,6 +424,14 @@ export default function SEUConnectAIAssistantModal({
                         );
                       })}                    </div>
 
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="seu-ai-msg-sources" style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.4rem' }}>
+                        Sources: {msg.sources.map((src, i) => (
+                          <span key={i} title={src.source}>{i ? '; ' : ''}{src.title}{src.unconfirmed ? ' (unconfirmed)' : ''}</span>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Contextual Nav Buttons */}
                     {msg.actions && msg.actions.length > 0 && (
                       <div className="seu-ai-msg-actions">
@@ -559,7 +457,7 @@ export default function SEUConnectAIAssistantModal({
                       <span>{msg.timestamp}</span>
                       {msg.sender === 'assistant' && (
                         <span style={{ fontSize: '0.65rem', color: '#64748b', marginLeft: '0.45rem', fontWeight: 600 }}>
-                          {msg.isGemini ? '✨ Google Gemini' : '📚 SEUSL Regulations'}
+                          {msg.mode === 'llm' ? `✨ AI agent${msg.model ? ` · ${msg.model}` : ''}` : msg.mode === 'error' ? '⚠ Unavailable' : '📚 Knowledge & records'}
                         </span>
                       )}
                       <button
@@ -661,7 +559,7 @@ export default function SEUConnectAIAssistantModal({
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  <span>Powered by Google Gemini AI & SEUSL Faculty of Technology Regulations</span>
+                  <span>Answers are limited to your role · SEUSL Faculty of Technology</span>
                 </div>
                 <div>
                   Press <span className="seu-ai-esc-hint">Esc</span> to close

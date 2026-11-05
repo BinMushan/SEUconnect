@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './fma.css';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
+import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
+import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
+import { workflowNavItem, notificationNavItem, ROLE_WORKFLOW_TYPES } from '../../components/workflow/workflowNav.jsx';
 import FMA_Overview from './FMA_Overview.jsx';
 import Subject_Registration from './Subject_Registration.jsx';
 import RecordBook_Renewal from './RecordBook_Renewal.jsx';
@@ -27,6 +30,10 @@ const FMA_NAV_SECTIONS = [
         )
       }
     ]
+  },
+  {
+    title: 'EXAMINATION MEDICALS',
+    items: [workflowNavItem('Examination Medical Intake'), notificationNavItem()]
   },
   {
     title: 'STUDENT REGISTRATION & ENROLMENT',
@@ -126,6 +133,16 @@ export default function FMA({ user, onLogout }) {
 
   const renderActiveModule = () => {
     switch (activePage) {
+      case 'notifications':
+        return <NotificationCenter onNavigate={setActivePage} />;
+      case 'workflow_applications':
+        return (
+          <WorkflowDesk
+            types={ROLE_WORKFLOW_TYPES.fma}
+            title="Examination Medical Intake"
+            subtitle="Receive Examination Medical forms submitted by students and route them to the SAR for the Faculty Board MA / Dean Office stage."
+          />
+        );
       case 'subject_reg':
         return <Subject_Registration />;
       case 'record_renewal':

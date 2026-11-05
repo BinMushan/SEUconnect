@@ -47,9 +47,6 @@ export default function SAR({ user, onLogout }) {
   const [senateTrackingNo, setSenateTrackingNo] = useState('');
   const [senateNote, setSenateNote] = useState('');
 
-  const [deptListModal, setDeptListModal] = useState(false);
-  const [deptListSelected, setDeptListSelected] = useState('Department of Information and Communication Technology');
-  const [deptListNote, setDeptListNote] = useState('');
 
   const sarName = user?.name || 'Mr. K.L.M. Riyas';
   const sarDesignation = user?.designation || 'Senior Assistant Registrar (SAR)';
@@ -66,15 +63,7 @@ export default function SAR({ user, onLogout }) {
       ]);
 
       if (procRes && procRes.data) {
-        // Exclusively load ICT department records for SAR operations
-        const ictOnly = procRes.data.filter((p) => {
-          const dept = (p.student?.department || '').toLowerCase();
-          const prog = (p.student?.programme || '').toLowerCase();
-          const reg = (p.student?.regNo || '').toLowerCase();
-          const title = (p.title || '').toLowerCase();
-          return !dept.includes('bio') && !prog.includes('bbst') && !reg.includes('bst') && !title.includes('bst');
-        });
-        setProcesses(ictOnly);
+        setProcesses(procRes.data);
       }
       if (notifRes && notifRes.data) {
         setNotifications(notifRes.data);
@@ -158,43 +147,45 @@ export default function SAR({ user, onLogout }) {
   // =========================================================================
   const ecaInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.type === 'eca_application' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Review')
+      (p) => p.type === 'eca_application' && p.currentAssignedRole === 'sar'
     );
   }, [processes]);
 
   const esaInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.type === 'esa_application' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Review')
+      (p) => p.type === 'esa_application' && p.currentAssignedRole === 'sar'
     );
   }, [processes]);
 
   const examFormsInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.type === 'exam_form' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Verification')
+      (p) => p.type === 'exam_form' && p.currentAssignedRole === 'sar' && !p.permissions?.isOutputsStage
     );
   }, [processes]);
 
   const examMedicalsInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.type === 'exam_medical' && (p.currentAssignedRole === 'sar' || p.status === 'Pending SAR Action')
+      (p) => p.type === 'exam_medical' && p.currentAssignedRole === 'sar' && !p.permissions?.isOutputsStage
     );
   }, [processes]);
 
   const examBranchForwardInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.currentAssignedRole === 'examination' || p.status === 'Pending Examination Branch'
+      (p) => p.currentAssignedRole === 'examination'
     );
   }, [processes]);
 
   const admissionProcessingInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.type === 'exam_form' && (p.status === 'Admission Generated' || p.admissionDetails?.admissionNo || p.currentStageIndex >= 4)
+      (p) =>
+        (p.type === 'exam_form' || p.type === 'exam_medical') &&
+        (p.permissions?.isOutputsStage || p.admissionDetails?.admissionNo || p.senateCopy?.trackingNo)
     );
   }, [processes]);
 
   const returnedInbox = useMemo(() => {
     return processes.filter(
-      (p) => p.status === 'Returned for Correction' || p.status === 'Declined' || p.auditLog?.some((l) => l.action === 'RETURNED_BY_SAR' || l.action === 'CORRECTION_REQUESTED')
+      (p) => p.status === 'Returned for Correction' || p.status === 'Declined'
     );
   }, [processes]);
 
@@ -360,21 +351,6 @@ export default function SAR({ user, onLogout }) {
     }
   };
 
-  const handleForwardDeptList = async () => {
-    try {
-      await api.sarForwardDepartmentList({
-        department: deptListSelected,
-        academicYear: '2025/2026',
-        notes: deptListNote,
-      });
-      alert(`Official examination candidate list for ${deptListSelected} forwarded to HOD & Lecturers.`);
-      setDeptListModal(false);
-      setDeptListNote('');
-    } catch (err) {
-      alert('Error forwarding department list: ' + err.message);
-    }
-  };
-
   const handleToggleFormAvailability = async (formType) => {
     try {
       const current = portalAvailability[formType];
@@ -523,10 +499,11 @@ export default function SAR({ user, onLogout }) {
               currentInboxItems.map((p) => {
                 const submissionDate = p.createdAt || p.details?.absenceDate || new Date().toISOString();
                 const pendingDuration = getPendingDuration(submissionDate);
-                const canVerifyAndForward =
-                  (p.type === 'eca_application' || p.type === 'esa_application' || p.type === 'exam_form' || p.type === 'exam_medical') &&
-                  (p.currentAssignedRole === 'sar' || p.status.includes('Pending SAR'));
-                const isExamFormForAdmission = p.type === 'exam_form' && (p.status === 'Pending Examination Branch' || p.currentStageIndex >= 4);
+                // Only the SAR's own steps are actionable; the backend enforces this too.
+                const canVerifyAndForward = Boolean(p.permissions?.canAct && !p.permissions.isOutputsStage);
+                const atOutputs = Boolean(p.permissions?.canAct && p.permissions.isOutputsStage);
+                const isExamFormForAdmission = atOutputs && p.type === 'exam_form' && !p.admissionDetails?.admissionNo;
+                const canTrackSenate = atOutputs && !p.senateCopy?.submittedAt;
 
                 return (
                   <tr key={p._id || p.trackingNumber}>
@@ -619,7 +596,7 @@ export default function SAR({ user, onLogout }) {
                           </button>
                         )}
 
-                        {(p.type === 'exam_form' || p.type === 'exam_medical') && (
+                        {canTrackSenate && (
                           <button
                             type="button"
                             className="sar-action-btn-secondary"
@@ -801,13 +778,6 @@ export default function SAR({ user, onLogout }) {
                     Control live online student accessibility for Continuous Assessment (ECA) and End Semester Assessment (ESA) forms.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="sar-btn-pill"
-                  onClick={() => setDeptListModal(true)}
-                >
-                  🏢 Forward Dept-wise Examination List to HOD
-                </button>
               </div>
 
               <div className="sar-portal-mgmt-grid">
@@ -1149,15 +1119,8 @@ export default function SAR({ user, onLogout }) {
             <div className="sar-page-banner">
               <div className="sar-page-banner-title">
                 <h1>Online ECA & ESA Application Portals Management</h1>
-                <p>Configure live form availability, semester deadlines, and forward department-wise examination rosters</p>
+                <p>Configure live form availability, semester deadlines, and track portal deadlines</p>
               </div>
-              <button
-                type="button"
-                className="sar-action-btn-primary"
-                onClick={() => setDeptListModal(true)}
-              >
-                🏢 Forward Department Examination List
-              </button>
             </div>
 
             <section className="sar-portal-mgmt-card">
@@ -1550,6 +1513,23 @@ export default function SAR({ user, onLogout }) {
                 <div style={{ fontSize: '0.8rem', color: '#1e3a8a' }}>
                   Attached Evidence Slip: <strong>{selectedProcess.details?.attachedDocumentName || 'bank_deposit_piv_voucher.pdf'}</strong>
                 </div>
+                {selectedProcess.paymentReceipt?.hasFile && (
+                  <button
+                    type="button"
+                    className="sar-action-btn-secondary"
+                    style={{ marginTop: '0.5rem' }}
+                    onClick={async () => {
+                      try {
+                        const blob = await api.fetchReceiptBlob(selectedProcess.trackingNumber);
+                        window.open(URL.createObjectURL(blob), '_blank', 'noopener');
+                      } catch (err) {
+                        alert(err.message);
+                      }
+                    }}
+                  >
+                    View uploaded receipt
+                  </button>
+                )}
               </div>
 
               {/* Multi-stage Audit Trail */}
@@ -1575,7 +1555,7 @@ export default function SAR({ user, onLogout }) {
               <button type="button" className="sar-action-btn-secondary" onClick={() => setSelectedProcess(null)}>
                 Close
               </button>
-              {(selectedProcess.type === 'eca_application' || selectedProcess.type === 'esa_application' || selectedProcess.type === 'exam_form' || selectedProcess.type === 'exam_medical') && (
+              {selectedProcess.permissions?.canAct && !selectedProcess.permissions.isOutputsStage && (
                 <button
                   type="button"
                   className="sar-action-btn-success"
@@ -1810,54 +1790,6 @@ export default function SAR({ user, onLogout }) {
         </div>
       )}
 
-      {/* ======================================================================
-          MODAL 6: FORWARD DEPARTMENT-WISE EXAMINATION LIST
-          ====================================================================== */}
-      {deptListModal && (
-        <div className="sar-modal-overlay" onClick={() => setDeptListModal(false)}>
-          <div className="sar-modal-content" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="sar-modal-header">
-              <h3 className="sar-modal-title">Forward Department-wise Examination List</h3>
-              <button type="button" onClick={() => setDeptListModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
-            </div>
-            <div className="sar-modal-body">
-              <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569' }}>
-                Select target department to dispatch the verified candidate list for lecturer check & HOD approval:
-              </p>
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Target Department
-                </label>
-                <select
-                  className="sar-select"
-                  style={{ width: '100%' }}
-                  value={deptListSelected}
-                  onChange={(e) => setDeptListSelected(e.target.value)}
-                >
-                  <option value="Department of Information and Communication Technology">Department of Information and Communication Technology (ICT)</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Administrative Routing Memo
-                </label>
-                <textarea
-                  rows="3"
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
-                  placeholder="Official list of verified examination candidates transmitted for lecturer checking and HOD final approval..."
-                  value={deptListNote}
-                  onChange={(e) => setDeptListNote(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="sar-modal-footer">
-              <button type="button" className="sar-action-btn-secondary" onClick={() => setDeptListModal(false)}>Cancel</button>
-              <button type="button" className="sar-action-btn-primary" onClick={handleForwardDeptList}>Transmit Department List</button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </DashboardTemplate>
   );

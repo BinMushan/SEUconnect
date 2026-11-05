@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import api from '../../src/services/api.js';
+import FormSubmissionPanel from './FormSubmissionPanel.jsx';
+import { WORKFLOW_INFO, resolveWorkflowType, defaultExtras, validateSubmission, buildPayload, prefillFromProcess } from './formSubmission.js';
 import './faculty_forms.css';
 
 // Trilingual University Emblem SVG
@@ -51,7 +54,7 @@ export const OFFICIAL_FORMS = [
   {
     _id: 'form_exam_001',
     formId: 'SEU-EX-ESA-REP',
-    name: 'Application for Examination',
+    name: 'ESA Application - Application for Examination (End Semester)',
     officialTitle: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA — EXAMINATIONS DIVISION: APPLICATION FOR EXAMINATION',
     issuingDivision: 'Examinations Division',
     category: 'Examination',
@@ -79,6 +82,30 @@ export const OFFICIAL_FORMS = [
       'Item 13 & 14: Enter attempt count and fee details.',
       'Affix your bank PIV voucher slip securely in the designated box on Page 2.',
       'Obtain Head of Department signature and submit to Examinations Division before deadline.'
+    ]
+  },
+  {
+    _id: 'form_exam_000',
+    formId: 'SEU-EX-FORM',
+    name: 'Examination Form',
+    officialTitle: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA — EXAMINATIONS DIVISION: EXAMINATION FORM (ADMISSION TO THE EXAMINATION)',
+    issuingDivision: 'Examinations Division / Dean Office Admission (Examination Section)',
+    category: 'Examination',
+    version: '2026.1',
+    description: 'Examination Form submitted online to your assigned lecturer. It is reviewed by the Lecturer, approved by the HOD, verified by the SAR and checked by the Examination Branch. The SAR then issues the Dean Office Admission (Examination Section) and prepares the Copy to Senate.',
+    purpose: 'Registers the candidate for the examination and leads to the official Dean Office Admission.',
+    whoShouldUse: 'Undergraduate candidates appearing for the End Semester Examination.',
+    whenToUse: 'During the examination form submission window announced by the SAR.',
+    eligibility: 'Enrolled student with the required attendance (minimum 80%).',
+    submissionLocation: 'Submitted online to the assigned lecturer through SEUConnect',
+    feeDetails: 'No fee is collected with this form.',
+    requiredDocuments: ['Completed Examination Form'],
+    approvalRequirements: ['Lecturer approval', 'HOD approval', 'SAR administrative verification', 'Examination Branch checks'],
+    instructions: [
+      'Check your particulars and the list of subjects you will sit.',
+      'Select the lecturer who coordinates your subjects.',
+      'Press Submit. The form travels Lecturer, HOD, SAR, then the Examination Branch.',
+      'Track every step under Track Applications; your admission appears there once issued.'
     ]
   },
   {
@@ -237,7 +264,7 @@ export const OFFICIAL_FORMS = [
   }
 ];
 
-export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavigate }) {
+export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavigate, resubmitProcess = null, onResubmitDone }) {
   // Determine initial category filter based on activeSubTab prop
   const getInitialCategory = () => {
     if (activeSubTab === 'forms_exam') return 'Examination';
@@ -361,6 +388,79 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     signatureName: studentName
   }));
 
+  // ---- Online submission (students only) ----
+  const isStudent = String(user?.role || user?.roleKey || 'student').toLowerCase() === 'student';
+  const [extras, setExtras] = useState(defaultExtras);
+  const [availability, setAvailability] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitResult, setSubmitResult] = useState(null);
+  const workflowType = selectedForm ? resolveWorkflowType(selectedForm.formId, formData) : null;
+
+  useEffect(() => {
+    if (!isStudent) return;
+    api.getFormAvailability().then((res) => setAvailability(res.data)).catch(() => {});
+  }, [isStudent]);
+
+  // Opening a returned application pre-fills the matching form so the student can correct it.
+  useEffect(() => {
+    if (!resubmitProcess) return;
+    const formIdByType = {
+      eca_application: 'SEU-EX-CA-REP',
+      esa_application: 'SEU-EX-ESA-REP',
+      exam_form: 'SEU-EX-FORM',
+      subject_medical: 'SEU-ICT-MED-LEC',
+      exam_medical: 'SEU-MED-ABSENT',
+    };
+    const form = OFFICIAL_FORMS.find((f) => f.formId === formIdByType[resubmitProcess.type]);
+    if (!form) return;
+    setSelectedForm(form);
+    setFormData((prev) => {
+      const next = prefillFromProcess(resubmitProcess, prev);
+      if (resubmitProcess.type === 'exam_medical') next.medicalSubjectType = 'End Semester Examination';
+      return next;
+    });
+    const receipt = resubmitProcess.paymentReceipt;
+    setExtras((prev) => ({
+      ...prev,
+      payment: receipt?.voucherNo
+        ? { ...prev.payment, voucherNo: receipt.voucherNo, amount: String(receipt.amount || ''), date: String(receipt.date || prev.payment.date).slice(0, 10) }
+        : prev.payment,
+      lecturerEmail: resubmitProcess.assignedLecturer?.email || prev.lecturerEmail,
+    }));
+    setSubmitResult(null);
+    setSubmitError('');
+    setViewMode('fill');
+  }, [resubmitProcess]);
+
+  const handleSubmit = async () => {
+    setSubmitError('');
+    if (!isStudent) {
+      setSubmitError('Only students can submit forms.');
+      return;
+    }
+    // A corrected application may keep the receipt that is already on file.
+    const keepsReceipt = Boolean(resubmitProcess?.paymentReceipt?.hasFile) && !extras.receipt;
+    const problem = validateSubmission(workflowType, formData, keepsReceipt ? { ...extras, receipt: { existing: true } } : extras);
+    if (problem) {
+      setSubmitError(problem);
+      document.querySelector('.seu-submit-block')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = buildPayload(workflowType, formData, extras, selectedForm.name);
+      if (keepsReceipt) delete payload.receipt;
+      const res = resubmitProcess ? await api.resubmitProcess(resubmitProcess.trackingNumber, payload) : await api.createProcess(payload);
+      setSubmitResult(res.data);
+      onResubmitDone?.();
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const categories = ['All', 'Examination', 'Medical / Attendance', 'Finance & Fees', 'Academic / Registration'];
 
   // Filter forms based on search and selected category
@@ -384,6 +484,9 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
   };
 
   const handleOpenFiller = (form) => {
+    setSubmitResult(null);
+    setSubmitError('');
+    setExtras(defaultExtras());
     setSelectedForm(form);
     setViewMode('fill');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -708,6 +811,7 @@ Note: Present this completed official document with attached original bank PIV s
       // 3. APPLICATION FOR EXAMINATION (Unified ESA / CA Format)
       case 'SEU-EX-ESA-REP':
       case 'SEU-EX-CA-REP':
+      case 'SEU-EX-FORM':
       default:
         return (
           <div className="printable-document">
@@ -722,7 +826,7 @@ Note: Present this completed official document with attached original bank PIV s
                   <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>SOUTH EASTERN UNIVERSITY OF SRI LANKA</div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>EXAMINATIONS DIVISION — FACULTY OF TECHNOLOGY</div>
                   <div style={{ fontSize: '0.98rem', fontWeight: 'bold', textDecoration: 'underline', marginTop: '3px' }}>
-                    APPLICATION FOR EXAMINATION
+                    {selectedForm.formId === 'SEU-EX-FORM' ? 'EXAMINATION FORM' : selectedForm.formId === 'SEU-EX-CA-REP' ? 'APPLICATION FOR EXAMINATION (CONTINUOUS ASSESSMENT)' : 'APPLICATION FOR EXAMINATION (END SEMESTER)'}
                   </div>
                 </div>
                 <div style={{ border: '1px solid #000', padding: '4px 8px', fontSize: '0.72rem', textAlign: 'center' }}>
@@ -1129,6 +1233,17 @@ Note: Present this completed official document with attached original bank PIV s
                 </svg>
                 Download Data (.txt)
               </button>
+              {isStudent && workflowType && !submitResult && (
+                <button
+                  type="button"
+                  className="seu-btn-primary-sm seu-btn-submit"
+                  disabled={submitting}
+                  onClick={handleSubmit}
+                  title={`Submit this ${WORKFLOW_INFO[workflowType].label} online to ${WORKFLOW_INFO[workflowType].submitTo}`}
+                >
+                  {submitting ? 'Submitting…' : resubmitProcess ? 'Resubmit' : 'Submit'}
+                </button>
+              )}
               <button
                 type="button"
                 className="seu-btn-primary-sm"
@@ -1269,6 +1384,24 @@ Note: Present this completed official document with attached original bank PIV s
               )}
             </div>
           </div>
+
+          {isStudent && workflowType && (
+            <FormSubmissionPanel
+              type={workflowType}
+              user={user}
+              formData={formData}
+              setFormData={setFormData}
+              extras={extras}
+              setExtras={setExtras}
+              availability={availability}
+              submitting={submitting}
+              error={submitError}
+              result={submitResult}
+              isResubmit={Boolean(resubmitProcess)}
+              onSubmit={handleSubmit}
+              onTrack={() => onNavigate?.('track_applications')}
+            />
+          )}
 
           {/* Official Printable Preview Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }} className="no-print">
