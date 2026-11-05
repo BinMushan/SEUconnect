@@ -205,6 +205,26 @@ export const api = {
   getUsers: () => request('/auth/users'),
   // Staff directory, e.g. getDirectory({ role: 'lecturer', department }) for the lecturer picker.
   getDirectory: (params = {}) => request(`/auth/directory${qs(params)}`),
+  uploadProfilePhoto: async (file) => {
+    const token = authToken.get();
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const res = await fetch(`${API_BASE_URL}/auth/profile-photo`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: formData
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(body.message || `Profile upload failed (${res.status})`);
+    }
+    return body;
+  },
+  updateProfile: (data) => request('/auth/profile', json('PUT', data)),
 
   /* -------------------------------- applications ------------------------------- */
   // Applications visible to the signed-in user. scope: 'action' limits to items awaiting their action.
