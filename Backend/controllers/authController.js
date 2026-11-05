@@ -5,6 +5,7 @@ const { signToken } = require('../middleware/auth');
 const { verifyPassword, hashPassword, isHashed } = require('../utils/password');
 const { normalizeRole, deptCode } = require('../utils/roles');
 const { getCurriculumBySemester } = require('../config/curriculumTimetables');
+const Subject = require('../models/Subject');
 
 const publicUser = (user) => ({
   id: String(user._id || user.email),
@@ -47,6 +48,13 @@ async function buildUserResponse(user) {
   const effectiveSem = studentDoc?.currentSemester || user.semester || 'Year 1 Semester 1';
   const cur = getCurriculumBySemester(effectiveSem);
 
+  let dbSubjects = [];
+  try {
+    dbSubjects = await Subject.find({ semesterName: cur.semester }).sort({ code: 1 }).lean();
+  } catch (_) {}
+
+  const finalSubjects = (dbSubjects && dbSubjects.length > 0) ? dbSubjects : cur.subjects;
+
   return {
     ...base,
     semester: studentDoc?.currentSemester || user.semester || cur.semester,
@@ -57,7 +65,18 @@ async function buildUserResponse(user) {
     attendance: studentDoc?.attendance?.overallAttendancePercentage ?? 92.5,
     enrolledCourses: (studentDoc?.semesterRegistrations?.[0]?.courses?.length > 0)
       ? studentDoc.semesterRegistrations[0].courses
-      : cur.subjects,
+      : finalSubjects.map(s => ({
+          courseCode: s.code,
+          courseName: s.title,
+          credits: s.credits,
+          type: s.type || 'Core',
+          gpaCredits: s.gpaCredits,
+          ngpaCredits: s.ngpaCredits,
+          continuousAssessmentPercent: s.continuousAssessmentPercent,
+          endSemesterAssessmentPercent: s.endSemesterAssessmentPercent,
+          status: 'Registered'
+        })),
+    databaseSubjects: finalSubjects,
     timetable: cur.timetableSlots,
     matrixColumns: cur.matrixColumns,
     matrixDailyRows: cur.matrixDailyRows,

@@ -1,4 +1,5 @@
 const Student = require('../models/Student');
+const Subject = require('../models/Subject');
 const { getCurriculumBySemester, normalizeSemester } = require('../config/curriculumTimetables');
 
 // Helper to find student by studentId, indexNo, or MongoDB _id
@@ -49,6 +50,14 @@ exports.getStudentByIdentifier = async (req, res) => {
     const raw = student.toObject ? student.toObject() : { ...student };
     const cur = getCurriculumBySemester(raw.currentSemester);
 
+    let dbSubjects = [];
+    try {
+      dbSubjects = await Subject.find({ semesterName: cur.semester }).sort({ code: 1 }).lean();
+    } catch (_) {}
+
+    const effectiveSubjects = (dbSubjects && dbSubjects.length > 0) ? dbSubjects : cur.subjects;
+    raw.enrolledSubjects = effectiveSubjects;
+
     // Guarantee semester registrations, courses, timetable, and attendance records exist matching their semester
     if (!raw.semesterRegistrations || raw.semesterRegistrations.length === 0 || !raw.semesterRegistrations[0]?.courses?.length) {
       raw.semesterRegistrations = [{
@@ -57,11 +66,15 @@ exports.getStudentByIdentifier = async (req, res) => {
         registrationDate: new Date().toISOString().split('T')[0],
         status: 'Confirmed',
         totalCredits: cur.totalCredits,
-        courses: cur.subjects.map(s => ({
+        courses: effectiveSubjects.map(s => ({
           courseCode: s.code,
           courseName: s.title,
-          credits: s.credits,
+          credits: s.credits || s.gpaCredits || 2,
           type: s.type || 'Core',
+          gpaCredits: s.gpaCredits,
+          ngpaCredits: s.ngpaCredits,
+          continuousAssessmentPercent: s.continuousAssessmentPercent,
+          endSemesterAssessmentPercent: s.endSemesterAssessmentPercent,
           status: 'Registered'
         }))
       }];
@@ -73,7 +86,7 @@ exports.getStudentByIdentifier = async (req, res) => {
         totalLectures: 120,
         attendedLectures: 111,
         eligibilityStatus: 'Eligible',
-        subjectRecords: cur.subjects.map(s => ({
+        subjectRecords: effectiveSubjects.map(s => ({
           courseCode: s.code,
           courseName: s.title,
           totalClasses: 30,
@@ -380,6 +393,12 @@ exports.createStudentsBulk = async (req, res) => {
 
       if (store.connected()) {
         const cur = getCurriculumBySemester(effectiveSemester);
+        let regSubjects = [];
+        try {
+          regSubjects = await Subject.find({ semesterName: cur.semester }).sort({ code: 1 }).lean();
+        } catch (_) {}
+        const finalRegSubjects = (regSubjects && regSubjects.length > 0) ? regSubjects : cur.subjects;
+
         await Student.findOneAndUpdate(
           { $or: [{ studentId: effectiveId }, { email: effectiveEmail }] },
           {
@@ -408,7 +427,7 @@ exports.createStudentsBulk = async (req, res) => {
                 totalLectures: 120,
                 attendedLectures: 111,
                 eligibilityStatus: 'Eligible',
-                subjectRecords: cur.subjects.map(sub => ({
+                subjectRecords: finalRegSubjects.map(sub => ({
                   courseCode: sub.code,
                   courseName: sub.title,
                   totalClasses: 30,
@@ -423,10 +442,10 @@ exports.createStudentsBulk = async (req, res) => {
                 registrationDate: new Date().toISOString().split('T')[0],
                 status: 'Confirmed',
                 totalCredits: cur.totalCredits,
-                courses: cur.subjects.map(sub => ({
+                courses: finalRegSubjects.map(sub => ({
                   courseCode: sub.code,
                   courseName: sub.title,
-                  credits: sub.credits,
+                  credits: sub.credits || sub.gpaCredits || 2,
                   type: sub.type || 'Core',
                   status: 'Registered'
                 }))
