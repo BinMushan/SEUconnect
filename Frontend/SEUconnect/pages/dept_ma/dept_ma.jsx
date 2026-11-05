@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import {
   DEPT_INFO,
@@ -45,7 +45,36 @@ export default function DeptMA({ user, onLogout }) {
   const [attendanceSubjects] = useState(INITIAL_ATTENDANCE_SUBJECTS);
   const [documents, setDocuments] = useState(INITIAL_DOCUMENTS);
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seuconnect_dept_ma_notifications');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const merged = INITIAL_NOTIFICATIONS.map((initItem) => {
+            const found = parsed.find((p) => p.id === initItem.id);
+            return found ? { ...initItem, read: found.read } : initItem;
+          });
+          const customItems = parsed.filter(
+            (p) => !INITIAL_NOTIFICATIONS.some((init) => init.id === p.id)
+          );
+          return [...merged, ...customItems];
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load notifications from localStorage', e);
+    }
+    return INITIAL_NOTIFICATIONS;
+  });
+
+  // Persist notifications across page refreshes
+  useEffect(() => {
+    try {
+      localStorage.setItem('seuconnect_dept_ma_notifications', JSON.stringify(notifications));
+    } catch (e) {
+      console.warn('Failed to save notifications to localStorage', e);
+    }
+  }, [notifications]);
   const [auditLog, setAuditLog] = useState(INITIAL_AUDIT_LOG);
 
   // Seven Responsibilities Datasets
@@ -275,12 +304,13 @@ export default function DeptMA({ user, onLogout }) {
       );
     }
     const targetNav = item.actionNav || (
-      item.type === 'medical' ? 'medical_applications' :
-      item.type === 'lecturer_medical' ? 'medical_applications' :
+      item.type === 'medical' || item.type === 'lecturer_medical' ? 'medical_applications' :
       item.type === 'registration' || item.type === 'ca_signing' ? 'subject_registrations' :
       item.type === 'student_request' ? 'student_requests' :
       item.type === 'mahapola' || item.type === 'bursary' ? 'mahapola_bursary' :
-      item.type === 'attendance' ? 'attendance_records' : 'dashboard'
+      item.type === 'attendance' ? 'attendance_records' :
+      item.type === 'announcement' ? 'announcements' :
+      item.type === 'document' ? 'department_documents' : 'dashboard'
     );
     if (targetNav === 'medical_applications') {
       const match = medicalApplications.find((app) =>
@@ -415,6 +445,7 @@ export default function DeptMA({ user, onLogout }) {
             onMarkAllRead={handleMarkAllNotificationsRead}
             onToggleRead={handleToggleNotificationRead}
             onNotificationClick={handleNotificationClick}
+            onShowToast={showToast}
           />
         );
 
