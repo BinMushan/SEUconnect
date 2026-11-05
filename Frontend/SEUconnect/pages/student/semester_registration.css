@@ -488,4 +488,19 @@
   .semester-reg-container .grid-3 {
     grid-template-columns: 1fr;
   }
+
+  .seu-table {
+    min-width: 680px;
+  }
+
+  .semester-reg-actions-row {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .semester-reg-actions-row button {
+    width: 100%;
+    justify-content: center;
+  }
 }
+
