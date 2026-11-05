@@ -205,6 +205,8 @@ export default function DeptMADocuments({
     'Registration Rosters',
     'Curriculum & Syllabi',
     'Meeting Minutes & Memos',
+    'Student Academic Dossiers',
+    'Student Verification Records',
   ];
 
   const academicYears = ['ALL', '2025/2026', '2024/2025'];
