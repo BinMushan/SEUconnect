@@ -185,6 +185,7 @@ export default function UserRoleManagement({
       name: newStaffName.trim(),
       email: newStaffEmail.trim().toLowerCase(),
       tempPassword: finalPass,
+      password: finalPass,
       role: newStaffRole,
       roleKey,
       department: newStaffDept,
@@ -193,7 +194,8 @@ export default function UserRoleManagement({
       isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(newStaffRole),
       appointedDate: new Date().toISOString().split('T')[0],
       lastLogin: 'Never',
-      permissions: `Granted permissions for ${newStaffRole}`
+      permissions: `Granted permissions for ${newStaffRole}`,
+      avatarInitial: newStaffName.trim().split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U'
     });
 
     setNewStaffName('');
@@ -226,7 +228,7 @@ export default function UserRoleManagement({
         <div className="adm-section-title-wrap">
           <h2 className="adm-section-title">User Roles, Appointments & Access Delegation</h2>
           <p className="adm-section-subtitle">
-            Faculty of Technology Leadership: Dean, Heads of Department (BICT & BST), SAR, Examination Officers, Academic Lecturers, Support Staff & Students with credential provisioning.
+            Faculty of Technology Leadership: Dean, Heads of Department (BICT & BST), SAR, Examination Officers, Academic Lecturers & Support Staff with credential provisioning.
           </p>
         </div>
         <div className="adm-section-actions">
@@ -560,7 +562,6 @@ export default function UserRoleManagement({
                       value={assignedRole}
                       onChange={(e) => setAssignedRole(e.target.value)}
                     >
-                      <option value="Student">Student (Undergraduate)</option>
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
                       <option value="Faculty Dean">Faculty Dean (Executive)</option>
@@ -716,7 +717,6 @@ export default function UserRoleManagement({
                       value={newStaffRole}
                       onChange={(e) => handleRoleSelectChange(e.target.value)}
                     >
-                      <option value="Student">Student (Undergraduate)</option>
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
                       <option value="Faculty Dean">Faculty Dean (Executive)</option>

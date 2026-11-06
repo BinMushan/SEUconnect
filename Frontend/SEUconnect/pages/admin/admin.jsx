@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api, { enrolledStorage } from '../../src/services/api.js';
+import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
@@ -248,7 +248,13 @@ export default function Admin({ user, onLogout }) {
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
   const [facultyForms, setFacultyForms] = useState(INITIAL_FACULTY_FORMS);
   const [penalties, setPenalties] = useState(INITIAL_PENALTIES);
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState(() => {
+    const localProvisioned = provisionedUserStorage.getAll();
+    if (!localProvisioned || localProvisioned.length === 0) return INITIAL_USERS;
+    const existingEmails = new Set(INITIAL_USERS.map(u => (u.email || '').toLowerCase()));
+    const additional = localProvisioned.filter(u => u.email && !existingEmails.has(u.email.toLowerCase()));
+    return [...additional, ...INITIAL_USERS];
+  });
   const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOG);
 
   // Global modals triggered from top action buttons
@@ -594,8 +600,14 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 18. Appoint New Staff Member / Provision User Account with Temp Password
-  const handleAppointUser = (newStaff) => {
+  const handleAppointUser = async (newStaff) => {
     setUsers((prev) => [newStaff, ...prev]);
+    provisionedUserStorage.save(newStaff);
+    try {
+      await api.provisionUser(newStaff);
+    } catch (e) {
+      console.warn('Backend user provisioning failed/offline:', e.message);
+    }
     addAuditLog('Provisioned User Account', `${newStaff.name} created as ${newStaff.role} (${newStaff.email}).`);
     showToast(`User account for ${newStaff.name} (${newStaff.role}) provisioned with temporary password.`);
   };
