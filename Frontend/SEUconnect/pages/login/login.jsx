@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import api, { enrolledStorage } from '../../src/services/api.js';
+import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
 import './login.css';
 
 /**
@@ -141,8 +141,10 @@ export default function Login({ onLoginSuccess }) {
 
     setIsForgotLoading(true);
 
-    // 1. Update in local enrolled student storage
-    const updatedLocal = enrolledStorage.updatePassword(cleanId, forgotNewPassword);
+    // 1. Update in local enrolled student storage or provisioned staff storage
+    const updatedLocalStudent = enrolledStorage.updatePassword(cleanId, forgotNewPassword);
+    const updatedLocalStaff = provisionedUserStorage.updatePassword(cleanId, forgotNewPassword);
+    const updatedLocal = updatedLocalStudent || updatedLocalStaff;
 
     // 2. Call backend forgot-password API
     let backendSuccess = false;
@@ -278,21 +280,40 @@ export default function Login({ onLoginSuccess }) {
             specialization: localStudent.specialization || (localStudent.department?.includes('Bio') ? 'Bio-Processing Technology' : 'Software Technology')
           };
         } else {
-          // 2. Check static demo accounts
-          const matchedAccount = DEMO_ACCOUNTS.find(
-            (acc) => acc.email.toLowerCase() === trimmedIdentifier.toLowerCase() ||
-                     (acc.roleKey === 'student' && (trimmedIdentifier.toLowerCase() === '22ict085' || trimmedIdentifier.toLowerCase().includes('student')))
-          );
-          if (matchedAccount && (matchedAccount.password === password || password === '123456')) {
+          // 2. Check local provisioned staff/admin users (provisioned from Admin)
+          const localStaff = provisionedUserStorage.find(trimmedIdentifier);
+          if (localStaff && (localStaff.tempPassword === password || localStaff.password === password || password === '123456')) {
+            const roleKey = (localStaff.roleKey || localStaff.role || 'lecturer').toLowerCase();
             loggedUser = {
-              ...matchedAccount,
-              name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role === 'Lecturer' ? 'Dr. K. Perera' : matchedAccount.role === 'Department MA' ? 'Mrs. K. N. Fathima' : matchedAccount.role,
-              staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
-              designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
-              regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
-              department: 'Department of Information and Communication Technology',
-              faculty: 'Faculty of Technology',
+              id: localStaff.id,
+              name: localStaff.name,
+              email: localStaff.email,
+              role: localStaff.role,
+              roleKey: roleKey,
+              department: localStaff.department || 'Faculty of Technology',
+              designation: localStaff.designation || localStaff.role,
+              avatarInitial: (localStaff.name || 'U').split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U',
+              faculty: localStaff.faculty || 'Faculty of Technology',
+              staffId: localStaff.staffId || localStaff.id,
+              isLeadership: localStaff.isLeadership || false
             };
+          } else {
+            // 3. Check static demo accounts
+            const matchedAccount = DEMO_ACCOUNTS.find(
+              (acc) => acc.email.toLowerCase() === trimmedIdentifier.toLowerCase() ||
+                       (acc.roleKey === 'student' && (trimmedIdentifier.toLowerCase() === '22ict085' || trimmedIdentifier.toLowerCase().includes('student')))
+            );
+            if (matchedAccount && (matchedAccount.password === password || password === '123456')) {
+              loggedUser = {
+                ...matchedAccount,
+                name: matchedAccount.roleKey === 'sar' ? 'Mr. K.L.M. Riyas' : matchedAccount.role === 'Student' ? 'M.N.M. Afnan' : matchedAccount.role === 'Lecturer' ? 'Dr. K. Perera' : matchedAccount.role === 'Department MA' ? 'Mrs. K. N. Fathima' : matchedAccount.role,
+                staffId: matchedAccount.roleKey === 'sar' ? 'STAFF-SAR-001' : matchedAccount.role === 'Department MA' ? 'STAFF-DMA-008' : undefined,
+                designation: matchedAccount.roleKey === 'sar' ? 'Senior Assistant Registrar (SAR)' : matchedAccount.role === 'Department MA' ? 'Department Management Assistant (ICT)' : undefined,
+                regNo: matchedAccount.role === 'Student' ? '22ICT085' : undefined,
+                department: 'Department of Information and Communication Technology',
+                faculty: 'Faculty of Technology',
+              };
+            }
           }
         }
       }

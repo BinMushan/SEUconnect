@@ -320,3 +320,56 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error updating profile' });
   }
 };
+
+// Provision a new staff / administrative user account
+exports.provisionUser = async (req, res) => {
+  try {
+    const { name, email, password, tempPassword, role, roleKey, department, designation, staffId } = req.body || {};
+    if (!name || !email) {
+      return res.status(400).json({ success: false, message: 'Name and email are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const rawPass = password || tempPassword || '123456';
+
+    let resolvedRoleKey = roleKey;
+    if (!resolvedRoleKey && role) {
+      const lower = role.toLowerCase();
+      if (lower.includes('hod') || lower.includes('head of department')) resolvedRoleKey = 'hod';
+      else if (lower.includes('dean')) resolvedRoleKey = 'dean';
+      else if (lower.includes('sar') || lower.includes('senior assistant registrar')) resolvedRoleKey = 'sar';
+      else if (lower.includes('exam')) resolvedRoleKey = 'examination';
+      else if (lower.includes('dept') && lower.includes('ma')) resolvedRoleKey = 'dept_ma';
+      else if (lower.includes('fma') || (lower.includes('faculty') && lower.includes('ma'))) resolvedRoleKey = 'fma';
+      else if (lower.includes('superadmin')) resolvedRoleKey = 'superadmin';
+      else if (lower.includes('admin')) resolvedRoleKey = 'admin';
+      else resolvedRoleKey = 'lecturer';
+    }
+
+    const normRole = normalizeRole(resolvedRoleKey || 'lecturer');
+
+    const userData = {
+      name: name.trim(),
+      email: cleanEmail,
+      password: hashPassword(rawPass),
+      role: normRole,
+      roleKey: normRole,
+      staffId: staffId || `STAFF-${normRole.toUpperCase()}-${Date.now().toString().slice(-4)}`,
+      department: department || 'Department of Information and Communication Technology',
+      faculty: 'Faculty of Technology',
+      designation: designation || role || normRole,
+      avatarInitial: name.trim().split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U',
+      status: 'active',
+    };
+
+    const user = await store.users.createOrUpdate(userData);
+    return res.json({
+      success: true,
+      message: `User ${name} provisioned successfully with role ${normRole}.`,
+      user: publicUser(user),
+    });
+  } catch (error) {
+    console.error('Provision user error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while provisioning user.' });
+  }
+};
