@@ -110,7 +110,11 @@ export default function StudentResults({ user }) {
 
   const cumulativeGpa = isFreshers ? null : (transcript?.cumulative?.gpa ?? (isPublished ? livePipelineResults.sgpa : null));
   const semesterGpa = isFreshers ? null : (selectedSemester === 'All' ? cumulativeGpa : (transcript?.semesters || []).find((x) => String(x.semester?.number) === selectedSemester)?.sgpa ?? (isPublished ? livePipelineResults.sgpa : null));
-  const fmt = (v) => (v === null || v === undefined ? 'N/A' : Number(v).toFixed(2));
+  const fmt = (v) => {
+    if (v === null || v === undefined || v === '' || v === '—' || v === 'N/A') return 'N/A';
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) ? n.toFixed(2) : 'N/A';
+  };
 
   const handlePrint = () => {
     window.print();
