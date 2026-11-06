@@ -591,6 +591,41 @@ export default function Admin({ user, onLogout }) {
     showToast(`Intake Batch "${batch?.name || batchId}" deleted successfully.`);
   };
 
+  // 16.c Pass Out Intake Batch (Graduation of Cohort)
+  const handlePassOutBatch = (batchId) => {
+    const targetBatch = batches.find((b) => b.id === batchId);
+    if (!targetBatch) return;
+
+    // 1. Advance batch status to Passed Out
+    setBatches((prev) =>
+      prev.map((b) => {
+        if (b.id !== batchId) return b;
+        return {
+          ...b,
+          status: 'Passed Out (Graduated)',
+          currentSemester: 'Semester 8 (Passed Out)'
+        };
+      })
+    );
+
+    // 2. Mark all enrolled students in this batch as Passed Out
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (s.batchId !== batchId) return s;
+        return {
+          ...s,
+          status: 'Passed Out'
+        };
+      })
+    );
+
+    addAuditLog(
+      'Batch Passed Out (Graduated)',
+      `Cohort ${targetBatch.name} (${targetBatch.academicYear}) has officially passed out. Enrolled undergraduates graduated.`
+    );
+    showToast(`🎓 Batch ${targetBatch.name} has officially passed out! All students graduated.`);
+  };
+
   // 17. Assign & Reassign Roles with Institutional System Rules
   const handleAssignRole = (userId, { role, department, designation }) => {
     const roleKey =
@@ -952,20 +987,27 @@ export default function Admin({ user, onLogout }) {
     setBatches((prev) =>
       prev.map((b) => {
         if (b.id !== batchId) return b;
+        const newStatus = nextSem.includes('Semester 8')
+          ? 'Graduating / Finalizing'
+          : b.status.includes('Freshers')
+          ? 'Active'
+          : b.status;
         if (departmentScope === 'BOTH') {
-          return { ...b, currentSemester: nextSem };
+          return { ...b, currentSemester: nextSem, status: newStatus };
         } else if (departmentScope === 'BICT') {
           return {
             ...b,
-            currentSemester: `${nextSem} (ICT)`
+            currentSemester: `${nextSem} (ICT)`,
+            status: newStatus
           };
         } else if (departmentScope === 'BST') {
           return {
             ...b,
-            currentSemester: `${nextSem} (BST)`
+            currentSemester: `${nextSem} (BST)`,
+            status: newStatus
           };
         }
-        return { ...b, currentSemester: nextSem };
+        return { ...b, currentSemester: nextSem, status: newStatus };
       })
     );
 
@@ -1036,6 +1078,14 @@ export default function Admin({ user, onLogout }) {
       'Promoted Cohort & Auto-Shifted Curriculum',
       `Promoted batch ${batchId} (${scopeLabel}) to ${nextSem}. Auto-shifted subjects for ${targetStudents.length} enrolled undergraduates.`
     );
+
+    const targetBatch = batches.find((b) => b.id === batchId);
+    const batchDisplayName = targetBatch?.name || batchId;
+    if (nextSem.includes('Semester 8')) {
+      showToast(`🚀 ${batchDisplayName} promoted to ${nextSem}! Next option is Pass Out.`);
+    } else {
+      showToast(`🚀 ${batchDisplayName} promoted to ${nextSem}!`);
+    }
   };
 
   // 16. Global Topbar Search Handler
@@ -1201,6 +1251,8 @@ export default function Admin({ user, onLogout }) {
           onDeleteStudent={handleDeleteStudent}
           onBulkAddStudents={handleBulkAddStudents}
           onUpdateStudentStatus={handleUpdateStudentStatus}
+          onPromoteBatch={handlePromoteBatch}
+          onPassOutBatch={handlePassOutBatch}
           isAddModalOpen={isAddStudentModalOpen}
           setIsAddModalOpen={setIsAddStudentModalOpen}
         />
