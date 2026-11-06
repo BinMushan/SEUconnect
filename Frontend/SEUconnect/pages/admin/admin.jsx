@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api, { enrolledStorage } from '../../src/services/api.js';
+import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
@@ -248,7 +248,13 @@ export default function Admin({ user, onLogout }) {
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
   const [facultyForms, setFacultyForms] = useState(INITIAL_FACULTY_FORMS);
   const [penalties, setPenalties] = useState(INITIAL_PENALTIES);
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState(() => {
+    const localProvisioned = provisionedUserStorage.getAll();
+    if (!localProvisioned || localProvisioned.length === 0) return INITIAL_USERS;
+    const existingEmails = new Set(INITIAL_USERS.map(u => (u.email || '').toLowerCase()));
+    const additional = localProvisioned.filter(u => u.email && !existingEmails.has(u.email.toLowerCase()));
+    return [...additional, ...INITIAL_USERS];
+  });
   const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOG);
 
   // Global modals triggered from top action buttons
@@ -565,7 +571,7 @@ export default function Admin({ user, onLogout }) {
     showToast(`Intake Batch "${batch?.name || batchId}" deleted successfully.`);
   };
 
-  // 17. Assign & Reassign Roles (All 10 System Roles)
+  // 17. Assign & Reassign Roles with Institutional System Rules
   const handleAssignRole = (userId, { role, department, designation }) => {
     const roleKey =
       role === 'Head of Department (HOD)' ? 'hod' :
@@ -578,26 +584,346 @@ export default function Admin({ user, onLogout }) {
       role === 'Student' ? 'student' :
       role === 'Super Admin' ? 'superadmin' : 'admin';
 
-    setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? {
-        ...u,
-        role,
-        roleKey,
-        department,
-        designation,
-        isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(role)
-      } : u))
-    );
-    const target = users.find((u) => u.id === userId);
-    addAuditLog('Reassigned User Role', `${target?.name} assigned as "${role}" in ${department}.`);
-    showToast(`Role for ${target?.name} updated to ${role}.`);
+    const targetUser = users.find((u) => u.id === userId);
+    if (!targetUser) return;
+
+    // Check System Administrator rule (max 2)
+    if (role === 'System Administrator') {
+      const otherAdmins = users.filter((u) => u.id !== userId && u.role === 'System Administrator');
+      if (otherAdmins.length >= 2) {
+        showToast('Rule Violation: Maximum 2 System Administrators permitted. Please step down an existing admin first.');
+        return;
+      }
+    }
+
+    let steppedDownName = '';
+    let steppedDownRole = '';
+
+    setUsers((prev) => {
+      let updated = [...prev];
+
+      // 1. Dean Rule: Exactly 1 Dean in system
+      if (role === 'Faculty Dean') {
+        updated = updated.map((u) => {
+          if (u.id !== userId && u.role === 'Faculty Dean') {
+            steppedDownName = u.name;
+            steppedDownRole = 'Faculty Dean';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Senior Lecturer (Former Dean)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+
+      // 2. HOD Rule: Exactly 2 HODs (1 for DICT, 1 for BST)
+      else if (role === 'Head of Department (HOD)') {
+        const isBst = department.includes('Bio') || department.includes('BST');
+        const deptLabel = isBst ? 'BST' : 'DICT';
+        updated = updated.map((u) => {
+          if (u.id !== userId && u.role === 'Head of Department (HOD)') {
+            const uIsBst = u.department?.includes('Bio') || u.department?.includes('BST');
+            if (uIsBst === isBst) {
+              steppedDownName = u.name;
+              steppedDownRole = `HOD (${deptLabel})`;
+              const demoted = {
+                ...u,
+                role: 'Lecturer',
+                roleKey: 'lecturer',
+                designation: `Senior Lecturer Gr. I in ${deptLabel} (Former HOD)`,
+                isLeadership: false,
+                permissions: 'Granted permissions for Lecturer'
+              };
+              provisionedUserStorage.save(demoted);
+              return demoted;
+            }
+          }
+          return u;
+        });
+      }
+
+      // 3. SAR Rule: Exactly 1 SAR in system
+      else if (role === 'Senior Assistant Registrar (SAR)') {
+        updated = updated.map((u) => {
+          if (u.id !== userId && u.role === 'Senior Assistant Registrar (SAR)') {
+            steppedDownName = u.name;
+            steppedDownRole = 'SAR';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Faculty Administrative Officer (Former SAR)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+
+      // 4. Examination Officer Rule: Exactly 1 Exam Officer in system
+      else if (role === 'Examination Officer') {
+        updated = updated.map((u) => {
+          if (u.id !== userId && u.role === 'Examination Officer') {
+            steppedDownName = u.name;
+            steppedDownRole = 'Examination Officer';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Senior Lecturer (Former Exam Officer)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+
+      // 5. Dept MA Rule: Exactly 1 Dept MA in system
+      else if (role === 'Department Management Assistant (Dept MA)') {
+        updated = updated.map((u) => {
+          if (u.id !== userId && u.role === 'Department Management Assistant (Dept MA)') {
+            steppedDownName = u.name;
+            steppedDownRole = 'Dept MA';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Management Assistant (Former Dept MA)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+
+      // 6. FMA Rule: Exactly 1 FMA in system
+      else if (role === 'Faculty Management Assistant (FMA)') {
+        updated = updated.map((u) => {
+          if (u.id !== userId && u.role === 'Faculty Management Assistant (FMA)') {
+            steppedDownName = u.name;
+            steppedDownRole = 'FMA';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Management Assistant (Former FMA)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+
+      // Update the target promoted user
+      updated = updated.map((u) =>
+        u.id === userId
+          ? {
+              ...u,
+              role,
+              roleKey,
+              department,
+              designation,
+              isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(role)
+            }
+          : u
+      );
+
+      const targetPromoted = updated.find((u) => u.id === userId);
+      if (targetPromoted) {
+        provisionedUserStorage.save(targetPromoted);
+      }
+
+      return updated;
+    });
+
+    if (steppedDownName) {
+      addAuditLog('System Rule Promotion', `${steppedDownName} stepped down from ${steppedDownRole} to Lecturer. ${targetUser.name} promoted to ${role}.`);
+      showToast(`${targetUser.name} promoted to ${role} (${steppedDownName} stepped down to Lecturer).`);
+    } else {
+      addAuditLog('Reassigned User Role', `${targetUser.name} assigned as "${role}" in ${department}.`);
+      showToast(`Role for ${targetUser.name} updated to ${role}.`);
+    }
   };
 
-  // 18. Appoint New Staff Member / Provision User Account with Temp Password
-  const handleAppointUser = (newStaff) => {
-    setUsers((prev) => [newStaff, ...prev]);
-    addAuditLog('Provisioned User Account', `${newStaff.name} created as ${newStaff.role} (${newStaff.email}).`);
-    showToast(`User account for ${newStaff.name} (${newStaff.role}) provisioned with temporary password.`);
+  // 18. Appoint New Staff Member / Provision User Account with System Rules
+  const handleAppointUser = async (newStaff) => {
+    // Check System Administrator rule (max 2)
+    if (newStaff.role === 'System Administrator') {
+      const activeAdmins = users.filter((u) => u.role === 'System Administrator');
+      if (activeAdmins.length >= 2) {
+        showToast('Rule Violation: Maximum 2 System Administrators permitted. Please step down an existing admin first.');
+        return;
+      }
+    }
+
+    let steppedDownName = '';
+    let steppedDownRole = '';
+
+    setUsers((prev) => {
+      let updated = [...prev];
+
+      // Dean Rule (1)
+      if (newStaff.role === 'Faculty Dean') {
+        updated = updated.map((u) => {
+          if (u.role === 'Faculty Dean') {
+            steppedDownName = u.name;
+            steppedDownRole = 'Faculty Dean';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Senior Lecturer (Former Dean)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+      // HOD Rule (2: 1 DICT, 1 BST)
+      else if (newStaff.role === 'Head of Department (HOD)') {
+        const isBst = newStaff.department?.includes('Bio') || newStaff.department?.includes('BST');
+        const deptLabel = isBst ? 'BST' : 'DICT';
+        updated = updated.map((u) => {
+          if (u.role === 'Head of Department (HOD)') {
+            const uIsBst = u.department?.includes('Bio') || u.department?.includes('BST');
+            if (uIsBst === isBst) {
+              steppedDownName = u.name;
+              steppedDownRole = `HOD (${deptLabel})`;
+              const demoted = {
+                ...u,
+                role: 'Lecturer',
+                roleKey: 'lecturer',
+                designation: `Senior Lecturer Gr. I in ${deptLabel} (Former HOD)`,
+                isLeadership: false,
+                permissions: 'Granted permissions for Lecturer'
+              };
+              provisionedUserStorage.save(demoted);
+              return demoted;
+            }
+          }
+          return u;
+        });
+      }
+      // SAR Rule (1)
+      else if (newStaff.role === 'Senior Assistant Registrar (SAR)') {
+        updated = updated.map((u) => {
+          if (u.role === 'Senior Assistant Registrar (SAR)') {
+            steppedDownName = u.name;
+            steppedDownRole = 'SAR';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Faculty Administrative Officer (Former SAR)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+      // Examination Officer Rule (1)
+      else if (newStaff.role === 'Examination Officer') {
+        updated = updated.map((u) => {
+          if (u.role === 'Examination Officer') {
+            steppedDownName = u.name;
+            steppedDownRole = 'Examination Officer';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Senior Lecturer (Former Exam Officer)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+      // Dept MA Rule (1)
+      else if (newStaff.role === 'Department Management Assistant (Dept MA)') {
+        updated = updated.map((u) => {
+          if (u.role === 'Department Management Assistant (Dept MA)') {
+            steppedDownName = u.name;
+            steppedDownRole = 'Dept MA';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Management Assistant (Former Dept MA)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+      // FMA Rule (1)
+      else if (newStaff.role === 'Faculty Management Assistant (FMA)') {
+        updated = updated.map((u) => {
+          if (u.role === 'Faculty Management Assistant (FMA)') {
+            steppedDownName = u.name;
+            steppedDownRole = 'FMA';
+            const demoted = {
+              ...u,
+              role: 'Lecturer',
+              roleKey: 'lecturer',
+              designation: 'Management Assistant (Former FMA)',
+              isLeadership: false,
+              permissions: 'Granted permissions for Lecturer'
+            };
+            provisionedUserStorage.save(demoted);
+            return demoted;
+          }
+          return u;
+        });
+      }
+
+      return [newStaff, ...updated];
+    });
+
+    provisionedUserStorage.save(newStaff);
+    try {
+      await api.provisionUser(newStaff);
+    } catch (e) {
+      console.warn('Backend user provisioning failed/offline:', e.message);
+    }
+
+    if (steppedDownName) {
+      addAuditLog('System Rule Provisioning', `${steppedDownName} stepped down from ${steppedDownRole} to Lecturer. ${newStaff.name} appointed as ${newStaff.role}.`);
+      showToast(`User ${newStaff.name} appointed as ${newStaff.role} (${steppedDownName} stepped down to Lecturer).`);
+    } else {
+      addAuditLog('Provisioned User Account', `${newStaff.name} created as ${newStaff.role} (${newStaff.email}).`);
+      showToast(`User account for ${newStaff.name} (${newStaff.role}) provisioned with temporary password.`);
+    }
   };
 
   // 19. Promote Batch to Next Semester & Auto-Shift Enrolled Subjects

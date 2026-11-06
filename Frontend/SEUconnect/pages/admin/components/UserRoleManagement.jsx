@@ -95,13 +95,90 @@ export default function UserRoleManagement({
   const [newStaffDept, setNewStaffDept] = useState('Department of Information & Communication Technology');
   const [newStaffDesignation, setNewStaffDesignation] = useState('Lecturer (Probationary)');
   const [formError, setFormError] = useState('');
+  const [assignError, setAssignError] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
-  // Find leadership holders
+  // Find leadership holders & system quota accounts
   const currentDean = users.find((u) => u.role === 'Faculty Dean');
   const hodIct = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('ICT') || u.department.includes('Information')));
   const hodBst = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('Biosystems') || u.department.includes('Bio') || u.department.includes('BST')));
   const examOfficer = users.find((u) => u.role === 'Examination Officer');
+  const currentSar = users.find((u) => u.role === 'Senior Assistant Registrar (SAR)');
+  const currentDeptMa = users.find((u) => u.role === 'Department Management Assistant (Dept MA)');
+  const currentFma = users.find((u) => u.role === 'Faculty Management Assistant (FMA)');
+  const currentAdmins = users.filter((u) => u.role === 'System Administrator');
+  const lecturersCount = users.filter((u) => u.role === 'Lecturer').length;
+
+  const getRoleRuleNotice = (role, dept, targetUserId = null) => {
+    if (role === 'Faculty Dean') {
+      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Faculty Dean');
+      return {
+        type: 'warning',
+        text: `Institutional Rule (1 Dean): Appointing a new Dean will automatically step down current Dean (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
+      };
+    }
+    if (role === 'Head of Department (HOD)') {
+      const isBst = dept.includes('Bio') || dept.includes('BST');
+      const deptLabel = isBst ? 'BST' : 'DICT';
+      const prev = users.find((u) => {
+        if (u.id === targetUserId || u.role !== 'Head of Department (HOD)') return false;
+        const uIsBst = u.department?.includes('Bio') || u.department?.includes('BST');
+        return uIsBst === isBst;
+      });
+      return {
+        type: 'warning',
+        text: `Institutional Rule (1 HOD per Dept): Appointing HOD for ${deptLabel} will automatically step down current HOD (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
+      };
+    }
+    if (role === 'Senior Assistant Registrar (SAR)') {
+      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Senior Assistant Registrar (SAR)');
+      return {
+        type: 'warning',
+        text: `Institutional Rule (1 SAR): Appointing SAR will automatically step down current SAR (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
+      };
+    }
+    if (role === 'Examination Officer') {
+      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Examination Officer');
+      return {
+        type: 'warning',
+        text: `Institutional Rule (1 Exam Officer): Appointing Examination Officer will automatically step down current officer (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
+      };
+    }
+    if (role === 'Department Management Assistant (Dept MA)') {
+      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Department Management Assistant (Dept MA)');
+      return {
+        type: 'warning',
+        text: `Institutional Rule (1 Dept MA): Appointing Dept MA will automatically step down current assistant (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
+      };
+    }
+    if (role === 'Faculty Management Assistant (FMA)') {
+      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Faculty Management Assistant (FMA)');
+      return {
+        type: 'warning',
+        text: `Institutional Rule (1 FMA): Appointing FMA will automatically step down current assistant (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
+      };
+    }
+    if (role === 'System Administrator') {
+      const otherAdmins = users.filter((u) => u.id !== targetUserId && u.role === 'System Administrator');
+      if (otherAdmins.length >= 2) {
+        return {
+          type: 'error',
+          text: `Quota Limit Reached: The system strictly permits a maximum of 2 System Administrators (currently held by: ${otherAdmins.map((a) => a.name).join(' & ')}). You must reassign an existing administrator first.`
+        };
+      }
+      return {
+        type: 'info',
+        text: `System Quota: Exactly 2 System Administrators permitted (${otherAdmins.length}/2 active). 1 slot available.`
+      };
+    }
+    if (role === 'Lecturer') {
+      return {
+        type: 'info',
+        text: 'Academic Staff Rule: Unlimited Lecturers allowed. No quota limit.'
+      };
+    }
+    return null;
+  };
 
   // Filter users
   const filteredUsers = users.filter((u) => {
@@ -131,11 +208,20 @@ export default function UserRoleManagement({
     setAssignedRole(user.role);
     setAssignedDept(user.department);
     setAssignedDesignation(user.designation || user.role);
+    setAssignError('');
   };
 
   const handleAssignSubmit = (e) => {
     e.preventDefault();
     if (!editingUser) return;
+
+    if (assignedRole === 'System Administrator') {
+      const otherAdmins = users.filter((u) => u.id !== editingUser.id && u.role === 'System Administrator');
+      if (otherAdmins.length >= 2) {
+        setAssignError(`System Rule Limit: Maximum 2 System Administrators permitted. Currently held by ${otherAdmins.map((a) => a.name).join(' & ')}. Please reassign an existing administrator first.`);
+        return;
+      }
+    }
 
     onAssignRole(editingUser.id, {
       role: assignedRole,
@@ -144,6 +230,7 @@ export default function UserRoleManagement({
     });
 
     setEditingUser(null);
+    setAssignError('');
   };
 
   const handleRoleSelectChange = (role) => {
@@ -152,6 +239,7 @@ export default function UserRoleManagement({
     setNewStaffDept(def.dept);
     setNewStaffDesignation(def.designation);
     setNewStaffPassword(def.tempPass);
+    setFormError('');
   };
 
   const handleGeneratePassword = () => {
@@ -165,6 +253,14 @@ export default function UserRoleManagement({
     if (!newStaffName.trim() || !newStaffEmail.trim()) {
       setFormError('Please enter Full Name and Institutional Email Address.');
       return;
+    }
+
+    if (newStaffRole === 'System Administrator') {
+      const activeAdmins = users.filter((u) => u.role === 'System Administrator');
+      if (activeAdmins.length >= 2) {
+        setFormError(`System Rule Limit: Maximum 2 System Administrators permitted. Currently held by ${activeAdmins.map((a) => a.name).join(' & ')}. Please reassign an existing administrator before adding another.`);
+        return;
+      }
     }
 
     const finalPass = newStaffPassword.trim() || getDefaultsForRole(newStaffRole).tempPass;
@@ -185,6 +281,7 @@ export default function UserRoleManagement({
       name: newStaffName.trim(),
       email: newStaffEmail.trim().toLowerCase(),
       tempPassword: finalPass,
+      password: finalPass,
       role: newStaffRole,
       roleKey,
       department: newStaffDept,
@@ -193,7 +290,8 @@ export default function UserRoleManagement({
       isLeadership: ['Faculty Dean', 'Head of Department (HOD)', 'Senior Assistant Registrar (SAR)', 'Examination Officer'].includes(newStaffRole),
       appointedDate: new Date().toISOString().split('T')[0],
       lastLogin: 'Never',
-      permissions: `Granted permissions for ${newStaffRole}`
+      permissions: `Granted permissions for ${newStaffRole}`,
+      avatarInitial: newStaffName.trim().split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U'
     });
 
     setNewStaffName('');
@@ -226,7 +324,7 @@ export default function UserRoleManagement({
         <div className="adm-section-title-wrap">
           <h2 className="adm-section-title">User Roles, Appointments & Access Delegation</h2>
           <p className="adm-section-subtitle">
-            Faculty of Technology Leadership: Dean, Heads of Department (BICT & BST), SAR, Examination Officers, Academic Lecturers, Support Staff & Students with credential provisioning.
+            Faculty of Technology Leadership: Dean, Heads of Department (BICT & BST), SAR, Examination Officers, Academic Lecturers & Support Staff with credential provisioning.
           </p>
         </div>
         <div className="adm-section-actions">
@@ -248,11 +346,30 @@ export default function UserRoleManagement({
         </div>
       </div>
 
-      {/* Leadership Appointments Executive Strip */}
+      {/* Institutional Quota & Governance Capacity Indicator Bar */}
+      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.65rem 0.95rem', borderRadius: '8px', fontSize: '0.78rem', color: '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 700, color: '#0f2b5c' }}>⚖️ System Role Rules & Quotas:</span>
+          <span>Dean (1) • HOD ICT (1) • HOD BST (1) • SAR (1) • Exam Officer (1) • Dept MA (1) • FMA (1) • System Admin (Max 2).</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 600, color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem' }}>
+            Academic Lecturers ({lecturersCount}): No Limit
+          </span>
+          <span style={{ fontWeight: 600, color: currentAdmins.length >= 2 ? '#b91c1c' : '#2563eb', background: currentAdmins.length >= 2 ? '#fee2e2' : '#eff6ff', border: `1px solid ${currentAdmins.length >= 2 ? '#fca5a5' : '#bfdbfe'}`, padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem' }}>
+            System Admins: {currentAdmins.length}/2
+          </span>
+        </div>
+      </div>
+
+      {/* Leadership Appointments Executive Strip (8 Governance Roles) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
         {/* Dean Card */}
         <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #0f2b5c' }}>
-          <div style={{ fontSize: '0.68rem', color: '#0f2b5c', fontWeight: 700, textTransform: 'uppercase' }}>FACULTY DEAN</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#0f2b5c', fontWeight: 700, textTransform: 'uppercase' }}>FACULTY DEAN</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0f2b5c', background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
           <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {currentDean ? currentDean.name : 'Unassigned'}
           </div>
@@ -269,7 +386,10 @@ export default function UserRoleManagement({
 
         {/* HOD ICT Card */}
         <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #2563eb' }}>
-          <div style={{ fontSize: '0.68rem', color: '#2563eb', fontWeight: 700, textTransform: 'uppercase' }}>HOD (ICT)</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#2563eb', fontWeight: 700, textTransform: 'uppercase' }}>HOD (DICT)</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
           <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {hodIct ? hodIct.name : 'Unassigned'}
           </div>
@@ -280,13 +400,16 @@ export default function UserRoleManagement({
             style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
             onClick={() => hodIct && openAssignModal(hodIct)}
           >
-            Reassign HOD
+            Reassign HOD (DICT)
           </button>
         </div>
 
         {/* HOD BST Card */}
         <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #16a34a' }}>
-          <div style={{ fontSize: '0.68rem', color: '#16a34a', fontWeight: 700, textTransform: 'uppercase' }}>HOD (BIOSYSTEMS)</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#16a34a', fontWeight: 700, textTransform: 'uppercase' }}>HOD (BST)</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#16a34a', background: '#f0fdf4', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
           <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {hodBst ? hodBst.name : 'Unassigned'}
           </div>
@@ -297,13 +420,36 @@ export default function UserRoleManagement({
             style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
             onClick={() => hodBst && openAssignModal(hodBst)}
           >
-            Reassign HOD
+            Reassign HOD (BST)
+          </button>
+        </div>
+
+        {/* SAR Card */}
+        <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #ea580c' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#ea580c', fontWeight: 700, textTransform: 'uppercase' }}>SENIOR ASST. REGISTRAR</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', background: '#fff7ed', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {currentSar ? currentSar.name : 'Unassigned'}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Faculty Administration Office</div>
+          <button
+            type="button"
+            className="adm-btn-xs-secondary"
+            style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
+            onClick={() => currentSar && openAssignModal(currentSar)}
+          >
+            Reassign SAR
           </button>
         </div>
 
         {/* Exam Officer Card */}
         <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #7c3aed' }}>
-          <div style={{ fontSize: '0.68rem', color: '#7c3aed', fontWeight: 700, textTransform: 'uppercase' }}>EXAM OFFICER</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#7c3aed', fontWeight: 700, textTransform: 'uppercase' }}>EXAM OFFICER</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#7c3aed', background: '#faf5ff', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
           <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {examOfficer ? examOfficer.name : 'Unassigned'}
           </div>
@@ -315,6 +461,68 @@ export default function UserRoleManagement({
             onClick={() => examOfficer && openAssignModal(examOfficer)}
           >
             Reassign Exam Officer
+          </button>
+        </div>
+
+        {/* Dept MA Card */}
+        <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #0284c7' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#0284c7', fontWeight: 700, textTransform: 'uppercase' }}>DEPT MA</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', background: '#f0f9ff', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {currentDeptMa ? currentDeptMa.name : 'Unassigned'}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Dept. of ICT</div>
+          <button
+            type="button"
+            className="adm-btn-xs-secondary"
+            style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
+            onClick={() => currentDeptMa && openAssignModal(currentDeptMa)}
+          >
+            Reassign Dept MA
+          </button>
+        </div>
+
+        {/* FMA Card */}
+        <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #0d9488' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#0d9488', fontWeight: 700, textTransform: 'uppercase' }}>FACULTY MA (FMA)</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0d9488', background: '#f0fdfa', padding: '1px 5px', borderRadius: '4px' }}>1/1 SEAT</span>
+          </div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {currentFma ? currentFma.name : 'Unassigned'}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Dean&apos;s Secretariat</div>
+          <button
+            type="button"
+            className="adm-btn-xs-secondary"
+            style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
+            onClick={() => currentFma && openAssignModal(currentFma)}
+          >
+            Reassign FMA
+          </button>
+        </div>
+
+        {/* System Administrator Card */}
+        <div className="adm-card" style={{ padding: '0.9rem', borderTop: '3px solid #475569' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.68rem', color: '#475569', fontWeight: 700, textTransform: 'uppercase' }}>SYSTEM ADMINISTRATOR</div>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: currentAdmins.length >= 2 ? '#b91c1c' : '#2563eb', background: currentAdmins.length >= 2 ? '#fee2e2' : '#eff6ff', padding: '1px 5px', borderRadius: '4px' }}>
+              {currentAdmins.length}/2 SEATS
+            </span>
+          </div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {currentAdmins.length > 0 ? currentAdmins.map((a) => a.name).join(' & ') : 'Unassigned'}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Faculty Administration Office</div>
+          <button
+            type="button"
+            className="adm-btn-xs-secondary"
+            style={{ marginTop: '6px', width: '100%', fontSize: '0.7rem' }}
+            onClick={() => currentAdmins[0] && openAssignModal(currentAdmins[0])}
+          >
+            Manage Admins
           </button>
         </div>
       </div>
@@ -546,6 +754,12 @@ export default function UserRoleManagement({
 
             <form onSubmit={handleAssignSubmit}>
               <div className="adm-modal-body">
+                {assignError && (
+                  <div style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '0.65rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', marginBottom: '0.75rem' }}>
+                    {assignError}
+                  </div>
+                )}
+
                 <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '0.5rem' }}>
                   <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Target User Account:</div>
                   <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{editingUser.name}</div>
@@ -558,9 +772,11 @@ export default function UserRoleManagement({
                     <select
                       className="adm-input"
                       value={assignedRole}
-                      onChange={(e) => setAssignedRole(e.target.value)}
+                      onChange={(e) => {
+                        setAssignedRole(e.target.value);
+                        setAssignError('');
+                      }}
                     >
-                      <option value="Student">Student (Undergraduate)</option>
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
                       <option value="Faculty Dean">Faculty Dean (Executive)</option>
@@ -601,6 +817,27 @@ export default function UserRoleManagement({
                   </div>
                 </div>
 
+                {(() => {
+                  const notice = getRoleRuleNotice(assignedRole, assignedDept, editingUser.id);
+                  if (!notice) return null;
+                  const isErr = notice.type === 'error';
+                  return (
+                    <div
+                      style={{
+                        background: isErr ? '#fef2f2' : notice.type === 'warning' ? '#fffbeb' : '#eff6ff',
+                        border: `1px solid ${isErr ? '#fecaca' : notice.type === 'warning' ? '#fde68a' : '#bfdbfe'}`,
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        color: isErr ? '#991b1b' : notice.type === 'warning' ? '#92400e' : '#1e40af',
+                        marginBottom: '0.5rem'
+                      }}
+                    >
+                      <strong>{isErr ? '⛔ Limit Reached:' : '⚖️ System Rule:'}</strong> {notice.text}
+                    </div>
+                  );
+                })()}
+
                 <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '8px', fontSize: '0.78rem', color: '#b45309' }}>
                   <strong>Security Note:</strong> Changing this role updates permissions across all batch approvals, examination signing rights, and portal login privileges immediately.
                 </div>
@@ -617,6 +854,10 @@ export default function UserRoleManagement({
                 <button
                   type="submit"
                   className="adm-find-process-btn"
+                  disabled={(() => {
+                    const notice = getRoleRuleNotice(assignedRole, assignedDept, editingUser.id);
+                    return notice?.type === 'error';
+                  })()}
                 >
                   Confirm & Assign Role
                 </button>
@@ -716,7 +957,6 @@ export default function UserRoleManagement({
                       value={newStaffRole}
                       onChange={(e) => handleRoleSelectChange(e.target.value)}
                     >
-                      <option value="Student">Student (Undergraduate)</option>
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
                       <option value="Faculty Dean">Faculty Dean (Executive)</option>
@@ -757,6 +997,27 @@ export default function UserRoleManagement({
                   </div>
                 </div>
 
+                {(() => {
+                  const notice = getRoleRuleNotice(newStaffRole, newStaffDept, null);
+                  if (!notice) return null;
+                  const isErr = notice.type === 'error';
+                  return (
+                    <div
+                      style={{
+                        background: isErr ? '#fef2f2' : notice.type === 'warning' ? '#fffbeb' : '#eff6ff',
+                        border: `1px solid ${isErr ? '#fecaca' : notice.type === 'warning' ? '#fde68a' : '#bfdbfe'}`,
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        color: isErr ? '#991b1b' : notice.type === 'warning' ? '#92400e' : '#1e40af',
+                        marginTop: '0.5rem'
+                      }}
+                    >
+                      <strong>{isErr ? '⛔ Limit Reached:' : '⚖️ System Rule:'}</strong> {notice.text}
+                    </div>
+                  );
+                })()}
+
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.75rem', borderRadius: '8px', fontSize: '0.78rem', color: '#166534', marginTop: '0.5rem' }}>
                   <strong>Onboarding Credentials:</strong> This account will be provisioned with email <code>{newStaffEmail || '...'}</code> and temporary password <code>{newStaffPassword || '...'}</code>. The user will be required to change their temporary password upon initial sign-in.
                 </div>
@@ -773,6 +1034,10 @@ export default function UserRoleManagement({
                 <button
                   type="submit"
                   className="adm-find-process-btn"
+                  disabled={(() => {
+                    const notice = getRoleRuleNotice(newStaffRole, newStaffDept, null);
+                    return notice?.type === 'error';
+                  })()}
                 >
                   + Provision & Save Account
                 </button>

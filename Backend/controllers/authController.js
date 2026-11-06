@@ -320,3 +320,122 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error updating profile' });
   }
 };
+
+// Provision a new staff / administrative user account
+exports.provisionUser = async (req, res) => {
+  try {
+    const { name, email, password, tempPassword, role, roleKey, department, designation, staffId } = req.body || {};
+    if (!name || !email) {
+      return res.status(400).json({ success: false, message: 'Name and email are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const rawPass = password || tempPassword || '123456';
+
+    let resolvedRoleKey = roleKey;
+    if (!resolvedRoleKey && role) {
+      const lower = role.toLowerCase();
+      if (lower.includes('hod') || lower.includes('head of department')) resolvedRoleKey = 'hod';
+      else if (lower.includes('dean')) resolvedRoleKey = 'dean';
+      else if (lower.includes('sar') || lower.includes('senior assistant registrar')) resolvedRoleKey = 'sar';
+      else if (lower.includes('exam')) resolvedRoleKey = 'examination';
+      else if (lower.includes('dept') && lower.includes('ma')) resolvedRoleKey = 'dept_ma';
+      else if (lower.includes('fma') || (lower.includes('faculty') && lower.includes('ma'))) resolvedRoleKey = 'fma';
+      else if (lower.includes('superadmin')) resolvedRoleKey = 'superadmin';
+      else if (lower.includes('admin')) resolvedRoleKey = 'admin';
+      else resolvedRoleKey = 'lecturer';
+    }
+
+    const normRole = normalizeRole(resolvedRoleKey || 'lecturer');
+
+    // Enforce Institutional System Rules on single-seat and quota roles
+    const allUsers = await store.users.all();
+
+    if (normRole === 'admin') {
+      const activeAdmins = allUsers.filter((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'admin');
+      if (activeAdmins.length >= 2) {
+        return res.status(400).json({
+          success: false,
+          message: `System Rule Limit: Maximum 2 System Administrators permitted. Currently held by ${activeAdmins.map((a) => a.name).join(' & ')}.`
+        });
+      }
+    } else if (normRole === 'dean') {
+      const existingDean = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'dean');
+      if (existingDean) {
+        existingDean.role = 'lecturer';
+        existingDean.roleKey = 'lecturer';
+        existingDean.designation = 'Senior Lecturer (Former Dean)';
+        await store.users.save(existingDean).catch(() => {});
+      }
+    } else if (normRole === 'hod') {
+      const isBst = (department || '').toLowerCase().includes('bio') || (department || '').toLowerCase().includes('bst');
+      const existingHod = allUsers.find((u) => {
+        if (u.email.toLowerCase() === cleanEmail || normalizeRole(u.role) !== 'hod') return false;
+        const uIsBst = (u.department || '').toLowerCase().includes('bio') || (u.department || '').toLowerCase().includes('bst');
+        return uIsBst === isBst;
+      });
+      if (existingHod) {
+        existingHod.role = 'lecturer';
+        existingHod.roleKey = 'lecturer';
+        existingHod.designation = `Senior Lecturer Gr. I in ${isBst ? 'BST' : 'DICT'} (Former HOD)`;
+        await store.users.save(existingHod).catch(() => {});
+      }
+    } else if (normRole === 'sar') {
+      const existingSar = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'sar');
+      if (existingSar) {
+        existingSar.role = 'lecturer';
+        existingSar.roleKey = 'lecturer';
+        existingSar.designation = 'Faculty Administrative Officer (Former SAR)';
+        await store.users.save(existingSar).catch(() => {});
+      }
+    } else if (normRole === 'examination') {
+      const existingExam = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'examination');
+      if (existingExam) {
+        existingExam.role = 'lecturer';
+        existingExam.roleKey = 'lecturer';
+        existingExam.designation = 'Senior Lecturer (Former Exam Officer)';
+        await store.users.save(existingExam).catch(() => {});
+      }
+    } else if (normRole === 'dept_ma') {
+      const existingDeptMa = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'dept_ma');
+      if (existingDeptMa) {
+        existingDeptMa.role = 'lecturer';
+        existingDeptMa.roleKey = 'lecturer';
+        existingDeptMa.designation = 'Management Assistant (Former Dept MA)';
+        await store.users.save(existingDeptMa).catch(() => {});
+      }
+    } else if (normRole === 'fma') {
+      const existingFma = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'fma');
+      if (existingFma) {
+        existingFma.role = 'lecturer';
+        existingFma.roleKey = 'lecturer';
+        existingFma.designation = 'Management Assistant (Former FMA)';
+        await store.users.save(existingFma).catch(() => {});
+      }
+    }
+
+    const userData = {
+      name: name.trim(),
+      email: cleanEmail,
+      password: hashPassword(rawPass),
+      role: normRole,
+      roleKey: normRole,
+      staffId: staffId || `STAFF-${normRole.toUpperCase()}-${Date.now().toString().slice(-4)}`,
+      department: department || 'Department of Information and Communication Technology',
+      faculty: 'Faculty of Technology',
+      designation: designation || role || normRole,
+      avatarInitial: name.trim().split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U',
+      status: 'active',
+    };
+
+    const user = await store.users.createOrUpdate(userData);
+    return res.json({
+      success: true,
+      message: `User ${name} provisioned successfully with role ${normRole}.`,
+      user: publicUser(user),
+    });
+  } catch (error) {
+    console.error('Provision user error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while provisioning user.' });
+  }
+};
