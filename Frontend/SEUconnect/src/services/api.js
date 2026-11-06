@@ -355,6 +355,7 @@ const qs = (params = {}) => {
 
 export const api = {
   /* ------------------------------ authentication ------------------------------ */
+  getUsers: () => request('/auth/users'),
   async login(emailOrRegNo, password) {
     try {
       const res = await request('/auth/login', json('POST', { email: emailOrRegNo, username: emailOrRegNo, password }));
@@ -520,6 +521,7 @@ export const api = {
   deleteAcademicEvent: (id) => request(`/academic-calendar/${id}`, { method: 'DELETE' }),
 
   /* ------------------------------------ students ----------------------------------- */
+  getAllStudents: () => request('/student'),
   getStudentRecord: (identifier) => request(`/student/${encodeURIComponent(identifier)}`),
   createStudent: async (studentData) => {
     enrolledStorage.save(studentData);
