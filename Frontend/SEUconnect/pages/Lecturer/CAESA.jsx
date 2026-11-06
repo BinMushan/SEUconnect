@@ -8,6 +8,7 @@ import {
   getStoredMarks,
   saveStoredMarks,
 } from './lecturerMockData.js';
+import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from '../../src/services/resultsPipelineService.js';
 
 /**
  * Helper to suggest the next sequential CA name (e.g. CA 03, CA 04)
@@ -36,8 +37,16 @@ function getSuggestedNextCAName(allAssessments) {
  * - Validation (0 - max marks) with error feedback highlights
  * - Full persistence via localStorage and Light/Dark mode support
  */
-export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) {
-  const [selectedSubject, setSelectedSubject] = useState(initialSubjectCode);
+export default function CAESA({ subjects = INITIAL_SUBJECTS, initialSubjectCode = 'SWT22022', onShowToast }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+  const defaultCode = availableSubjects[0]?.code || initialSubjectCode;
+  const [selectedSubject, setSelectedSubject] = useState(defaultCode);
+
+  useEffect(() => {
+    if (availableSubjects.length > 0 && !availableSubjects.some((s) => s.code === selectedSubject)) {
+      setSelectedSubject(availableSubjects[0].code);
+    }
+  }, [availableSubjects, selectedSubject]);
 
   // Custom continuous assessments loaded from localStorage
   const [customAssessments, setCustomAssessments] = useState(() => getStoredCustomCAs());
@@ -268,27 +277,84 @@ export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) 
       }
       return;
     }
+
+    // Format all student marks for this subject
+    const marksByReg = {};
+    ENROLLED_STUDENTS.forEach((st) => {
+      const reg = st.regNo;
+      const scores = marksState[reg] || {};
+      const ca1 = Number(scores.ca1) || st.ca1 || 35;
+      const ca2 = Number(scores.ca2) || st.ca2 || 35;
+      // CA is 40%
+      const caNormalized = Math.round(((ca1 + ca2) / 2) * 0.4);
+      // ESA is 60%
+      const esaVal = Number(scores.esa) || st.esa || 50;
+      const esaNormalized = Math.round(esaVal * 0.6);
+
+      marksByReg[reg] = {
+        ca: caNormalized,
+        esa: esaNormalized,
+        total: caNormalized + esaNormalized,
+        rawCa1: ca1,
+        rawCa2: ca2,
+        rawEsa: esaVal,
+        submittedAt: new Date().toISOString()
+      };
+    });
+
+    resultsPipelineService.lecturerSubmitMarks(selectedSubject, marksByReg, 'Year 2 Semester 2', 'Dr. K. Perera');
+
     if (onShowToast) {
-      onShowToast(`${currentMeta.label} marks submitted to Dean and Examination Branch.`, 'success');
+      onShowToast(`Course ${selectedSubject} marks successfully submitted to Department Management Assistant (DMA) for batch compilation.`, 'success');
     }
   };
+
+  const pipelineStatus = resultsPipelineService.getPipelineStatus('Year 2 Semester 2');
+
+  if (availableSubjects.length === 0) {
+    return (
+      <div className="lec-caesa-container">
+        <div className="lec-module-header-card">
+          <div>
+            <h2 className="lec-module-title">Continuous Assessment (CA) & ESA Marks</h2>
+            <p className="lec-module-sub">
+              Input, evaluate, and moderate student continuous assessments and end-semester scores prior to DMA compilation and HOD moderation.
+            </p>
+          </div>
+        </div>
+        <div className="lec-empty-state-card" style={{ padding: '60px 24px', background: '#fff', borderRadius: '14px', border: '1px dashed #cbd5e1', textAlign: 'center', margin: '24px 0' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>No Course Modules Allocated</h4>
+          <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            You currently have no course modules allocated for CA/ESA mark entry. When courses are assigned to you by your Head of Department (HOD), assessment marksheets will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="lec-caesa-container">
       {/* 1. Header Card */}
       <div className="lec-module-header-card">
         <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '3px 10px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px' }}>
+            <span>WORKFLOW STAGE: {PIPELINE_LABELS[pipelineStatus.stage] || pipelineStatus.stage}</span>
+          </div>
           <h2 className="lec-module-title">Continuous Assessment (CA) & ESA Marks</h2>
           <p className="lec-module-sub">
-            Input, evaluate, and moderate student continuous assessments and end-semester scores prior to faculty board submission.
+            Input, evaluate, and moderate student continuous assessments and end-semester scores prior to DMA compilation and HOD moderation.
           </p>
         </div>
         <div className="lec-caesa-header-buttons">
           <button type="button" className="lec-btn-save-draft" onClick={handleSaveDraft}>
             Save Draft
           </button>
-          <button type="button" className="lec-btn-publish" onClick={handlePublishMarks}>
-            Submit Marks
+          <button type="button" className="lec-btn-publish" onClick={handlePublishMarks} title="Submit finalized subject marks to Department Management Assistant">
+            Submit Marks to DMA &rarr;
           </button>
         </div>
       </div>
@@ -302,7 +368,7 @@ export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) 
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
           >
-            {INITIAL_SUBJECTS.map((sub) => (
+            {availableSubjects.map((sub) => (
               <option key={sub.code} value={sub.code}>
                 {sub.code} — {sub.name} ({sub.semester}{sub.batch ? ` • Batch ${sub.batch}` : ''})
               </option>

@@ -368,99 +368,38 @@ export default function DashboardTemplate({
         department: user?.department,
         email: user?.email,
       });
-      const serverNotifs = (res && res.data) ? res.data : [];
-      const localNotifs = getRelevantLocalNotifs();
-      const merged = [...localNotifs, ...serverNotifs];
-      const seen = new Set();
-      const unique = [];
-      for (const item of merged) {
-        const idKey = String(item._id || item.id);
-        if (!seen.has(idKey)) {
-          seen.add(idKey);
-          unique.push(item);
-        }
-      }
-      const deletedIds = new Set(getDeletedNotifIds());
-      const filtered = unique.filter(n => !deletedIds.has(String(n._id || n.id)));
-      setNotifications(filtered);
-      setUnreadCount(filtered.filter(n => !n.isRead).length);
-    } catch {
-      // Fallback for offline demo
-      const localNotifs = getRelevantLocalNotifs();
-      if (notifications.length === 0 || localNotifs.length > 0) {
-        const role = (user?.roleKey || user?.role || '').toLowerCase();
-        let fallback = [];
-        if (role === 'dean') {
-          fallback = [
-            {
-              _id: 'n_d1',
-              title: 'HOD Endorsement: Credit Exemption Request',
-              message: 'HOD ICT M.J Ahamed Sabani endorsed request REQ-2026-0420 (K.M. Nuwais) for Dean Executive Ratification.',
-              type: 'endorsement',
-              trackingNumber: 'REQ-2026-0420',
-              targetTab: 'dean_sanctions',
-              isRead: false,
-              createdAt: new Date(Date.now() - 1000 * 60 * 35),
-            },
-            {
-              _id: 'n_d2',
-              title: 'Awaiting Dean Approval: BST Practicum Rescheduling',
-              message: 'Dr. M.G. Mohamed Thariq (HOD BST) forwarded special concession viva defense REQ-2026-0318 for Faculty Board sanction.',
-              type: 'approval_request',
-              trackingNumber: 'REQ-2026-0318',
-              targetTab: 'dean_sanctions',
-              isRead: false,
-              createdAt: new Date(Date.now() - 1000 * 60 * 120),
-            },
-            {
-              _id: 'n_d3',
-              title: 'Faculty Academic Calendar Notice',
-              message: 'Semester 05 Mid-Semester examination board clearance scheduling finalized for BST and ICT departments.',
-              type: 'announcement',
-              trackingNumber: '',
-              targetTab: 'academic_calendar',
-              isRead: true,
-              createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-            },
-          ];
-        } else if (role === 'hod') {
-          fallback = [
-            {
-              _id: 'n_h1',
-              title: 'Awaiting HOD Sign-Off: Repeat Exam Entry',
-              message: 'Dr. S. Kirushanth verified CA mark (24/30) for REP-2026-0105 (A.R. Fathima). Pending HOD Sign-off.',
-              type: 'approval_request',
-              trackingNumber: 'REP-2026-0105',
-              targetTab: 'dashboard',
-              isRead: false,
-              createdAt: new Date(Date.now() - 1000 * 60 * 25),
-            },
-            {
-              _id: 'n_h2',
-              title: 'Successfully Endorsed to Dean: REQ-2026-0420',
-              message: 'Your endorsement for K.M. Nuwais has been transferred to Faculty Executive Office (Dean Prof. Rifai Kariapper).',
-              type: 'endorsement',
-              trackingNumber: 'REQ-2026-0420',
-              targetTab: 'dashboard',
-              isRead: false,
-              createdAt: new Date(Date.now() - 1000 * 60 * 90),
-            },
-            {
-              _id: 'n_h3',
-              title: 'Lecturer Submission: Academic Workload Verification',
-              message: 'Semester 05 CA moderation sheets submitted by Software Technologies (SWT) module leaders for HOD audit.',
-              type: 'workload',
-              trackingNumber: '',
-              targetTab: 'ca_marks',
-              isRead: true,
-              createdAt: new Date(Date.now() - 1000 * 60 * 300),
-            },
-          ];
+      if (res && res.data) {
+        const serverNotifs = res.data;
+        const localNotifs = getRelevantLocalNotifs();
+        const merged = [...localNotifs, ...serverNotifs];
+        const seen = new Set();
+        const unique = [];
+        for (const item of merged) {
+          const idKey = String(item._id || item.id || item.trackingNumber);
+          if (!seen.has(idKey)) {
+            seen.add(idKey);
+            unique.push(item);
+          }
         }
         const deletedIds = new Set(getDeletedNotifIds());
-        const activeFallback = [...localNotifs, ...fallback].filter(n => !deletedIds.has(String(n._id || n.id)));
-        setNotifications(activeFallback);
-        setUnreadCount(activeFallback.filter(n => !n.isRead).length);
+        const filtered = unique.filter(n => !deletedIds.has(String(n._id || n.id || n.trackingNumber)));
+        setNotifications(filtered);
+        setUnreadCount(filtered.filter(n => !n.isRead).length);
+        return;
+      }
+    } catch {
+      // In offline / local demo, read persisted live notifications and fallback
+      try {
+        const local = JSON.parse(localStorage.getItem('seu_live_notifications_v1') || '[]');
+        const localNotifs = getRelevantLocalNotifs();
+        const combined = [...localNotifs, ...local];
+        const deletedIds = new Set(getDeletedNotifIds());
+        const filtered = combined.filter(n => !deletedIds.has(String(n._id || n.id || n.trackingNumber)));
+        setNotifications(filtered);
+        setUnreadCount(filtered.filter(n => !n.isRead).length);
+      } catch (_) {
+        setNotifications([]);
+        setUnreadCount(0);
       }
     }
   };
@@ -481,24 +420,40 @@ export default function DashboardTemplate({
     }
   };
 
-  const handleDeleteSingleNotif = async (notifId) => {
+  const handleDeleteSingleNotif = async (notif) => {
+    const notifId = notif?._id || notif?.id || notif;
     addDeletedNotifId(notifId);
+    if (notif?.trackingNumber) addDeletedNotifId(notif.trackingNumber);
+
     setNotifications((prev) => {
-      const next = prev.filter((n) => String(n._id || n.id) !== String(notifId));
+      const next = prev.filter((n) => String(n._id || n.id) !== String(notifId) && n.trackingNumber !== notif?.trackingNumber);
       setUnreadCount(next.filter((n) => !n.isRead).length);
       return next;
     });
+
     try {
       await api.deleteNotification(notifId);
     } catch {
       // offline fallback
     }
+
+    try {
+      const local = JSON.parse(localStorage.getItem('seu_live_notifications_v1') || '[]');
+      const updated = local.filter((n) => String(n._id || n.id) !== String(notifId) && n.trackingNumber !== notif?.trackingNumber);
+      localStorage.setItem('seu_live_notifications_v1', JSON.stringify(updated));
+    } catch (_) {}
   };
 
   const handleDeleteAllNotifs = async () => {
-    notifications.forEach((n) => addDeletedNotifId(n._id || n.id));
+    notifications.forEach((n) => {
+      addDeletedNotifId(n._id || n.id);
+      if (n.trackingNumber) addDeletedNotifId(n.trackingNumber);
+    });
     setNotifications([]);
     setUnreadCount(0);
+    try {
+      localStorage.removeItem('seu_live_notifications_v1');
+    } catch (_) {}
     try {
       await api.deleteAllNotifications();
     } catch {
@@ -531,17 +486,45 @@ export default function DashboardTemplate({
     }
   };
 
-  const formatNotifTime = (timestamp) => {
-    if (!timestamp) return 'Recently';
+  const formatNotifDateAndTime = (timestamp) => {
+    if (!timestamp) {
+      const now = new Date();
+      return {
+        dateStr: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        timeStr: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        relative: 'Just now'
+      };
+    }
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return { dateStr: 'Recently', timeStr: '', relative: '' };
+    }
+
+    const dateStr = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+
     const now = new Date();
-    const diffMs = now - date;
+    const diffMs = Math.max(0, now - date);
     const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    let relative = '';
+    if (diffMins < 1) relative = 'Just now';
+    else if (diffMins < 60) relative = `${diffMins}m ago`;
+    else if (diffMins < 1440) relative = `${Math.floor(diffMins / 60)}h ago`;
+    else {
+      const days = Math.floor(diffMins / 1440);
+      relative = `${days}d ago`;
+    }
+
+    return { dateStr, timeStr, relative };
   };
 
   const displayedNotifs = notifications.filter(n => {
@@ -896,6 +879,7 @@ export default function DashboardTemplate({
                     ) : (
                       displayedNotifs.map((n, idx) => {
                         const iconType = n.type || 'general';
+                        const timeInfo = formatNotifDateAndTime(n.createdAt);
                         return (
                           <div
                             key={n._id || n.id || `notif-${idx}`}
@@ -920,7 +904,25 @@ export default function DashboardTemplate({
                               </div>
                               <p className="seu-notif-item-msg">{n.message}</p>
                               <div className="seu-notif-item-meta">
-                                <span>{formatNotifTime(n.createdAt)}</span>
+                                <span className="seu-notif-meta-badge seu-notif-date-badge" title="Notification Date">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                  </svg>
+                                  {timeInfo.dateStr}
+                                </span>
+                                <span className="seu-notif-meta-badge seu-notif-time-badge" title="Notification Time">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                  </svg>
+                                  {timeInfo.timeStr}
+                                </span>
+                                {timeInfo.relative && (
+                                  <span className="seu-notif-relative-pill">{timeInfo.relative}</span>
+                                )}
                                 {n.trackingNumber && (
                                   <span className="seu-notif-item-badge">{n.trackingNumber}</span>
                                 )}
@@ -947,13 +949,13 @@ export default function DashboardTemplate({
                               <button
                                 type="button"
                                 className="seu-notif-delete-single-btn"
-                                title="Delete notification"
+                                title="Delete notification permanently"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeleteSingleNotif(n._id || n.id);
+                                  handleDeleteSingleNotif(n);
                                 }}
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                   <polyline points="3 6 5 6 21 6" />
                                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                   <line x1="10" y1="11" x2="10" y2="17" />

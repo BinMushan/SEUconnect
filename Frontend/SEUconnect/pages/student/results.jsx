@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { api } from '../../src/services/api';
+import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from '../../src/services/resultsPipelineService.js';
 import './results.css';
 
 const pct = (v) => (v === null || v === undefined ? '—' : Number(v).toFixed(1));
@@ -57,15 +58,59 @@ export default function StudentResults({ user }) {
   const semesterNumbers = useMemo(() => [...new Set(allRows.map((r) => r.semester))].sort((x, y) => x - y), [allRows]);
   const student = transcript?.student;
   const candidateName = student?.fullName || user?.name || '';
-  const regNo = student?.registrationNo || user?.regNo || '';
-  const indexNo = student?.studentId || user?.indexNo || '';
-  const programme = student?.programmeRef?.name || student?.programmeRef?.code || user?.programme || '';
+  const regNo = student?.registrationNo || user?.regNo || '22ICT091';
+  const indexNo = student?.studentId || user?.indexNo || 'ICT22091';
+  const programme = student?.programmeRef?.name || student?.programmeRef?.code || user?.programme || 'BICT (Hons)';
 
-  const filteredModules = useMemo(() => (selectedSemester === 'All' ? allRows : allRows.filter((m) => m.semester.toString() === selectedSemester)), [allRows, selectedSemester]);
+  const [pipelineTick, setPipelineTick] = useState(0);
+  useEffect(() => {
+    const onSync = () => setPipelineTick((c) => c + 1);
+    window.addEventListener('seu_pipeline_update', onSync);
+    window.addEventListener('storage', onSync);
+    return () => {
+      window.removeEventListener('seu_pipeline_update', onSync);
+      window.removeEventListener('storage', onSync);
+    };
+  }, []);
 
-  const cumulativeGpa = transcript?.cumulative?.gpa ?? null;
-  const semesterGpa = selectedSemester === 'All' ? cumulativeGpa : (transcript?.semesters || []).find((x) => String(x.semester?.number) === selectedSemester)?.sgpa ?? null;
-  const fmt = (v) => (v === null || v === undefined ? '—' : Number(v).toFixed(2));
+  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1';
+  const livePipelineResults = useMemo(() => {
+    return resultsPipelineService.getStudentSemesterResults(regNo, 'Year 2 Semester 2');
+  }, [regNo, pipelineTick]);
+
+  const isPublished = livePipelineResults.isPublished;
+  const pipelineStatus = livePipelineResults.pipelineStatus;
+
+  // Use API rows if present, otherwise live pipeline courses when published
+  const displayCourses = useMemo(() => {
+    if (allRows.length > 0) {
+      return selectedSemester === 'All' ? allRows : allRows.filter((m) => m.semester.toString() === selectedSemester);
+    }
+    if (isPublished) {
+      return livePipelineResults.courses.map((c) => ({
+        id: `${c.code}-4-1`,
+        semester: 4,
+        semLabel: 'Sem 4',
+        code: c.code,
+        title: c.title,
+        credits: c.credits,
+        caMark: c.caMark,
+        esaMark: c.esaMark,
+        finalMark: c.finalMark,
+        grade: c.grade,
+        gradePoint: c.gradePoint,
+        qualityPoints: c.qualityPoints,
+        status: c.passed ? 'Passed' : 'Failed'
+      }));
+    }
+    return [];
+  }, [allRows, selectedSemester, isPublished, livePipelineResults]);
+
+  const filteredModules = displayCourses;
+
+  const cumulativeGpa = isFreshers ? null : (transcript?.cumulative?.gpa ?? (isPublished ? livePipelineResults.sgpa : null));
+  const semesterGpa = isFreshers ? null : (selectedSemester === 'All' ? cumulativeGpa : (transcript?.semesters || []).find((x) => String(x.semester?.number) === selectedSemester)?.sgpa ?? (isPublished ? livePipelineResults.sgpa : null));
+  const fmt = (v) => (v === null || v === undefined ? 'N/A' : Number(v).toFixed(2));
 
   const handlePrint = () => {
     window.print();
@@ -137,6 +182,69 @@ export default function StudentResults({ user }) {
         </div>
       </section>
 
+      {/* Fresher Notice or Results Moderation Pipeline Banner */}
+      {isFreshers ? (
+        <section className="seu-card" style={{ padding: '1.25rem', marginBottom: '1.5rem', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>ℹ️</span>
+            <div>
+              <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700, color: '#0f2b5c' }}>
+                Fresher Undergraduate Academic Status (Year 1 Semester 1)
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.86rem', color: '#475569', lineHeight: 1.5 }}>
+                Freshers do not receive a Semester GPA (SGPA) during Semester 1 as examinations are in progress. Upon completion of Semester 1 and formal Senate results release, your initial SGPA and credit standing will be computed and published.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : !isPublished ? (
+        <section className="seu-card" style={{ padding: '1.25rem', marginBottom: '1.5rem', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div>
+              <span style={{ display: 'inline-block', background: '#2563eb', color: '#ffffff', fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', marginBottom: '4px' }}>
+                ACADEMIC MODERATION IN PROGRESS
+              </span>
+              <h3 style={{ margin: '2px 0', fontSize: '1.02rem', fontWeight: 700, color: '#1e3a8a' }}>
+                Semester 4 (Year 2 Semester 2) Results in Faculty Moderation
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.83rem', color: '#3b82f6' }}>
+                Stage: <strong>{PIPELINE_LABELS[pipelineStatus.stage] || pipelineStatus.stage}</strong>
+              </p>
+            </div>
+            <span style={{ background: '#dbeafe', color: '#1e40af', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
+              ⏳ Pending HOD Official Release
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.4rem', marginTop: '0.5rem' }}>
+            {[
+              { label: '1. Lecturer Marks', done: true },
+              { label: '2. DMA Compilation', done: pipelineStatus.stage !== PIPELINE_STAGES.LECTURER_DRAFT },
+              { label: '3. HOD Moderation', done: [PIPELINE_STAGES.SUBMITTED_TO_EXAM_OFFICER, PIPELINE_STAGES.FORWARDED_TO_DEAN, PIPELINE_STAGES.DEAN_APPROVED, PIPELINE_STAGES.PUBLISHED].includes(pipelineStatus.stage) },
+              { label: '4. Exam Officer', done: [PIPELINE_STAGES.FORWARDED_TO_DEAN, PIPELINE_STAGES.DEAN_APPROVED, PIPELINE_STAGES.PUBLISHED].includes(pipelineStatus.stage) },
+              { label: '5. Dean Seal', done: [PIPELINE_STAGES.DEAN_APPROVED, PIPELINE_STAGES.PUBLISHED].includes(pipelineStatus.stage) },
+              { label: '6. Portal Publish', done: pipelineStatus.stage === PIPELINE_STAGES.PUBLISHED }
+            ].map((step, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: step.done ? '#dcfce7' : '#ffffff',
+                  border: `1px solid ${step.done ? '#86efac' : '#cbd5e1'}`,
+                  borderRadius: '6px',
+                  padding: '6px 4px',
+                  textAlign: 'center',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  color: step.done ? '#15803d' : '#64748b'
+                }}
+              >
+                {step.done ? '✓ ' : ''}{step.label}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {/* 3. Published Results Table Card */}
       <section className="seu-card results-table-card">
         <div className="seu-card-header">
@@ -165,7 +273,7 @@ export default function StudentResults({ user }) {
               {!filteredModules.length && (
                 <tr>
                   <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                    {loadError || (transcript ? 'No published results yet. Results appear here once the examination branch publishes them.' : 'Loading results...')}
+                    {loadError || (isFreshers ? 'Freshers examinations are scheduled at the end of Semester 1. SGPA and grades will be published following Senate approval.' : !isPublished ? 'Semester results are currently in the Faculty Moderation Pipeline. Once approved by the Dean and published by HOD, verified grades and SGPA will appear here.' : 'No published results found.')}
                   </td>
                 </tr>
               )}
@@ -192,8 +300,8 @@ export default function StudentResults({ user }) {
                       {item.grade}
                     </span>
                   </td>
-                  <td className="res-cell-gpoint">{item.gradePoint.toFixed(2)}</td>
-                  <td className="res-cell-qpoints">{item.qualityPoints.toFixed(2)}</td>
+                  <td className="res-cell-gpoint">{fmt(item.gradePoint)}</td>
+                  <td className="res-cell-qpoints">{fmt(item.qualityPoints)}</td>
                 </tr>
               ))}
             </tbody>
@@ -246,8 +354,8 @@ export default function StudentResults({ user }) {
                 <td>{item.esaMark}</td>
                 <td>{item.finalMark}</td>
                 <td><strong>{item.grade}</strong></td>
-                <td>{item.gradePoint.toFixed(2)}</td>
-                <td>{item.qualityPoints.toFixed(2)}</td>
+                <td>{fmt(item.gradePoint)}</td>
+                <td>{fmt(item.qualityPoints)}</td>
               </tr>
             ))}
           </tbody>
@@ -340,7 +448,7 @@ export default function StudentResults({ user }) {
                   <input
                     type="text"
                     className="exam-form-input readonly-input"
-                    value={selectedRow.gradePoint.toFixed(2)}
+                    value={fmt(selectedRow.gradePoint)}
                     readOnly
                   />
                 </div>

@@ -18,6 +18,7 @@ const processRoutes = require('./routes/processRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const academicCalendarRoutes = require('./routes/academicCalendarRoutes');
+const timetableRoutes = require('./routes/timetableRoutes');
 const studentRouter = require('./router/studentRouter');
 const subjectRoutes = require('./routes/subjectRoutes');
 const { seedHandbookSubjects } = require('./config/subjectSeeder');
@@ -70,7 +71,7 @@ if (!isTest) {
   app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: Number(process.env.API_RATE_LIMIT || 600), standardHeaders: 'draft-7', legacyHeaders: false }));
 }
 
-// Health check endpoint (handles /, /health, and /api/health for Render/Vercel zero-downtime checks)
+// Health check endpoint for Render zero-downtime checks.
 app.all(['/', '/health', '/api/health'], (req, res) => {
   res.json({
     status: 'online',
@@ -92,6 +93,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/academic-calendar', academicCalendarRoutes);
 app.use('/api/student', studentRouter);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api/timetable', timetableRoutes);
 
 // ---- Versioned API: modular academic management (requires MongoDB) ----
 app.use('/api/v1', (req, res, next) => (getStatus() ? next() : next(unavailable('The academic management API needs the MongoDB connection.'))));
