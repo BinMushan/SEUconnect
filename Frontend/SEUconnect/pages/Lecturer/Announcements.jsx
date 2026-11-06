@@ -10,7 +10,8 @@ import { INITIAL_ANNOUNCEMENTS, INITIAL_SUBJECTS } from './lecturerMockData.js';
  * - Actions: "Publish Announcement" and "Save Draft"
  * - Interactive cards with Expand/Collapse, inline edit, delete with safety confirmation modal
  */
-export default function Announcements({ onShowToast }) {
+export default function Announcements({ subjects = INITIAL_SUBJECTS, onShowToast }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
 
   // New announcement form states
@@ -159,7 +160,7 @@ export default function Announcements({ onShowToast }) {
                   onChange={(e) => setTargetAudience(e.target.value)}
                 >
                   <option value="All Students">All Enrolled Students (Department-wide)</option>
-                  {INITIAL_SUBJECTS.map((sub) => (
+                  {availableSubjects.map((sub) => (
                     <option key={sub.code} value={sub.code}>
                       {sub.code} — {sub.name}
                     </option>

@@ -37,8 +37,16 @@ function getSuggestedNextCAName(allAssessments) {
  * - Validation (0 - max marks) with error feedback highlights
  * - Full persistence via localStorage and Light/Dark mode support
  */
-export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) {
-  const [selectedSubject, setSelectedSubject] = useState(initialSubjectCode);
+export default function CAESA({ subjects = INITIAL_SUBJECTS, initialSubjectCode = 'SWT22022', onShowToast }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+  const defaultCode = availableSubjects[0]?.code || initialSubjectCode;
+  const [selectedSubject, setSelectedSubject] = useState(defaultCode);
+
+  useEffect(() => {
+    if (availableSubjects.length > 0 && !availableSubjects.some((s) => s.code === selectedSubject)) {
+      setSelectedSubject(availableSubjects[0].code);
+    }
+  }, [availableSubjects, selectedSubject]);
 
   // Custom continuous assessments loaded from localStorage
   const [customAssessments, setCustomAssessments] = useState(() => getStoredCustomCAs());
@@ -303,6 +311,31 @@ export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) 
 
   const pipelineStatus = resultsPipelineService.getPipelineStatus('Year 2 Semester 2');
 
+  if (availableSubjects.length === 0) {
+    return (
+      <div className="lec-caesa-container">
+        <div className="lec-module-header-card">
+          <div>
+            <h2 className="lec-module-title">Continuous Assessment (CA) & ESA Marks</h2>
+            <p className="lec-module-sub">
+              Input, evaluate, and moderate student continuous assessments and end-semester scores prior to DMA compilation and HOD moderation.
+            </p>
+          </div>
+        </div>
+        <div className="lec-empty-state-card" style={{ padding: '60px 24px', background: '#fff', borderRadius: '14px', border: '1px dashed #cbd5e1', textAlign: 'center', margin: '24px 0' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>No Course Modules Allocated</h4>
+          <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            You currently have no course modules allocated for CA/ESA mark entry. When courses are assigned to you by your Head of Department (HOD), assessment marksheets will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="lec-caesa-container">
       {/* 1. Header Card */}
@@ -335,7 +368,7 @@ export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) 
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
           >
-            {INITIAL_SUBJECTS.map((sub) => (
+            {availableSubjects.map((sub) => (
               <option key={sub.code} value={sub.code}>
                 {sub.code} — {sub.name} ({sub.semester}{sub.batch ? ` • Batch ${sub.batch}` : ''})
               </option>

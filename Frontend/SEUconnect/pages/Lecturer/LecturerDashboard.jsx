@@ -10,12 +10,31 @@ import { INITIAL_STATS, INITIAL_TODAY_CLASSES, INITIAL_SUBJECTS } from './lectur
  */
 export default function LecturerDashboard({
   user,
+  subjects = INITIAL_SUBJECTS,
   onNavigateModule,
   onShowToast,
   assignedEcaCount = INITIAL_STATS.assignedECA ?? 3,
   ecaApplications = [],
 }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+  const isFreshLecturer = availableSubjects.length === 0;
+
+  const totalStudentsCount = isFreshLecturer
+    ? 0
+    : availableSubjects === INITIAL_SUBJECTS
+    ? INITIAL_STATS.totalStudents
+    : availableSubjects.reduce((acc, s) => acc + (s.studentsCount || 0), 0);
+
+  const assignedSubjectsCount = availableSubjects.length;
+
+  const todayClassesList = isFreshLecturer
+    ? []
+    : availableSubjects === INITIAL_SUBJECTS
+    ? INITIAL_TODAY_CLASSES
+    : [];
+
   const ecaPendingCount = typeof assignedEcaCount === 'number' ? assignedEcaCount : (INITIAL_STATS.assignedECA ?? 3);
+
   return (
     <div className="lec-dashboard-content">
       {/* 1. 6 Key Academic Stat Cards */}
@@ -29,10 +48,10 @@ export default function LecturerDashboard({
           {/* 1. Total Students */}
           <StatCard
             title="Total Students"
-            value={INITIAL_STATS.totalStudents}
-            subtext={INITIAL_STATS.totalStudentsGrowth}
-            badgeText="Enrolled"
-            badgeType="success"
+            value={totalStudentsCount}
+            subtext={isFreshLecturer ? 'No cohorts enrolled' : INITIAL_STATS.totalStudentsGrowth}
+            badgeText={isFreshLecturer ? '0 Enrolled' : 'Enrolled'}
+            badgeType={isFreshLecturer ? 'info' : 'success'}
             colorScheme="blue"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -48,10 +67,10 @@ export default function LecturerDashboard({
           {/* 2. Assigned Subjects */}
           <StatCard
             title="Assigned Subjects"
-            value={INITIAL_STATS.assignedSubjects}
-            subtext={INITIAL_STATS.assignedSubjectsSub}
-            badgeText="Active"
-            badgeType="primary"
+            value={assignedSubjectsCount}
+            subtext={isFreshLecturer ? 'Awaiting HOD allocation' : INITIAL_STATS.assignedSubjectsSub}
+            badgeText={isFreshLecturer ? 'Pending' : 'Active'}
+            badgeType={isFreshLecturer ? 'warning' : 'primary'}
             colorScheme="indigo"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -65,10 +84,10 @@ export default function LecturerDashboard({
           {/* 3. Today's Classes */}
           <StatCard
             title="Today's Classes"
-            value={INITIAL_STATS.todayClasses}
-            subtext={INITIAL_STATS.todayClassesSub}
-            badgeText="Scheduled"
-            badgeType="info"
+            value={todayClassesList.length}
+            subtext={isFreshLecturer ? 'No sessions scheduled' : INITIAL_STATS.todayClassesSub}
+            badgeText={todayClassesList.length > 0 ? 'Scheduled' : 'None Today'}
+            badgeType={todayClassesList.length > 0 ? 'info' : 'warning'}
             colorScheme="cyan"
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -197,16 +216,22 @@ export default function LecturerDashboard({
         </div>
 
         <div className="lec-classes-grid">
-          {INITIAL_TODAY_CLASSES.map((session) => (
-            <ClassCard
-              key={session.id}
-              session={session}
-              onViewClass={(subjectCode) => {
-                if (onShowToast) onShowToast(`Navigating to attendance for ${subjectCode}`, 'info');
-                onNavigateModule('attendance', { subjectCode });
-              }}
-            />
-          ))}
+          {todayClassesList.length === 0 ? (
+            <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '10px', gridColumn: '1 / -1' }}>
+              No classes scheduled for today.
+            </div>
+          ) : (
+            todayClassesList.map((session) => (
+              <ClassCard
+                key={session.id}
+                session={session}
+                onViewClass={(subjectCode) => {
+                  if (onShowToast) onShowToast(`Navigating to attendance for ${subjectCode}`, 'info');
+                  onNavigateModule('attendance', { subjectCode });
+                }}
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -224,31 +249,38 @@ export default function LecturerDashboard({
             </button>
           </div>
           <div className="lec-summary-modules-list">
-            {INITIAL_SUBJECTS.map((sub) => (
-              <div key={sub.code} className="lec-summary-item">
-                <div className="lec-summary-item-left">
-                  <span className="lec-summary-code">{sub.code}</span>
-                  <div>
-                    <div className="lec-summary-name">{sub.name}</div>
-                    <div className="lec-summary-meta">
-                      {sub.batch ? `Batch ${sub.batch} • ` : ''}{sub.semester} • {sub.classroom} • {sub.studentsCount} Students
+            {availableSubjects.length === 0 ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: '#64748b' }}>
+                <p style={{ margin: 0, fontWeight: 500 }}>No course modules allocated yet.</p>
+                <p style={{ margin: '4px 0 0', fontSize: '13px' }}>Modules allocated by your Head of Department (HOD) will appear here.</p>
+              </div>
+            ) : (
+              availableSubjects.map((sub) => (
+                <div key={sub.code} className="lec-summary-item">
+                  <div className="lec-summary-item-left">
+                    <span className="lec-summary-code">{sub.code}</span>
+                    <div>
+                      <div className="lec-summary-name">{sub.name}</div>
+                      <div className="lec-summary-meta">
+                        {sub.batch ? `Batch ${sub.batch} • ` : ''}{sub.semester} • {sub.classroom} • {sub.studentsCount} Students
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="lec-summary-item-right">
-                  <div className="lec-summary-rate-pill">
-                    Avg Attendance: <strong>{sub.attendanceRate}%</strong>
+                  <div className="lec-summary-item-right">
+                    <div className="lec-summary-rate-pill">
+                      Avg Attendance: <strong>{sub.attendanceRate}%</strong>
+                    </div>
+                    <button
+                      type="button"
+                      className="lec-summary-action-btn"
+                      onClick={() => onNavigateModule('attendance', { subjectCode: sub.code })}
+                    >
+                      Attendance
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="lec-summary-action-btn"
-                    onClick={() => onNavigateModule('attendance', { subjectCode: sub.code })}
-                  >
-                    Attendance
-                  </button>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
