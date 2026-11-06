@@ -195,7 +195,7 @@ def build_pdf(filename):
         [Paragraph("Degree Programme", table_cell_bold), Paragraph("Bachelor of Information and Communication Technology Honours (BICT Hons)", table_cell)],
         [Paragraph("Department", table_cell_bold), Paragraph("Department of Information and Communication Technology, Faculty of Technology", table_cell)],
         [Paragraph("GitHub Repository URL", table_cell_bold), Paragraph("https://github.com/BinMushan/SEUconnect", code_cell)],
-        [Paragraph("Live Deployment URL", table_cell_bold), Paragraph("https://seu-connect-plum.vercel.app", code_cell)],
+        [Paragraph("Live Deployment URL", table_cell_bold), Paragraph("Render service URL (configured in Render)", code_cell)],
         [Paragraph("Active Branch", table_cell_bold), Paragraph("backend-update-1  (Synced with origin/main)", code_cell)],
         [Paragraph("Submission Date", table_cell_bold), Paragraph("06th November 2026", table_cell)]
     ]
@@ -231,7 +231,7 @@ def build_pdf(filename):
     ))
     story.append(Paragraph(
         "The system is developed on the modern MERN architecture (MongoDB, Express.js 5, React 19, and Node.js 20+), utilizing stateless JSON Web Token (JWT) "
-        "cryptographic authentication, bcrypt password hashing, and role-based access control (RBAC), fully hosted as a full-stack serverless deployment on Vercel. "
+        "cryptographic authentication, bcrypt password hashing, and role-based access control (RBAC), deployed as separate Render web services for the frontend and backend. "
         "The platform comprises five core operational modules: (1) Student & Semester/Subject Registration; (2) Attendance & Medical Workflow Management; "
         "(3) Examination Management & Admission Card Processing; (4) Dynamic Results, GPA/CGPA Calculation & Academic Progression; and (5) Welfare, Societies, "
         "AI Process Guidance & System Administration. All business logic strictly enforces the <i>Faculty of Technology Undergraduate Handbook 2023/2024</i>, "
@@ -340,7 +340,7 @@ def build_pdf(filename):
         [
             Paragraph("Performance & Scalability", table_cell_bold),
             Paragraph("Sub-second API latency under typical faculty cohorts (150-500 students); low client bundle size; efficient database throughput.", table_cell),
-            Paragraph("Measured average API response time <320ms; indexed MongoDB schemas on `regNo`, `email`, `trackingNumber`, and `role`; client Vite production build chunked to <410 kB gzipped; serverless cold starts <950ms on Vercel Edge/Node runtime.", table_cell)
+            Paragraph("Measured average API response time <320ms; indexed MongoDB schemas on `regNo`, `email`, `trackingNumber`, and `role`; client Vite production build chunked to <410 kB gzipped; Render web service startup is optimized for production use.", table_cell)
         ],
         [
             Paragraph("Reliability & Maintainability", table_cell_bold),
@@ -414,8 +414,8 @@ def build_pdf(filename):
         ],
         [
             Paragraph("Deployment & Hosting", table_cell_bold),
-            Paragraph("Vercel Full-Stack Cloud Serverless (`api/index.js`)", table_cell),
-            Paragraph("Both frontend static bundles and backend Express REST API routes are hosted under one Vercel project domain, completely eliminating cross-origin CORS barriers.", table_cell)
+            Paragraph("Render web services (`render.yaml`)", table_cell),
+            Paragraph("The frontend is deployed as a Render static site and the backend as a Render Node web service, with the frontend configured to call the backend through `VITE_API_URL`.", table_cell)
         ],
         [
             Paragraph("AI Assistant Engine", table_cell_bold),
@@ -751,7 +751,7 @@ def build_pdf(filename):
         "deterministic role claim verification on every API route; (2) <i>State Machine Workflow Engine:</i> Implemented `Backend/workflows/engine.js` with structured "
         "transition tables, formal rejection remarks, and automatic status history logging; (3) <i>Resilient Storage Architecture:</i> Built an automatic in-memory mock "
         "fallback ensuring that if Atlas cloud connectivity drops, all 23 seed workflows and student records remain fully interactive for academic assessment; "
-        "(4) <i>Unified Full-Stack Vercel Monorepo:</i> Leveraged root `vercel.json` rewrites and `api/index.js` serverless routing to host client and API on the same domain.",
+        "(4) <i>Render Monorepo Deployment:</i> Uses `render.yaml` to deploy the frontend static site and backend Node web service independently with an explicit API URL and CORS origin.",
         body
     ))
 
@@ -1027,7 +1027,7 @@ def build_pdf(filename):
     story.append(Paragraph("8. Deployment and Setup Guide", h1))
     story.append(Paragraph("8.1 Application Access", h2))
     story.append(Paragraph(
-        "<b>Live Production URL:</b> <font color='#1D4ED8'><u>https://seu-connect-plum.vercel.app</u></font><br/>"
+        "<b>Live Production URL:</b> Configured through the Render frontend service URL.<br/>"
         "The live environment is configured with pre-seeded demonstration accounts for all institutional roles. Users can authenticate directly using "
         "the standard Institutional Sign In interface with sample passwords (<font face='Courier'>123456</font>): Student (<font face='Courier'>Student@gmail.com</font>), "
         "Lecturer (<font face='Courier'>Lecturer@gmail.com</font>), HOD (<font face='Courier'>HOD@gmail.com</font>), SAR (<font face='Courier'>sar@gmail.com</font>), "
@@ -1078,7 +1078,7 @@ def build_pdf(filename):
         [Paragraph("`PORT`", code_cell), Paragraph("Backend", table_cell), Paragraph("HTTP listen port for Express backend (default: `5000`).", table_cell)],
         [Paragraph("`NODE_ENV`", code_cell), Paragraph("Backend", table_cell), Paragraph("Execution mode (`development` or `production`).", table_cell)],
         [Paragraph("`GEMINI_API_KEY`", code_cell), Paragraph("Backend", table_cell), Paragraph("Google Gemini AI API key powering the RAG assistant (server-side only).", table_cell)],
-        [Paragraph("`VITE_API_URL`", code_cell), Paragraph("Frontend", table_cell), Paragraph("Base URL for API requests (`http://localhost:5000/api` locally, `/api` on Vercel).", table_cell)]
+        [Paragraph("`VITE_API_URL`", code_cell), Paragraph("Frontend", table_cell), Paragraph("Base URL for API requests (`http://localhost:5000/api` locally or the Render backend URL with `/api`).", table_cell)]
     ]
     t_env = Table(env_data, colWidths=[110, 60, 370])
     t_env.setStyle(TableStyle([
@@ -1094,10 +1094,10 @@ def build_pdf(filename):
     story.append(Paragraph("8.4 Known Setup or Deployment Issues & Solutions", h2))
     story.append(Paragraph(
         "• <b>CORS Whitelisting:</b> When running frontend and backend on differing development ports (5174 and 5000), Express CORS middleware dynamically "
-        "authorizes the client origin. On Vercel, client and API are unified under the same domain via `vercel.json` rewrites, bypassing cross-origin limits entirely.<br/>"
-        "• <b>Vercel Client-Side Routing:</b> React Router SPAs require URL rewrite rules (`/(.*) &rarr; /index.html`) to prevent 404 errors on browser page reloads. "
-        "This was resolved via the committed root and frontend `vercel.json` configurations.<br/>"
-        "• <b>MongoDB Atlas IP Whitelisting:</b> Cloud Atlas deployments require Network Access whitelisting (`0.0.0.0/0`) to allow dynamic Vercel serverless IP ranges to connect.",
+        "authorizes the client origin. Render keeps the frontend and backend as separate services, so `CORS_ORIGIN` must contain the deployed frontend URL.<br/>"
+        "• <b>Render Client-Side Routing:</b> React Router SPAs require a rewrite from `/*` to `/index.html` to prevent 404 errors on browser page reloads. "
+        "This is configured in `render.yaml` for the Render static site.<br/>"
+        "• <b>MongoDB Atlas IP Whitelisting:</b> Cloud Atlas deployments require Network Access whitelisting (`0.0.0.0/0`) to allow the Render backend service to connect.",
         body
     ))
 
@@ -1157,7 +1157,7 @@ def build_pdf(filename):
         "[6] MongoDB, Inc. (2025). <i>MongoDB Manual & Mongoose 9 ODM Documentation</i>. Retrieved from https://www.mongodb.com/docs/",
         "[7] Internet Engineering Task Force (IETF). (2015). <i>RFC 7519: JSON Web Token (JWT) Standard</i>. Retrieved from https://datatracker.ietf.org/doc/html/rfc7519",
         "[8] Google DeepMind. (2025). <i>Gemini 1.5 Flash API Documentation & Prompt Engineering Guide</i>. Retrieved from https://ai.google.dev/gemini-api/docs",
-        "[9] Vercel Inc. (2025). <i>Vercel Serverless Functions and SPA Deployment Specification</i>. Retrieved from https://vercel.com/docs",
+        "[9] Render Services. (2025). <i>Web Services and Static Sites Documentation</i>. Retrieved from https://render.com/docs",
         "[10] Vite Foundation. (2025). <i>Vite: Next Generation Frontend Tooling</i>. Retrieved from https://vitejs.dev"
     ]
     for r in references:
@@ -1226,4 +1226,3 @@ if __name__ == '__main__':
     
     build_pdf(out_dl)
     build_pdf(out_docs)
-
