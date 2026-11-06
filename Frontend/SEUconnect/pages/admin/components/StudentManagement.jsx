@@ -21,6 +21,79 @@ export const getStudentTempPassword = (student) => {
   return `Seu@${student.regNo.replace(/[^a-zA-Z0-9]/g, '')}`;
 };
 
+export const matchesBatchStudent = (s, batch) => {
+  if (!s || !batch) return false;
+
+  // 1. Exact or normalized batchId match (e.g. 'BATCH-01' === 'BATCH-01' or 'BATCH-1' === 'BATCH-01')
+  if (s.batchId && batch.id) {
+    if (s.batchId === batch.id) return true;
+    const sNum = String(s.batchId).replace(/[^0-9]/g, '');
+    const bNum = String(batch.id).replace(/[^0-9]/g, '');
+    if (sNum && bNum && parseInt(sNum, 10) === parseInt(bNum, 10)) return true;
+  }
+
+  // 2. Batch code match (e.g. 'B01', 'B02', 'B05')
+  if (batch.code) {
+    const bCode = String(batch.code).toLowerCase().trim();
+    if (s.batchId && String(s.batchId).toLowerCase().trim() === bCode) return true;
+    if (s.batchCode && s.batchCode.toLowerCase().includes(bCode)) return true;
+  }
+
+  // 3. Batch name / title match (e.g. "Batch 01" in "Batch 01 (2020/2021)")
+  if (batch.name) {
+    const bName = batch.name.toLowerCase();
+    const batchNoMatch = bName.match(/batch\s*0?(\d+)/i);
+    const batchNum = batchNoMatch ? parseInt(batchNoMatch[1], 10) : null;
+
+    if (s.batchCode) {
+      const sBatchNoMatch = s.batchCode.toLowerCase().match(/batch\s*0?(\d+)/i);
+      if (batchNum !== null && sBatchNoMatch && parseInt(sBatchNoMatch[1], 10) === batchNum) {
+        return true;
+      }
+      if (s.batchCode.toLowerCase().includes(bName) || bName.includes(s.batchCode.toLowerCase())) {
+        return true;
+      }
+    }
+  }
+
+  // 4. Academic year match (e.g. '2020/2021', '2023/2022', '2024/2025')
+  if (batch.academicYear) {
+    const bYear = batch.academicYear.trim().toLowerCase();
+    if (s.batch && (s.batch.toLowerCase() === bYear || s.batch.toLowerCase().includes(bYear) || bYear.includes(s.batch.toLowerCase()))) {
+      return true;
+    }
+    if (s.academicYear && (s.academicYear.toLowerCase() === bYear || s.academicYear.toLowerCase().includes(bYear) || bYear.includes(s.academicYear.toLowerCase()))) {
+      return true;
+    }
+    if (s.batchCode && s.batchCode.toLowerCase().includes(bYear)) {
+      return true;
+    }
+  }
+
+  // 5. Registration number prefix / year token match
+  // RegNo format: SEU/IS/20/ICT/019 or SEU/IS/22/ICT/085 or 20ICT019 or 22ICT085
+  if (s.regNo) {
+    const reg = s.regNo.toUpperCase();
+    if (batch.regPrefix) {
+      const prefix = String(batch.regPrefix).trim();
+      if (reg.includes(`/${prefix}/`) || reg.startsWith(prefix) || reg.includes(prefix)) {
+        return true;
+      }
+    }
+    if (batch.academicYear) {
+      const years = batch.academicYear.match(/\d{2,4}/g) || [];
+      for (const yr of years) {
+        const shortYr = yr.length === 4 ? yr.slice(-2) : yr;
+        if (reg.includes(`/${shortYr}/`)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+
 export default function StudentManagement({
   batches = [],
   students = [],
@@ -201,17 +274,15 @@ export default function StudentManagement({
 
   // Calculate real student counts per batch
   const getBatchStudentCount = (batch) => {
-    const count = students.filter((s) => s.batchId === batch.id || (batch.regPrefix && s.regNo.startsWith(batch.regPrefix))).length;
-    return count > 0 ? count : batch.totalStudents;
+    if (!batch) return 0;
+    const matching = students.filter((s) => matchesBatchStudent(s, batch));
+    return matching.length;
   };
 
   // Filter students for the currently selected batch
   const batchStudents = selectedBatch
     ? students.filter((s) => {
-        const matchesBatch =
-          s.batchId === selectedBatch.id ||
-          (selectedBatch.regPrefix && s.regNo.startsWith(selectedBatch.regPrefix)) ||
-          (s.batchCode && s.batchCode.includes(selectedBatch.code));
+        const matchesBatch = matchesBatchStudent(s, selectedBatch);
 
         const matchesSearch =
           s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -536,15 +607,18 @@ export default function StudentManagement({
     setTimeout(() => {
       const finalized = targetStudentsForEnrol.map((s) => {
         const cur = getCurriculumBySemester(s.semester || currentBatch.currentSemester);
+        const isFresh = cur?.isFreshers || (cur?.semester?.includes('1') && !cur?.semester?.includes('2'));
         return {
           ...s,
           batchId: currentBatch.id,
           batchCode: currentBatch.name,
+          batch: currentBatch.academicYear,
+          academicYear: currentBatch.academicYear,
           semester: cur.semester,
-          cgpa: s.cgpa || cur.defaultCgpa,
-          sgpa: s.sgpa || cur.defaultSgpa,
-          credits: s.credits || cur.totalCredits,
-          attendance: s.attendance || 92.5,
+          cgpa: isFresh ? null : (s.cgpa || cur.defaultCgpa),
+          sgpa: isFresh ? null : (s.sgpa || cur.defaultSgpa),
+          credits: isFresh ? 0 : (s.credits || cur.totalCredits),
+          attendance: isFresh ? null : (s.attendance || 100),
           enrolledCourses: cur.subjects,
           timetable: cur.timetableSlots,
           examModules: cur.examModules,
@@ -589,21 +663,24 @@ export default function StudentManagement({
     const currentBatch = activeBatch;
     const effectiveTempPassword = newTempPassword.trim() || getStudentTempPassword({ regNo: newRegNo.trim().toUpperCase() });
     const cur = getCurriculumBySemester(newSemester);
+    const isFresh = cur?.isFreshers || (cur?.semester?.includes('1') && !cur?.semester?.includes('2'));
 
     onAddStudent({
       id: `STU-${Date.now()}`,
       batchId: currentBatch.id,
       batchCode: currentBatch.name,
+      batch: currentBatch.academicYear,
+      academicYear: currentBatch.academicYear,
       regNo: newRegNo.trim().toUpperCase(),
       indexNo: newIndexNo.trim() || newRegNo.trim().toUpperCase(),
       name: newName.trim(),
       programme: newProgramme,
       department: newDepartment,
       semester: cur.semester,
-      cgpa: cur.defaultCgpa,
-      sgpa: cur.defaultSgpa,
-      credits: cur.totalCredits,
-      attendance: 92.5,
+      cgpa: isFresh ? null : cur.defaultCgpa,
+      sgpa: isFresh ? null : cur.defaultSgpa,
+      credits: isFresh ? 0 : cur.totalCredits,
+      attendance: isFresh ? null : 100,
       enrolledCourses: cur.subjects,
       timetable: cur.timetableSlots,
       examModules: cur.examModules,
@@ -990,13 +1067,13 @@ export default function StudentManagement({
 
             <div className="adm-batch-hero-stats">
               <div className="adm-batch-hero-stat-box">
-                <div className="adm-batch-hero-stat-val">{getBatchStudentCount(selectedBatch)}</div>
+                <div className="adm-batch-hero-stat-val">{batchStudents.length}</div>
                 <div className="adm-batch-hero-stat-lbl">Enrolled</div>
               </div>
               <div className="adm-batch-hero-stat-box">
                 <div className="adm-batch-hero-stat-val">
-                  {selectedBatch.currentSemester?.includes('Freshers') || selectedBatch.avgCgpa === 0
-                    ? '0.00'
+                  {selectedBatch.currentSemester?.includes('Freshers') || selectedBatch.avgCgpa === 0 || selectedBatch.avgCgpa === null
+                    ? 'N/A'
                     : safeToFixed(selectedBatch.avgCgpa, 2, '0.00')}
                 </div>
                 <div className="adm-batch-hero-stat-lbl">
@@ -1004,7 +1081,7 @@ export default function StudentManagement({
                 </div>
               </div>
               <div className="adm-batch-hero-stat-box">
-                <div className="adm-batch-hero-stat-val">{selectedBatch.attendanceRate}%</div>
+                <div className="adm-batch-hero-stat-val">{selectedBatch.currentSemester?.includes('Freshers') ? '—' : `${selectedBatch.attendanceRate}%`}</div>
                 <div className="adm-batch-hero-stat-lbl">Attendance</div>
               </div>
               <button

@@ -517,9 +517,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
               <div className="std-stat-number">
-                {safeToFixed(studentUser?.sgpa ?? currentCurriculum?.defaultSgpa, 2, 'N/A')}
+                {currentCurriculum.isFreshers || studentUser?.sgpa === null || (studentUser?.sgpa === undefined && currentCurriculum?.defaultSgpa === null)
+                  ? 'N/A'
+                  : safeToFixed(studentUser?.sgpa ?? currentCurriculum?.defaultSgpa, 2, 'N/A')}
               </div>
-              <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
+              <div className="std-stat-target">
+                {currentCurriculum.isFreshers ? 'Pending Semester 1 Examinations' : 'Target: First Class (≥ 3.70)'}
+              </div>
             </div>
           </div>
           
@@ -537,10 +541,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">Cumulative</span>
               </div>
               <div className="std-stat-number">
-                {safeToFixed(studentUser?.cgpa ?? currentCurriculum?.defaultCgpa, 2, 'N/A')}
+                {currentCurriculum.isFreshers || studentUser?.cgpa === null || (studentUser?.cgpa === undefined && currentCurriculum?.defaultCgpa === null)
+                  ? 'N/A'
+                  : safeToFixed(studentUser?.cgpa ?? currentCurriculum?.defaultCgpa, 2, 'N/A')}
               </div>
               <div className="std-stat-target">
                 {(() => {
+                  if (currentCurriculum.isFreshers) return 'Enrolled (Freshers)';
                   const val = studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
                     ? Number(studentUser.cgpa)
                     : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
@@ -567,10 +574,20 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">ATTENDANCE STANDING</span>
-                <span className="std-stat-badge">{(Number(studentUser?.attendance !== undefined && studentUser?.attendance !== null ? studentUser.attendance : 92.5) >= 80) ? 'Eligible' : 'At Risk'}</span>
+                <span className="std-stat-badge">
+                  {currentCurriculum.isFreshers || studentUser?.attendance === null || studentUser?.attendance === undefined
+                    ? 'Enrolled'
+                    : Number(studentUser.attendance) >= 80 ? 'Eligible' : 'At Risk'}
+                </span>
               </div>
-              <div className="std-stat-number">{studentUser?.attendance !== undefined && studentUser?.attendance !== null ? `${studentUser.attendance}%` : '92.5%'}</div>
-              <div className="std-stat-target">ESA Minimum: 80%</div>
+              <div className="std-stat-number">
+                {studentUser?.attendance !== undefined && studentUser?.attendance !== null
+                  ? `${studentUser.attendance}%`
+                  : (currentCurriculum.isFreshers ? '—' : '100%')}
+              </div>
+              <div className="std-stat-target">
+                {currentCurriculum.isFreshers ? 'Lectures in Progress' : 'ESA Minimum: 80%'}
+              </div>
             </div>
           </div>
 
@@ -589,8 +606,12 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">REGISTERED CREDITS</span>
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel} Load</span>
               </div>
-              <div className="std-stat-number">{studentUser?.credits !== undefined && studentUser?.credits !== null ? `${studentUser.credits} / 22` : `${currentCurriculum.totalCredits} / 22`}</div>
-              <div className="std-stat-target">{Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : currentCurriculum.totalCredits))} credits remaining</div>
+              <div className="std-stat-number">{currentCurriculum.totalCredits} / 22</div>
+              <div className="std-stat-target">
+                {currentCurriculum.isFreshers
+                  ? `${currentCurriculum.totalCredits} credits enrolled (0 completed)`
+                  : `${Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : currentCurriculum.totalCredits))} credits remaining`}
+              </div>
             </div>
           </div>
         </section>
