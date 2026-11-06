@@ -1191,11 +1191,11 @@ export default function StudentManagement({
                         </td>
 
                         <td>
-                          <div style={{ fontWeight: 700, color: student.cgpa < 2.5 ? '#b91c1c' : '#0f172a' }}>
-                            {student.cgpa.toFixed(2)} CGPA
+                          <div style={{ fontWeight: 700, color: (student.cgpa !== null && student.cgpa < 2.5) ? '#b91c1c' : '#0f172a' }}>
+                            {student.cgpa !== null && student.cgpa !== undefined ? Number(student.cgpa).toFixed(2) : 'N/A'} CGPA
                           </div>
                           <div style={{ fontSize: '0.71rem', color: '#64748b' }}>
-                            SGPA: {student.sgpa.toFixed(2)}
+                            SGPA: {student.sgpa !== null && student.sgpa !== undefined ? Number(student.sgpa).toFixed(2) : 'N/A'}
                           </div>
                         </td>
 
@@ -1507,13 +1507,13 @@ export default function StudentManagement({
                 <div>
                   <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Cumulative GPA</div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f2b5c' }}>
-                    {selectedStudent.cgpa.toFixed(2)}
+                    {selectedStudent.cgpa !== null && selectedStudent.cgpa !== undefined ? Number(selectedStudent.cgpa).toFixed(2) : 'N/A'}
                   </div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Current Semester GPA</div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f2b5c' }}>
-                    {selectedStudent.sgpa.toFixed(2)}
+                    {selectedStudent.sgpa !== null && selectedStudent.sgpa !== undefined ? Number(selectedStudent.sgpa).toFixed(2) : 'N/A'}
                   </div>
                 </div>
                 <div>
@@ -2241,7 +2241,7 @@ export default function StudentManagement({
                                 <td>{stu.semester}</td>
                                 <td>
                                   <span style={{ fontWeight: 700, color: '#0f172a' }}>
-                                    {stu.cgpa.toFixed(2)}
+                                    {stu.cgpa !== null && stu.cgpa !== undefined ? Number(stu.cgpa).toFixed(2) : 'N/A'}
                                   </span>
                                 </td>
                                 <td style={{ color: '#64748b' }}>{stu.credits}</td>

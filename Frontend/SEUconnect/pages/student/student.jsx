@@ -501,7 +501,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">CURRENT SGPA</span>
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
-              <div className="std-stat-number">{studentUser?.sgpa !== undefined && studentUser?.sgpa !== null ? Number(studentUser.sgpa).toFixed(2) : currentCurriculum.defaultSgpa.toFixed(2)}</div>
+              <div className="std-stat-number">
+                {studentUser?.sgpa !== undefined && studentUser?.sgpa !== null
+                  ? Number(studentUser.sgpa).toFixed(2)
+                  : currentCurriculum?.defaultSgpa !== undefined && currentCurriculum?.defaultSgpa !== null
+                    ? Number(currentCurriculum.defaultSgpa).toFixed(2)
+                    : 'N/A'}
+              </div>
               <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
           </div>
@@ -519,8 +525,26 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">CURRENT CGPA</span>
                 <span className="std-stat-badge">Cumulative</span>
               </div>
-              <div className="std-stat-number">{studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa).toFixed(2) : currentCurriculum.defaultCgpa.toFixed(2)}</div>
-              <div className="std-stat-target">{((studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa) : currentCurriculum.defaultCgpa) >= 3.70) ? 'First Class Honours' : ((studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa) : currentCurriculum.defaultCgpa) >= 3.30) ? 'Second Class (Upper Division)' : 'General Standing'}</div>
+              <div className="std-stat-number">
+                {studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
+                  ? Number(studentUser.cgpa).toFixed(2)
+                  : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
+                    ? Number(currentCurriculum.defaultCgpa).toFixed(2)
+                    : 'N/A'}
+              </div>
+              <div className="std-stat-target">
+                {(() => {
+                  const val = studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
+                    ? Number(studentUser.cgpa)
+                    : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
+                      ? Number(currentCurriculum.defaultCgpa)
+                      : null;
+                  if (val === null || isNaN(val)) return 'Enrolled (In Progress)';
+                  if (val >= 3.70) return 'First Class Honours';
+                  if (val >= 3.30) return 'Second Class (Upper Division)';
+                  return 'General Standing';
+                })()}
+              </div>
             </div>
           </div>
 

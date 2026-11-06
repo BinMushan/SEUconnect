@@ -231,7 +231,7 @@ export default function DeptMAReports({
                       <td><strong>{s.name}</strong></td>
                       <td>{s.batch}</td>
                       <td>{s.semester}</td>
-                      <td>{s.cgpa.toFixed(2)}</td>
+                      <td>{s.cgpa !== null && s.cgpa !== undefined ? Number(s.cgpa).toFixed(2) : 'N/A'}</td>
                       <td>{s.attendanceRate}%</td>
                       <td><span className="dept-ma-status-badge active">{s.status}</span></td>
                       <td>{s.advisor}</td>

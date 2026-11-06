@@ -426,9 +426,9 @@ export default function StudentGpaCgpa({ user }) {
 
         <div className="print-gpa-summary-bar">
           <div><strong>Selected Semester:</strong> {currentSemesterObj.shortLabel}</div>
-          <div><strong>Semester SGPA:</strong> {currentSemesterObj.sgpa.toFixed(2)}</div>
-          <div><strong>Cumulative CGPA:</strong> {cumulativeCgpa.toFixed(2)}</div>
-          <div><strong>Degree Standing:</strong> Second Class (Upper Division)</div>
+          <div><strong>Semester SGPA:</strong> {displaySgpa}</div>
+          <div><strong>Cumulative CGPA:</strong> {displayCgpa}</div>
+          <div><strong>Degree Standing:</strong> {displayStanding}</div>
         </div>
 
         <table className="print-gpa-table">
