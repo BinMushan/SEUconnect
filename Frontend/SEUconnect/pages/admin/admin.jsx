@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
+import api, { enrolledStorage, provisionedUserStorage, penaltyStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
@@ -259,7 +259,13 @@ export default function Admin({ user, onLogout }) {
   const [repeatCandidates, setRepeatCandidates] = useState(INITIAL_REPEAT_CANDIDATES);
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
   const [facultyForms, setFacultyForms] = useState(INITIAL_FACULTY_FORMS);
-  const [penalties, setPenalties] = useState(INITIAL_PENALTIES);
+  const [penalties, setPenalties] = useState(() => {
+    const stored = penaltyStorage.getAll();
+    if (!stored || stored.length === 0) return INITIAL_PENALTIES;
+    const existingIds = new Set(INITIAL_PENALTIES.map(p => p.id));
+    const custom = stored.filter(p => p.id && !existingIds.has(p.id));
+    return [...custom, ...INITIAL_PENALTIES];
+  });
   const [users, setUsers] = useState(() => {
     const localProvisioned = provisionedUserStorage.getAll();
     if (!localProvisioned || localProvisioned.length === 0) return INITIAL_USERS;
@@ -540,16 +546,18 @@ export default function Admin({ user, onLogout }) {
     setPenalties((prev) =>
       prev.map((p) => (p.id === id ? { ...p, status: 'Cleared' } : p))
     );
+    penaltyStorage.updateStatus(id, 'Cleared', 'Fine payment receipt verified by Faculty Administration.');
     addAuditLog('Cleared Disciplinary Penalty', `Fine/penalty cleared for entry ${id}.`);
     showToast('Disciplinary record cleared.');
   };
 
   // 13. Add Penalty
   const handleAddPenalty = (newPen) => {
+    penaltyStorage.save(newPen);
     setPenalties((prev) => [newPen, ...prev]);
     setStats((prev) => ({ ...prev, disciplinaryCases: prev.disciplinaryCases + 1 }));
-    addAuditLog('Recorded Disciplinary Fine', `${newPen.regNo}: ${newPen.category}`);
-    showToast(`Disciplinary record logged for ${newPen.regNo}.`);
+    addAuditLog('Recorded Disciplinary Fine', `${newPen.regNo}: ${newPen.category} (${newPen.department || 'Faculty of Technology'})`);
+    showToast(`Disciplinary record logged & notices dispatched to HOD and student.`);
   };
 
   // 14. Toggle User Status
@@ -1292,6 +1300,7 @@ export default function Admin({ user, onLogout }) {
       {currentSection === 'penalties' && (
         <PenaltiesManagement
           penalties={penalties}
+          batches={batches}
           onClearPenalty={handleClearPenalty}
           onAddPenalty={handleAddPenalty}
         />

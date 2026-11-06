@@ -104,5 +104,17 @@ exports.dispatch = async (events = []) => {
   }
 };
 
-// Back-compat helper for older call sites.
-exports.createNotification = (data) => exports.dispatch([data]);
+// Support both HTTP POST handler and internal programmatic dispatch helper
+exports.createNotification = async (reqOrData, res) => {
+  if (res && typeof res.status === 'function') {
+    try {
+      const data = reqOrData.body || {};
+      const doc = await store.notifications.create(data);
+      return res.status(201).json({ success: true, data: shape(doc, reqOrData.user) });
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      return res.status(500).json({ success: false, message: 'Server error creating notification' });
+    }
+  }
+  return exports.dispatch([reqOrData]);
+};
