@@ -460,6 +460,7 @@ export const DEPT_MA_NAV_SECTIONS = [
     items: [
       { id: 'students', label: 'Student Management', icon: Icons.users },
       { id: 'subject_registrations', label: 'Subject Registrations & CA', icon: Icons.book },
+      { id: 'marks_compilation', label: 'Marks Compilation & Moderation', icon: Icons.chart },
       { id: 'medical_applications', label: 'Medical Applications', icon: Icons.medical },
       { id: 'attendance_records', label: 'Attendance Records', icon: Icons.clipboardCheck },
     ],
