@@ -828,8 +828,8 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Total Undergraduates</span>
                   <span className="adm-badge badge-active">Faculty-Wide</span>
                 </div>
-                <div className="adm-stat-value">1,200</div>
-                <div className="adm-stat-sub">BICT & BST Undergraduates (5 Batches)</div>
+                <div className="adm-stat-value">{students.length.toLocaleString()}</div>
+                <div className="adm-stat-sub">BICT &amp; BST Undergraduates ({batches.length} Batches)</div>
               </div>
             </div>
 
@@ -844,7 +844,11 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Avg Attendance Rate</span>
                   <span className="adm-badge badge-active">≥ 80% Threshold</span>
                 </div>
-                <div className="adm-stat-value">91.4%</div>
+                <div className="adm-stat-value">
+                  {students.length > 0
+                    ? (students.reduce((sum, s) => sum + (Number(s.attendance) || 90), 0) / students.length).toFixed(1)
+                    : '91.4'}%
+                </div>
                 <div className="adm-stat-sub">Qualified for ESA Exams</div>
               </div>
             </div>
@@ -860,8 +864,12 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Faculty GPA Mean</span>
                   <span className="adm-badge badge-submitted">Good Standing</span>
                 </div>
-                <div className="adm-stat-value">3.36 CGPA</div>
-                <div className="adm-stat-sub">Second Class Upper Avg</div>
+                <div className="adm-stat-value">
+                  {students.length > 0
+                    ? (students.reduce((sum, s) => sum + (Number(s.cgpa) || 3.0), 0) / students.length).toFixed(2)
+                    : '3.36'} CGPA
+                </div>
+                <div className="adm-stat-sub">Faculty Undergraduates Avg</div>
               </div>
             </div>
           </div>
