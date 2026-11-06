@@ -18,6 +18,7 @@ const processRoutes = require('./routes/processRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const academicCalendarRoutes = require('./routes/academicCalendarRoutes');
+const timetableRoutes = require('./routes/timetableRoutes');
 const studentRouter = require('./router/studentRouter');
 const subjectRoutes = require('./routes/subjectRoutes');
 const { seedHandbookSubjects } = require('./config/subjectSeeder');
@@ -92,6 +93,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/academic-calendar', academicCalendarRoutes);
 app.use('/api/student', studentRouter);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api/timetable', timetableRoutes);
 
 // ---- Versioned API: modular academic management (requires MongoDB) ----
 app.use('/api/v1', (req, res, next) => (getStatus() ? next() : next(unavailable('The academic management API needs the MongoDB connection.'))));

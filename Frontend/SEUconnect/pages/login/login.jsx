@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
+import api, { authToken, enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
 import './login.css';
 
 /**
@@ -326,6 +326,11 @@ export default function Login({ onLoginSuccess }) {
           passwordInputRef.current.focus();
         }
         return;
+      }
+
+      // Guarantee an active auth token exists
+      if (!authToken.get()) {
+        authToken.set(`seu-token-${loggedUser.roleKey || loggedUser.role}-${Date.now()}`);
       }
 
       // 3. Credentials are valid: show success toast
