@@ -418,3 +418,4 @@ export default function DeptMAMarksCompilation({ onShowToast }) {
     </div>
   );
 }
+
