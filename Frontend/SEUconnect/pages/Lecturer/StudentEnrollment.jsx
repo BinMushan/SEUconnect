@@ -109,6 +109,11 @@ export default function StudentEnrollment({
   // Filter students reactively
   const filteredStudents = useMemo(() => {
     return ENROLLMENT_STUDENTS_LIST.filter((student) => {
+      // Must be enrolled in one of the lecturer's allocated subjects
+      if (!availableSubjects.some((s) => s.code === student.subjectCode)) {
+        return false;
+      }
+
       // 1. Subject filter
       if (selectedSubjectCode !== 'ALL' && student.subjectCode !== selectedSubjectCode) {
         return false;
