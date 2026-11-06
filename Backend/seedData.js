@@ -2351,7 +2351,7 @@ const seedDatabase = async () => {
       }
     }
 
-    await store.initialise({ seedUsers: users, seedProcesses: processes, seedNotifications: buildSeedNotifications(workflowSeeds) });
+    await store.initialise({ seedUsers: users, seedProcesses: processes, seedNotifications: [] });
     console.log(` Storage ready (${store.connected() ? 'MongoDB' : 'in-memory'}): ${processes.length} seed applications available.`);
   } catch (error) {
     console.warn(' Seed database note:', error.message);

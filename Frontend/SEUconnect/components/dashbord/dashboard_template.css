@@ -907,7 +907,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .seu-dash-topbar {
     padding: 0 0.5rem;
     height: 56px;
@@ -920,8 +920,8 @@
   .seu-notif-dropdown {
     position: fixed !important;
     top: 58px !important;
-    left: 8px !important;
-    right: 8px !important;
+    left: 10px !important;
+    right: 10px !important;
     width: auto !important;
     max-width: none !important;
     border-radius: 12px;
@@ -1330,13 +1330,13 @@ body.dark-mode,
 
 .seu-notif-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
-  right: -20px;
-  width: 380px;
-  max-width: 90vw;
+  top: calc(100% + 12px);
+  right: -10px;
+  width: 480px;
+  max-width: calc(100vw - 24px);
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18), 0 6px 16px rgba(15, 23, 42, 0.08);
   border: 1px solid #e2e8f0;
   z-index: 1050;
   overflow: hidden;
@@ -1454,7 +1454,7 @@ body.dark-mode,
 }
 
 .seu-notif-dropdown .seu-notif-list {
-  max-height: 340px;
+  max-height: min(480px, 62vh);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1475,7 +1475,7 @@ body.dark-mode,
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 0.8rem 1rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid #f1f5f9;
   background: #ffffff;
   cursor: pointer;
@@ -1554,10 +1554,10 @@ body.dark-mode,
 }
 
 .seu-notif-item-title {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .seu-notif-item-unread-dot {
@@ -1569,10 +1569,10 @@ body.dark-mode,
 }
 
 .seu-notif-item-msg {
-  font-size: 0.77rem;
+  font-size: 0.78rem;
   color: #475569;
-  line-height: 1.4;
-  margin: 0 0 0.35rem 0;
+  line-height: 1.45;
+  margin: 0 0 0.4rem 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1582,16 +1582,60 @@ body.dark-mode,
 .seu-notif-item-meta {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 0.7rem;
-  color: #94a3b8;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+.seu-notif-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.16rem 0.45rem;
+  border-radius: 5px;
+  font-weight: 550;
+  font-size: 0.71rem;
+}
+
+.seu-notif-date-badge {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.seu-notif-date-badge svg {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.seu-notif-time-badge {
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.seu-notif-time-badge svg {
+  color: #4f46e5;
+  flex-shrink: 0;
+}
+
+.seu-notif-relative-pill {
+  font-size: 0.68rem;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 0.12rem 0.42rem;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid #bae6fd;
 }
 
 .seu-notif-item-badge {
   background: #e2e8f0;
   color: #334155;
   font-weight: 700;
-  padding: 0.05rem 0.35rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 4px;
 }
 
@@ -1603,7 +1647,7 @@ body.dark-mode,
   padding: 2px;
   border-radius: 4px;
   margin-left: auto;
-  opacity: 0;
+  opacity: 0.6;
   transition: all 0.15s ease;
 }
 
@@ -1614,7 +1658,7 @@ body.dark-mode,
 .seu-notif-item-actions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -1626,7 +1670,7 @@ body.dark-mode,
   cursor: pointer;
   padding: 4px;
   border-radius: 5px;
-  opacity: 0;
+  opacity: 0.7;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1635,11 +1679,13 @@ body.dark-mode,
 
 .seu-notif-item:hover .seu-notif-delete-single-btn {
   opacity: 1;
+  color: #64748b;
 }
 
 .seu-notif-delete-single-btn:hover {
-  color: #ef4444;
-  background: #fef2f2;
+  color: #ef4444 !important;
+  background: #fee2e2 !important;
+  opacity: 1 !important;
 }
 
 .seu-notif-mark-single-btn:hover {
@@ -1748,3 +1794,22 @@ body.dark-mode,
   background: rgba(239, 68, 68, 0.15) !important;
   color: #f87171 !important;
 }
+
+.dark-mode .seu-notif-date-badge {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .seu-notif-time-badge {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #a5b4fc !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.dark-mode .seu-notif-relative-pill {
+  background: rgba(14, 165, 233, 0.18) !important;
+  color: #7dd3fc !important;
+  border-color: rgba(14, 165, 233, 0.35) !important;
+}
+
