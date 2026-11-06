@@ -749,6 +749,11 @@ export default function Admin({ user, onLogout }) {
 
       const targetPromoted = updated.find((u) => u.id === userId);
       if (targetPromoted) {
+        if (role === 'Lecturer' && targetPromoted.email) {
+          try {
+            localStorage.setItem(`seu_lecturer_courses_${targetPromoted.email.toLowerCase().trim()}`, JSON.stringify([]));
+          } catch (e) {}
+        }
         provisionedUserStorage.save(targetPromoted);
       }
 
@@ -910,9 +915,18 @@ export default function Admin({ user, onLogout }) {
       return [newStaff, ...updated];
     });
 
-    provisionedUserStorage.save(newStaff);
+    const staffToSave = {
+      ...newStaff,
+      allocatedCourses: newStaff.role === 'Lecturer' ? [] : (newStaff.allocatedCourses || []),
+    };
+    if (newStaff.role === 'Lecturer' && newStaff.email) {
+      try {
+        localStorage.setItem(`seu_lecturer_courses_${newStaff.email.toLowerCase().trim()}`, JSON.stringify([]));
+      } catch (e) {}
+    }
+    provisionedUserStorage.save(staffToSave);
     try {
-      await api.provisionUser(newStaff);
+      await api.provisionUser(staffToSave);
     } catch (e) {
       console.warn('Backend user provisioning failed/offline:', e.message);
     }

@@ -300,8 +300,8 @@ export default function StudentResults({ user }) {
                       {item.grade}
                     </span>
                   </td>
-                  <td className="res-cell-gpoint">{item.gradePoint.toFixed(2)}</td>
-                  <td className="res-cell-qpoints">{item.qualityPoints.toFixed(2)}</td>
+                  <td className="res-cell-gpoint">{fmt(item.gradePoint)}</td>
+                  <td className="res-cell-qpoints">{fmt(item.qualityPoints)}</td>
                 </tr>
               ))}
             </tbody>
@@ -354,8 +354,8 @@ export default function StudentResults({ user }) {
                 <td>{item.esaMark}</td>
                 <td>{item.finalMark}</td>
                 <td><strong>{item.grade}</strong></td>
-                <td>{item.gradePoint.toFixed(2)}</td>
-                <td>{item.qualityPoints.toFixed(2)}</td>
+                <td>{fmt(item.gradePoint)}</td>
+                <td>{fmt(item.qualityPoints)}</td>
               </tr>
             ))}
           </tbody>
@@ -448,7 +448,7 @@ export default function StudentResults({ user }) {
                   <input
                     type="text"
                     className="exam-form-input readonly-input"
-                    value={selectedRow.gradePoint.toFixed(2)}
+                    value={fmt(selectedRow.gradePoint)}
                     readOnly
                   />
                 </div>

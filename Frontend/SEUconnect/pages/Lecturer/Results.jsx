@@ -61,8 +61,16 @@ const SEUSL_SCALE_TIERS = [
   },
 ];
 
-export default function Results({ initialSubjectCode = 'SWT22022', onShowToast }) {
-  const [selectedSubject, setSelectedSubject] = useState(initialSubjectCode);
+export default function Results({ subjects = INITIAL_SUBJECTS, initialSubjectCode = 'SWT22022', onShowToast }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+  const defaultCode = availableSubjects[0]?.code || initialSubjectCode;
+  const [selectedSubject, setSelectedSubject] = useState(defaultCode);
+
+  useEffect(() => {
+    if (availableSubjects.length > 0 && !availableSubjects.some((s) => s.code === selectedSubject)) {
+      setSelectedSubject(availableSubjects[0].code);
+    }
+  }, [availableSubjects, selectedSubject]);
   const [lifecycleStatus, setLifecycleStatus] = useState('Draft'); // 'Draft', 'Submitted', 'Finalized'
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -205,6 +213,32 @@ export default function Results({ initialSubjectCode = 'SWT22022', onShowToast }
     },
   ];
 
+  if (availableSubjects.length === 0) {
+    return (
+      <div className="lec-results-container">
+        <div className="lec-module-header-card">
+          <div>
+            <h2 className="lec-module-title">Results & Grade Scale Management</h2>
+            <p className="lec-module-sub">
+              Calculate composite marks, map to official SEUSL grade scales, and finalize results for Faculty Examination Board review.
+            </p>
+          </div>
+        </div>
+        <div className="lec-empty-state-card" style={{ padding: '60px 24px', background: '#fff', borderRadius: '14px', border: '1px dashed #cbd5e1', textAlign: 'center', margin: '24px 0' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>No Subjects Allocated</h4>
+          <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            You currently have no course modules allocated for results and grading submission. When courses are assigned to you by your Head of Department (HOD), grading ledgers will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="lec-results-container">
       {/* 1. Header Card */}
@@ -252,7 +286,7 @@ export default function Results({ initialSubjectCode = 'SWT22022', onShowToast }
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
           >
-            {INITIAL_SUBJECTS.map((sub) => (
+            {availableSubjects.map((sub) => (
               <option key={sub.code} value={sub.code}>
                 {sub.code} — {sub.name} ({sub.semester}{sub.batch ? ` • Batch ${sub.batch}` : ''})
               </option>
