@@ -71,6 +71,78 @@ const getDefaultsForRole = (role) => {
   }
 };
 
+/**
+ * Institutional Department / Branch mapping based on user role
+ * - Dean: Faculty Wide (Dean's Secretariat)
+ * - HOD: DBST or DICT only
+ * - Lecturer: DBST or DICT only
+ * - Dept MA (DMA): DBST or DICT only (each department)
+ * - SAR: Faculty Administration Office
+ * - Exam Officer: Examination Branch
+ * - FMA: Dean's Secretariat / Faculty Admin
+ * - Admin: Faculty Administration Office / CICT
+ */
+export const getDepartmentOptionsForRole = (role) => {
+  switch (role) {
+    case 'Faculty Dean':
+      return [
+        { value: "Dean's Secretariat", label: "Dean's Secretariat (Faculty of Technology)" }
+      ];
+
+    case 'Head of Department (HOD)':
+      return [
+        { value: 'Department of Information & Communication Technology', label: 'Department of ICT (DICT)' },
+        { value: 'Department of Bio Systems Technology', label: 'Department of Biosystems Technology (DBST)' }
+      ];
+
+    case 'Lecturer':
+      return [
+        { value: 'Department of Information & Communication Technology', label: 'Department of ICT (DICT)' },
+        { value: 'Department of Bio Systems Technology', label: 'Department of Biosystems Technology (DBST)' }
+      ];
+
+    case 'Department Management Assistant (Dept MA)':
+      return [
+        { value: 'Department of Information & Communication Technology', label: 'Department of ICT (DICT)' },
+        { value: 'Department of Bio Systems Technology', label: 'Department of Biosystems Technology (DBST)' }
+      ];
+
+    case 'Senior Assistant Registrar (SAR)':
+      return [
+        { value: 'Faculty Administration Office', label: 'Faculty Administration Office (Faculty of Technology)' }
+      ];
+
+    case 'Examination Officer':
+      return [
+        { value: 'Examination Branch', label: 'Examination Branch (Examinations & Records)' }
+      ];
+
+    case 'Faculty Management Assistant (FMA)':
+      return [
+        { value: "Dean's Secretariat", label: "Dean's Secretariat (Faculty Executive)" },
+        { value: 'Faculty Administration Office', label: 'Faculty Administration Office' }
+      ];
+
+    case 'System Administrator':
+      return [
+        { value: 'Faculty Administration Office', label: 'Faculty Administration Office' },
+        { value: 'Center for Information & Communication Technology (CICT)', label: 'Center for Information & Communication Technology (CICT)' }
+      ];
+
+    case 'Super Admin':
+      return [
+        { value: 'Center for Information & Communication Technology (CICT)', label: 'Center for Information & Communication Technology (CICT)' },
+        { value: 'Faculty Administration Office', label: 'Faculty Administration Office' }
+      ];
+
+    default:
+      return [
+        { value: 'Department of Information & Communication Technology', label: 'Department of ICT (DICT)' },
+        { value: 'Department of Bio Systems Technology', label: 'Department of Biosystems Technology (DBST)' }
+      ];
+  }
+};
+
 export default function UserRoleManagement({
   users,
   onAssignRole,
@@ -206,8 +278,20 @@ export default function UserRoleManagement({
   const openAssignModal = (user) => {
     setEditingUser(user);
     setAssignedRole(user.role);
-    setAssignedDept(user.department);
+    const validDepts = getDepartmentOptionsForRole(user.role);
+    const isCurrentValid = validDepts.some((d) => d.value === user.department);
+    setAssignedDept(isCurrentValid ? user.department : validDepts[0].value);
     setAssignedDesignation(user.designation || user.role);
+    setAssignError('');
+  };
+
+  const handleAssignedRoleChange = (role) => {
+    setAssignedRole(role);
+    const validDepts = getDepartmentOptionsForRole(role);
+    const isCurrentValid = validDepts.some((d) => d.value === assignedDept);
+    setAssignedDept(isCurrentValid ? assignedDept : validDepts[0].value);
+    const def = getDefaultsForRole(role);
+    setAssignedDesignation(def.designation);
     setAssignError('');
   };
 
@@ -236,7 +320,9 @@ export default function UserRoleManagement({
   const handleRoleSelectChange = (role) => {
     setNewStaffRole(role);
     const def = getDefaultsForRole(role);
-    setNewStaffDept(def.dept);
+    const validDepts = getDepartmentOptionsForRole(role);
+    const isCurrentValid = validDepts.some((d) => d.value === newStaffDept);
+    setNewStaffDept(isCurrentValid ? newStaffDept : validDepts[0].value);
     setNewStaffDesignation(def.designation);
     setNewStaffPassword(def.tempPass);
     setFormError('');
@@ -772,10 +858,7 @@ export default function UserRoleManagement({
                     <select
                       className="adm-input"
                       value={assignedRole}
-                      onChange={(e) => {
-                        setAssignedRole(e.target.value);
-                        setAssignError('');
-                      }}
+                      onChange={(e) => handleAssignedRoleChange(e.target.value)}
                     >
                       <option value="Lecturer">Lecturer (Academic Staff)</option>
                       <option value="Head of Department (HOD)">Head of Department (HOD)</option>
@@ -796,12 +879,11 @@ export default function UserRoleManagement({
                       value={assignedDept}
                       onChange={(e) => setAssignedDept(e.target.value)}
                     >
-                      <option value="Department of Information & Communication Technology">Department of ICT</option>
-                      <option value="Department of Bio Systems Technology">Department of Biosystems Technology</option>
-                      <option value="Dean's Secretariat">Dean&apos;s Secretariat</option>
-                      <option value="Examination Branch">Examination Branch</option>
-                      <option value="Faculty Administration Office">Faculty Administration Office</option>
-                      <option value="Center for Information & Communication Technology (CICT)">Center for Information & Communication Technology (CICT)</option>
+                      {getDepartmentOptionsForRole(assignedRole).map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -976,12 +1058,11 @@ export default function UserRoleManagement({
                       value={newStaffDept}
                       onChange={(e) => setNewStaffDept(e.target.value)}
                     >
-                      <option value="Department of Information & Communication Technology">Department of ICT</option>
-                      <option value="Department of Bio Systems Technology">Department of Biosystems Technology</option>
-                      <option value="Dean's Secretariat">Dean&apos;s Secretariat</option>
-                      <option value="Examination Branch">Examination Branch</option>
-                      <option value="Faculty Administration Office">Faculty Administration Office</option>
-                      <option value="Center for Information & Communication Technology (CICT)">Center for Information & Communication Technology (CICT)</option>
+                      {getDepartmentOptionsForRole(newStaffRole).map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
