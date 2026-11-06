@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import './attendance.css';
 import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
+import { resultsPipelineService } from '../../src/services/resultsPipelineService.js';
 
 // 1. Official Course Directory matching the uploaded Department Timetable (Yr 2 - Sem II)
 const TIMETABLE_COURSES = [
@@ -635,7 +636,40 @@ export default function Attendance({ onNavigateMedical, user }) {
   const cur = getCurriculumBySemester(user?.semester);
   const activeTimetableCourses = (cur.subjects && cur.subjects.length > 0) ? cur.subjects : TIMETABLE_COURSES;
   const activeMatrixColumns = (cur.matrixColumns && cur.matrixColumns.length > 0) ? cur.matrixColumns : MATRIX_COLUMNS;
-  const activeMatrixDailyRows = (cur.matrixDailyRows && cur.matrixDailyRows.length > 0) ? cur.matrixDailyRows : MATRIX_DAILY_ROWS;
+  const rawMatrixDailyRows = (cur.matrixDailyRows && cur.matrixDailyRows.length > 0) ? cur.matrixDailyRows : MATRIX_DAILY_ROWS;
+
+  // Real-time synchronization with Lecturer attendance submissions
+  const [liveAttendanceMap, setLiveAttendanceMap] = useState(() => {
+    return resultsPipelineService.getStudentAttendance(user?.regNo || '22ICT091');
+  });
+
+  useEffect(() => {
+    const handleSync = () => {
+      setLiveAttendanceMap(resultsPipelineService.getStudentAttendance(user?.regNo || '22ICT091'));
+    };
+    window.addEventListener('seu_pipeline_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('seu_pipeline_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [user]);
+
+  // Combined matrix rows with live lecturer records
+  const activeMatrixDailyRows = useMemo(() => {
+    return rawMatrixDailyRows.map((row) => {
+      const dateSlash = row.date;
+      const dateDash = row.date.replace(/\//g, '-');
+      const liveSession = liveAttendanceMap[dateSlash] || liveAttendanceMap[dateDash] || {};
+      return {
+        ...row,
+        records: {
+          ...row.records,
+          ...liveSession,
+        },
+      };
+    });
+  }, [rawMatrixDailyRows, liveAttendanceMap]);
 
   // Default tab set to the Daily Attendance Grid (Date x Subject Matrix) requested by the user
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'

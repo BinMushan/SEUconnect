@@ -212,13 +212,20 @@ const SEMESTER_DATA = {
 export default function StudentGpaCgpa({ user }) {
   const [activeSem, setActiveSem] = useState(1);
 
-  const candidateName = user?.name || 'M.N.M. Afnan';
-  const regNo = user?.regNo || '22ICT085';
-  const indexNo = user?.indexNo || 'ICT22085';
+  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1';
+  const candidateName = user?.name || (isFreshers ? 'Fresh Undergraduate' : 'Mushan M.M.B. (Afnan)');
+  const regNo = user?.regNo || (isFreshers ? '24ICT001' : '22ICT091');
+  const indexNo = user?.indexNo || (isFreshers ? 'ICT24001' : 'ICT22091');
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
   const specialization = user?.specialization || 'Software Systems';
-  const cumulativeCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? Number(user.cgpa).toFixed(2) : '3.58';
+
+  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? Number(user.cgpa) : 3.58;
+  const displayCgpa = isFreshers ? 'N/A' : (isNaN(rawCgpa) ? '3.58' : rawCgpa.toFixed(2));
   const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1];
+  const displaySgpa = isFreshers ? 'N/A' : currentSemesterObj.sgpa.toFixed(2);
+  const displayStanding = isFreshers ? 'Enrolled (In Progress)' : 'Second Class (Upper Division)';
+  const displayCredits = isFreshers ? '0 / 130 Credits' : '78 / 130 Credits';
+  const displayCompletion = isFreshers ? '0%' : '60%';
 
   const handlePrint = () => {
     window.print();
@@ -279,34 +286,46 @@ export default function StudentGpaCgpa({ user }) {
           <div>Specialization: <strong>{specialization}</strong></div>
         </div>
 
+        {isFreshers && (
+          <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.85rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{ fontSize: '1.3rem' }}>ℹ️</span>
+            <div>
+              <strong style={{ color: '#0f2b5c', fontSize: '0.88rem' }}>Freshers Academic Progression (Year 1 Semester 1):</strong>
+              <p style={{ margin: '2px 0 0', color: '#475569', fontSize: '0.82rem' }}>
+                Freshers enrolled in Semester 1 do not have a GPA recorded yet as examinations are in progress. Your initial Semester GPA (SGPA) will be computed and published upon completion and Senate moderation of Semester 1 courses.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* 3. Top 4 Metric Stat Cards */}
         <div className="gpa-stats-grid">
           {/* SEMESTER SGPA */}
           <div className="gpa-stat-box">
             <span className="gpa-stat-title">SEMESTER SGPA</span>
-            <div className="gpa-stat-val val-blue">{currentSemesterObj.sgpa.toFixed(2)}</div>
-            <span className="gpa-stat-sub">{currentSemesterObj.shortLabel} Performance</span>
+            <div className="gpa-stat-val val-blue">{displaySgpa}</div>
+            <span className="gpa-stat-sub">{isFreshers ? 'Pending Semester 1 Exams' : `${currentSemesterObj.shortLabel} Performance`}</span>
           </div>
 
           {/* CUMULATIVE CGPA */}
           <div className="gpa-stat-box">
             <span className="gpa-stat-title">CUMULATIVE CGPA</span>
-            <div className="gpa-stat-val val-amber">{cumulativeCgpa.toFixed(2)}</div>
-            <span className="gpa-stat-sub">Across all semesters</span>
+            <div className="gpa-stat-val val-amber">{displayCgpa}</div>
+            <span className="gpa-stat-sub">{isFreshers ? 'Pending Senate Release' : 'Across all semesters'}</span>
           </div>
 
           {/* ESTIMATED DEGREE CLASS */}
           <div className="gpa-stat-box">
             <span className="gpa-stat-title">ESTIMATED DEGREE CLASS</span>
-            <div className="gpa-stat-val val-green class-text">Second Class (Upper Division)</div>
+            <div className="gpa-stat-val val-green class-text">{displayStanding}</div>
             <span className="gpa-stat-sub">Based on university cutoffs</span>
           </div>
 
           {/* DEGREE COMPLETION */}
           <div className="gpa-stat-box">
             <span className="gpa-stat-title">DEGREE COMPLETION</span>
-            <div className="gpa-stat-val val-blue">60%</div>
-            <span className="gpa-stat-sub">78 / 130 Credits</span>
+            <div className="gpa-stat-val val-blue">{displayCompletion}</div>
+            <span className="gpa-stat-sub">{displayCredits}</span>
           </div>
         </div>
 

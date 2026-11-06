@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AttendanceTable from './components/AttendanceTable.jsx';
 import { INITIAL_SUBJECTS, ENROLLED_STUDENTS } from './lecturerMockData.js';
+import { resultsPipelineService } from '../../src/services/resultsPipelineService.js';
 
 /**
  * Helper to compute an individual student's standing rate
@@ -126,9 +127,18 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
       [selectedSubject]: currentSessionRate,
     }));
     setHasUnsavedChanges(false);
+
+    // Sync to resultsPipelineService for real-time student dashboard display
+    const studentStatusMap = {};
+    students.forEach((st) => {
+      studentStatusMap[st.regNo] = !!st.present;
+    });
+    const normalizedDate = selectedDate.replace(/-/g, '/');
+    resultsPipelineService.recordAttendance(selectedSubject, normalizedDate, studentStatusMap, 'Dr. K. Perera');
+
     if (onShowToast) {
       onShowToast(
-        `Attendance for ${selectedSubject} on ${selectedDate} saved successfully! Standing: ${currentSessionRate}%`,
+        `Attendance for ${selectedSubject} on ${selectedDate} submitted successfully! Standing: ${currentSessionRate}% (Live synced to Student Dashboards)`,
         'success'
       );
     }
@@ -224,7 +234,7 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
             </svg>
-            Save Session Record
+            Submit & Sync Attendance
           </button>
         </div>
       </div>

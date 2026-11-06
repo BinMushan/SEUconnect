@@ -1,5 +1,6 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import "./Results_Compilation.css";
+import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from "../../src/services/resultsPipelineService.js";
 
 /* ==========================================================================
    SAMPLE DATA: RESULTS COMPILATION REGISTRY
@@ -223,6 +224,26 @@ export default function ResultsCompilation() {
   const [showBroadSheet, setShowBroadSheet] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  const [pipelineStatus, setPipelineStatus] = useState(() => resultsPipelineService.getPipelineStatus('Year 2 Semester 2'));
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setPipelineStatus(resultsPipelineService.getPipelineStatus('Year 2 Semester 2'));
+    };
+    window.addEventListener('seu_pipeline_update', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('seu_pipeline_update', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const handleForwardToDean = () => {
+    const updated = resultsPipelineService.examOfficerForwardToDean('Year 2 Semester 2', 'Examination Officer');
+    setPipelineStatus(updated);
+    triggerToast('All batch marks audited, verified against 80% attendance, and forwarded to Dean for Senate clearance.');
+  };
+
   const triggerToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3500);
@@ -401,7 +422,27 @@ export default function ResultsCompilation() {
               Review module grade breakdowns, verify repeat caps, audit SGPA calculations, and prepare Senate results.
             </p>
           </div>
-          <div className="res-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div className="res-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            {pipelineStatus.stage === PIPELINE_STAGES.SUBMITTED_TO_EXAM_OFFICER && (
+              <button
+                type="button"
+                className="res-btn res-btn-primary"
+                onClick={handleForwardToDean}
+                style={{ background: "#2563eb", borderColor: "#1d4ed8" }}
+              >
+                Endorse &amp; Forward to Dean &rarr;
+              </button>
+            )}
+            {pipelineStatus.stage === PIPELINE_STAGES.FORWARDED_TO_DEAN && (
+              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#6d28d9", background: "#ede9fe", padding: "6px 12px", borderRadius: "6px" }}>
+                Forwarded to Dean (Awaiting Senate Seal)
+              </span>
+            )}
+            {pipelineStatus.stage === PIPELINE_STAGES.DEAN_APPROVED && (
+              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#15803d", background: "#dcfce7", padding: "6px 12px", borderRadius: "6px" }}>
+                ✓ Dean Approved &amp; Cleared
+              </span>
+            )}
             <button
               type="button"
               className="res-btn res-btn-outline"

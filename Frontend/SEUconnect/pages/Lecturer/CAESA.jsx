@@ -8,6 +8,7 @@ import {
   getStoredMarks,
   saveStoredMarks,
 } from './lecturerMockData.js';
+import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from '../../src/services/resultsPipelineService.js';
 
 /**
  * Helper to suggest the next sequential CA name (e.g. CA 03, CA 04)
@@ -268,27 +269,59 @@ export default function CAESA({ initialSubjectCode = 'SWT22022', onShowToast }) 
       }
       return;
     }
+
+    // Format all student marks for this subject
+    const marksByReg = {};
+    ENROLLED_STUDENTS.forEach((st) => {
+      const reg = st.regNo;
+      const scores = marksState[reg] || {};
+      const ca1 = Number(scores.ca1) || st.ca1 || 35;
+      const ca2 = Number(scores.ca2) || st.ca2 || 35;
+      // CA is 40%
+      const caNormalized = Math.round(((ca1 + ca2) / 2) * 0.4);
+      // ESA is 60%
+      const esaVal = Number(scores.esa) || st.esa || 50;
+      const esaNormalized = Math.round(esaVal * 0.6);
+
+      marksByReg[reg] = {
+        ca: caNormalized,
+        esa: esaNormalized,
+        total: caNormalized + esaNormalized,
+        rawCa1: ca1,
+        rawCa2: ca2,
+        rawEsa: esaVal,
+        submittedAt: new Date().toISOString()
+      };
+    });
+
+    resultsPipelineService.lecturerSubmitMarks(selectedSubject, marksByReg, 'Year 2 Semester 2', 'Dr. K. Perera');
+
     if (onShowToast) {
-      onShowToast(`${currentMeta.label} marks submitted to Dean and Examination Branch.`, 'success');
+      onShowToast(`Course ${selectedSubject} marks successfully submitted to Department Management Assistant (DMA) for batch compilation.`, 'success');
     }
   };
+
+  const pipelineStatus = resultsPipelineService.getPipelineStatus('Year 2 Semester 2');
 
   return (
     <div className="lec-caesa-container">
       {/* 1. Header Card */}
       <div className="lec-module-header-card">
         <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '3px 10px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px' }}>
+            <span>WORKFLOW STAGE: {PIPELINE_LABELS[pipelineStatus.stage] || pipelineStatus.stage}</span>
+          </div>
           <h2 className="lec-module-title">Continuous Assessment (CA) & ESA Marks</h2>
           <p className="lec-module-sub">
-            Input, evaluate, and moderate student continuous assessments and end-semester scores prior to faculty board submission.
+            Input, evaluate, and moderate student continuous assessments and end-semester scores prior to DMA compilation and HOD moderation.
           </p>
         </div>
         <div className="lec-caesa-header-buttons">
           <button type="button" className="lec-btn-save-draft" onClick={handleSaveDraft}>
             Save Draft
           </button>
-          <button type="button" className="lec-btn-publish" onClick={handlePublishMarks}>
-            Submit Marks
+          <button type="button" className="lec-btn-publish" onClick={handlePublishMarks} title="Submit finalized subject marks to Department Management Assistant">
+            Submit Marks to DMA &rarr;
           </button>
         </div>
       </div>

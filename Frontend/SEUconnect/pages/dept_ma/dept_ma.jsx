@@ -35,6 +35,7 @@ import DeptMAReports from './components/DeptMAReports.jsx';
 import DeptMAAnnouncements from './components/DeptMAAnnouncements.jsx';
 import DeptMANotifications from './components/DeptMANotifications.jsx';
 import DeptMAProfile from './components/DeptMAProfile.jsx';
+import DeptMAMarksCompilation from './components/DeptMAMarksCompilation.jsx';
 
 export default function DeptMA({ user, onLogout }) {
   // Navigation State
@@ -438,6 +439,9 @@ export default function DeptMA({ user, onLogout }) {
             onShowToast={showToast}
           />
         );
+
+      case 'marks_compilation':
+        return <DeptMAMarksCompilation onShowToast={showToast} />;
 
       case 'announcements':
         return (

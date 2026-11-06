@@ -44,21 +44,23 @@ export const CURRICULUM_DATA = {
     "yearNumber": 1,
     "semesterNumber": 1,
     "totalCredits": 17,
-    "defaultSgpa": 3.75,
-    "defaultCgpa": 3.75,
+    "defaultSgpa": null,
+    "defaultCgpa": null,
+    "isFreshers": true,
     "batch": "2025/2026",
     "progressionData": [
       {
         "semester": "Sem 1",
-        "fullLabel": "Semester 1 (Current)",
-        "sgpa": 3.75,
-        "delta": "+0.00",
-        "credits": 17,
-        "standing": "First Class Standing",
+        "fullLabel": "Semester 1 (Enrolled / In Progress)",
+        "sgpa": null,
+        "delta": "Pending",
+        "credits": 0,
+        "totalEnrolledCredits": 17,
+        "standing": "Enrolled (In Progress)",
         "x": 290,
-        "y": 55.0,
+        "y": 140.0,
         "isCurrent": true,
-        "isFirstClass": true
+        "isFirstClass": false
       }
     ],
     "subjects": [
