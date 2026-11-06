@@ -7,19 +7,20 @@ import { INITIAL_LECTURER_INFO } from './lecturerMockData.js';
  * validation, password policy change form, and university security banner.
  */
 export default function LecturerProfile({ user, onShowToast }) {
+  const isDefaultDemo = user?.email?.toLowerCase() === 'lecturer@gmail.com' || user?.email?.toLowerCase() === 'lecturer@seu.ac.lk';
   const [profile, setProfile] = useState(() => ({
-    fullName: user?.name || INITIAL_LECTURER_INFO.fullName,
-    avatarInitial: user?.avatarInitial || (user?.name ? user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() : INITIAL_LECTURER_INFO.avatarInitial),
-    lecturerId: user?.staffId || (user?.email?.includes('lecturer@gmail.com') ? INITIAL_LECTURER_INFO.lecturerId : `STAFF-LEC-${user?.email?.split('@')[0]?.toUpperCase() || 'NEW'}`),
-    department: user?.department || INITIAL_LECTURER_INFO.department,
-    faculty: user?.faculty || INITIAL_LECTURER_INFO.faculty,
-    email: user?.email || INITIAL_LECTURER_INFO.email,
-    loginEmail: user?.email || INITIAL_LECTURER_INFO.loginEmail,
-    phone: user?.phone || INITIAL_LECTURER_INFO.phone,
+    fullName: user?.name || (isDefaultDemo ? INITIAL_LECTURER_INFO.fullName : 'Lecturer'),
+    avatarInitial: user?.avatarInitial || (user?.name ? user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() : 'L'),
+    lecturerId: user?.staffId || (isDefaultDemo ? INITIAL_LECTURER_INFO.lecturerId : `STAFF-LEC-${user?.email?.split('@')[0]?.toUpperCase() || 'NEW'}`),
+    department: user?.department || 'Department of ICT',
+    faculty: user?.faculty || 'Faculty of Technology',
+    email: user?.email || '',
+    loginEmail: user?.email || '',
+    phone: user?.phone || (isDefaultDemo ? INITIAL_LECTURER_INFO.phone : ''),
     assignedSubjectsCount: Array.isArray(user?.allocatedCourses) ? user.allocatedCourses.length : 0,
-    designation: user?.designation || INITIAL_LECTURER_INFO.designation,
-    office: user?.officeRoom || INITIAL_LECTURER_INFO.office,
-    specialization: user?.specialization || INITIAL_LECTURER_INFO.specialization,
+    designation: user?.designation || (isDefaultDemo ? INITIAL_LECTURER_INFO.designation : 'Lecturer (Probationary)'),
+    office: user?.officeRoom || (isDefaultDemo ? INITIAL_LECTURER_INFO.office : 'Faculty of Technology Complex'),
+    specialization: user?.specialization || (isDefaultDemo ? INITIAL_LECTURER_INFO.specialization : 'Information & Communication Technology'),
     joinedDate: user?.joinedDate || '2025/2026 Academic Year',
   }));
   const [isEditingContact, setIsEditingContact] = useState(false);

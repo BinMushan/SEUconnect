@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
@@ -233,7 +233,16 @@ const ADMIN_NAV_SECTIONS = [
 export default function Admin({ user, onLogout }) {
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [stats, setStats] = useState(INITIAL_STATS);
-  const [batches, setBatches] = useState(INITIAL_BATCHES);
+  const [batches, setBatches] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seuconnect_batches');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_BATCHES;
+  });
   const [students, setStudents] = useState(() => {
     const localEnrolled = enrolledStorage.getAll();
     if (!localEnrolled || localEnrolled.length === 0) return INITIAL_STUDENTS;
@@ -241,6 +250,26 @@ export default function Admin({ user, onLogout }) {
     const additional = localEnrolled.filter(s => s.regNo && !existingRegNos.has(s.regNo.toLowerCase()));
     return [...additional, ...INITIAL_STUDENTS];
   });
+
+  // Pull live student roster from MongoDB backend on mount and synchronize with storage
+  useEffect(() => {
+    let isMounted = true;
+    api.getStudents().then((res) => {
+      if (isMounted && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+        setStudents((prev) => {
+          const backendStudents = res.data;
+          const backendRegNos = new Set(backendStudents.map(s => (s.regNo || s.studentId || '').toLowerCase()));
+          const remainingLocal = prev.filter(s => s.regNo && !backendRegNos.has(s.regNo.toLowerCase()));
+          const merged = [...backendStudents, ...remainingLocal];
+          enrolledStorage.saveBulk(backendStudents);
+          return merged;
+        });
+      }
+    }).catch((err) => {
+      console.warn('Could not fetch students from API on admin mount:', err.message);
+    });
+    return () => { isMounted = false; };
+  }, []);
   const [registrations, setRegistrations] = useState(INITIAL_REGISTRATIONS);
   const [medicals, setMedicals] = useState(INITIAL_MEDICALS);
   const [examinations] = useState(INITIAL_EXAMINATIONS);
@@ -556,7 +585,13 @@ export default function Admin({ user, onLogout }) {
 
   // 16. Onboard Intake Batch
   const handleAddBatch = (newBatch) => {
-    setBatches((prev) => [newBatch, ...prev]);
+    setBatches((prev) => {
+      const updated = [newBatch, ...prev];
+      try {
+        localStorage.setItem('seuconnect_batches', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     setStats((prev) => ({ ...prev, totalBatches: prev.totalBatches + 1 }));
     addAuditLog('Onboarded Intake Batch', `${newBatch.name} (Intake ${newBatch.code}) provisioned.`);
     showToast(`Intake Batch ${newBatch.name} onboarded successfully.`);
@@ -565,7 +600,13 @@ export default function Admin({ user, onLogout }) {
   // 16.b Delete Intake Batch
   const handleDeleteBatch = (batchId) => {
     const batch = batches.find((b) => b.id === batchId);
-    setBatches((prev) => prev.filter((b) => b.id !== batchId));
+    setBatches((prev) => {
+      const updated = prev.filter((b) => b.id !== batchId);
+      try {
+        localStorage.setItem('seuconnect_batches', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     setStats((prev) => ({ ...prev, totalBatches: Math.max(0, prev.totalBatches - 1) }));
     addAuditLog('Deleted Intake Batch', `Removed intake batch ${batch?.name || batchId}.`);
     showToast(`Intake Batch "${batch?.name || batchId}" deleted successfully.`);

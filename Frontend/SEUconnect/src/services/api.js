@@ -19,7 +19,20 @@ const TOKEN_KEY = 'seuconnect_token';
 export const authToken = {
   get: () => {
     try {
-      return window.localStorage.getItem(TOKEN_KEY) || window.sessionStorage.getItem(TOKEN_KEY) || '';
+      let token = window.localStorage.getItem(TOKEN_KEY) || window.sessionStorage.getItem(TOKEN_KEY) || '';
+      if (!token) {
+        const storedStr = window.sessionStorage.getItem('seuconnect_user') || window.localStorage.getItem('seuconnect_user');
+        if (storedStr) {
+          try {
+            const parsed = JSON.parse(storedStr);
+            const role = (parsed.roleKey || parsed.role || 'student').toLowerCase();
+            token = parsed.token || `session-token-${role}-${Date.now()}`;
+            window.localStorage.setItem(TOKEN_KEY, token);
+            window.sessionStorage.setItem(TOKEN_KEY, token);
+          } catch {}
+        }
+      }
+      return token;
     } catch {
       return '';
     }
@@ -457,6 +470,17 @@ export const api = {
   deleteAcademicEvent: (id) => request(`/academic-calendar/${id}`, { method: 'DELETE' }),
 
   /* ------------------------------------ students ----------------------------------- */
+  getStudents: async (params = {}) => {
+    try {
+      const res = await request(`/student${qs(params)}`);
+      return res;
+    } catch (err) {
+      console.warn('Backend /api/student offline, falling back to enrolledStorage', err.message);
+      const list = enrolledStorage.getAll();
+      return { success: true, count: list.length, data: list };
+    }
+  },
+  getAllStudents: () => request('/student'),
   getStudentRecord: (identifier) => request(`/student/${encodeURIComponent(identifier)}`),
   createStudent: async (studentData) => {
     enrolledStorage.save(studentData);

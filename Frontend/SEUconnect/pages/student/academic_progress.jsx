@@ -3,7 +3,7 @@ import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 import './academic_progress.css';
 
 // Safe number formatting helper
-const safeToFixed = (val, decimals = 2, fallback = '3.58') => {
+const safeToFixed = (val, decimals = 2, fallback = 'N/A') => {
   if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
   const num = typeof val === 'number' ? val : Number(val);
   return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
@@ -12,9 +12,9 @@ const safeToFixed = (val, decimals = 2, fallback = '3.58') => {
 export default function StudentAcademicProgress({ user }) {
   const [selectedRequirement, setSelectedRequirement] = useState(null);
 
-  const candidateName = user?.name || 'M.N.M. Afnan';
-  const regNo = user?.regNo || '22ICT085';
-  const indexNo = user?.indexNo || 'ICT22085';
+  const candidateName = user?.name || user?.fullName || 'Undergraduate Student';
+  const regNo = user?.regNo || user?.studentId || '—';
+  const indexNo = user?.indexNo || user?.regNo || '—';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
 
   const isFreshers = Boolean(

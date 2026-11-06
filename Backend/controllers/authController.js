@@ -59,10 +59,11 @@ async function buildUserResponse(user) {
     ...base,
     semester: studentDoc?.currentSemester || user.semester || cur.semester,
     batch: studentDoc?.batch || user.batch || '2025/2026',
-    sgpa: studentDoc?.gpaCgpa?.currentSgpa ?? cur.defaultSgpa,
-    cgpa: studentDoc?.gpaCgpa?.cgpa ?? cur.defaultCgpa,
-    credits: studentDoc?.gpaCgpa?.totalCreditsEarned ?? cur.totalCredits,
-    attendance: studentDoc?.attendance?.overallAttendancePercentage ?? 92.5,
+    sgpa: cur.isFreshers ? null : (studentDoc?.gpaCgpa?.currentSgpa ?? cur.defaultSgpa),
+    cgpa: cur.isFreshers ? null : (studentDoc?.gpaCgpa?.cgpa ?? cur.defaultCgpa),
+    credits: cur.isFreshers ? 0 : (studentDoc?.gpaCgpa?.totalCreditsEarned ?? cur.totalCredits),
+    attendance: studentDoc?.attendance?.overallAttendancePercentage ?? (cur.isFreshers ? null : 100),
+    progressionData: cur.progressionData || [],
     enrolledCourses: (studentDoc?.semesterRegistrations?.[0]?.courses?.length > 0)
       ? studentDoc.semesterRegistrations[0].courses
       : finalSubjects.map(s => ({
