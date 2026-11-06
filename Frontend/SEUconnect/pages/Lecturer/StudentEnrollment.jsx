@@ -109,6 +109,11 @@ export default function StudentEnrollment({
   // Filter students reactively
   const filteredStudents = useMemo(() => {
     return ENROLLMENT_STUDENTS_LIST.filter((student) => {
+      // Must be enrolled in one of the lecturer's allocated subjects
+      if (!availableSubjects.some((s) => s.code === student.subjectCode)) {
+        return false;
+      }
+
       // 1. Subject filter
       if (selectedSubjectCode !== 'ALL' && student.subjectCode !== selectedSubjectCode) {
         return false;
@@ -416,7 +421,7 @@ export default function StudentEnrollment({
           </div>
           <div className="kpi-value">{totalStudentsEnrolled}</div>
           <div className="kpi-label">Registered Student Seats</div>
-          <div className="kpi-subtext">Sum across 3 assigned subjects • No deduplication</div>
+          <div className="kpi-subtext">Sum across {availableSubjects.length} assigned subjects • No deduplication</div>
         </div>
 
         {/* Card 2: Assigned Subjects */}

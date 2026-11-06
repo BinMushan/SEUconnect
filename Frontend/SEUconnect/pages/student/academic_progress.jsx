@@ -2,13 +2,27 @@ import React, { useState } from 'react';
 import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 import './academic_progress.css';
 
+// Safe number formatting helper
+const safeToFixed = (val, decimals = 2, fallback = 'N/A') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function StudentAcademicProgress({ user }) {
   const [selectedRequirement, setSelectedRequirement] = useState(null);
 
-  const candidateName = user?.name || 'M.N.M. Afnan';
-  const regNo = user?.regNo || '22ICT085';
-  const indexNo = user?.indexNo || 'ICT22085';
+  const candidateName = user?.name || user?.fullName || 'Undergraduate Student';
+  const regNo = user?.regNo || user?.studentId || '—';
+  const indexNo = user?.indexNo || user?.regNo || '—';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
+
+  const isFreshers = Boolean(
+    user?.isFreshers ||
+    (user?.semester || '').toLowerCase().includes('sem 1') ||
+    (user?.semester || '').toLowerCase().includes('sem 01') ||
+    (user?.semester || '').toLowerCase().includes('fresh')
+  );
 
   const curriculum = getCurriculumBySemester(user?.semester);
   const progData = (user?.progressionData && user.progressionData.length > 0)
@@ -16,17 +30,22 @@ export default function StudentAcademicProgress({ user }) {
     : (curriculum?.progressionData || []);
 
   const totalCredits = 130;
-  const creditsEarned = progData.reduce((sum, p) => sum + (Number(p.credits) || 0), 0);
+  const creditsEarned = isFreshers ? 0 : progData.reduce((sum, p) => sum + (Number(p.credits) || 0), 0);
   const creditsRemaining = Math.max(0, totalCredits - creditsEarned);
   const completionRate = Math.min(100, Math.round((creditsEarned / totalCredits) * 100));
 
-  const latestSgpa = progData.length > 0 ? Number(progData[progData.length - 1].sgpa) : 3.58;
-  const candidateCgpa = Number(user?.cgpa || latestSgpa || 3.58).toFixed(2);
-  const classStanding = Number(candidateCgpa) >= 3.70
-    ? 'First Class Standing'
-    : Number(candidateCgpa) >= 3.30
-      ? 'Second Class (Upper Division)'
-      : 'General Degree Standing';
+  const validProgSgpa = progData.length > 0 && progData[progData.length - 1].sgpa !== null
+    ? Number(progData[progData.length - 1].sgpa)
+    : null;
+  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? user.cgpa : validProgSgpa;
+  const candidateCgpa = isFreshers || rawCgpa === null ? 'N/A' : safeToFixed(rawCgpa, 2, 'N/A');
+  const classStanding = isFreshers || candidateCgpa === 'N/A'
+    ? 'Enrolled (In Progress)'
+    : Number(candidateCgpa) >= 3.70
+      ? 'First Class Standing'
+      : Number(candidateCgpa) >= 3.30
+        ? 'Second Class (Upper Division)'
+        : 'General Degree Standing';
 
   const currentYearNum = curriculum?.yearNumber || 1;
 

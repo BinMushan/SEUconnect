@@ -1,5 +1,11 @@
 import { useState } from 'react';
 
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function ResultsManagement({
   students,
   onPublishResults
@@ -9,18 +15,23 @@ export default function ResultsManagement({
   const [selectedSemester, setSelectedSemester] = useState('Semester 5');
 
   // Distribution counts
-  const firstClass = students.filter((s) => s.cgpa >= 3.7);
-  const secondUpper = students.filter((s) => s.cgpa >= 3.3 && s.cgpa < 3.7);
-  const secondLower = students.filter((s) => s.cgpa >= 3.0 && s.cgpa < 3.3);
-  const generalPass = students.filter((s) => s.cgpa >= 2.0 && s.cgpa < 3.0);
-  const academicWarning = students.filter((s) => s.cgpa < 2.0);
+  const validStudents = (students || []).map(s => ({
+    ...s,
+    cgpaNum: s.cgpa !== null && s.cgpa !== undefined ? Number(s.cgpa) : null
+  }));
 
-  const filteredStudents = students.filter((s) => {
-    if (filterClass === 'FIRST') return s.cgpa >= 3.7;
-    if (filterClass === 'UPPER') return s.cgpa >= 3.3 && s.cgpa < 3.7;
-    if (filterClass === 'LOWER') return s.cgpa >= 3.0 && s.cgpa < 3.3;
-    if (filterClass === 'PASS') return s.cgpa >= 2.0 && s.cgpa < 3.0;
-    if (filterClass === 'WARNING') return s.cgpa < 2.0;
+  const firstClass = validStudents.filter((s) => s.cgpaNum !== null && s.cgpaNum >= 3.7);
+  const secondUpper = validStudents.filter((s) => s.cgpaNum !== null && s.cgpaNum >= 3.3 && s.cgpaNum < 3.7);
+  const secondLower = validStudents.filter((s) => s.cgpaNum !== null && s.cgpaNum >= 3.0 && s.cgpaNum < 3.3);
+  const generalPass = validStudents.filter((s) => s.cgpaNum !== null && s.cgpaNum >= 2.0 && s.cgpaNum < 3.0);
+  const academicWarning = validStudents.filter((s) => s.cgpaNum !== null && s.cgpaNum < 2.0);
+
+  const filteredStudents = validStudents.filter((s) => {
+    if (filterClass === 'FIRST') return s.cgpaNum !== null && s.cgpaNum >= 3.7;
+    if (filterClass === 'UPPER') return s.cgpaNum !== null && s.cgpaNum >= 3.3 && s.cgpaNum < 3.7;
+    if (filterClass === 'LOWER') return s.cgpaNum !== null && s.cgpaNum >= 3.0 && s.cgpaNum < 3.3;
+    if (filterClass === 'PASS') return s.cgpaNum !== null && s.cgpaNum >= 2.0 && s.cgpaNum < 3.0;
+    if (filterClass === 'WARNING') return s.cgpaNum !== null && s.cgpaNum < 2.0;
     return true;
   });
 
@@ -154,16 +165,16 @@ export default function ResultsManagement({
                       <span className="adm-stat-badge">{s.semester}</span>
                     </td>
                     <td>
-                      <span style={{ fontWeight: 700, color: '#0f172a' }}>{s.sgpa.toFixed(2)}</span>
+                      <span style={{ fontWeight: 700, color: '#0f172a' }}>{safeToFixed(s.sgpa, 2, '—')}</span>
                     </td>
                     <td>
                       <span
                         style={{
                           fontWeight: 800,
-                          color: s.cgpa >= 3.7 ? '#15803d' : s.cgpa >= 3.3 ? '#0f2b5c' : s.cgpa < 2.0 ? '#dc2626' : '#b45309'
+                          color: s.cgpaNum !== null && s.cgpaNum >= 3.7 ? '#15803d' : s.cgpaNum !== null && s.cgpaNum >= 3.3 ? '#0f2b5c' : s.cgpaNum !== null && s.cgpaNum < 2.0 ? '#dc2626' : '#b45309'
                         }}
                       >
-                        {s.cgpa.toFixed(2)}
+                        {safeToFixed(s.cgpa, 2, '—')}
                       </span>
                     </td>
                     <td>

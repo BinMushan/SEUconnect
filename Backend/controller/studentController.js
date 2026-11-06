@@ -16,42 +16,52 @@ const findStudentByAnyIdentifier = async (identifier) => {
   });
 };
 
-// @desc    Get all students (list summary)
+// @desc    Get all students (list summary with full details for management)
 // @route   GET /api/student
 exports.getAllStudents = async (req, res) => {
   try {
-    const mongoose = require('mongoose');
-    let students = [];
-    if (mongoose.connection.readyState === 1) {
-      students = await Student.find({}, 'studentId indexNo fullName email department degreeProgramme currentSemester academicStatus batch attendance academicProfile phone cgpa gpaCgpa semesterRegistrations').lean();
-    } else {
-      const { SAMPLE_STUDENTS } = require('../seed_students');
-      students = SAMPLE_STUDENTS || [];
-    }
-
-    const data = students.map((s) => ({
-      _id: s._id ? String(s._id) : s.studentId,
-      studentId: s.studentId,
-      indexNo: s.indexNo,
-      fullName: s.fullName,
-      name: s.fullName,
-      email: s.email,
-      department: s.department,
-      degreeProgramme: s.degreeProgramme,
-      currentSemester: s.currentSemester,
-      academicStatus: s.academicStatus,
-      batch: s.batch,
-      attendance: typeof s.attendance === 'number' ? s.attendance : (s.attendance?.overallAttendancePercentage || 90),
-      cgpa: s.cgpa || s.gpaCgpa?.cgpa || 3.40,
-      sgpa: s.sgpa || s.gpaCgpa?.sgpa || 3.45,
-      phone: s.academicProfile?.personalPhone || s.phone || '',
-      specialization: s.academicProfile?.specialization || '',
-    }));
+    const students = await Student.find({}).sort({ createdAt: -1 }).lean();
+    const formatted = students.map((s) => {
+      const reg = s.studentId || s.registrationNo || s.regNo || '';
+      const cur = getCurriculumBySemester(s.currentSemester);
+      const isFresh = cur?.isFreshers || (s.currentSemester && (s.currentSemester.includes('1') && !s.currentSemester.includes('2')));
+      return {
+        id: s._id ? s._id.toString() : (s.studentId || `stu-${Date.now()}`),
+        _id: s._id,
+        regNo: reg,
+        studentId: reg,
+        indexNo: s.indexNo || reg,
+        name: s.fullName || s.name || '',
+        fullName: s.fullName || s.name || '',
+        email: s.email || '',
+        department: s.department || 'Department of Information and Communication Technology',
+        programme: s.degreeProgramme || s.programme || 'BICT (Hons)',
+        degreeProgramme: s.degreeProgramme || s.programme || 'BICT (Hons)',
+        semester: s.currentSemester || s.semester || 'Year 1 Semester 1',
+        currentSemester: s.currentSemester || s.semester || 'Year 1 Semester 1',
+        batch: s.batch || '2025/2026',
+        batchId: s.batchId || s.batch || 'BATCH-05',
+        batchCode: s.batchCode || s.batch || 'Batch 05 (2024/2025)',
+        cgpa: isFresh ? null : (s.gpaCgpa?.cgpa !== undefined ? s.gpaCgpa.cgpa : (cur.defaultCgpa ?? null)),
+        sgpa: isFresh ? null : (s.gpaCgpa?.currentSgpa !== undefined ? s.gpaCgpa.currentSgpa : (cur.defaultSgpa ?? null)),
+        credits: isFresh ? 0 : (s.gpaCgpa?.totalCreditsEarned !== undefined ? s.gpaCgpa.totalCreditsEarned : (cur.totalCredits ?? 0)),
+        attendance: s.attendance?.overallAttendancePercentage !== undefined ? s.attendance.overallAttendancePercentage : (isFresh ? null : 100),
+        status: s.academicStatus || s.status || 'Active',
+        academicStatus: s.academicStatus || s.status || 'Active',
+        phone: s.academicProfile?.personalPhone || s.phone || '+94 77 123 4567',
+        welfare: s.welfare || 'Pending Verification',
+        specialization: s.specialization || (s.department?.includes('Bio') ? 'Bio-Processing Technology' : 'Software Technology'),
+        enrolledCourses: s.semesterRegistrations?.[0]?.courses || cur.subjects || [],
+        timetable: cur.timetableSlots || [],
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      };
+    });
 
     res.status(200).json({
       success: true,
-      count: data.length,
-      data
+      count: formatted.length,
+      data: formatted
     });
   } catch (error) {
     res.status(500).json({
@@ -269,18 +279,11 @@ exports.createStudent = async (req, res) => {
         }
         if (!existing.attendance || !existing.attendance.subjectRecords || existing.attendance.subjectRecords.length === 0) {
           existing.attendance = {
-            overallAttendancePercentage: 92.5,
-            totalLectures: 120,
-            attendedLectures: 111,
+            overallAttendancePercentage: cur.isFreshers ? null : 100,
+            totalLectures: 0,
+            attendedLectures: 0,
             eligibilityStatus: 'Eligible',
-            subjectRecords: cur.subjects.map(s => ({
-              courseCode: s.code,
-              courseName: s.title,
-              totalClasses: 30,
-              attendedClasses: 28,
-              percentage: 93.3,
-              status: 'Eligible'
-            }))
+            subjectRecords: []
           };
         }
         studentDoc = await existing.save();
@@ -304,18 +307,11 @@ exports.createStudent = async (req, res) => {
             gender: 'Male'
           },
           attendance: {
-            overallAttendancePercentage: 92.5,
-            totalLectures: 120,
-            attendedLectures: 111,
+            overallAttendancePercentage: cur.isFreshers ? null : 100,
+            totalLectures: 0,
+            attendedLectures: 0,
             eligibilityStatus: 'Eligible',
-            subjectRecords: cur.subjects.map(s => ({
-              courseCode: s.code,
-              courseName: s.title,
-              totalClasses: 30,
-              attendedClasses: 28,
-              percentage: 93.3,
-              status: 'Eligible'
-            }))
+            subjectRecords: []
           },
           semesterRegistrations: [{
             semester: cur.semester,
@@ -332,13 +328,13 @@ exports.createStudent = async (req, res) => {
             }))
           }],
           gpaCgpa: {
-            currentSgpa: cur.defaultSgpa !== null && cur.defaultSgpa !== undefined ? cur.defaultSgpa : 0.0,
-            cgpa: cur.defaultCgpa !== null && cur.defaultCgpa !== undefined ? cur.defaultCgpa : 0.0,
+            currentSgpa: cur.isFreshers ? null : (cur.defaultSgpa ?? null),
+            cgpa: cur.isFreshers ? null : (cur.defaultCgpa ?? null),
             academicStanding: cur.isFreshers ? 'Enrolled (Freshers)' : 'Good Standing',
-            targetClass: (cur.defaultCgpa || 0) >= 3.70 ? 'First Class' : 'Second Class (Upper)',
-            totalCreditsEarned: cur.defaultSgpa ? cur.totalCredits : 0,
+            targetClass: cur.isFreshers ? 'General Standing' : ((cur.defaultCgpa || 0) >= 3.70 ? 'First Class' : 'Second Class (Upper)'),
+            totalCreditsEarned: cur.isFreshers ? 0 : (cur.defaultSgpa ? cur.totalCredits : 0),
             totalCreditsRequired: 120,
-            semesterHistory: (cur.progressionData || [])
+            semesterHistory: cur.isFreshers ? [] : (cur.progressionData || [])
               .filter(p => p.sgpa !== null && p.sgpa !== undefined)
               .map(p => ({
                 semester: p.semester,
@@ -452,18 +448,11 @@ exports.createStudentsBulk = async (req, res) => {
                 gender: 'Male'
               },
               attendance: {
-                overallAttendancePercentage: 92.5,
-                totalLectures: 120,
-                attendedLectures: 111,
+                overallAttendancePercentage: cur.isFreshers ? null : 100,
+                totalLectures: 0,
+                attendedLectures: 0,
                 eligibilityStatus: 'Eligible',
-                subjectRecords: finalRegSubjects.map(sub => ({
-                  courseCode: sub.code,
-                  courseName: sub.title,
-                  totalClasses: 30,
-                  attendedClasses: 28,
-                  percentage: 93.3,
-                  status: 'Eligible'
-                }))
+                subjectRecords: []
               },
               semesterRegistrations: [{
                 semester: cur.semester,
@@ -480,13 +469,13 @@ exports.createStudentsBulk = async (req, res) => {
                 }))
               }],
               gpaCgpa: {
-                currentSgpa: cur.defaultSgpa !== null && cur.defaultSgpa !== undefined ? cur.defaultSgpa : 0.0,
-                cgpa: cur.defaultCgpa !== null && cur.defaultCgpa !== undefined ? cur.defaultCgpa : 0.0,
+                currentSgpa: cur.isFreshers ? null : (cur.defaultSgpa ?? null),
+                cgpa: cur.isFreshers ? null : (cur.defaultCgpa ?? null),
                 academicStanding: cur.isFreshers ? 'Enrolled (Freshers)' : 'Good Standing',
-                targetClass: (cur.defaultCgpa || 0) >= 3.70 ? 'First Class' : 'Second Class (Upper)',
-                totalCreditsEarned: cur.defaultSgpa ? cur.totalCredits : 0,
+                targetClass: cur.isFreshers ? 'General Standing' : ((cur.defaultCgpa || 0) >= 3.70 ? 'First Class' : 'Second Class (Upper)'),
+                totalCreditsEarned: cur.isFreshers ? 0 : (cur.defaultSgpa ? cur.totalCredits : 0),
                 totalCreditsRequired: 120,
-                semesterHistory: (cur.progressionData || [])
+                semesterHistory: cur.isFreshers ? [] : (cur.progressionData || [])
                   .filter(p => p.sgpa !== null && p.sgpa !== undefined)
                   .map(p => ({
                     semester: p.semester,

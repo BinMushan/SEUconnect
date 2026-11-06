@@ -18,6 +18,12 @@ import StudentPenalties from './penalties_disciplinary.jsx';
 import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
 import './student.css';
 
+const safeToFixed = (val, decimals = 2, fallback = 'N/A') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function Student({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -39,9 +45,9 @@ export default function Student({ user, onLogout }) {
       if (hash.includes('result')) return 'results';
       if (hash.includes('progress')) return 'academic_progress';
       if (hash.includes('gpa') || hash.includes('cgpa')) return 'gpa_cgpa';
-      if (hash.includes('medical')) return 'medical_requests';
+      if (hash.includes('medical')) return 'forms_medical';
       if (hash.includes('attendance')) return 'attendance';
-      if (hash.includes('registration')) return 'semester_registration';
+      if (hash.includes('registration') || hash.includes('enrolled')) return 'semester_registration';
       if (hash.includes('profile')) return 'academic_profile';
     }
     return 'attendance';
@@ -80,10 +86,10 @@ export default function Student({ user, onLogout }) {
       } else if (hash.includes('gpa') || hash.includes('cgpa')) {
         setActiveTab('gpa_cgpa');
       } else if (hash.includes('medical')) {
-        setActiveTab('medical_requests');
+        setActiveTab('forms_medical');
       } else if (hash.includes('attendance')) {
         setActiveTab('attendance');
-      } else if (hash.includes('registration')) {
+      } else if (hash.includes('registration') || hash.includes('enrolled')) {
         setActiveTab('semester_registration');
       } else if (hash.includes('profile')) {
         setActiveTab('academic_profile');
@@ -166,8 +172,8 @@ export default function Student({ user, onLogout }) {
     for (let i = 0; i < pts.length - 1; i++) {
       const p0 = pts[i];
       const p1 = pts[i + 1];
-      const cpX1 = (p0.x + (p1.x - p0.x) * 0.45).toFixed(1);
-      const cpX2 = (p1.x - (p1.x - p0.x) * 0.45).toFixed(1);
+      const cpX1 = Number((p0.x + (p1.x - p0.x) * 0.45) || 0).toFixed(1);
+      const cpX2 = Number((p1.x - (p1.x - p0.x) * 0.45) || 0).toFixed(1);
       linePath += ` C ${cpX1},${p0.y} ${cpX2},${p1.y} ${p1.x},${p1.y}`;
     }
 
@@ -207,7 +213,7 @@ export default function Student({ user, onLogout }) {
 
   const quickActions = [  
     { 
-      label: 'Register Subjects',
+      label: 'Enrolled Subjects',
       actionId: 'semester_registration',
       colorTheme: 'purple',
       icon: (
@@ -258,7 +264,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Submit Medical Request',
-      actionId: 'medical_requests',
+      actionId: 'forms_medical',
       colorTheme: 'teal',
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -314,12 +320,12 @@ export default function Student({ user, onLogout }) {
       categoryType: 'registration',
       status: 'Open • 4 Days Left',
       statusType: 'urgent',
-      title: 'Semester Subject Registration (Add/Drop)',
-      description: 'Department coordinator sign-off for elective additions and credit adjustments.',
-      deadline: 'Deadline: 2026-11-15',
-      countdown: '4 days remaining',
+      title: 'Semester Enrolled Subjects',
+      description: 'Department coordinator registered course modules and credit allocations.',
+      deadline: 'Status: Active Registration',
+      countdown: 'Enrolled this semester',
       actionId: 'semester_registration',
-      actionText: 'Register Subjects'
+      actionText: 'View Enrolled Subjects'
     },
     {
       id: 'exam',
@@ -344,7 +350,7 @@ export default function Student({ user, onLogout }) {
       description: 'Submit government/UMO certified form within 7 days of absence for ESA concessions.',
       deadline: 'Deadline: Within 7 days of absence',
       countdown: 'Strict Institutional Rule',
-      actionId: 'medical_requests',
+      actionId: 'forms_medical',
       actionText: 'Submit Medical'
     },
     {
@@ -394,15 +400,24 @@ export default function Student({ user, onLogout }) {
         <Attendance
           user={studentUser || user}
           onNavigateMedical={() => {
-            setActiveTab('medical_requests');
+            setActiveTab('forms_medical');
             if (typeof window !== 'undefined') {
-              window.location.hash = '#student/medical_requests';
+              window.location.hash = '#student/forms_medical';
             }
           }}
         />
       ) : activeTab === 'medical_requests' ? (
-        <MedicalRequests
+        <FacultyForms
           user={studentUser || user}
+          activeSubTab="forms_medical"
+          resubmitProcess={resubmitProcess}
+          onResubmitDone={() => {}}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
         />
       ) : activeTab === 'examinations' || activeTab === 'examination' ? (
         <StudentExamination
@@ -502,13 +517,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
               <div className="std-stat-number">
-                {studentUser?.sgpa !== undefined && studentUser?.sgpa !== null
-                  ? Number(studentUser.sgpa).toFixed(2)
-                  : currentCurriculum?.defaultSgpa !== undefined && currentCurriculum?.defaultSgpa !== null
-                    ? Number(currentCurriculum.defaultSgpa).toFixed(2)
-                    : 'N/A'}
+                {currentCurriculum.isFreshers || studentUser?.sgpa === null || (studentUser?.sgpa === undefined && currentCurriculum?.defaultSgpa === null)
+                  ? 'N/A'
+                  : safeToFixed(studentUser?.sgpa ?? currentCurriculum?.defaultSgpa, 2, 'N/A')}
               </div>
-              <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
+              <div className="std-stat-target">
+                {currentCurriculum.isFreshers ? 'Pending Semester 1 Examinations' : 'Target: First Class (≥ 3.70)'}
+              </div>
             </div>
           </div>
           
@@ -526,14 +541,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">Cumulative</span>
               </div>
               <div className="std-stat-number">
-                {studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
-                  ? Number(studentUser.cgpa).toFixed(2)
-                  : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
-                    ? Number(currentCurriculum.defaultCgpa).toFixed(2)
-                    : 'N/A'}
+                {currentCurriculum.isFreshers || studentUser?.cgpa === null || (studentUser?.cgpa === undefined && currentCurriculum?.defaultCgpa === null)
+                  ? 'N/A'
+                  : safeToFixed(studentUser?.cgpa ?? currentCurriculum?.defaultCgpa, 2, 'N/A')}
               </div>
               <div className="std-stat-target">
                 {(() => {
+                  if (currentCurriculum.isFreshers) return 'Enrolled (Freshers)';
                   const val = studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
                     ? Number(studentUser.cgpa)
                     : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
@@ -560,10 +574,20 @@ export default function Student({ user, onLogout }) {
             <div className="std-stat-body">
               <div className="std-stat-top-row">
                 <span className="std-stat-title">ATTENDANCE STANDING</span>
-                <span className="std-stat-badge">{(Number(studentUser?.attendance !== undefined && studentUser?.attendance !== null ? studentUser.attendance : 92.5) >= 80) ? 'Eligible' : 'At Risk'}</span>
+                <span className="std-stat-badge">
+                  {currentCurriculum.isFreshers || studentUser?.attendance === null || studentUser?.attendance === undefined
+                    ? 'Enrolled'
+                    : Number(studentUser.attendance) >= 80 ? 'Eligible' : 'At Risk'}
+                </span>
               </div>
-              <div className="std-stat-number">{studentUser?.attendance !== undefined && studentUser?.attendance !== null ? `${studentUser.attendance}%` : '92.5%'}</div>
-              <div className="std-stat-target">ESA Minimum: 80%</div>
+              <div className="std-stat-number">
+                {studentUser?.attendance !== undefined && studentUser?.attendance !== null
+                  ? `${studentUser.attendance}%`
+                  : (currentCurriculum.isFreshers ? '—' : '100%')}
+              </div>
+              <div className="std-stat-target">
+                {currentCurriculum.isFreshers ? 'Lectures in Progress' : 'ESA Minimum: 80%'}
+              </div>
             </div>
           </div>
 
@@ -582,8 +606,12 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">REGISTERED CREDITS</span>
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel} Load</span>
               </div>
-              <div className="std-stat-number">{studentUser?.credits !== undefined && studentUser?.credits !== null ? `${studentUser.credits} / 22` : `${currentCurriculum.totalCredits} / 22`}</div>
-              <div className="std-stat-target">{Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : currentCurriculum.totalCredits))} credits remaining</div>
+              <div className="std-stat-number">{currentCurriculum.totalCredits} / 22</div>
+              <div className="std-stat-target">
+                {currentCurriculum.isFreshers
+                  ? `${currentCurriculum.totalCredits} credits enrolled (0 completed)`
+                  : `${Math.max(0, 22 - (studentUser?.credits !== undefined && studentUser?.credits !== null ? Number(studentUser.credits) : currentCurriculum.totalCredits))} credits remaining`}
+              </div>
             </div>
           </div>
         </section>
@@ -716,9 +744,7 @@ export default function Student({ user, onLogout }) {
                   <span className="std-trend-box-lbl">SEMESTER GPA ({activeProg.semester || 'Current'})</span>
                   <div className="std-trend-box-val-row">
                     <span className="std-trend-box-val">
-                      {activeProg.sgpa !== null && activeProg.sgpa !== undefined
-                        ? (Number(activeProg.sgpa) || 0).toFixed(2)
-                        : 'N/A'}
+                      {safeToFixed(activeProg.sgpa, 2, 'N/A')}
                     </span>
                     <span className={`std-trend-box-delta ${activeProg.sgpa === null ? 'neutral' : (activeProg.delta || '').startsWith('+') ? 'positive' : (activeProg.delta || '').startsWith('-') ? 'negative' : 'neutral'}`}>
                       {activeProg.sgpa !== null ? (activeProg.delta || '+0.00') : 'Pending Exam'}
@@ -843,8 +869,7 @@ export default function Student({ user, onLogout }) {
                 {/* Data Points & Interactive Floating Badges */}
                 {chartPoints.map((p, idx) => {
                   const isSelected = selectedSemesterIdx === idx;
-                  const hasSgpa = p.sgpa !== null && p.sgpa !== undefined;
-                  const sgpaFormatted = hasSgpa ? (Number(p.sgpa) || 0).toFixed(2) : 'Pending';
+                  const sgpaFormatted = safeToFixed(p.sgpa, 2, 'Pending');
 
                   return (
                     <g

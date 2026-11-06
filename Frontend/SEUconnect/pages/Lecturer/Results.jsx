@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import { INITIAL_SUBJECTS, ENROLLED_STUDENTS, calculateSEUSLGrade, getStoredCustomCAs, getStoredMarks } from './lecturerMockData.js';
 
+const safeToFixed = (val, decimals = 1, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 /**
  * Results component
  * Results & Grading Management with:
@@ -491,7 +497,7 @@ export default function Results({ subjects = INITIAL_SUBJECTS, initialSubjectCod
                       </span>
                     </td>
                     <td>
-                      <span className="font-mono font-semibold">{st.gpa.toFixed(1)}</span>
+                      <span className="font-mono font-semibold">{safeToFixed(st.gpa, 1, '—')}</span>
                     </td>
                     <td>
                       <span className={`lec-remark-pill ${isPassing ? 'remark-pass' : 'remark-fail'}`}>

@@ -1,5 +1,11 @@
 import React, { useState, useMemo } from 'react';
 
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 const INITIAL_APPLICANTS = [
   {
     id: 'STR-2026-001',
@@ -326,7 +332,7 @@ export default function Specialization_Streaming() {
                     </td>
                     <td>
                       <span style={{ fontWeight: 700, fontSize: '14px', color: item.cgpaSem13 >= 2.0 ? '#059669' : '#dc2626' }}>
-                        {item.cgpaSem13.toFixed(2)}
+                        {safeToFixed(item.cgpaSem13, 2, '—')}
                       </span>
                     </td>
                     <td>
@@ -392,7 +398,7 @@ export default function Specialization_Streaming() {
                 <div className="fma-info-item">
                   <span className="fma-info-lbl">Sem 1–3 Cumulative GPA</span>
                   <span className="fma-info-val" style={{ color: selectedApplicant.cgpaSem13 >= 2.0 ? '#059669' : '#dc2626' }}>
-                    {selectedApplicant.cgpaSem13.toFixed(2)} (Required: ≥ 2.00)
+                    {safeToFixed(selectedApplicant.cgpaSem13, 2, '—')} (Required: ≥ 2.00)
                   </span>
                 </div>
                 <div className="fma-info-item">

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
+import { resultsPipelineService } from '../../src/services/resultsPipelineService.js';
 import './gpa_cgpa.css';
 
 const SEMESTER_DATA = {
@@ -209,23 +211,143 @@ const SEMESTER_DATA = {
   }
 };
 
+// Safe number formatting helper that never throws TypeError: .toFixed is not a function
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function StudentGpaCgpa({ user }) {
   const [activeSem, setActiveSem] = useState(1);
 
-  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1';
+  const semStr = (user?.semester || user?.academicYear || '').toLowerCase();
+  const isFreshers = Boolean(
+    user?.isFreshers ||
+    semStr.includes('sem 1') ||
+    semStr.includes('sem 01') ||
+    semStr.includes('semester 1') ||
+    semStr.includes('semester 01') ||
+    semStr.includes('1st sem') ||
+    semStr.includes('fresh') ||
+    (semStr.includes('year 1') && !semStr.includes('sem 2') && !semStr.includes('semester 2'))
+  );
+
+  const isDefaultDemo =
+    user?.email === 'student@gmail.com' ||
+    user?.regNo === '22ICT085' ||
+    user?.regNo === '22ICT091' ||
+    (!isFreshers && (user?.name || '').includes('Afnan'));
+
+  const getSemesterNumber = (semName) => {
+    const s = String(semName || '').toLowerCase();
+    if (s.includes('sem 1') || s.includes('semester 1') || s.includes('sem 01') || s.includes('1st sem')) return 1;
+    if (s.includes('sem 2') || s.includes('semester 2') || s.includes('sem 02') || s.includes('2nd sem')) return 2;
+    if (s.includes('sem 3') || s.includes('semester 3') || s.includes('sem 03') || s.includes('3rd sem')) return 3;
+    if (s.includes('sem 4') || s.includes('semester 4') || s.includes('sem 04') || s.includes('4th sem')) return 4;
+    if (s.includes('sem 5') || s.includes('semester 5') || s.includes('sem 05') || s.includes('5th sem')) return 5;
+    if (s.includes('sem 6') || s.includes('semester 6') || s.includes('sem 06') || s.includes('6th sem')) return 6;
+    if (s.includes('sem 7') || s.includes('semester 7') || s.includes('sem 07') || s.includes('7th sem')) return 7;
+    if (s.includes('sem 8') || s.includes('semester 8') || s.includes('sem 08') || s.includes('8th sem')) return 8;
+    return 1;
+  };
+
+  const studentSemNum = isFreshers ? 1 : getSemesterNumber(user?.semester || user?.academicYear);
+  const maxSemTabs = isFreshers ? 1 : (isDefaultDemo ? 5 : studentSemNum);
+  const availableTabs = Array.from({ length: Math.max(1, maxSemTabs) }, (_, i) => i + 1);
+
   const candidateName = user?.name || (isFreshers ? 'Fresh Undergraduate' : 'Mushan M.M.B. (Afnan)');
   const regNo = user?.regNo || (isFreshers ? '24ICT001' : '22ICT091');
   const indexNo = user?.indexNo || (isFreshers ? 'ICT24001' : 'ICT22091');
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
   const specialization = user?.specialization || 'Software Systems';
 
-  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? Number(user.cgpa) : 3.58;
-  const displayCgpa = isFreshers ? 'N/A' : (isNaN(rawCgpa) ? '3.58' : rawCgpa.toFixed(2));
-  const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1] || {};
-  const displaySgpa = isFreshers ? 'N/A' : (currentSemesterObj?.sgpa != null ? Number(currentSemesterObj.sgpa).toFixed(2) : 'N/A');
-  const displayStanding = isFreshers ? 'Enrolled (In Progress)' : 'Second Class (Upper Division)';
-  const displayCredits = isFreshers ? '0 / 130 Credits' : '78 / 130 Credits';
-  const displayCompletion = isFreshers ? '0%' : '60%';
+  const currentSemesterObj = useMemo(() => {
+    // 1. If demo account and we have historical data in SEMESTER_DATA
+    if (isDefaultDemo && SEMESTER_DATA[activeSem]) {
+      return SEMESTER_DATA[activeSem];
+    }
+
+    // 2. Check live pipeline moderation results
+    const semCurriculum = getCurriculumBySemester(`Semester ${activeSem}`);
+    const curriculumSubjects = semCurriculum?.subjects || [];
+
+    const yrNum = Math.ceil(activeSem / 2);
+    const semNumInYr = ((activeSem - 1) % 2) + 1;
+    const publishedPipeline = resultsPipelineService.getStudentSemesterResults(
+      regNo,
+      `Year ${yrNum} Semester ${semNumInYr}`
+    );
+
+    if (publishedPipeline && publishedPipeline.isPublished && publishedPipeline.courses && publishedPipeline.courses.length > 0) {
+      return {
+        semLabel: `Semester 0${activeSem} (SGPA: ${safeToFixed(publishedPipeline.sgpa, 2, '—')})`,
+        shortLabel: `Sem 0${activeSem}`,
+        sgpa: publishedPipeline.sgpa,
+        totalCredits: publishedPipeline.totalCredits || 17,
+        modules: publishedPipeline.courses.map((c) => ({
+          code: c.code,
+          title: c.title,
+          credits: c.credits,
+          caMark: c.caMark ?? '—',
+          esaMark: c.esaMark ?? '—',
+          finalMark: c.finalMark ?? '—',
+          grade: c.grade || 'Pending',
+          gradePoint: c.gradePoint,
+          qualityPoints: c.qualityPoints,
+        })),
+      };
+    }
+
+    // 3. Current active semester or fresher semester in progress
+    const enrolledList = (user?.enrolledCourses && user.enrolledCourses.length > 0)
+      ? user.enrolledCourses
+      : curriculumSubjects;
+
+    return {
+      semLabel: `Semester 0${activeSem} (${isFreshers ? 'Enrolled / In Progress' : 'In Progress'})`,
+      shortLabel: `Sem 0${activeSem}`,
+      sgpa: null,
+      totalCredits: enrolledList.reduce((sum, s) => sum + (Number(s.credits) || 0), 0) || 17,
+      isInProgress: true,
+      modules: enrolledList.map((s) => ({
+        code: s.code || s.rawCode || 'MOD',
+        title: s.title || s.name || 'Course Module',
+        credits: Number(s.credits) || 2,
+        caMark: '—',
+        esaMark: '—',
+        finalMark: '—',
+        grade: 'In Progress',
+        gradePoint: null,
+        qualityPoints: null,
+      })),
+    };
+  }, [activeSem, isDefaultDemo, isFreshers, regNo, user]);
+
+  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? user.cgpa : (isDefaultDemo ? 3.58 : null);
+  const displayCgpa = isFreshers || rawCgpa === null ? 'N/A' : safeToFixed(rawCgpa, 2, 'N/A');
+  const displaySgpa = isFreshers || currentSemesterObj?.sgpa === null ? 'N/A' : safeToFixed(currentSemesterObj?.sgpa, 2, 'N/A');
+  const displayStanding = isFreshers || displayCgpa === 'N/A'
+    ? 'Enrolled (In Progress)'
+    : Number(displayCgpa) >= 3.70
+      ? 'First Class Standing'
+      : Number(displayCgpa) >= 3.30
+        ? 'Second Class (Upper Division)'
+        : 'General Pass';
+  const displayCredits = isFreshers
+    ? '0 / 130 Credits'
+    : user?.credits !== undefined && user?.credits !== null
+      ? `${user.credits} / 130 Credits`
+      : isDefaultDemo
+        ? '78 / 130 Credits'
+        : '0 / 130 Credits';
+  const displayCompletion = isFreshers
+    ? '0%'
+    : user?.credits !== undefined && user?.credits !== null
+      ? `${Math.min(100, Math.round((Number(user.credits) / 130) * 100))}%`
+      : isDefaultDemo
+        ? '60%'
+        : '0%';
 
   const handlePrint = () => {
     window.print();
@@ -331,14 +453,14 @@ export default function StudentGpaCgpa({ user }) {
 
         {/* 4. Semester Navigation Pill Tabs */}
         <div className="gpa-sem-nav-row">
-          {[1, 2, 3, 4, 5].map((sem) => (
+          {availableTabs.map((sem) => (
             <button
               key={sem}
               type="button"
               className={`gpa-sem-tab ${activeSem === sem ? 'active' : ''}`}
               onClick={() => setActiveSem(sem)}
             >
-              {SEMESTER_DATA[sem].semLabel}
+              {isDefaultDemo ? (SEMESTER_DATA[sem]?.semLabel || `Sem 0${sem}`) : `Semester 0${sem}`}
             </button>
           ))}
         </div>
@@ -360,7 +482,7 @@ export default function StudentGpaCgpa({ user }) {
               </tr>
             </thead>
             <tbody>
-              {currentSemesterObj.modules.map((mod) => (
+              {(currentSemesterObj?.modules || []).map((mod) => (
                 <tr key={mod.code}>
                   <td className="gpa-cell-code">
                     <strong>{mod.code}</strong>
@@ -373,13 +495,13 @@ export default function StudentGpaCgpa({ user }) {
                     <strong>{mod.finalMark}</strong>
                   </td>
                   <td className="gpa-cell-grade">
-                    <span className={getGradeBadgeClass(mod.grade)}>
+                    <span className={getGradeBadgeClass(mod.grade || '')}>
                       {mod.grade}
                     </span>
                   </td>
-                  <td className="gpa-cell-gp">{mod.gradePoint != null ? Number(mod.gradePoint).toFixed(2) : '—'}</td>
+                  <td className="gpa-cell-gp">{safeToFixed(mod?.gradePoint, 2, '—')}</td>
                   <td className="gpa-cell-qp">
-                    <strong>{mod.qualityPoints != null ? Number(mod.qualityPoints).toFixed(2) : '—'}</strong>
+                    <strong>{safeToFixed(mod?.qualityPoints, 2, '—')}</strong>
                   </td>
                 </tr>
               ))}
@@ -395,7 +517,7 @@ export default function StudentGpaCgpa({ user }) {
           </div>
           <div className="gpa-footer-sgpa">
             <span>Semester GPA (SGPA):</span>
-            <strong>{currentSemesterObj?.sgpa != null ? Number(currentSemesterObj.sgpa).toFixed(2) : 'N/A'}</strong>
+            <strong>{isFreshers ? 'N/A' : safeToFixed(currentSemesterObj?.sgpa, 2, 'N/A')}</strong>
           </div>
         </div>
 
@@ -447,7 +569,7 @@ export default function StudentGpaCgpa({ user }) {
             </tr>
           </thead>
           <tbody>
-            {currentSemesterObj.modules.map((mod, idx) => (
+            {(currentSemesterObj?.modules || []).map((mod, idx) => (
               <tr key={mod.code}>
                 <td>{idx + 1}</td>
                 <td><strong>{mod.code}</strong></td>
@@ -457,8 +579,8 @@ export default function StudentGpaCgpa({ user }) {
                 <td>{mod.esaMark}</td>
                 <td>{mod.finalMark}</td>
                 <td><strong>{mod.grade}</strong></td>
-                <td>{mod.gradePoint != null ? Number(mod.gradePoint).toFixed(2) : '—'}</td>
-                <td>{mod.qualityPoints != null ? Number(mod.qualityPoints).toFixed(2) : '—'}</td>
+                <td>{safeToFixed(mod?.gradePoint, 2, '—')}</td>
+                <td>{safeToFixed(mod?.qualityPoints, 2, '—')}</td>
               </tr>
             ))}
           </tbody>

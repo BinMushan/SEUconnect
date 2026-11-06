@@ -85,13 +85,13 @@ export default function StudentExamination({ user }) {
   const [voucherFile, setVoucherFile] = useState(null);
 
   // Student credentials matching the live SEUConnect portal
-  const candidateName = user?.name || 'M.N.M. Afnan';
-  const regNo = user?.regNo || '22ICT085';
-  const indexNo = user?.indexNo || 'ICT22085';
+  const candidateName = user?.name || user?.fullName || 'Undergraduate Student';
+  const regNo = user?.regNo || user?.studentId || '—';
+  const indexNo = user?.indexNo || user?.regNo || '—';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
   const semester = user?.semester || cur.semester;
   const academicYear = user?.batch || '2025/2026';
-  const overallAttendance = user?.attendance !== undefined && user?.attendance !== null ? Number(user.attendance) : 92.5;
+  const overallAttendance = user?.attendance !== undefined && user?.attendance !== null ? Number(user.attendance) : (cur.isFreshers ? 100 : 85);
   const minThreshold = 80;
   const isOverallEligible = overallAttendance >= minThreshold;
 

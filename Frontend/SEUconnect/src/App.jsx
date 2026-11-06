@@ -191,9 +191,7 @@ function App() {
       return res.user;
     } catch (err) {
       console.warn(`Could not sign in demo persona ${roleKey}:`, err.message);
-      if (!authToken.get()) {
-        authToken.set(`demo-token-${roleKey}-${Date.now()}`);
-      }
+      authToken.set(`demo-token-${roleKey}-${Date.now()}`);
       storeUser(persona);
       return persona;
     }
@@ -263,6 +261,7 @@ function App() {
   const handleSwitchRole = async (roleObj) => {
     const targetKey = roleObj.key.toLowerCase();
     setSessionReady(false);
+    authToken.set(`demo-token-${targetKey}-${Date.now()}`);
     const targetUser = await signInPersona(targetKey);
     setCurrentUser(targetUser);
     setCurrentPage(targetKey);
