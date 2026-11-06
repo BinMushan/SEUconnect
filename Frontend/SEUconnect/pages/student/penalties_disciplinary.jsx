@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { penaltyStorage } from '../../src/services/api.js';
 import './penalties_disciplinary.css';
 
 export default function StudentPenalties({ user }) {
@@ -7,7 +8,56 @@ export default function StudentPenalties({ user }) {
   const studentProgramme = user?.programme || 'BICT';
   const studentFaculty = user?.faculty || 'Faculty of Technology';
 
-  const [penalties, setPenalties] = useState([]); // Default empty clean record
+  const [penalties, setPenalties] = useState(() => {
+    try {
+      const stored = penaltyStorage.getAll();
+      const cleanReg = String(studentRegNo || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const studentRecords = stored.filter((p) => {
+        if (!p.regNo) return false;
+        const targetReg = String(p.regNo).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        return targetReg === cleanReg || targetReg.includes(cleanReg) || cleanReg.includes(targetReg);
+      });
+      return studentRecords.map((p) => ({
+        _id: p.id,
+        refNumber: p.id,
+        description: p.description,
+        relatedRule: `${p.category} (${p.penaltyAmount})`,
+        issuedDate: p.imposedDate,
+        status: p.status,
+        requiredAction: p.clearanceNotes || 'Submit fine payment receipt / voucher to Department Head or Proctor'
+      }));
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const stored = penaltyStorage.getAll();
+        const cleanReg = String(studentRegNo || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const studentRecords = stored.filter((p) => {
+          if (!p.regNo) return false;
+          const targetReg = String(p.regNo).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+          return targetReg === cleanReg || targetReg.includes(cleanReg) || cleanReg.includes(targetReg);
+        });
+        setPenalties(
+          studentRecords.map((p) => ({
+            _id: p.id,
+            refNumber: p.id,
+            description: p.description,
+            relatedRule: `${p.category} (${p.penaltyAmount})`,
+            issuedDate: p.imposedDate,
+            status: p.status,
+            requiredAction: p.clearanceNotes || 'Submit fine payment receipt / voucher to Department Head or Proctor'
+          }))
+        );
+      } catch {}
+    };
+
+    window.addEventListener('storage', handleSync);
+    return () => window.removeEventListener('storage', handleSync);
+  }, [studentRegNo]);
 
   const handleDownloadClearance = () => {
     const clearanceText = `

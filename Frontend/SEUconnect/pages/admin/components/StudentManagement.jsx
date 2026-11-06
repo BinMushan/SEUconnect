@@ -104,11 +104,52 @@ export default function StudentManagement({
   onDeleteStudent,
   onBulkAddStudents,
   onUpdateStudentStatus,
+  onPromoteBatch,
+  onPassOutBatch,
   isAddModalOpen,
   setIsAddModalOpen
 }) {
   // Navigation State: null = Batches Overview, object = Drill-down into that Batch
   const [selectedBatch, setSelectedBatch] = useState(null);
+
+  // Cohort Progression & Pass Out Modals
+  const [promoteModalBatch, setPromoteModalBatch] = useState(null);
+  const [passOutModalBatch, setPassOutModalBatch] = useState(null);
+
+  const handleConfirmPromote = () => {
+    if (!promoteModalBatch) return;
+    const { batch, progression } = promoteModalBatch;
+    if (onPromoteBatch) {
+      onPromoteBatch(batch.id, progression.nextSem, null, 'BOTH');
+    }
+    if (selectedBatch && selectedBatch.id === batch.id) {
+      setSelectedBatch((prev) => ({
+        ...prev,
+        currentSemester: progression.nextSem,
+        status: progression.nextSem.includes('Semester 8')
+          ? 'Graduating / Finalizing'
+          : prev.status?.includes('Freshers')
+          ? 'Active'
+          : prev.status
+      }));
+    }
+    setPromoteModalBatch(null);
+  };
+
+  const handleConfirmPassOut = () => {
+    if (!passOutModalBatch) return;
+    if (onPassOutBatch) {
+      onPassOutBatch(passOutModalBatch.id);
+    }
+    if (selectedBatch && selectedBatch.id === passOutModalBatch.id) {
+      setSelectedBatch((prev) => ({
+        ...prev,
+        status: 'Passed Out (Graduated)',
+        currentSemester: 'Semester 8 (Passed Out)'
+      }));
+    }
+    setPassOutModalBatch(null);
+  };
 
   // Search & Filters for Batches Overview
   const [batchSearchTerm, setBatchSearchTerm] = useState('');
@@ -814,8 +855,8 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Total Undergraduates</span>
                   <span className="adm-badge badge-active">Faculty-Wide</span>
                 </div>
-                <div className="adm-stat-value">1,200</div>
-                <div className="adm-stat-sub">BICT & BST Undergraduates (5 Batches)</div>
+                <div className="adm-stat-value">{students.length.toLocaleString()}</div>
+                <div className="adm-stat-sub">BICT &amp; BST Undergraduates ({batches.length} Batches)</div>
               </div>
             </div>
 
@@ -830,7 +871,11 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Avg Attendance Rate</span>
                   <span className="adm-badge badge-active">≥ 80% Threshold</span>
                 </div>
-                <div className="adm-stat-value">91.4%</div>
+                <div className="adm-stat-value">
+                  {students.length > 0
+                    ? (students.reduce((sum, s) => sum + (Number(s.attendance) || 90), 0) / students.length).toFixed(1)
+                    : '91.4'}%
+                </div>
                 <div className="adm-stat-sub">Qualified for ESA Exams</div>
               </div>
             </div>
@@ -846,8 +891,12 @@ export default function StudentManagement({
                   <span className="adm-stat-label">Faculty GPA Mean</span>
                   <span className="adm-badge badge-submitted">Good Standing</span>
                 </div>
-                <div className="adm-stat-value">3.36 CGPA</div>
-                <div className="adm-stat-sub">Second Class Upper Avg</div>
+                <div className="adm-stat-value">
+                  {students.length > 0
+                    ? (students.reduce((sum, s) => sum + (Number(s.cgpa) || 3.0), 0) / students.length).toFixed(2)
+                    : '3.36'} CGPA
+                </div>
+                <div className="adm-stat-sub">Faculty Undergraduates Avg</div>
               </div>
             </div>
           </div>
@@ -876,6 +925,7 @@ export default function StudentManagement({
           <div className="adm-batch-grid">
             {filteredBatches.map((batch) => {
               const enrolledCount = getBatchStudentCount(batch);
+              const progression = getNextBatchProgression(batch);
               return (
                 <div
                   key={batch.id}
@@ -891,14 +941,21 @@ export default function StudentManagement({
                     <span className="adm-batch-code-badge">{batch.code}</span>
                     <span
                       className={`adm-badge ${
-                        batch.status.includes('Graduating')
+                        batch.status?.includes('Passed Out') || batch.status?.includes('Graduated')
+                          ? 'badge-passed-out'
+                          : batch.status?.includes('Graduating')
                           ? 'badge-submitted'
-                          : batch.status.includes('Freshers')
+                          : batch.status?.includes('Freshers')
                           ? 'badge-pending'
                           : 'badge-active'
                       }`}
+                      style={
+                        batch.status?.includes('Passed Out') || batch.status?.includes('Graduated')
+                          ? { background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe', fontWeight: 700 }
+                          : {}
+                      }
                     >
-                      {batch.status}
+                      {batch.status?.includes('Passed Out') || batch.status?.includes('Graduated') ? '🎓 Passed Out' : batch.status}
                     </span>
                   </div>
 
@@ -971,7 +1028,7 @@ export default function StudentManagement({
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '0.45rem', marginTop: '1rem', alignItems: 'center' }}>
                     <button
                       type="button"
                       className="adm-batch-card-btn"
@@ -989,6 +1046,85 @@ export default function StudentManagement({
                         <polyline points="12 5 19 12 12 19" />
                       </svg>
                     </button>
+
+                    {progression.type === 'passed_out' ? (
+                      <span
+                        style={{
+                          padding: '0.45rem 0.65rem',
+                          borderRadius: '8px',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          background: '#f5f3ff',
+                          color: '#7c3aed',
+                          border: '1px solid #ddd6fe',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title="Cohort has officially graduated and passed out"
+                      >
+                        🎓 Passed Out
+                      </span>
+                    ) : progression.type === 'pass_out' ? (
+                      <button
+                        type="button"
+                        style={{
+                          padding: '0.45rem 0.75rem',
+                          borderRadius: '8px',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          background: '#059669',
+                          color: '#ffffff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPassOutModalBatch(batch);
+                        }}
+                        title="Pass Out Batch (Graduation of Semester 8 Cohort)"
+                      >
+                        <span>🎓 Pass Out</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        style={{
+                          padding: '0.45rem 0.7rem',
+                          borderRadius: '8px',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          background: '#2563eb',
+                          color: '#ffffff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 6px rgba(37, 99, 235, 0.2)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPromoteModalBatch({ batch, progression });
+                        }}
+                        title={`Promote Cohort to ${progression.nextSem}`}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="18 15 12 9 6 15" />
+                        </svg>
+                        <span>Promote</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       className="adm-btn-xs-danger"
@@ -1076,8 +1212,144 @@ export default function StudentManagement({
                     ? 'N/A'
                     : safeToFixed(selectedBatch.avgCgpa, 2, '0.00')}
                 </div>
-                <div className="adm-batch-hero-stat-lbl">
-                  {selectedBatch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
+
+                <div className="adm-batch-hero-stats">
+                  <div className="adm-batch-hero-stat-box">
+                    <div className="adm-batch-hero-stat-val">{getBatchStudentCount(activeBatch)}</div>
+                    <div className="adm-batch-hero-stat-lbl">Enrolled</div>
+                  </div>
+                  <div className="adm-batch-hero-stat-box">
+                    <div className="adm-batch-hero-stat-val">
+                      {activeBatch.currentSemester?.includes('Freshers') || activeBatch.avgCgpa === 0
+                        ? '0.00'
+                        : (activeBatch.avgCgpa ? activeBatch.avgCgpa.toFixed(2) : '0.00')}
+                    </div>
+                    <div className="adm-batch-hero-stat-lbl">
+                      {activeBatch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
+                    </div>
+                  </div>
+                  <div className="adm-batch-hero-stat-box">
+                    <div className="adm-batch-hero-stat-val">{activeBatch.attendanceRate}%</div>
+                    <div className="adm-batch-hero-stat-lbl">Attendance</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="adm-find-process-btn"
+                    style={{
+                      background: '#f59e0b',
+                      color: '#071732',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    onClick={() => {
+                      setNewSemester(activeBatch.currentSemester?.split(' ')[0] || 'Semester 1');
+                      setTargetBatchId(activeBatch.id);
+                      setEnrollMode('bulk');
+                      setIsAddModalOpen(true);
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <line x1="19" y1="8" x2="19" y2="14" />
+                      <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                    + Enrol Students (Individual / Bulk)
+                  </button>
+
+                  {/* Batch Progression & Pass Out Button in Drill-Down */}
+                  {drillProgression.type === 'passed_out' ? (
+                    <span
+                      style={{
+                        background: '#f5f3ff',
+                        color: '#7c3aed',
+                        padding: '0.55rem 0.85rem',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        border: '1px solid #ddd6fe',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="Cohort has officially graduated and passed out"
+                    >
+                      🎓 Passed Out (Graduated)
+                    </span>
+                  ) : drillProgression.type === 'pass_out' ? (
+                    <button
+                      type="button"
+                      style={{
+                        background: '#059669',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '0.78rem',
+                        padding: '0.55rem 0.95rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                      onClick={() => setPassOutModalBatch(activeBatch)}
+                      title="Pass Out Batch (Graduation of Semester 8 Cohort)"
+                    >
+                      <span>🎓 Pass Out Batch</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      style={{
+                        background: '#2563eb',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '0.78rem',
+                        padding: '0.55rem 0.95rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                      onClick={() => setPromoteModalBatch({ batch: activeBatch, progression: drillProgression })}
+                      title={`Promote Cohort to ${drillProgression.nextSem}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="18 15 12 9 6 15" />
+                      </svg>
+                      <span>Promote to {drillProgression.nextSem}</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    className="adm-btn-danger"
+                    style={{
+                      padding: '0.55rem 0.85rem',
+                      fontSize: '0.78rem',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onClick={() => handleDeleteBatchPrompt(activeBatch)}
+                    title="Delete this intake batch"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Delete Batch
+                  </button>
                 </div>
               </div>
               <div className="adm-batch-hero-stat-box">
@@ -1199,6 +1471,7 @@ export default function StudentManagement({
                 <option value="Active">Active Standing</option>
                 <option value="Academic Warning">Academic Warning</option>
                 <option value="Attendance Barred">Attendance Barred</option>
+                <option value="Passed Out">Passed Out (Graduated)</option>
               </select>
             </div>
           </div>
@@ -1315,14 +1588,21 @@ export default function StudentManagement({
                         <td>
                           <span
                             className={`adm-badge ${
-                              student.status === 'Active'
+                              student.status === 'Passed Out' || student.status === 'Graduated'
+                                ? 'badge-passed-out'
+                                : student.status === 'Active'
                                 ? 'badge-active'
                                 : student.status === 'Academic Warning'
                                 ? 'badge-pending'
                                 : 'badge-rejected'
                             }`}
+                            style={
+                              student.status === 'Passed Out' || student.status === 'Graduated'
+                                ? { background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe', fontWeight: 600 }
+                                : {}
+                            }
                           >
-                            {student.status}
+                            {student.status === 'Passed Out' ? '🎓 Passed Out' : student.status}
                           </span>
                         </td>
 
@@ -2512,6 +2792,7 @@ export default function StudentManagement({
                       <option value="Attendance Barred">Attendance Barred</option>
                       <option value="Academic Warning">Academic Warning</option>
                       <option value="Suspended">Suspended</option>
+                      <option value="Passed Out">Passed Out (Graduated)</option>
                     </select>
                   </div>
 
@@ -2618,6 +2899,285 @@ export default function StudentManagement({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL: PASS OUT BATCH (GRADUATION OF SEMESTER 8 COHORT)
+          ========================================================= */}
+      {passOutModalBatch && (
+        <div className="adm-modal-backdrop" onClick={() => setPassOutModalBatch(null)}>
+          <div
+            className="adm-modal-card"
+            style={{ maxWidth: '580px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="adm-modal-header" style={{ borderBottom: '2px solid #059669' }}>
+              <div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  ACADEMIC GRADUATION & CONVOCATION CLEARANCE
+                </span>
+                <h3 className="adm-modal-title" style={{ marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>🎓 Pass Out & Graduate Cohort</span>
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="adm-modal-close-btn"
+                onClick={() => setPassOutModalBatch(null)}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="adm-modal-body" style={{ padding: '1.25rem' }}>
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.25rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 700, fontSize: '0.92rem' }}>
+                  <span>{passOutModalBatch.name}</span>
+                  <span className="adm-badge" style={{ background: '#dcfce7', color: '#15803d', fontWeight: 700 }}>
+                    {passOutModalBatch.code}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#15803d', marginTop: '4px' }}>
+                  Academic Intake: <strong>{passOutModalBatch.academicYear}</strong> • Current Term: <strong>{passOutModalBatch.currentSemester}</strong>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '10px',
+                  marginBottom: '1.25rem'
+                }}
+              >
+                <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+                    {getBatchStudentCount(passOutModalBatch)}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Enrolled Students</div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#059669' }}>
+                    Semester 8
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Completed Term</div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#7c3aed' }}>
+                    Alumni
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Future Standing</div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#fef3c7',
+                  border: '1px solid #fde68a',
+                  borderRadius: '8px',
+                  padding: '0.85rem',
+                  fontSize: '0.82rem',
+                  color: '#92400e',
+                  lineHeight: '1.45'
+                }}
+              >
+                <strong>Institutional Graduation Clearance:</strong> This cohort has completed all academic coursework through Semester 8 (Final Year).
+                Confirming will officially mark this intake batch as <strong>Passed Out (Graduated)</strong> and transition all enrolled undergraduates to <strong>Passed Out</strong> alumni status.
+              </div>
+            </div>
+
+            <div className="adm-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', padding: '1rem 1.25rem' }}>
+              <button
+                type="button"
+                className="adm-btn-secondary"
+                onClick={() => setPassOutModalBatch(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                style={{
+                  background: '#059669',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  padding: '0.6rem 1.25rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
+                }}
+                onClick={handleConfirmPassOut}
+              >
+                🎓 Confirm Pass Out & Graduate Cohort
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL: PROMOTE BATCH (ADVANCE TO NEXT SEMESTER)
+          ========================================================= */}
+      {promoteModalBatch && (
+        <div className="adm-modal-backdrop" onClick={() => setPromoteModalBatch(null)}>
+          <div
+            className="adm-modal-card"
+            style={{ maxWidth: '580px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="adm-modal-header" style={{ borderBottom: '2px solid #2563eb' }}>
+              <div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  COHORT SEMESTER ADVANCEMENT
+                </span>
+                <h3 className="adm-modal-title" style={{ marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>🚀 Promote Cohort to Next Semester</span>
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="adm-modal-close-btn"
+                onClick={() => setPromoteModalBatch(null)}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="adm-modal-body" style={{ padding: '1.25rem' }}>
+              <div
+                style={{
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.25rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e40af', fontWeight: 700, fontSize: '0.92rem' }}>
+                  <span>{promoteModalBatch.batch.name}</span>
+                  <span className="adm-badge" style={{ background: '#dbeafe', color: '#1e40af', fontWeight: 700 }}>
+                    {promoteModalBatch.batch.code}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#1e40af', marginTop: '4px' }}>
+                  Academic Intake: <strong>{promoteModalBatch.batch.academicYear}</strong> • Coordinator: <strong>{promoteModalBatch.batch.coordinator}</strong>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.25rem'
+                }}
+              >
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>CURRENT TERM</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+                    {promoteModalBatch.batch.currentSemester}
+                  </div>
+                </div>
+
+                <div style={{ color: '#2563eb', padding: '0 1rem' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </div>
+
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  <div style={{ fontSize: '0.72rem', color: '#2563eb', fontWeight: 700 }}>TARGET PROMOTED TERM</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#2563eb', marginTop: '2px' }}>
+                    {promoteModalBatch.progression.nextSem}
+                  </div>
+                </div>
+              </div>
+
+              {promoteModalBatch.progression.nextSem.includes('Semester 8') ? (
+                <div
+                  style={{
+                    background: '#ecfdf5',
+                    border: '1px solid #a7f3d0',
+                    borderRadius: '8px',
+                    padding: '0.85rem',
+                    fontSize: '0.82rem',
+                    color: '#065f46',
+                    lineHeight: '1.45'
+                  }}
+                >
+                  <strong>🎓 Final Academic Year Transition:</strong> Promoting this cohort to <strong>Semester 8 (Final Year)</strong> advances students to their graduating semester. Upon reaching Semester 8, the next available option for this cohort will automatically become <strong>Pass Out</strong>.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '0.85rem',
+                    fontSize: '0.82rem',
+                    color: '#475569',
+                    lineHeight: '1.45'
+                  }}
+                >
+                  Promoting will advance all <strong>{getBatchStudentCount(promoteModalBatch.batch)}</strong> enrolled undergraduates in this cohort to <strong>{promoteModalBatch.progression.nextSem}</strong>.
+                </div>
+              )}
+            </div>
+
+            <div className="adm-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', padding: '1rem 1.25rem' }}>
+              <button
+                type="button"
+                className="adm-btn-secondary"
+                onClick={() => setPromoteModalBatch(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                style={{
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  padding: '0.6rem 1.25rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+                }}
+                onClick={handleConfirmPromote}
+              >
+                🚀 Confirm Promotion to {promoteModalBatch.progression.nextSem}
+              </button>
+            </div>
           </div>
         </div>
       )}
