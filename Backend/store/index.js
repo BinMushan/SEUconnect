@@ -137,19 +137,46 @@ const notifications = {
 
   async delete(id) {
     if (connected()) {
-      if (isObjectId(String(id))) await Notification.findByIdAndDelete(id);
+      try {
+        const idStr = String(id);
+        const orConditions = [
+          { trackingNumber: idStr },
+          { id: idStr }
+        ];
+        if (isObjectId(idStr)) {
+          orConditions.push({ _id: id });
+          await Notification.findByIdAndDelete(id);
+        }
+        await Notification.deleteMany({ $or: orConditions });
+      } catch (err) {
+        console.error('Error deleting notification from DB:', err);
+      }
     }
-    mem.notifications = mem.notifications.filter((n) => String(n._id) !== String(id));
+    mem.notifications = mem.notifications.filter((n) => String(n._id) !== String(id) && String(n.id) !== String(id) && String(n.trackingNumber) !== String(id));
     return true;
   },
 
   async deleteAllForUser(user) {
     const userNotifs = await this.forUser(user);
-    const ids = userNotifs.map((n) => String(n._id));
+    const validObjectIds = userNotifs.map((n) => n._id).filter((id) => isObjectId(String(id)));
+    const role = normalizeRole(user.role);
+    const userEmail = String(user.email || '').toLowerCase();
     if (connected()) {
-      await Notification.deleteMany({ _id: { $in: ids } });
+      try {
+        const orConditions = [
+          { recipientRole: role },
+          { recipientEmail: userEmail }
+        ];
+        if (validObjectIds.length > 0) {
+          orConditions.push({ _id: { $in: validObjectIds } });
+        }
+        await Notification.deleteMany({ $or: orConditions });
+      } catch (err) {
+        console.error('Error clearing all notifications from DB:', err);
+      }
     }
-    mem.notifications = mem.notifications.filter((n) => !ids.includes(String(n._id)));
+    const allDeletedIds = new Set(userNotifs.map((n) => String(n._id || n.id || n.trackingNumber)));
+    mem.notifications = mem.notifications.filter((n) => !allDeletedIds.has(String(n._id)) && !allDeletedIds.has(String(n.id)) && !allDeletedIds.has(String(n.trackingNumber)));
     return true;
   },
 };
