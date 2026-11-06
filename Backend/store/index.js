@@ -167,17 +167,29 @@ const users = {
     return mem.users.find((u) => u.email === clean) || null;
   },
   async findByEmailOrUsername(identifier) {
-    const clean = String(identifier || '').trim().toLowerCase();
+    let clean = String(identifier || '').trim().toLowerCase();
     if (!clean) return null;
+
+    // Auto-correct common email typos
+    if (clean.endsWith('@gamil.com')) clean = clean.replace('@gamil.com', '@gmail.com');
+    if (clean.endsWith('@gmial.com')) clean = clean.replace('@gmial.com', '@gmail.com');
+    if (clean.endsWith('@gmai.com')) clean = clean.replace('@gmai.com', '@gmail.com');
+
+    // Also support shorthand usernames (e.g. "student" -> "student@gmail.com")
+    const variants = [clean];
+    if (!clean.includes('@')) {
+      variants.push(`${clean}@gmail.com`);
+    }
+
     if (connected()) {
       return User.findOne({
         $or: [
-          { email: clean },
+          { email: { $in: variants } },
           { regNo: new RegExp(`^${clean.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') }
         ]
       });
     }
-    return mem.users.find((u) => (u.email && u.email.toLowerCase() === clean) || (u.regNo && u.regNo.toLowerCase() === clean)) || null;
+    return mem.users.find((u) => (u.email && variants.includes(u.email.toLowerCase())) || (u.regNo && u.regNo.toLowerCase() === clean)) || null;
   },
   async createOrUpdate(userData) {
     const email = String(userData.email || '').trim().toLowerCase();

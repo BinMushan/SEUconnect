@@ -498,6 +498,128 @@ exports.createStudentsBulk = async (req, res) => {
   }
 };
 
+// @desc    Update a student general details
+// @route   PUT /api/student/:identifier
+exports.updateStudent = async (req, res) => {
+  try {
+    const student = await findStudentByAnyIdentifier(req.params.identifier);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student record not found.'
+      });
+    }
+
+    const {
+      fullName,
+      name,
+      indexNo,
+      department,
+      degreeProgramme,
+      programme,
+      currentSemester,
+      semester,
+      phone,
+      status,
+      academicStatus,
+      tempPassword,
+      email,
+      cgpa,
+      sgpa,
+      attendance
+    } = req.body;
+
+    if (fullName || name) student.fullName = (fullName || name).trim();
+    if (indexNo) student.indexNo = indexNo.trim().toUpperCase();
+    if (department) student.department = department;
+    if (degreeProgramme || programme) student.degreeProgramme = degreeProgramme || programme;
+    if (currentSemester || semester) student.currentSemester = currentSemester || semester;
+    if (status || academicStatus) student.academicStatus = status || academicStatus;
+    if (phone) {
+      if (!student.academicProfile) student.academicProfile = {};
+      student.academicProfile.personalPhone = phone;
+    }
+    if (cgpa !== undefined && student.gpaCgpa) student.gpaCgpa.cgpa = Number(cgpa);
+    if (sgpa !== undefined && student.gpaCgpa) student.gpaCgpa.currentSgpa = Number(sgpa);
+    if (attendance !== undefined && student.attendance) student.attendance.overallAttendancePercentage = Number(attendance);
+
+    await student.save();
+
+    // Also update User account in store & DB if exists
+    try {
+      const store = require('../store');
+      const user = await store.users.findByEmail(student.email);
+      if (user) {
+        if (fullName || name) user.name = (fullName || name).trim();
+        if (department) user.department = department;
+        if (degreeProgramme || programme) user.programme = degreeProgramme || programme;
+        if (currentSemester || semester) user.semester = currentSemester || semester;
+        if (status) user.status = status.toLowerCase() === 'active' ? 'active' : 'suspended';
+        if (tempPassword) {
+          const { hashPassword } = require('../utils/password');
+          user.password = hashPassword(tempPassword);
+        }
+        await store.users.save(user);
+      }
+    } catch (uErr) {
+      console.warn('Syncing User account during student update failed:', uErr.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Student ${student.studentId} updated successfully.`,
+      data: student
+    });
+  } catch (error) {
+    console.error('Update student error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update student: ' + error.message
+    });
+  }
+};
+
+// @desc    Delete a student by identifier
+// @route   DELETE /api/student/:identifier
+exports.deleteStudent = async (req, res) => {
+  try {
+    const student = await findStudentByAnyIdentifier(req.params.identifier);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student record not found.'
+      });
+    }
+
+    const regNo = student.studentId;
+    const email = student.email;
+
+    // Delete student record
+    await Student.deleteOne({ _id: student._id });
+
+    // Also delete user account if exists
+    try {
+      const User = require('../models/User');
+      if (email) {
+        await User.deleteOne({ email: email.toLowerCase() });
+      }
+    } catch (uErr) {
+      console.warn('Deleting User account for student failed:', uErr.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Student record ${regNo} (${student.fullName}) deleted successfully.`
+    });
+  } catch (error) {
+    console.error('Delete student error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete student: ' + error.message
+    });
+  }
+};
+
 // @desc    Update Academic Profile for a student
 // @route   PUT /api/student/:identifier/profile
 exports.updateAcademicProfile = async (req, res) => {

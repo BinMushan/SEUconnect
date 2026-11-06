@@ -404,6 +404,63 @@ export default function Admin({ user, onLogout }) {
     }
   };
 
+  // 5.c Delete Student Record
+  const handleDeleteStudent = async (studentIdOrRegNo) => {
+    const stu = students.find((s) => s.id === studentIdOrRegNo || s.regNo === studentIdOrRegNo);
+    const cleanId = stu?.regNo || studentIdOrRegNo;
+
+    setStudents((prev) =>
+      prev.filter((s) => s.id !== studentIdOrRegNo && s.regNo !== studentIdOrRegNo)
+    );
+
+    enrolledStorage.remove(cleanId);
+
+    if (stu?.batchId) {
+      setBatches((prev) =>
+        prev.map((b) =>
+          b.id === stu.batchId
+            ? { ...b, totalStudents: Math.max(0, (b.totalStudents || 1) - 1) }
+            : b
+        )
+      );
+    }
+
+    setStats((prev) => ({
+      ...prev,
+      totalStudents: Math.max(0, prev.totalStudents - 1),
+      activeAccounts: Math.max(0, prev.activeAccounts - 1)
+    }));
+
+    addAuditLog('Deleted Student Record', `Removed ${cleanId} (${stu?.name || 'Student'}).`);
+    showToast(`Student ${stu?.name || cleanId} has been deleted from records.`);
+
+    try {
+      await api.deleteStudent(cleanId);
+    } catch (err) {
+      console.warn('Backend student delete:', err.message);
+    }
+  };
+
+  // 5.d Update Student Record
+  const handleUpdateStudent = async (updatedStudent) => {
+    const targetId = updatedStudent.id || updatedStudent.regNo;
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.id === targetId || s.regNo === updatedStudent.regNo ? { ...s, ...updatedStudent } : s
+      )
+    );
+
+    enrolledStorage.update(updatedStudent.regNo || targetId, updatedStudent);
+    addAuditLog('Updated Student Profile', `Updated profile for ${updatedStudent.regNo} (${updatedStudent.name}).`);
+    showToast(`Student ${updatedStudent.name} (${updatedStudent.regNo}) updated successfully.`);
+
+    try {
+      await api.updateStudent(updatedStudent.regNo || targetId, updatedStudent);
+    } catch (err) {
+      console.warn('Backend student update:', err.message);
+    }
+  };
+
   // 6. Update Student Status
   const handleUpdateStudentStatus = (id, newStatus) => {
     setStudents((prev) =>
@@ -497,6 +554,15 @@ export default function Admin({ user, onLogout }) {
     setStats((prev) => ({ ...prev, totalBatches: prev.totalBatches + 1 }));
     addAuditLog('Onboarded Intake Batch', `${newBatch.name} (Intake ${newBatch.code}) provisioned.`);
     showToast(`Intake Batch ${newBatch.name} onboarded successfully.`);
+  };
+
+  // 16.b Delete Intake Batch
+  const handleDeleteBatch = (batchId) => {
+    const batch = batches.find((b) => b.id === batchId);
+    setBatches((prev) => prev.filter((b) => b.id !== batchId));
+    setStats((prev) => ({ ...prev, totalBatches: Math.max(0, prev.totalBatches - 1) }));
+    addAuditLog('Deleted Intake Batch', `Removed intake batch ${batch?.name || batchId}.`);
+    showToast(`Intake Batch "${batch?.name || batchId}" deleted successfully.`);
   };
 
   // 17. Assign & Reassign Roles (All 10 System Roles)
@@ -783,7 +849,10 @@ export default function Admin({ user, onLogout }) {
           batches={batches}
           students={students}
           onAddBatch={handleAddBatch}
+          onDeleteBatch={handleDeleteBatch}
           onAddStudent={handleAddStudent}
+          onUpdateStudent={handleUpdateStudent}
+          onDeleteStudent={handleDeleteStudent}
           onBulkAddStudents={handleBulkAddStudents}
           onUpdateStudentStatus={handleUpdateStudentStatus}
           isAddModalOpen={isAddStudentModalOpen}

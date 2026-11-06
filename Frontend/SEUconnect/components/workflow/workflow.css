@@ -833,3 +833,82 @@
   color: #ffffff;
   border-color: #0f2b5c;
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS FOR WORKFLOW & DEMO ROLE SWITCHER
+   ========================================================================== */
+@media (max-width: 768px) {
+  .seu-demo-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+    padding: 0.45rem 0.85rem;
+  }
+
+  .seu-demo-bar-left {
+    justify-content: space-between;
+    font-size: 0.74rem;
+  }
+
+  .seu-demo-bar-roles {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 3px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .seu-demo-bar-roles::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seu-demo-role-btn {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    padding: 0.22rem 0.55rem;
+  }
+
+  .wf-modal-backdrop {
+    padding: 0.6rem;
+  }
+
+  .wf-modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: 12px;
+  }
+
+  .wf-modal-header {
+    padding: 0.9rem 1.1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .wf-modal-title {
+    font-size: 1.1rem;
+  }
+
+  .wf-modal-body {
+    padding: 1rem;
+  }
+
+  .wf-modal-actions {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .wf-modal-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wf-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+}
+
