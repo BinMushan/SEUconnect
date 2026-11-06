@@ -221,8 +221,8 @@ export default function StudentGpaCgpa({ user }) {
 
   const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? Number(user.cgpa) : 3.58;
   const displayCgpa = isFreshers ? 'N/A' : (isNaN(rawCgpa) ? '3.58' : rawCgpa.toFixed(2));
-  const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1];
-  const displaySgpa = isFreshers ? 'N/A' : currentSemesterObj.sgpa.toFixed(2);
+  const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1] || {};
+  const displaySgpa = isFreshers ? 'N/A' : (currentSemesterObj?.sgpa != null ? Number(currentSemesterObj.sgpa).toFixed(2) : 'N/A');
   const displayStanding = isFreshers ? 'Enrolled (In Progress)' : 'Second Class (Upper Division)';
   const displayCredits = isFreshers ? '0 / 130 Credits' : '78 / 130 Credits';
   const displayCompletion = isFreshers ? '0%' : '60%';
@@ -377,9 +377,9 @@ export default function StudentGpaCgpa({ user }) {
                       {mod.grade}
                     </span>
                   </td>
-                  <td className="gpa-cell-gp">{mod.gradePoint.toFixed(2)}</td>
+                  <td className="gpa-cell-gp">{mod.gradePoint != null ? Number(mod.gradePoint).toFixed(2) : '—'}</td>
                   <td className="gpa-cell-qp">
-                    <strong>{mod.qualityPoints.toFixed(2)}</strong>
+                    <strong>{mod.qualityPoints != null ? Number(mod.qualityPoints).toFixed(2) : '—'}</strong>
                   </td>
                 </tr>
               ))}
@@ -391,11 +391,11 @@ export default function StudentGpaCgpa({ user }) {
         <div className="gpa-table-footer">
           <div className="gpa-footer-total-credits">
             <span>Semester Total:</span>
-            <strong>{currentSemesterObj.totalCredits} Credits</strong>
+            <strong>{currentSemesterObj?.totalCredits || 0} Credits</strong>
           </div>
           <div className="gpa-footer-sgpa">
             <span>Semester GPA (SGPA):</span>
-            <strong>{currentSemesterObj.sgpa.toFixed(2)}</strong>
+            <strong>{currentSemesterObj?.sgpa != null ? Number(currentSemesterObj.sgpa).toFixed(2) : 'N/A'}</strong>
           </div>
         </div>
 
@@ -457,8 +457,8 @@ export default function StudentGpaCgpa({ user }) {
                 <td>{mod.esaMark}</td>
                 <td>{mod.finalMark}</td>
                 <td><strong>{mod.grade}</strong></td>
-                <td>{mod.gradePoint.toFixed(2)}</td>
-                <td>{mod.qualityPoints.toFixed(2)}</td>
+                <td>{mod.gradePoint != null ? Number(mod.gradePoint).toFixed(2) : '—'}</td>
+                <td>{mod.qualityPoints != null ? Number(mod.qualityPoints).toFixed(2) : '—'}</td>
               </tr>
             ))}
           </tbody>

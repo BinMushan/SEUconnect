@@ -38,3 +38,4 @@ const TimetableSchema = new mongoose.Schema(
 TimetableSchema.index({ semester: 1, batch: 1, department: 1 });
 
 module.exports = mongoose.model('Timetable', TimetableSchema);
+

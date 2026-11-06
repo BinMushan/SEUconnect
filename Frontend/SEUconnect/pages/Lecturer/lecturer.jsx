@@ -18,7 +18,13 @@ import LecturerProfile from './LecturerProfile.jsx';
 import MedicalVerification from './MedicalVerification.jsx';
 import ECAReview from './ECAReview.jsx';
 
-import { INITIAL_LECTURER_INFO, INITIAL_NOTIFICATIONS, INITIAL_ASSIGNED_ECA_APPLICATIONS } from './lecturerMockData.js';
+import {
+  INITIAL_LECTURER_INFO,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_ASSIGNED_ECA_APPLICATIONS,
+  getLecturerAssignedSubjects,
+  getLecturerEcaApplications,
+} from './lecturerMockData.js';
 import './lecturer.css';
 
 /**
@@ -164,13 +170,23 @@ const LECTURER_META_CHIPS = [
 export default function Lecturer({ user, onLogout }) {
   const [currentPath, setCurrentPath] = useState('dashboard');
   const [toasts, setToasts] = useState([]);
-  const [selectedSubjectCode, setSelectedSubjectCode] = useState('SWT22022');
+
+  // Resolve assigned subjects dynamically based on lecturer identity
+  const activeSubjects = useMemo(() => getLecturerAssignedSubjects(user), [user]);
+  const [selectedSubjectCode, setSelectedSubjectCode] = useState(() => activeSubjects[0]?.code || '');
+
+  // Synchronize selected subject when active subjects change
+  useEffect(() => {
+    if (activeSubjects.length > 0 && !activeSubjects.some((s) => s.code === selectedSubjectCode)) {
+      setSelectedSubjectCode(activeSubjects[0].code);
+    }
+  }, [activeSubjects, selectedSubjectCode]);
 
   // Lifted Notifications state synchronized with topbar badge
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
 
   // Assigned ECA Applications state
-  const [ecaApplications, setEcaApplications] = useState(INITIAL_ASSIGNED_ECA_APPLICATIONS);
+  const [ecaApplications, setEcaApplications] = useState(() => getLecturerEcaApplications(user));
   const pendingEcaCount = ecaApplications.filter((a) => a.status === 'Pending Lecturer Review').length;
 
   const handleUpdateEcaApplication = (updatedApp) => {
@@ -342,6 +358,7 @@ export default function Lecturer({ user, onLogout }) {
       case 'enrollment':
         return (
           <StudentEnrollment
+            subjects={activeSubjects}
             initialSubjectCode={selectedSubjectCode}
             onShowToast={showToast}
           />
@@ -349,6 +366,7 @@ export default function Lecturer({ user, onLogout }) {
       case 'subjects':
         return (
           <MySubjects
+            subjects={activeSubjects}
             onNavigateModule={(modId, params) => {
               if (params?.subjectCode) {
                 setSelectedSubjectCode(params.subjectCode);
@@ -361,6 +379,7 @@ export default function Lecturer({ user, onLogout }) {
       case 'timetable':
         return (
           <Timetable
+            subjects={activeSubjects}
             onNavigateModule={(modId, params) => {
               if (params?.subjectCode) {
                 setSelectedSubjectCode(params.subjectCode);
@@ -373,6 +392,7 @@ export default function Lecturer({ user, onLogout }) {
       case 'attendance':
         return (
           <Attendance
+            subjects={activeSubjects}
             initialSubjectCode={selectedSubjectCode}
             onShowToast={showToast}
           />
@@ -380,6 +400,7 @@ export default function Lecturer({ user, onLogout }) {
       case 'ca-esa':
         return (
           <CAESA
+            subjects={activeSubjects}
             initialSubjectCode={selectedSubjectCode}
             onShowToast={showToast}
           />
@@ -387,12 +408,13 @@ export default function Lecturer({ user, onLogout }) {
       case 'results':
         return (
           <Results
+            subjects={activeSubjects}
             initialSubjectCode={selectedSubjectCode}
             onShowToast={showToast}
           />
         );
       case 'announcements':
-        return <Announcements onShowToast={showToast} />;
+        return <Announcements subjects={activeSubjects} onShowToast={showToast} />;
       case 'notifications':
         return (
           <Notifications
@@ -431,6 +453,7 @@ export default function Lecturer({ user, onLogout }) {
         return (
           <LecturerDashboard
             user={user}
+            subjects={activeSubjects}
             assignedEcaCount={pendingEcaCount}
             ecaApplications={ecaApplications}
             onNavigateModule={(modId, params) => {
@@ -456,12 +479,18 @@ export default function Lecturer({ user, onLogout }) {
 
       <DashboardTemplate
         user={{
-          name: INITIAL_LECTURER_INFO.fullName,
-          avatarInitial: INITIAL_LECTURER_INFO.avatarInitial,
-          email: INITIAL_LECTURER_INFO.email,
+          name: user?.name || INITIAL_LECTURER_INFO.fullName,
+          avatarInitial: (user?.name || INITIAL_LECTURER_INFO.avatarInitial)
+            .split(' ')
+            .map((n) => n[0])
+            .filter(Boolean)
+            .slice(0, 2)
+            .join('')
+            .toUpperCase() || 'KP',
+          email: user?.email || INITIAL_LECTURER_INFO.email,
           role: 'LECTURER',
-          department: INITIAL_LECTURER_INFO.department,
-          faculty: INITIAL_LECTURER_INFO.faculty,
+          department: user?.department || INITIAL_LECTURER_INFO.department,
+          faculty: user?.faculty || INITIAL_LECTURER_INFO.faculty,
           ...user,
         }}
         onLogout={onLogout}
@@ -471,9 +500,9 @@ export default function Lecturer({ user, onLogout }) {
         facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
         greetingText={`Good Morning, ${user?.name || INITIAL_LECTURER_INFO.fullName}`}
         metaItems={[
-          { label: 'Lecturer ID:', value: user?.staffId || LECTURER_META_CHIPS[0].value },
+          { label: 'Lecturer ID:', value: user?.staffId || user?.lecturerId || LECTURER_META_CHIPS[0].value },
           { label: 'Department:', value: (user?.department || LECTURER_META_CHIPS[1].value).replace('Department of Information and Communication Technology', 'Department of ICT') },
-          LECTURER_META_CHIPS[2],
+          { label: 'Assigned Subjects:', value: `${activeSubjects.length} Subject${activeSubjects.length === 1 ? '' : 's'}` },
         ]}
         navSections={LECTURER_NAV_SECTIONS}
         actionButtons={lecturerHeroActions}

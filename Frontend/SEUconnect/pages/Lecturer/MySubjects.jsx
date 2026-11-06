@@ -7,11 +7,13 @@ import { INITIAL_SUBJECTS } from './lecturerMockData.js';
  * Manages lecturer's assigned academic subjects with real-time search,
  * semester filtering, course specs, and direct attendance access.
  */
-export default function MySubjects({ onNavigateModule, onShowToast }) {
+export default function MySubjects({ subjects = INITIAL_SUBJECTS, onNavigateModule, onShowToast }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('All');
 
-  const filteredSubjects = INITIAL_SUBJECTS.filter((sub) => {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+
+  const filteredSubjects = availableSubjects.filter((sub) => {
     const matchesSearch =
       sub.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,7 +36,7 @@ export default function MySubjects({ onNavigateModule, onShowToast }) {
           </p>
         </div>
         <div className="lec-module-meta-pill">
-          <span>Assigned: <strong>{INITIAL_SUBJECTS.length} Subjects</strong></span>
+          <span>Assigned: <strong>{availableSubjects.length} Subject{availableSubjects.length === 1 ? '' : 's'}</strong></span>
           <span className="dot">•</span>
           <span>Semester: <strong>Term II 2026</strong></span>
         </div>
@@ -82,23 +84,31 @@ export default function MySubjects({ onNavigateModule, onShowToast }) {
       {/* 3. Subjects Card Grid */}
       <div className="lec-subjects-grid">
         {filteredSubjects.length === 0 ? (
-          <div className="lec-empty-state-card">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          <div className="lec-empty-state-card" style={{ padding: '48px 24px' }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
-            <h4>No Subjects Found</h4>
-            <p>No assigned course matches "{searchTerm}" under {selectedSemester}.</p>
-            <button
-              type="button"
-              className="lec-btn-reset-filters"
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedSemester('All');
-              }}
-            >
-              Reset Filters
-            </button>
+            <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>
+              {availableSubjects.length === 0 ? 'No Modules Allocated Yet' : 'No Subjects Found'}
+            </h4>
+            <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+              {availableSubjects.length === 0
+                ? 'You currently have no course modules assigned for this semester. When your Head of Department (HOD) allocates modules, they will appear here.'
+                : `No assigned course matches "${searchTerm}" under ${selectedSemester}.`}
+            </p>
+            {availableSubjects.length > 0 && (
+              <button
+                type="button"
+                className="lec-btn-reset-filters"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedSemester('All');
+                }}
+              >
+                Reset Filters
+              </button>
+            )}
           </div>
         ) : (
           filteredSubjects.map((subject) => (
