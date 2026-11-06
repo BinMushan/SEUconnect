@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 import './academic_progress.css';
 
+// Safe number formatting helper
+const safeToFixed = (val, decimals = 2, fallback = '3.58') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function StudentAcademicProgress({ user }) {
   const [selectedRequirement, setSelectedRequirement] = useState(null);
 
@@ -21,7 +28,7 @@ export default function StudentAcademicProgress({ user }) {
   const completionRate = Math.min(100, Math.round((creditsEarned / totalCredits) * 100));
 
   const latestSgpa = progData.length > 0 ? Number(progData[progData.length - 1].sgpa) : 3.58;
-  const candidateCgpa = Number(user?.cgpa || latestSgpa || 3.58).toFixed(2);
+  const candidateCgpa = safeToFixed(user?.cgpa || latestSgpa, 2, '3.58');
   const classStanding = Number(candidateCgpa) >= 3.70
     ? 'First Class Standing'
     : Number(candidateCgpa) >= 3.30

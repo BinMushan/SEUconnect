@@ -209,20 +209,38 @@ const SEMESTER_DATA = {
   }
 };
 
+// Safe number formatting helper that never throws TypeError: .toFixed is not a function
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function StudentGpaCgpa({ user }) {
   const [activeSem, setActiveSem] = useState(1);
 
-  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1';
+  const semStr = (user?.semester || user?.academicYear || '').toLowerCase();
+  const isFreshers = Boolean(
+    user?.isFreshers ||
+    semStr.includes('sem 1') ||
+    semStr.includes('sem 01') ||
+    semStr.includes('semester 1') ||
+    semStr.includes('semester 01') ||
+    semStr.includes('1st sem') ||
+    semStr.includes('fresh') ||
+    (semStr.includes('year 1') && !semStr.includes('sem 2') && !semStr.includes('semester 2'))
+  );
+
   const candidateName = user?.name || (isFreshers ? 'Fresh Undergraduate' : 'Mushan M.M.B. (Afnan)');
   const regNo = user?.regNo || (isFreshers ? '24ICT001' : '22ICT091');
   const indexNo = user?.indexNo || (isFreshers ? 'ICT24001' : 'ICT22091');
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
   const specialization = user?.specialization || 'Software Systems';
 
-  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? Number(user.cgpa) : 3.58;
-  const displayCgpa = isFreshers ? 'N/A' : (isNaN(rawCgpa) ? '3.58' : rawCgpa.toFixed(2));
-  const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1] || {};
-  const displaySgpa = isFreshers ? 'N/A' : (currentSemesterObj?.sgpa != null ? Number(currentSemesterObj.sgpa).toFixed(2) : 'N/A');
+  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? user.cgpa : 3.58;
+  const displayCgpa = isFreshers ? 'N/A' : safeToFixed(rawCgpa, 2, '3.58');
+  const currentSemesterObj = SEMESTER_DATA[activeSem] || SEMESTER_DATA[1] || { modules: [] };
+  const displaySgpa = isFreshers ? 'N/A' : safeToFixed(currentSemesterObj?.sgpa, 2, 'N/A');
   const displayStanding = isFreshers ? 'Enrolled (In Progress)' : 'Second Class (Upper Division)';
   const displayCredits = isFreshers ? '0 / 130 Credits' : '78 / 130 Credits';
   const displayCompletion = isFreshers ? '0%' : '60%';
@@ -338,7 +356,7 @@ export default function StudentGpaCgpa({ user }) {
               className={`gpa-sem-tab ${activeSem === sem ? 'active' : ''}`}
               onClick={() => setActiveSem(sem)}
             >
-              {SEMESTER_DATA[sem].semLabel}
+              {SEMESTER_DATA[sem]?.semLabel || `Sem 0${sem}`}
             </button>
           ))}
         </div>
@@ -360,7 +378,7 @@ export default function StudentGpaCgpa({ user }) {
               </tr>
             </thead>
             <tbody>
-              {currentSemesterObj.modules.map((mod) => (
+              {(currentSemesterObj?.modules || []).map((mod) => (
                 <tr key={mod.code}>
                   <td className="gpa-cell-code">
                     <strong>{mod.code}</strong>
@@ -373,13 +391,13 @@ export default function StudentGpaCgpa({ user }) {
                     <strong>{mod.finalMark}</strong>
                   </td>
                   <td className="gpa-cell-grade">
-                    <span className={getGradeBadgeClass(mod.grade)}>
+                    <span className={getGradeBadgeClass(mod.grade || '')}>
                       {mod.grade}
                     </span>
                   </td>
-                  <td className="gpa-cell-gp">{mod.gradePoint != null ? Number(mod.gradePoint).toFixed(2) : '—'}</td>
+                  <td className="gpa-cell-gp">{safeToFixed(mod?.gradePoint, 2, '—')}</td>
                   <td className="gpa-cell-qp">
-                    <strong>{mod.qualityPoints != null ? Number(mod.qualityPoints).toFixed(2) : '—'}</strong>
+                    <strong>{safeToFixed(mod?.qualityPoints, 2, '—')}</strong>
                   </td>
                 </tr>
               ))}
@@ -395,7 +413,7 @@ export default function StudentGpaCgpa({ user }) {
           </div>
           <div className="gpa-footer-sgpa">
             <span>Semester GPA (SGPA):</span>
-            <strong>{currentSemesterObj?.sgpa != null ? Number(currentSemesterObj.sgpa).toFixed(2) : 'N/A'}</strong>
+            <strong>{isFreshers ? 'N/A' : safeToFixed(currentSemesterObj?.sgpa, 2, 'N/A')}</strong>
           </div>
         </div>
 
@@ -447,7 +465,7 @@ export default function StudentGpaCgpa({ user }) {
             </tr>
           </thead>
           <tbody>
-            {currentSemesterObj.modules.map((mod, idx) => (
+            {(currentSemesterObj?.modules || []).map((mod, idx) => (
               <tr key={mod.code}>
                 <td>{idx + 1}</td>
                 <td><strong>{mod.code}</strong></td>
@@ -457,8 +475,8 @@ export default function StudentGpaCgpa({ user }) {
                 <td>{mod.esaMark}</td>
                 <td>{mod.finalMark}</td>
                 <td><strong>{mod.grade}</strong></td>
-                <td>{mod.gradePoint != null ? Number(mod.gradePoint).toFixed(2) : '—'}</td>
-                <td>{mod.qualityPoints != null ? Number(mod.qualityPoints).toFixed(2) : '—'}</td>
+                <td>{safeToFixed(mod?.gradePoint, 2, '—')}</td>
+                <td>{safeToFixed(mod?.qualityPoints, 2, '—')}</td>
               </tr>
             ))}
           </tbody>

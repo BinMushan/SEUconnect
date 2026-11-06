@@ -18,6 +18,12 @@ import StudentPenalties from './penalties_disciplinary.jsx';
 import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
 import './student.css';
 
+const safeToFixed = (val, decimals = 2, fallback = 'N/A') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function Student({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -502,11 +508,7 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
               <div className="std-stat-number">
-                {studentUser?.sgpa !== undefined && studentUser?.sgpa !== null
-                  ? Number(studentUser.sgpa).toFixed(2)
-                  : currentCurriculum?.defaultSgpa !== undefined && currentCurriculum?.defaultSgpa !== null
-                    ? Number(currentCurriculum.defaultSgpa).toFixed(2)
-                    : 'N/A'}
+                {safeToFixed(studentUser?.sgpa ?? currentCurriculum?.defaultSgpa, 2, 'N/A')}
               </div>
               <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
@@ -526,11 +528,7 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">Cumulative</span>
               </div>
               <div className="std-stat-number">
-                {studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
-                  ? Number(studentUser.cgpa).toFixed(2)
-                  : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
-                    ? Number(currentCurriculum.defaultCgpa).toFixed(2)
-                    : 'N/A'}
+                {safeToFixed(studentUser?.cgpa ?? currentCurriculum?.defaultCgpa, 2, 'N/A')}
               </div>
               <div className="std-stat-target">
                 {(() => {
@@ -716,9 +714,7 @@ export default function Student({ user, onLogout }) {
                   <span className="std-trend-box-lbl">SEMESTER GPA ({activeProg.semester || 'Current'})</span>
                   <div className="std-trend-box-val-row">
                     <span className="std-trend-box-val">
-                      {activeProg.sgpa !== null && activeProg.sgpa !== undefined
-                        ? (Number(activeProg.sgpa) || 0).toFixed(2)
-                        : 'N/A'}
+                      {safeToFixed(activeProg.sgpa, 2, 'N/A')}
                     </span>
                     <span className={`std-trend-box-delta ${activeProg.sgpa === null ? 'neutral' : (activeProg.delta || '').startsWith('+') ? 'positive' : (activeProg.delta || '').startsWith('-') ? 'negative' : 'neutral'}`}>
                       {activeProg.sgpa !== null ? (activeProg.delta || '+0.00') : 'Pending Exam'}
@@ -843,8 +839,7 @@ export default function Student({ user, onLogout }) {
                 {/* Data Points & Interactive Floating Badges */}
                 {chartPoints.map((p, idx) => {
                   const isSelected = selectedSemesterIdx === idx;
-                  const hasSgpa = p.sgpa !== null && p.sgpa !== undefined;
-                  const sgpaFormatted = hasSgpa ? (Number(p.sgpa) || 0).toFixed(2) : 'Pending';
+                  const sgpaFormatted = safeToFixed(p.sgpa, 2, 'Pending');
 
                   return (
                     <g
