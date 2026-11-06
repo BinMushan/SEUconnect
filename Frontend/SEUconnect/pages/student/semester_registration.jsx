@@ -1,144 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
+import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
 import './semester_registration.css';
-
-// Initial enrolled subjects matching the live SEUConnect system
-const INITIAL_ENROLLED_SUBJECTS = [
-  {
-    id: 'sub-1',
-    code: 'ICT22011',
-    title: 'Web Application Development',
-    credits: 3,
-    theoryHours: 30,
-    practicalHours: 30,
-    status: 'REGISTERED',
-    isGPA: true
-  },
-  {
-    id: 'sub-2',
-    code: 'ICT22043',
-    title: 'Mobile Application Development',
-    credits: 3,
-    theoryHours: 30,
-    practicalHours: 30,
-    status: 'REGISTERED',
-    isGPA: true
-  },
-  {
-    id: 'sub-3',
-    code: 'ICT31013',
-    title: 'Computer Networks & Security',
-    credits: 3,
-    theoryHours: 30,
-    practicalHours: 30,
-    status: 'REGISTERED',
-    isGPA: true
-  },
-  {
-    id: 'sub-4',
-    code: 'ICT31023',
-    title: 'Enterprise Architecture & Cloud Systems',
-    credits: 3,
-    theoryHours: 30,
-    practicalHours: 30,
-    status: 'REGISTERED',
-    isGPA: true
-  },
-  {
-    id: 'sub-5',
-    code: 'ICT31032',
-    title: 'Advanced Database Systems',
-    credits: 3,
-    theoryHours: 30,
-    practicalHours: 30,
-    status: 'REGISTERED',
-    isGPA: true
-  },
-  {
-    id: 'sub-6',
-    code: 'ICT31043',
-    title: 'Human Computer Interaction (HCI)',
-    credits: 3,
-    theoryHours: 30,
-    practicalHours: 15,
-    status: 'REGISTERED',
-    isGPA: true
-  }
-];
-
-// Department catalog of available subjects
-const ALL_DEPARTMENT_MODULES = [
-  {
-    id: 'sub-1',
-    code: 'ICT22011',
-    title: 'Web Application Development',
-    credits: 3,
-    isGPA: true
-  },
-  {
-    id: 'sub-6',
-    code: 'ICT31043',
-    title: 'Human Computer Interaction (HCI)',
-    credits: 3,
-    isGPA: true
-  },
-  {
-    id: 'sub-5',
-    code: 'ICT31032',
-    title: 'Advanced Database Systems',
-    credits: 3,
-    isGPA: true
-  },
-  {
-    id: 'sub-4',
-    code: 'ICT31023',
-    title: 'Enterprise Architecture & Cloud Systems',
-    credits: 3,
-    isGPA: true
-  },
-  {
-    id: 'sub-3',
-    code: 'ICT31013',
-    title: 'Computer Networks & Security',
-    credits: 3,
-    isGPA: true
-  },
-  {
-    id: 'sub-2',
-    code: 'ICT22043',
-    title: 'Mobile Application Development',
-    credits: 3,
-    isGPA: true
-  },
-  {
-    id: 'sub-7',
-    code: 'ICT31052',
-    title: 'Machine Learning & Artificial Intelligence',
-    credits: 2,
-    isGPA: true
-  },
-  {
-    id: 'sub-8',
-    code: 'ICT31062',
-    title: 'Internet of Things & Embedded Systems',
-    credits: 2,
-    isGPA: true
-  },
-  {
-    id: 'sub-9',
-    code: 'ICT31072',
-    title: 'DevOps & Continuous Delivery Pipeline',
-    credits: 2,
-    isGPA: true
-  },
-  {
-    id: 'sub-10',
-    code: 'ICT31082',
-    title: 'Digital Business & E-Commerce Strategy',
-    credits: 2,
-    isGPA: false
-  }
-];
 
 export default function SemesterRegistration({ user }) {
   const maxCredits = 22;
@@ -157,7 +19,7 @@ export default function SemesterRegistration({ user }) {
         isGPA: c.isGPA !== undefined ? c.isGPA : true
       }));
     }
-    return cur.subjects;
+    return cur.subjects || [];
   };
 
   const [enrolledSubjects, setEnrolledSubjects] = useState(getInitialSubjects);
@@ -165,55 +27,18 @@ export default function SemesterRegistration({ user }) {
 
   useEffect(() => {
     setEnrolledSubjects(getInitialSubjects());
-  }, [user?.semester]);
+  }, [user?.semester, user?.enrolledCourses]);
 
   // Dynamically calculate registered & remaining credit count
   const registeredCredits = enrolledSubjects.reduce((sum, item) => sum + item.credits, 0);
   const remainingCredits = Math.max(0, maxCredits - registeredCredits);
 
-  // Notification helper with auto-dismiss
-  const triggerAlert = (type, text) => {
-    setAlertMessage({ type, text });
-    setTimeout(() => {
-      setAlertMessage(null);
-    }, 4000);
-  };
-
-  // Add module action
-  const handleAddModule = (moduleItem) => {
-    if (registeredCredits + moduleItem.credits > maxCredits) {
-      triggerAlert('error', `Cannot register: Exceeds the maximum regulatory ceiling of ${maxCredits} credits!`);
-      return;
-    }
-
-    const newEnrolled = {
-      ...moduleItem,
-      theoryHours: 30,
-      practicalHours: 15,
-      status: 'REGISTERED'
-    };
-
-    setEnrolledSubjects((prev) => [...prev, newEnrolled]);
-    triggerAlert('success', `Successfully registered for ${moduleItem.code} - ${moduleItem.title}!`);
-  };
-
-  // Drop module action
-  const handleDropModule = (subjectId) => {
-    const target = enrolledSubjects.find((s) => s.id === subjectId);
-    if (!target) return;
-
-    if (window.confirm(`Are you sure you want to drop this registered course?`)) {
-      setEnrolledSubjects((prev) => prev.filter((s) => s.id !== subjectId));
-      triggerAlert('success', `Successfully dropped course ${target.code}.`);
-    }
-  };
-
   return (
     <div className="semester-reg-container">
       {/* 1. Page Header */}
       <div className="page-header">
-        <h1>{cur.semester} — Subject Registration & Add/Drop</h1>
-        <p>Enroll in compulsory and elective subjects for {cur.semester} according to credit workload rules.</p>
+        <h1>{cur.semester} — Enrolled Subjects</h1>
+        <p>Official registered course modules and credit workload allocation for {cur.semester}.</p>
       </div>
 
       {/* 2. Alert Notification Banner */}
@@ -304,10 +129,10 @@ export default function SemesterRegistration({ user }) {
         </div>
         <div>
           <div className="reg-notice-title">
-            Active Registration Window: Academic Year 2025/2026 - Semester 1
+            Active Registration Window: Academic Year 2025/2026 - {cur.semester}
           </div>
           <p className="reg-notice-desc">
-            Students are permitted to add or drop elective modules until October 31, 2026. Any credit overload beyond 22 credits requires written approval from the Dean.
+            Official semester enrolled modules registered under Faculty of Technology regulations. Any credit overload beyond {maxCredits} credits requires written approval from the Dean.
           </p>
         </div>
       </section>
@@ -327,19 +152,18 @@ export default function SemesterRegistration({ user }) {
                 <th>Credits</th>
                 <th>Theory / Practical</th>
                 <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {enrolledSubjects.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="table-empty-state">
+                  <td colSpan="5" className="table-empty-state">
                     No subjects enrolled yet for this semester.
                   </td>
                 </tr>
               ) : (
                 enrolledSubjects.map((sub) => (
-                  <tr key={sub.id}>
+                  <tr key={sub.id || sub.code}>
                     <td className="course-code-cell">{sub.code}</td>
                     <td>{sub.title}</td>
                     <td>
@@ -349,86 +173,9 @@ export default function SemesterRegistration({ user }) {
                     <td>
                       <span className="badge badge-success">{sub.status}</span>
                     </td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => handleDropModule(sub.id)}
-                        className="btn btn-drop btn-sm"
-                        title={`Drop ${sub.code}`}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                        Drop
-                      </button>
-                    </td>
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* 6. Available Department Modules Card */}
-      <section className="seu-card">
-        <div className="seu-card-header">
-          <h3 className="seu-card-title">Available Department Modules</h3>
-        </div>
-
-        <div className="table-responsive">
-          <table className="seu-table">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Course Title</th>
-                <th>Credits</th>
-                <th>Type</th>
-                <th>Enrollment Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ALL_DEPARTMENT_MODULES.map((mod) => {
-                const isAlreadyEnrolled = enrolledSubjects.some((s) => s.code === mod.code);
-                const cannotEnroll = remainingCredits < mod.credits;
-
-                return (
-                  <tr key={mod.id}>
-                    <td className="course-code-cell">{mod.code}</td>
-                    <td>{mod.title}</td>
-                    <td>
-                      <span className="badge badge-neutral">{mod.credits} Credits</span>
-                    </td>
-                    <td>{mod.isGPA ? 'GPA Course' : 'Non-GPA'}</td>
-                    <td>
-                      {isAlreadyEnrolled ? (
-                        <span className="badge badge-success">Enrolled</span>
-                      ) : (
-                        <span className="badge badge-neutral">Available</span>
-                      )}
-                    </td>
-                    <td>
-                      {!isAlreadyEnrolled && (
-                        <button
-                          type="button"
-                          onClick={() => handleAddModule(mod)}
-                          className="btn btn-primary btn-sm"
-                          disabled={cannotEnroll}
-                          title={cannotEnroll ? 'Credit limit reached' : `Enroll in ${mod.code}`}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                          </svg>
-                          Add Subject
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
             </tbody>
           </table>
         </div>

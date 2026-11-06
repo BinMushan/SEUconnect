@@ -4,20 +4,20 @@ import './academic_profile.css';
 
 export default function AcademicProfile({ user, onProfileUpdate }) {
   // Pre-fill profile details from user prop or standard SEU student records
-  const name = user?.name || 'M.N.M. Afnan';
-  const email = user?.email || '22ict085@seu.ac.lk';
-  const registrationNumber = user?.regNo || user?.registrationNumber || '22ICT085';
-  const indexNumber = user?.indexNo || user?.indexNumber || 'ICT22085';
-  const degreeProgramme = user?.degreeProgramme || user?.programme || 'BICT';
+  const name = user?.name || user?.fullName || 'Undergraduate Student';
+  const email = user?.email || '';
+  const registrationNumber = user?.regNo || user?.registrationNumber || user?.studentId || '—';
+  const indexNumber = user?.indexNo || user?.indexNumber || user?.regNo || '—';
+  const degreeProgramme = user?.degreeProgramme || user?.programme || 'BICT (Hons)';
   const faculty = user?.faculty || 'Faculty of Technology';
   const department = user?.department || 'Department of Information and Communication Technology';
-  const semester = user?.semester || user?.currentSemester || 5;
+  const semester = user?.semester || user?.currentSemester || 'Year 1 Semester 1';
 
   // Editable Form Fields
-  const [phone, setPhone] = useState(user?.phone || '+94 77 1234567');
-  const [specialization, setSpecialization] = useState(user?.specialization || 'Software Systems');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [specialization, setSpecialization] = useState(user?.specialization || 'Software Technology');
   const [address, setAddress] = useState(
-    user?.address || 'Technology Hostel, Faculty of Technology, SEUSL'
+    user?.address || 'Faculty of Technology, SEUSL'
   );
   const [profileImage, setProfileImage] = useState(user?.profileImage || null);
 

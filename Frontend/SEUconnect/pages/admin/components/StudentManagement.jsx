@@ -2,6 +2,12 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { getCurriculumBySemester } from '../../../src/services/curriculumData.js';
 
+const safeToFixed = (val, decimals = 2, fallback = '0.00') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export const getStudentTempPassword = (student) => {
   if (student?.tempPassword) return student.tempPassword;
   if (!student?.regNo) return 'Seu@2024Pass';
@@ -15,60 +21,77 @@ export const getStudentTempPassword = (student) => {
   return `Seu@${student.regNo.replace(/[^a-zA-Z0-9]/g, '')}`;
 };
 
-/**
- * Determine the next semester progression or pass out state for a cohort batch
- */
-export const getNextBatchProgression = (batch) => {
-  if (!batch) return { type: 'unknown', label: '', nextSem: '' };
+export const matchesBatchStudent = (s, batch) => {
+  if (!s || !batch) return false;
 
-  const status = (batch.status || '').toLowerCase();
-  const sem = (batch.currentSemester || '').toLowerCase();
-
-  // 1. If batch has already passed out / graduated
-  if (
-    status.includes('passed out') ||
-    status.includes('graduated') ||
-    sem.includes('passed out') ||
-    sem.includes('graduated')
-  ) {
-    return { type: 'passed_out', label: 'Passed Out (Graduated)', nextSem: 'Passed Out' };
+  // 1. Exact or normalized batchId match (e.g. 'BATCH-01' === 'BATCH-01' or 'BATCH-1' === 'BATCH-01')
+  if (s.batchId && batch.id) {
+    if (s.batchId === batch.id) return true;
+    const sNum = String(s.batchId).replace(/[^0-9]/g, '');
+    const bNum = String(batch.id).replace(/[^0-9]/g, '');
+    if (sNum && bNum && parseInt(sNum, 10) === parseInt(bNum, 10)) return true;
   }
 
-  // 2. If batch is in Semester 8 (Final Year), the next option MUST be Pass Out
-  if (sem.includes('semester 8') || sem.includes('sem 8')) {
-    return {
-      type: 'pass_out',
-      label: 'Pass Out Batch',
-      nextSem: 'Passed Out (Graduated)',
-      targetYearSem: 'Passed Out'
-    };
+  // 2. Batch code match (e.g. 'B01', 'B02', 'B05')
+  if (batch.code) {
+    const bCode = String(batch.code).toLowerCase().trim();
+    if (s.batchId && String(s.batchId).toLowerCase().trim() === bCode) return true;
+    if (s.batchCode && s.batchCode.toLowerCase().includes(bCode)) return true;
   }
 
-  // 3. Sequential progression from Semester 1 through 7
-  if (sem.includes('semester 1') || sem.includes('sem 1')) {
-    return { type: 'promote', label: 'Promote to Sem 2', nextSem: 'Semester 2', targetYearSem: 'Semester 2' };
-  }
-  if (sem.includes('semester 2') || sem.includes('sem 2')) {
-    return { type: 'promote', label: 'Promote to Sem 3', nextSem: 'Semester 3 (Year 2)', targetYearSem: 'Semester 3' };
-  }
-  if (sem.includes('semester 3') || sem.includes('sem 3')) {
-    return { type: 'promote', label: 'Promote to Sem 4', nextSem: 'Semester 4', targetYearSem: 'Semester 4' };
-  }
-  if (sem.includes('semester 4') || sem.includes('sem 4')) {
-    return { type: 'promote', label: 'Promote to Sem 5', nextSem: 'Semester 5 (Year 3)', targetYearSem: 'Semester 5' };
-  }
-  if (sem.includes('semester 5') || sem.includes('sem 5')) {
-    return { type: 'promote', label: 'Promote to Sem 6', nextSem: 'Semester 6 (Year 4)', targetYearSem: 'Semester 6' };
-  }
-  if (sem.includes('semester 6') || sem.includes('sem 6')) {
-    return { type: 'promote', label: 'Promote to Sem 7', nextSem: 'Semester 7', targetYearSem: 'Semester 7' };
-  }
-  if (sem.includes('semester 7') || sem.includes('sem 7')) {
-    return { type: 'promote', label: 'Promote to Sem 8', nextSem: 'Semester 8 (Final Year)', targetYearSem: 'Semester 8' };
+  // 3. Batch name / title match (e.g. "Batch 01" in "Batch 01 (2020/2021)")
+  if (batch.name) {
+    const bName = batch.name.toLowerCase();
+    const batchNoMatch = bName.match(/batch\s*0?(\d+)/i);
+    const batchNum = batchNoMatch ? parseInt(batchNoMatch[1], 10) : null;
+
+    if (s.batchCode) {
+      const sBatchNoMatch = s.batchCode.toLowerCase().match(/batch\s*0?(\d+)/i);
+      if (batchNum !== null && sBatchNoMatch && parseInt(sBatchNoMatch[1], 10) === batchNum) {
+        return true;
+      }
+      if (s.batchCode.toLowerCase().includes(bName) || bName.includes(s.batchCode.toLowerCase())) {
+        return true;
+      }
+    }
   }
 
-  // Fallback default
-  return { type: 'pass_out', label: 'Pass Out Batch', nextSem: 'Passed Out (Graduated)' };
+  // 4. Academic year match (e.g. '2020/2021', '2023/2022', '2024/2025')
+  if (batch.academicYear) {
+    const bYear = batch.academicYear.trim().toLowerCase();
+    if (s.batch && (s.batch.toLowerCase() === bYear || s.batch.toLowerCase().includes(bYear) || bYear.includes(s.batch.toLowerCase()))) {
+      return true;
+    }
+    if (s.academicYear && (s.academicYear.toLowerCase() === bYear || s.academicYear.toLowerCase().includes(bYear) || bYear.includes(s.academicYear.toLowerCase()))) {
+      return true;
+    }
+    if (s.batchCode && s.batchCode.toLowerCase().includes(bYear)) {
+      return true;
+    }
+  }
+
+  // 5. Registration number prefix / year token match
+  // RegNo format: SEU/IS/20/ICT/019 or SEU/IS/22/ICT/085 or 20ICT019 or 22ICT085
+  if (s.regNo) {
+    const reg = s.regNo.toUpperCase();
+    if (batch.regPrefix) {
+      const prefix = String(batch.regPrefix).trim();
+      if (reg.includes(`/${prefix}/`) || reg.startsWith(prefix) || reg.includes(prefix)) {
+        return true;
+      }
+    }
+    if (batch.academicYear) {
+      const years = batch.academicYear.match(/\d{2,4}/g) || [];
+      for (const yr of years) {
+        const shortYr = yr.length === 4 ? yr.slice(-2) : yr;
+        if (reg.includes(`/${shortYr}/`)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 };
 
 export default function StudentManagement({
@@ -292,17 +315,15 @@ export default function StudentManagement({
 
   // Calculate real student counts per batch
   const getBatchStudentCount = (batch) => {
-    const count = students.filter((s) => s.batchId === batch.id || (batch.regPrefix && s.regNo.startsWith(batch.regPrefix))).length;
-    return count > 0 ? count : batch.totalStudents;
+    if (!batch) return 0;
+    const matching = students.filter((s) => matchesBatchStudent(s, batch));
+    return matching.length;
   };
 
   // Filter students for the currently selected batch
   const batchStudents = selectedBatch
     ? students.filter((s) => {
-        const matchesBatch =
-          s.batchId === selectedBatch.id ||
-          (selectedBatch.regPrefix && s.regNo.startsWith(selectedBatch.regPrefix)) ||
-          (s.batchCode && s.batchCode.includes(selectedBatch.code));
+        const matchesBatch = matchesBatchStudent(s, selectedBatch);
 
         const matchesSearch =
           s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -627,15 +648,18 @@ export default function StudentManagement({
     setTimeout(() => {
       const finalized = targetStudentsForEnrol.map((s) => {
         const cur = getCurriculumBySemester(s.semester || currentBatch.currentSemester);
+        const isFresh = cur?.isFreshers || (cur?.semester?.includes('1') && !cur?.semester?.includes('2'));
         return {
           ...s,
           batchId: currentBatch.id,
           batchCode: currentBatch.name,
+          batch: currentBatch.academicYear,
+          academicYear: currentBatch.academicYear,
           semester: cur.semester,
-          cgpa: s.cgpa || cur.defaultCgpa,
-          sgpa: s.sgpa || cur.defaultSgpa,
-          credits: s.credits || cur.totalCredits,
-          attendance: s.attendance || 92.5,
+          cgpa: isFresh ? null : (s.cgpa || cur.defaultCgpa),
+          sgpa: isFresh ? null : (s.sgpa || cur.defaultSgpa),
+          credits: isFresh ? 0 : (s.credits || cur.totalCredits),
+          attendance: isFresh ? null : (s.attendance || 100),
           enrolledCourses: cur.subjects,
           timetable: cur.timetableSlots,
           examModules: cur.examModules,
@@ -680,21 +704,24 @@ export default function StudentManagement({
     const currentBatch = activeBatch;
     const effectiveTempPassword = newTempPassword.trim() || getStudentTempPassword({ regNo: newRegNo.trim().toUpperCase() });
     const cur = getCurriculumBySemester(newSemester);
+    const isFresh = cur?.isFreshers || (cur?.semester?.includes('1') && !cur?.semester?.includes('2'));
 
     onAddStudent({
       id: `STU-${Date.now()}`,
       batchId: currentBatch.id,
       batchCode: currentBatch.name,
+      batch: currentBatch.academicYear,
+      academicYear: currentBatch.academicYear,
       regNo: newRegNo.trim().toUpperCase(),
       indexNo: newIndexNo.trim() || newRegNo.trim().toUpperCase(),
       name: newName.trim(),
       programme: newProgramme,
       department: newDepartment,
       semester: cur.semester,
-      cgpa: cur.defaultCgpa,
-      sgpa: cur.defaultSgpa,
-      credits: cur.totalCredits,
-      attendance: 92.5,
+      cgpa: isFresh ? null : cur.defaultCgpa,
+      sgpa: isFresh ? null : cur.defaultSgpa,
+      credits: isFresh ? 0 : cur.totalCredits,
+      attendance: isFresh ? null : 100,
       enrolledCourses: cur.subjects,
       timetable: cur.timetableSlots,
       examModules: cur.examModules,
@@ -968,7 +995,7 @@ export default function StudentManagement({
                       <span className="adm-batch-metric-val">
                         {batch.currentSemester?.includes('Freshers') || batch.avgCgpa === 0
                           ? '0.00'
-                          : (batch.avgCgpa ? batch.avgCgpa.toFixed(2) : '0.00')}
+                          : safeToFixed(batch.avgCgpa, 2, '0.00')}
                       </span>
                       <span className="adm-batch-metric-lbl">
                         {batch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
@@ -1155,44 +1182,35 @@ export default function StudentManagement({
           </div>
 
           {/* Batch Hero Focus Header */}
-          {(() => {
-            const activeBatch = batches.find((b) => b.id === selectedBatch.id) || selectedBatch;
-            const drillProgression = getNextBatchProgression(activeBatch);
-            return (
-              <div className="adm-batch-hero">
-                <div className="adm-batch-hero-info">
-                  <h2 className="adm-batch-hero-title">
-                    {activeBatch.name}
-                    <span
-                      className={`adm-badge ${
-                        activeBatch.status?.includes('Passed Out') || activeBatch.status?.includes('Graduated')
-                          ? 'badge-passed-out'
-                          : activeBatch.status?.includes('Graduating')
-                          ? 'badge-submitted'
-                          : activeBatch.status?.includes('Freshers')
-                          ? 'badge-pending'
-                          : 'badge-active'
-                      }`}
-                      style={
-                        activeBatch.status?.includes('Passed Out') || activeBatch.status?.includes('Graduated')
-                          ? { fontSize: '0.75rem', verticalAlign: 'middle', background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe', fontWeight: 700 }
-                          : { fontSize: '0.75rem', verticalAlign: 'middle' }
-                      }
-                    >
-                      {activeBatch.status?.includes('Passed Out') || activeBatch.status?.includes('Graduated')
-                        ? '🎓 Passed Out'
-                        : activeBatch.code}
-                    </span>
-                  </h2>
-                  <div className="adm-batch-hero-sub">
-                    <span>Academic Year: <strong>{activeBatch.academicYear}</strong></span>
-                    <span>•</span>
-                    <span>Current Term: <strong>{activeBatch.currentSemester}</strong></span>
-                    <span>•</span>
-                    <span>Coordinator: <strong>{activeBatch.coordinator}</strong></span>
-                    <span>•</span>
-                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>2 Departments: 120 BICT + 120 BST (240 Capacity)</span>
-                  </div>
+          <div className="adm-batch-hero">
+            <div className="adm-batch-hero-info">
+              <h2 className="adm-batch-hero-title">
+                {selectedBatch.name}
+                <span className="adm-badge badge-submitted" style={{ fontSize: '0.75rem', verticalAlign: 'middle' }}>
+                  {selectedBatch.code}
+                </span>
+              </h2>
+              <div className="adm-batch-hero-sub">
+                <span>Academic Year: <strong>{selectedBatch.academicYear}</strong></span>
+                <span>•</span>
+                <span>Current Term: <strong>{selectedBatch.currentSemester}</strong></span>
+                <span>•</span>
+                <span>Coordinator: <strong>{selectedBatch.coordinator}</strong></span>
+                <span>•</span>
+                <span style={{ color: '#f59e0b', fontWeight: 600 }}>2 Departments: 120 BICT + 120 BST (240 Capacity)</span>
+              </div>
+            </div>
+
+            <div className="adm-batch-hero-stats">
+              <div className="adm-batch-hero-stat-box">
+                <div className="adm-batch-hero-stat-val">{batchStudents.length}</div>
+                <div className="adm-batch-hero-stat-lbl">Enrolled</div>
+              </div>
+              <div className="adm-batch-hero-stat-box">
+                <div className="adm-batch-hero-stat-val">
+                  {selectedBatch.currentSemester?.includes('Freshers') || selectedBatch.avgCgpa === 0 || selectedBatch.avgCgpa === null
+                    ? 'N/A'
+                    : safeToFixed(selectedBatch.avgCgpa, 2, '0.00')}
                 </div>
 
                 <div className="adm-batch-hero-stats">
@@ -1334,8 +1352,58 @@ export default function StudentManagement({
                   </button>
                 </div>
               </div>
-            );
-          })()}
+              <div className="adm-batch-hero-stat-box">
+                <div className="adm-batch-hero-stat-val">{selectedBatch.currentSemester?.includes('Freshers') ? '—' : `${selectedBatch.attendanceRate}%`}</div>
+                <div className="adm-batch-hero-stat-lbl">Attendance</div>
+              </div>
+              <button
+                type="button"
+                className="adm-find-process-btn"
+                style={{
+                  background: '#f59e0b',
+                  color: '#071732',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onClick={() => {
+                  setNewSemester(selectedBatch.currentSemester?.split(' ')[0] || 'Semester 1');
+                  setTargetBatchId(selectedBatch.id);
+                  setEnrollMode('bulk');
+                  setIsAddModalOpen(true);
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <line x1="19" y1="8" x2="19" y2="14" />
+                  <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+                + Enrol Students (Individual / Bulk)
+              </button>
+
+              <button
+                type="button"
+                className="adm-btn-danger"
+                style={{
+                  padding: '0.55rem 0.85rem',
+                  fontSize: '0.78rem',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => handleDeleteBatchPrompt(selectedBatch)}
+                title="Delete this intake batch"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Delete Batch
+              </button>
+            </div>
+          </div>
 
           {/* Filter Toolbar for this Batch */}
           <div className="adm-filter-toolbar">

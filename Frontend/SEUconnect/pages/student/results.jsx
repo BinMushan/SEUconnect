@@ -57,9 +57,9 @@ export default function StudentResults({ user }) {
   const allRows = useMemo(() => transcriptToRows(transcript), [transcript]);
   const semesterNumbers = useMemo(() => [...new Set(allRows.map((r) => r.semester))].sort((x, y) => x - y), [allRows]);
   const student = transcript?.student;
-  const candidateName = student?.fullName || user?.name || '';
-  const regNo = student?.registrationNo || user?.regNo || '22ICT091';
-  const indexNo = student?.studentId || user?.indexNo || 'ICT22091';
+  const candidateName = student?.fullName || user?.name || user?.fullName || 'Undergraduate Student';
+  const regNo = student?.registrationNo || user?.regNo || user?.studentId || '—';
+  const indexNo = student?.studentId || user?.indexNo || user?.regNo || '—';
   const programme = student?.programmeRef?.name || student?.programmeRef?.code || user?.programme || 'BICT (Hons)';
 
   const [pipelineTick, setPipelineTick] = useState(0);
@@ -73,10 +73,10 @@ export default function StudentResults({ user }) {
     };
   }, []);
 
-  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1';
+  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1' || (user?.semester && user.semester.includes('1') && !user.semester.includes('2'));
   const livePipelineResults = useMemo(() => {
-    return resultsPipelineService.getStudentSemesterResults(regNo, 'Year 2 Semester 2');
-  }, [regNo, pipelineTick]);
+    return resultsPipelineService.getStudentSemesterResults(regNo, user?.semester || 'Year 1 Semester 1');
+  }, [regNo, user?.semester, pipelineTick]);
 
   const isPublished = livePipelineResults.isPublished;
   const pipelineStatus = livePipelineResults.pipelineStatus;
@@ -110,7 +110,11 @@ export default function StudentResults({ user }) {
 
   const cumulativeGpa = isFreshers ? null : (transcript?.cumulative?.gpa ?? (isPublished ? livePipelineResults.sgpa : null));
   const semesterGpa = isFreshers ? null : (selectedSemester === 'All' ? cumulativeGpa : (transcript?.semesters || []).find((x) => String(x.semester?.number) === selectedSemester)?.sgpa ?? (isPublished ? livePipelineResults.sgpa : null));
-  const fmt = (v) => (v === null || v === undefined ? 'N/A' : Number(v).toFixed(2));
+  const fmt = (v) => {
+    if (v === null || v === undefined || v === '' || v === '—' || v === 'N/A') return 'N/A';
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) ? n.toFixed(2) : 'N/A';
+  };
 
   const handlePrint = () => {
     window.print();

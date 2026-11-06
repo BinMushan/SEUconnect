@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { EXAM_BOARD_CLEARANCES } from '../deanData.js';
 import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from '../../../src/services/resultsPipelineService.js';
 
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function ExamBoardClearances({ onNavigate }) {
   const [candidates, setCandidates] = useState(EXAM_BOARD_CLEARANCES);
   const [feedback, setFeedback] = useState('');
@@ -174,7 +180,7 @@ export default function ExamBoardClearances({ onNavigate }) {
                       <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{c.department}</div>
                     </td>
                     <td>
-                      <span className="dean-gpa-badge">{c.cgpa.toFixed(2)}</span>
+                      <span className="dean-gpa-badge">{safeToFixed(c.cgpa, 2, '—')}</span>
                     </td>
                     <td>
                       <span className={`dean-class-badge ${c.classAwarded.includes('First') ? 'first' : 'upper'}`}>

@@ -174,9 +174,9 @@ const StudentSchema = new mongoose.Schema({
 
   // 3. ATTENDANCE SECTION
   attendance: {
-    overallAttendancePercentage: { type: Number, default: 85.0 },
-    totalLectures: { type: Number, default: 120 },
-    attendedLectures: { type: Number, default: 102 },
+    overallAttendancePercentage: { type: Number, default: null },
+    totalLectures: { type: Number, default: 0 },
+    attendedLectures: { type: Number, default: 0 },
     eligibilityStatus: { type: String, enum: ['Eligible', 'Ineligible', 'Borderline'], default: 'Eligible' },
     subjectRecords: [SubjectAttendanceSchema]
   },
@@ -187,11 +187,11 @@ const StudentSchema = new mongoose.Schema({
   // 5. EXAMINATIONS SECTION
   examinations: [
     {
-      semester: { type: String, default: 'Year 3 Semester 1' },
+      semester: { type: String, default: 'Year 1 Semester 1' },
       academicYear: { type: String, default: '2025/2026' },
-      admissionCardNo: { type: String, default: 'ADM-2026-ICT-085' },
+      admissionCardNo: { type: String, default: '' },
       eligibility: { type: Boolean, default: true },
-      remarks: { type: String, default: 'Eligible for all enrolled examination modules.' },
+      remarks: { type: String, default: 'Enrolled for active semester courses.' },
       timetable: [ExamScheduleSchema]
     }
   ],
@@ -208,11 +208,11 @@ const StudentSchema = new mongoose.Schema({
 
   // 7. GPA / CGPA SECTION
   gpaCgpa: {
-    currentSgpa: { type: Number, default: 3.50 },
-    cgpa: { type: Number, default: 3.42 },
-    academicStanding: { type: String, default: 'Good Standing' },
-    targetClass: { type: String, default: 'First Class (≥ 3.70)' },
-    totalCreditsEarned: { type: Number, default: 78 },
+    currentSgpa: { type: Number, default: null },
+    cgpa: { type: Number, default: null },
+    academicStanding: { type: String, default: 'Enrolled (In Progress)' },
+    targetClass: { type: String, default: 'General Standing' },
+    totalCreditsEarned: { type: Number, default: 0 },
     totalCreditsRequired: { type: Number, default: 120 },
     semesterHistory: [
       {

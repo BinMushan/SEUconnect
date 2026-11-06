@@ -1,6 +1,12 @@
 import React from 'react';
 import { FACULTY_KPIS, FACULTY_STATS } from '../deanData.js';
 
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function FacultyProgressionKPIs({ onNavigate }) {
   return (
     <div className="dean-view-container">
@@ -115,7 +121,7 @@ export default function FacultyProgressionKPIs({ onNavigate }) {
                     <td>{row.students}</td>
                     <td>{row.staff}</td>
                     <td>
-                      <span className="dean-gpa-badge">{row.avgGPA.toFixed(2)}</span>
+                      <span className="dean-gpa-badge">{safeToFixed(row.avgGPA, 2, '—')}</span>
                     </td>
                     <td>
                       <span className="dean-status-pill status-approved">{row.passRate}</span>

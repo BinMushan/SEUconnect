@@ -447,7 +447,7 @@ export default function Lecturer({ user, onLogout }) {
           />
         );
       case 'profile':
-        return <LecturerProfile onShowToast={showToast} />;
+        return <LecturerProfile user={user} onShowToast={showToast} />;
       case 'dashboard':
       default:
         return (
@@ -498,10 +498,10 @@ export default function Lecturer({ user, onLogout }) {
         onNavigate={handleNavigate}
         className="lecturer-portal"
         facultyPillText="SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY"
-        greetingText={`Good Morning, ${user?.name || INITIAL_LECTURER_INFO.fullName}`}
+        greetingText={`Good Morning, ${user?.name || (user?.email?.toLowerCase().includes('lecturer@gmail.com') ? INITIAL_LECTURER_INFO.fullName : 'Lecturer')}`}
         metaItems={[
-          { label: 'Lecturer ID:', value: user?.staffId || user?.lecturerId || LECTURER_META_CHIPS[0].value },
-          { label: 'Department:', value: (user?.department || LECTURER_META_CHIPS[1].value).replace('Department of Information and Communication Technology', 'Department of ICT') },
+          { label: 'Lecturer ID:', value: user?.staffId || user?.lecturerId || (user?.email?.toLowerCase().includes('lecturer@gmail.com') ? 'LEC/ICT/024' : `STAFF-LEC-${user?.email?.split('@')[0]?.toUpperCase() || 'NEW'}`) },
+          { label: 'Department:', value: (user?.department || 'Department of ICT').replace('Department of Information and Communication Technology', 'Department of ICT') },
           { label: 'Assigned Subjects:', value: `${activeSubjects.length} Subject${activeSubjects.length === 1 ? '' : 's'}` },
         ]}
         navSections={LECTURER_NAV_SECTIONS}
