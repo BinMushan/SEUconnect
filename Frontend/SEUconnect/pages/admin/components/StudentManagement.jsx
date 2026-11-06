@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import { getCurriculumBySemester } from '../../../src/services/curriculumData.js';
 
 export const getStudentTempPassword = (student) => {
@@ -18,7 +19,10 @@ export default function StudentManagement({
   batches = [],
   students = [],
   onAddBatch,
+  onDeleteBatch,
   onAddStudent,
+  onUpdateStudent,
+  onDeleteStudent,
   onBulkAddStudents,
   onUpdateStudentStatus,
   isAddModalOpen,
@@ -38,6 +42,92 @@ export default function StudentManagement({
 
   // Selected Student for Dossier Modal
   const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // Editing Student Modal State
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    regNo: '',
+    indexNo: '',
+    programme: 'BICT (Hons)',
+    department: 'Department of Information & Communication Technology',
+    semester: 'Semester 1',
+    email: '',
+    phone: '',
+    tempPassword: '',
+    status: 'Active',
+    cgpa: 0,
+    sgpa: 0,
+    attendance: 90,
+    welfare: 'Pending Verification',
+    specialization: ''
+  });
+
+  const handleOpenEdit = (student) => {
+    setEditingStudent(student);
+    setEditForm({
+      name: student.name || '',
+      regNo: student.regNo || '',
+      indexNo: student.indexNo || student.regNo || '',
+      programme: student.programme || 'BICT (Hons)',
+      department: student.department || 'Department of Information & Communication Technology',
+      semester: student.semester || 'Semester 1',
+      email: student.email || '',
+      phone: student.phone || '',
+      tempPassword: student.tempPassword || getStudentTempPassword(student),
+      status: student.status || 'Active',
+      cgpa: student.cgpa !== undefined ? student.cgpa : 0.00,
+      sgpa: student.sgpa !== undefined ? student.sgpa : 0.00,
+      attendance: student.attendance !== undefined ? student.attendance : 90,
+      welfare: student.welfare || 'Pending Verification',
+      specialization: student.specialization || ''
+    });
+  };
+
+  const handleSaveEditedStudent = (e) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    const updated = {
+      ...editingStudent,
+      ...editForm,
+      cgpa: Number(editForm.cgpa) || 0,
+      sgpa: Number(editForm.sgpa) || 0,
+      attendance: Number(editForm.attendance) || 0
+    };
+    if (onUpdateStudent) {
+      onUpdateStudent(updated);
+    }
+    if (selectedStudent && (selectedStudent.id === updated.id || selectedStudent.regNo === updated.regNo)) {
+      setSelectedStudent(updated);
+    }
+    setEditingStudent(null);
+  };
+
+  const handleDeleteStudentPrompt = (student) => {
+    if (!student) return;
+    const confirmMsg = `Are you sure you want to permanently delete student ${student.name} (${student.regNo})?\n\nThis will remove their profile and login account.`;
+    if (window.confirm(confirmMsg)) {
+      if (onDeleteStudent) {
+        onDeleteStudent(student.id || student.regNo);
+      }
+      if (selectedStudent && (selectedStudent.id === student.id || selectedStudent.regNo === student.regNo)) {
+        setSelectedStudent(null);
+      }
+    }
+  };
+
+  const handleDeleteBatchPrompt = (batch) => {
+    if (!batch) return;
+    const confirmMsg = `Are you sure you want to delete intake batch "${batch.name}"?\n\nThis will remove the batch card from the intake overview.`;
+    if (window.confirm(confirmMsg)) {
+      if (onDeleteBatch) {
+        onDeleteBatch(batch.id);
+      }
+      if (selectedBatch && selectedBatch.id === batch.id) {
+        setSelectedBatch(null);
+      }
+    }
+  };
 
   // Onboard New Intake Batch Modal State
   const [isAddBatchModalOpen, setIsAddBatchModalOpen] = useState(false);
@@ -303,7 +393,7 @@ export default function StudentManagement({
     setBulkSuccessMsg(`Loaded roster: ${label} for ${currentBatch.name} (GPA 0.00).`);
   };
 
-  // Process File Upload (CSV, TXT, Excel Comma Separated)
+  // Process File Upload (Excel .xlsx, .xls, CSV, TSV)
   const handleFileUpload = (file) => {
     if (!file) return;
     setBulkFile(file);
@@ -315,67 +405,72 @@ export default function StudentManagement({
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const text = e.target.result;
-        const lines = text.split(/\r\n|\n/).filter((l) => l.trim().length > 0);
-        if (lines.length < 2) {
-          setBulkError('Spreadsheet file is empty or contains no data rows.');
+        const buffer = e.target.result;
+        let rawRows = [];
+
+        // Parse workbook using SheetJS (supports .xlsx, .xls, .csv, .tsv seamlessly)
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+          setBulkError('Spreadsheet file contains no readable worksheets.');
           return;
         }
 
-        const headerLine = lines[0];
-        const separator = headerLine.includes('\t') ? '\t' : headerLine.includes(';') ? ';' : ',';
-        const headers = headerLine.split(separator).map((h) => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
+        // Prioritize worksheet containing "enrol" or "student", otherwise first sheet
+        let targetSheet = workbook.SheetNames[0];
+        const matchSheet = workbook.SheetNames.find((n) => {
+          const lower = n.toLowerCase();
+          return lower.includes('enrol') || lower.includes('batch') || lower.includes('student');
+        });
+        if (matchSheet) targetSheet = matchSheet;
 
-        const getIdx = (keys) => headers.findIndex((h) => keys.some((k) => h.includes(k)));
+        const worksheet = workbook.Sheets[targetSheet];
+        rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-        const regIdx = getIdx(['reg', 'registration', 'student id', 'id']);
-        const nameIdx = getIdx(['name', 'full name', 'student name']);
-        const indexIdx = getIdx(['index']);
-        const progIdx = getIdx(['prog', 'degree']);
-        const deptIdx = getIdx(['dept', 'department']);
-        const semIdx = getIdx(['sem', 'semester']);
-        const emailIdx = getIdx(['email', 'mail']);
-        const passIdx = getIdx(['pass', 'password', 'temp', 'credential']);
-        const phoneIdx = getIdx(['phone', 'mobile', 'contact']);
+        if (!rawRows || rawRows.length === 0) {
+          setBulkError('Spreadsheet file contains no data rows.');
+          return;
+        }
 
-        if (regIdx === -1 && nameIdx === -1) {
+        // Flexible key finder helper
+        const getVal = (row, keys) => {
+          for (const [k, v] of Object.entries(row)) {
+            const lk = k.toLowerCase().trim();
+            if (keys.some((key) => lk.includes(key))) {
+              return String(v).trim();
+            }
+          }
+          return '';
+        };
+
+        // Check required column presence across rows
+        const hasReg = rawRows.some((r) => getVal(r, ['reg', 'student id', 'id']) !== '');
+        const hasName = rawRows.some((r) => getVal(r, ['name', 'full name', 'student name']) !== '');
+
+        if (!hasReg && !hasName) {
           setBulkError('Could not identify required columns ("Registration No" or "Full Name") in the uploaded spreadsheet.');
           return;
         }
 
         const parsed = [];
-        for (let i = 1; i < lines.length; i++) {
-          const rowText = lines[i];
-          if (!rowText.trim()) continue;
-
-          const cols = [];
-          let current = '';
-          let inQuotes = false;
-          for (let c = 0; c < rowText.length; c++) {
-            const char = rowText[c];
-            if (char === '"' || char === "'") {
-              inQuotes = !inQuotes;
-            } else if (char === separator && !inQuotes) {
-              cols.push(current.trim().replace(/^["']|["']$/g, ''));
-              current = '';
-            } else {
-              current += char;
-            }
-          }
-          cols.push(current.trim().replace(/^["']|["']$/g, ''));
-
-          const reg = (cols[regIdx] || '').trim();
-          const name = (cols[nameIdx] || '').trim();
+        for (let i = 0; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          const reg = getVal(row, ['reg', 'student id', 'id']);
+          const name = getVal(row, ['name', 'full name', 'student name']);
           if (!reg && !name) continue;
 
-          const isBST = reg.toUpperCase().includes('/BST/') || (cols[progIdx] && cols[progIdx].toUpperCase().includes('BST')) || (cols[deptIdx] && cols[deptIdx].toUpperCase().includes('BIO'));
-          const programme = cols[progIdx] || (isBST ? 'BST (Hons)' : 'BICT (Hons)');
-          const department = cols[deptIdx] || (isBST ? 'Department of Bio Systems Technology' : 'Department of Information & Communication Technology');
-          const email = cols[emailIdx] || `${reg.toLowerCase().replace(/[^a-z0-9]/g, '')}@seu.ac.lk`;
-          const tempPassword = (passIdx !== -1 && cols[passIdx]) ? cols[passIdx].trim() : getStudentTempPassword({ regNo: reg });
-          const phone = cols[phoneIdx] || '+94 77 000 0000';
-          const semester = cols[semIdx] || currentBatch.currentSemester?.split(' ')[0] || 'Semester 1';
-          const indexNo = cols[indexIdx] || reg;
+          const indexNo = getVal(row, ['index']) || reg;
+          const prog = getVal(row, ['prog', 'degree']);
+          const dept = getVal(row, ['dept', 'department']);
+          const sem = getVal(row, ['sem', 'semester']) || currentBatch.currentSemester?.split(' ')[0] || 'Semester 1';
+          const emailRaw = getVal(row, ['email', 'mail']);
+          const passRaw = getVal(row, ['pass', 'temp', 'credential']);
+          const phone = getVal(row, ['phone', 'mobile', 'contact']) || '+94 77 000 0000';
+
+          const isBST = reg.toUpperCase().includes('/BST/') || prog.toUpperCase().includes('BST') || dept.toUpperCase().includes('BIO');
+          const programme = prog || (isBST ? 'BST (Hons)' : 'BICT (Hons)');
+          const department = dept || (isBST ? 'Department of Bio Systems Technology' : 'Department of Information & Communication Technology');
+          const email = emailRaw || `${reg.toLowerCase().replace(/[^a-z0-9]/g, '')}@seu.ac.lk`;
+          const tempPassword = passRaw || getStudentTempPassword({ regNo: reg });
 
           parsed.push({
             id: `BULK-FILE-${Date.now()}-${i}`,
@@ -386,11 +481,11 @@ export default function StudentManagement({
             name,
             programme,
             department,
-            semester,
+            semester: sem,
             cgpa: 0.00,
             sgpa: 0.00,
             credits: 0,
-            attendance: 0,
+            attendance: 92.5,
             email: email.toLowerCase(),
             tempPassword,
             phone,
@@ -419,7 +514,7 @@ export default function StudentManagement({
       setBulkError('Failed to read the uploaded spreadsheet file.');
     };
 
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   };
 
   // Confirm and Bulk Enroll all parsed records
@@ -793,22 +888,41 @@ export default function StudentManagement({
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className="adm-batch-card-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedBatch(batch);
-                      setCurrentPage(1);
-                      setSearchTerm('');
-                    }}
-                  >
-                    <span>View Batch Students & Details</span>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className="adm-batch-card-btn"
+                      style={{ flex: 1, marginTop: 0 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedBatch(batch);
+                        setCurrentPage(1);
+                        setSearchTerm('');
+                      }}
+                    >
+                      <span>View Batch Students</span>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="adm-btn-xs-danger"
+                      style={{ padding: '0.45rem 0.65rem' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteBatchPrompt(batch);
+                      }}
+                      title="Delete Intake Batch"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -915,6 +1029,24 @@ export default function StudentManagement({
                 </svg>
                 + Enrol Students (Individual / Bulk)
               </button>
+
+              <button
+                type="button"
+                className="adm-btn-danger"
+                style={{
+                  padding: '0.55rem 0.85rem',
+                  fontSize: '0.78rem',
+                  whiteSpace: 'nowrap'
+                }}
+                onClick={() => handleDeleteBatchPrompt(selectedBatch)}
+                title="Delete this intake batch"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Delete Batch
+              </button>
             </div>
           </div>
 
@@ -990,7 +1122,7 @@ export default function StudentManagement({
 
           {/* Students Table for Selected Batch */}
           <div className="adm-table-card">
-            <div className="adm-table-wrap">
+            <div className="adm-table-wrapper">
               <table className="adm-table">
                 <thead>
                   <tr>
@@ -1112,18 +1244,34 @@ export default function StudentManagement({
                         </td>
 
                         <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
+                          <div style={{ display: 'inline-flex', gap: '0.4rem', flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
                             <button
                               type="button"
-                              className="adm-btn-xs-secondary"
+                              className="adm-btn-xs-view"
                               onClick={() => setSelectedStudent(student)}
                               title="View Full Academic Dossier"
                             >
-                              View Dossier
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                              View
                             </button>
                             <button
                               type="button"
-                              className={`adm-btn-xs-secondary ${student.status === 'Active' ? '' : 'text-emerald'}`}
+                              className="adm-btn-xs-edit"
+                              onClick={() => handleOpenEdit(student)}
+                              title="Edit Student Profile"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className={`adm-btn-xs-toggle ${student.status === 'Active' ? '' : 'active-restore'}`}
                               onClick={() =>
                                 onUpdateStudentStatus(
                                   student.id,
@@ -1133,6 +1281,18 @@ export default function StudentManagement({
                               title="Toggle Active/Barred Standing"
                             >
                               {student.status === 'Active' ? 'Bar' : 'Restore'}
+                            </button>
+                            <button
+                              type="button"
+                              className="adm-btn-xs-danger"
+                              onClick={() => handleDeleteStudentPrompt(student)}
+                              title="Delete Student Record"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                              Delete
                             </button>
                           </div>
                         </td>
@@ -1147,8 +1307,8 @@ export default function StudentManagement({
             {totalPages > 1 && (
               <div className="adm-pagination">
                 <span className="adm-page-info">
-                  Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                  {Math.min(currentPage * pageSize, batchStudents.length)} of {batchStudents.length} students
+                  Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+                  <strong>{Math.min(currentPage * pageSize, batchStudents.length)}</strong> of <strong>{batchStudents.length}</strong> students
                 </span>
                 <div className="adm-page-nav">
                   <button
@@ -1157,6 +1317,10 @@ export default function StudentManagement({
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="19" y1="12" x2="5" y2="12" />
+                      <polyline points="12 19 5 12 12 5" />
+                    </svg>
                     Previous
                   </button>
                   <span className="adm-current-page">
@@ -1169,6 +1333,10 @@ export default function StudentManagement({
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   >
                     Next
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -1406,14 +1574,36 @@ export default function StudentManagement({
               </div>
             </div>
 
-            <div className="adm-modal-footer">
+            <div className="adm-modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
                 type="button"
-                className="adm-btn-xs-secondary"
-                onClick={() => setSelectedStudent(null)}
+                className="adm-btn-xs-danger"
+                onClick={() => handleDeleteStudentPrompt(selectedStudent)}
               >
-                Close Dossier
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Delete Student
               </button>
+              <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="adm-btn-xs-primary"
+                  onClick={() => {
+                    handleOpenEdit(selectedStudent);
+                  }}
+                >
+                  Edit Profile
+                </button>
+                <button
+                  type="button"
+                  className="adm-btn-xs-secondary"
+                  onClick={() => setSelectedStudent(null)}
+                >
+                  Close Dossier
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2112,6 +2302,239 @@ export default function StudentManagement({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL: EDIT STUDENT PROFILE
+          ========================================================= */}
+      {editingStudent && (
+        <div className="adm-modal-backdrop" onClick={() => setEditingStudent(null)}>
+          <div className="adm-modal-card" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="adm-modal-header">
+              <div>
+                <h3 className="adm-modal-title">Edit Student Profile</h3>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  Update academic registry and credentials for {editingStudent.regNo}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="adm-modal-close-btn"
+                onClick={() => setEditingStudent(null)}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditedStudent}>
+              <div className="adm-modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label className="adm-form-label">Full Name with Initials *</label>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Registration Number</label>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      value={editForm.regNo}
+                      onChange={(e) => setEditForm({ ...editForm, regNo: e.target.value.toUpperCase() })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Index Number</label>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      value={editForm.indexNo}
+                      onChange={(e) => setEditForm({ ...editForm, indexNo: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Degree Programme</label>
+                    <select
+                      className="adm-form-select"
+                      value={editForm.programme}
+                      onChange={(e) => {
+                        const prog = e.target.value;
+                        const dept = prog.includes('BST')
+                          ? 'Department of Bio Systems Technology'
+                          : 'Department of Information & Communication Technology';
+                        setEditForm({ ...editForm, programme: prog, department: dept });
+                      }}
+                    >
+                      <option value="BICT (Hons)">BICT (Hons) - Information Technology</option>
+                      <option value="BST (Hons)">BST (Hons) - Bio Systems Technology</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Department</label>
+                    <select
+                      className="adm-form-select"
+                      value={editForm.department}
+                      onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                    >
+                      <option value="Department of Information & Communication Technology">
+                        Dept of Information & Communication Tech
+                      </option>
+                      <option value="Department of Bio Systems Technology">
+                        Dept of Bio Systems Technology
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Academic Semester</label>
+                    <select
+                      className="adm-form-select"
+                      value={editForm.semester}
+                      onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
+                    >
+                      <option value="Semester 1">Semester 1</option>
+                      <option value="Semester 2">Semester 2</option>
+                      <option value="Semester 3">Semester 3</option>
+                      <option value="Semester 4">Semester 4</option>
+                      <option value="Semester 5">Semester 5</option>
+                      <option value="Semester 6">Semester 6</option>
+                      <option value="Semester 7">Semester 7</option>
+                      <option value="Semester 8">Semester 8</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Academic Standing</label>
+                    <select
+                      className="adm-form-select"
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    >
+                      <option value="Active">Active (Good Standing)</option>
+                      <option value="Attendance Barred">Attendance Barred</option>
+                      <option value="Academic Warning">Academic Warning</option>
+                      <option value="Suspended">Suspended</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Cumulative GPA</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="4.00"
+                      className="adm-form-input"
+                      value={editForm.cgpa}
+                      onChange={(e) => setEditForm({ ...editForm, cgpa: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Attendance Rate (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      className="adm-form-input"
+                      value={editForm.attendance}
+                      onChange={(e) => setEditForm({ ...editForm, attendance: e.target.value })}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label className="adm-form-label">University Email *</label>
+                    <input
+                      type="email"
+                      className="adm-form-input"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value.toLowerCase() })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Login Password</label>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      value={editForm.tempPassword}
+                      onChange={(e) => setEditForm({ ...editForm, tempPassword: e.target.value })}
+                      placeholder="e.g. 123456 or Seu@Pass"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Contact Phone</label>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Welfare Grant</label>
+                    <select
+                      className="adm-form-select"
+                      value={editForm.welfare}
+                      onChange={(e) => setEditForm({ ...editForm, welfare: e.target.value })}
+                    >
+                      <option value="Mahapola Merit">Mahapola Merit</option>
+                      <option value="Mahapola Ordinary">Mahapola Ordinary</option>
+                      <option value="Bursary Full">Bursary Full</option>
+                      <option value="Pending Verification">Pending Verification</option>
+                      <option value="None">None</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="adm-form-label">Specialization</label>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      value={editForm.specialization}
+                      onChange={(e) => setEditForm({ ...editForm, specialization: e.target.value })}
+                      placeholder="e.g. Software Technology"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="adm-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="adm-btn-xs-secondary"
+                  onClick={() => setEditingStudent(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="adm-find-process-btn"
+                  style={{ padding: '0.45rem 1.25rem' }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
