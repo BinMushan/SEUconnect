@@ -237,6 +237,79 @@ export const provisionedUserStorage = {
   }
 };
 
+/**
+ * Local Disciplinary Penalty Records Persistence
+ * Ensures disciplinary penalty entries recorded in Faculty Administration
+ * persist reliably across portal reloads and are accessible by both Admin & Student views.
+ */
+export const penaltyStorage = {
+  getAll: () => {
+    try {
+      return JSON.parse(localStorage.getItem('seuconnect_penalties') || '[]');
+    } catch {
+      return [];
+    }
+  },
+  save: (penalty) => {
+    try {
+      const list = penaltyStorage.getAll();
+      const existingIdx = list.findIndex((p) => p.id === penalty.id);
+      if (existingIdx >= 0) {
+        list[existingIdx] = { ...list[existingIdx], ...penalty };
+      } else {
+        list.unshift(penalty);
+      }
+      localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
+      return penalty;
+    } catch {
+      return penalty;
+    }
+  },
+  updateStatus: (id, status, notes) => {
+    try {
+      const list = penaltyStorage.getAll();
+      const item = list.find((p) => p.id === id);
+      if (item) {
+        item.status = status;
+        if (notes) item.clearanceNotes = notes;
+        localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
+      }
+    } catch {}
+  }
+};
+
+/**
+ * Local Cross-Portal Notification Cache
+ * Immediate event dispatch cache for real-time notification delivery
+ * to Department Heads (HODs) and Students upon disciplinary actions.
+ */
+export const localNotificationStorage = {
+  getAll: () => {
+    try {
+      return JSON.parse(localStorage.getItem('seuconnect_local_notifications') || '[]');
+    } catch {
+      return [];
+    }
+  },
+  save: (notif) => {
+    try {
+      const list = localNotificationStorage.getAll();
+      const entry = {
+        _id: notif._id || `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        id: notif.id || `notif_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+        ...notif
+      };
+      list.unshift(entry);
+      localStorage.setItem('seuconnect_local_notifications', JSON.stringify(list));
+      return entry;
+    } catch {
+      return notif;
+    }
+  }
+};
+
 async function request(endpoint, options = {}) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${API_BASE_URL}${cleanEndpoint}`;
@@ -418,6 +491,7 @@ export const api = {
   // The backend resolves role / department / person from the token; the argument is accepted
   // (string or object) only so older call sites keep working.
   getNotifications: () => request('/notifications'),
+  createNotification: (data) => request('/notifications', json('POST', data)),
   getUnreadCount: () => request('/notifications/unread-count'),
   markNotificationRead: (id) => request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT' }),
   markAllNotificationsRead: () => request('/notifications/mark-all-read', { method: 'PUT' }),

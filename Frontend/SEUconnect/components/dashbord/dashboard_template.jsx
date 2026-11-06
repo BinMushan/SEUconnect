@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getNavSectionsForRole, getRoleMetaData, getTimeGreeting } from './roleNavConfigs.jsx';
-import api from '../../src/services/api.js';
+import api, { localNotificationStorage } from '../../src/services/api.js';
 import SEUConnectAIAssistantModal from './SEUConnectAIAssistantModal.jsx';
 import './dashboard_template.css';
 
@@ -325,6 +325,41 @@ export default function DashboardTemplate({
     } catch (_) {}
   };
 
+  // Helper to extract locally queued notifications matching this user's role/department
+  const getRelevantLocalNotifs = () => {
+    try {
+      const all = localNotificationStorage.getAll();
+      const role = (user?.roleKey || user?.role || '').toLowerCase();
+      const dept = (user?.department || '').toLowerCase();
+      const email = (user?.email || '').toLowerCase();
+
+      return all.filter((n) => {
+        const nRole = String(n.recipientRole || '').toLowerCase();
+        if (nRole && nRole !== role && !role.includes(nRole) && !nRole.includes(role)) {
+          return false;
+        }
+        if (n.recipientDepartment && n.recipientDepartment !== 'ALL') {
+          const targetDept = String(n.recipientDepartment).toLowerCase();
+          const deptMatches =
+            !dept ||
+            targetDept === 'all' ||
+            dept.includes(targetDept) ||
+            targetDept.includes(dept) ||
+            (targetDept.includes('bio') && (dept.includes('bio') || dept.includes('bst'))) ||
+            (targetDept.includes('ict') && (dept.includes('ict') || dept.includes('inf')));
+          if (!deptMatches) return false;
+        }
+        if (n.recipientEmail) {
+          const targetEmail = String(n.recipientEmail).toLowerCase();
+          if (email && targetEmail !== email) return false;
+        }
+        return true;
+      });
+    } catch {
+      return [];
+    }
+  };
+
   // Fetch role-tailored notifications with polling
   const loadNotifications = async () => {
     try {
@@ -333,15 +368,26 @@ export default function DashboardTemplate({
         department: user?.department,
         email: user?.email,
       });
-      if (res && res.data) {
-        const deletedIds = new Set(getDeletedNotifIds());
-        const filtered = res.data.filter(n => !deletedIds.has(String(n._id || n.id)));
-        setNotifications(filtered);
-        setUnreadCount(res.unreadCount !== undefined ? res.unreadCount : res.data.filter(n => !n.isRead).length);
+      const serverNotifs = (res && res.data) ? res.data : [];
+      const localNotifs = getRelevantLocalNotifs();
+      const merged = [...localNotifs, ...serverNotifs];
+      const seen = new Set();
+      const unique = [];
+      for (const item of merged) {
+        const idKey = String(item._id || item.id);
+        if (!seen.has(idKey)) {
+          seen.add(idKey);
+          unique.push(item);
+        }
       }
+      const deletedIds = new Set(getDeletedNotifIds());
+      const filtered = unique.filter(n => !deletedIds.has(String(n._id || n.id)));
+      setNotifications(filtered);
+      setUnreadCount(filtered.filter(n => !n.isRead).length);
     } catch {
       // Fallback for offline demo
-      if (notifications.length === 0) {
+      const localNotifs = getRelevantLocalNotifs();
+      if (notifications.length === 0 || localNotifs.length > 0) {
         const role = (user?.roleKey || user?.role || '').toLowerCase();
         let fallback = [];
         if (role === 'dean') {
@@ -412,7 +458,7 @@ export default function DashboardTemplate({
           ];
         }
         const deletedIds = new Set(getDeletedNotifIds());
-        const activeFallback = fallback.filter(n => !deletedIds.has(String(n._id || n.id)));
+        const activeFallback = [...localNotifs, ...fallback].filter(n => !deletedIds.has(String(n._id || n.id)));
         setNotifications(activeFallback);
         setUnreadCount(activeFallback.filter(n => !n.isRead).length);
       }

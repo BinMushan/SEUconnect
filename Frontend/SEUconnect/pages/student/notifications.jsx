@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api from '../../src/services/api.js';
+import api, { localNotificationStorage } from '../../src/services/api.js';
 import './notifications.css';
 
 const DEFAULT_NOTIFICATIONS = [
@@ -81,9 +81,33 @@ export default function StudentNotifications({ onNavigate }) {
 
   const load = useCallback(async () => {
     try {
-      const res = await api.getNotifications();
-      const live = (res.data || []).map(fromServer);
-      setNotifications((prev) => [...live, ...prev.filter((n) => !n.live)]);
+      const res = await api.getNotifications().catch(() => ({ data: [] }));
+      const live = (res?.data || []).map(fromServer);
+      const local = localNotificationStorage.getAll()
+        .filter((n) => !n.recipientRole || n.recipientRole.toLowerCase() === 'student')
+        .map((n) => ({
+          _id: n._id || n.id,
+          title: n.title,
+          message: n.message,
+          type: n.type || 'Disciplinary',
+          priority: n.priority ? (n.priority.charAt(0).toUpperCase() + n.priority.slice(1)) : 'Urgent',
+          isRead: !!n.isRead,
+          actionId: n.targetTab || 'penalties_disciplinary',
+          actionText: 'View Disciplinary Record',
+          createdAt: n.createdAt || new Date().toISOString(),
+          live: true
+        }));
+      const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]'));
+      const combined = [...local, ...live].filter(n => !deleted.has(n._id));
+      const seen = new Set();
+      const deduped = [];
+      for (const item of combined) {
+        if (!seen.has(item._id)) {
+          seen.add(item._id);
+          deduped.push(item);
+        }
+      }
+      setNotifications((prev) => [...deduped, ...prev.filter((n) => !n.live)]);
       setError('');
     } catch (err) {
       setError(err.message);
