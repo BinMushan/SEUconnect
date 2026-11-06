@@ -823,7 +823,7 @@ export default function UserRoleManagement({
           ========================================================= */}
       {editingUser && (
         <div className="adm-modal-backdrop" onClick={() => setEditingUser(null)}>
-          <div className="adm-modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="adm-modal-card" style={{ maxWidth: '740px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
             <div className="adm-modal-header">
               <h3 className="adm-modal-title">Assign & Delegate Institutional Role</h3>
               <button
@@ -954,7 +954,7 @@ export default function UserRoleManagement({
           ========================================================= */}
       {isAppointModalOpen && (
         <div className="adm-modal-backdrop" onClick={() => setIsAppointModalOpen(false)}>
-          <div className="adm-modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="adm-modal-card" style={{ maxWidth: '740px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
             <div className="adm-modal-header">
               <h3 className="adm-modal-title">Provision New User Account & Set Credentials</h3>
               <button
