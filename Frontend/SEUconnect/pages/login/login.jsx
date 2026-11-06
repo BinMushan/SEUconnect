@@ -330,7 +330,7 @@ export default function Login({ onLoginSuccess }) {
 
       // Guarantee an active auth token exists
       if (!authToken.get()) {
-        authToken.set(`seu-token-${loggedUser.roleKey || loggedUser.role}-${Date.now()}`);
+        authToken.set(`demo-token-${loggedUser.roleKey || loggedUser.role}-${Date.now()}`);
       }
 
       // 3. Credentials are valid: show success toast

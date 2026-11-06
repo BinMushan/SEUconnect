@@ -17,23 +17,35 @@ export default function StudentAcademicProgress({ user }) {
   const indexNo = user?.indexNo || 'ICT22085';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
 
+  const isFreshers = Boolean(
+    user?.isFreshers ||
+    (user?.semester || '').toLowerCase().includes('sem 1') ||
+    (user?.semester || '').toLowerCase().includes('sem 01') ||
+    (user?.semester || '').toLowerCase().includes('fresh')
+  );
+
   const curriculum = getCurriculumBySemester(user?.semester);
   const progData = (user?.progressionData && user.progressionData.length > 0)
     ? user.progressionData
     : (curriculum?.progressionData || []);
 
   const totalCredits = 130;
-  const creditsEarned = progData.reduce((sum, p) => sum + (Number(p.credits) || 0), 0);
+  const creditsEarned = isFreshers ? 0 : progData.reduce((sum, p) => sum + (Number(p.credits) || 0), 0);
   const creditsRemaining = Math.max(0, totalCredits - creditsEarned);
   const completionRate = Math.min(100, Math.round((creditsEarned / totalCredits) * 100));
 
-  const latestSgpa = progData.length > 0 ? Number(progData[progData.length - 1].sgpa) : 3.58;
-  const candidateCgpa = safeToFixed(user?.cgpa || latestSgpa, 2, '3.58');
-  const classStanding = Number(candidateCgpa) >= 3.70
-    ? 'First Class Standing'
-    : Number(candidateCgpa) >= 3.30
-      ? 'Second Class (Upper Division)'
-      : 'General Degree Standing';
+  const validProgSgpa = progData.length > 0 && progData[progData.length - 1].sgpa !== null
+    ? Number(progData[progData.length - 1].sgpa)
+    : null;
+  const rawCgpa = user?.cgpa !== undefined && user?.cgpa !== null ? user.cgpa : validProgSgpa;
+  const candidateCgpa = isFreshers || rawCgpa === null ? 'N/A' : safeToFixed(rawCgpa, 2, 'N/A');
+  const classStanding = isFreshers || candidateCgpa === 'N/A'
+    ? 'Enrolled (In Progress)'
+    : Number(candidateCgpa) >= 3.70
+      ? 'First Class Standing'
+      : Number(candidateCgpa) >= 3.30
+        ? 'Second Class (Upper Division)'
+        : 'General Degree Standing';
 
   const currentYearNum = curriculum?.yearNumber || 1;
 

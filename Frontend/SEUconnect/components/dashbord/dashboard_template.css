@@ -1332,7 +1332,7 @@ body.dark-mode,
   position: absolute;
   top: calc(100% + 12px);
   right: -10px;
-  width: 480px;
+  width: 540px;
   max-width: calc(100vw - 24px);
   background: #ffffff;
   border-radius: 14px;
@@ -1454,7 +1454,7 @@ body.dark-mode,
 }
 
 .seu-notif-dropdown .seu-notif-list {
-  max-height: min(480px, 62vh);
+  max-height: min(540px, 70vh);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

@@ -416,7 +416,7 @@ export default function StudentEnrollment({
           </div>
           <div className="kpi-value">{totalStudentsEnrolled}</div>
           <div className="kpi-label">Registered Student Seats</div>
-          <div className="kpi-subtext">Sum across 3 assigned subjects • No deduplication</div>
+          <div className="kpi-subtext">Sum across {availableSubjects.length} assigned subjects • No deduplication</div>
         </div>
 
         {/* Card 2: Assigned Subjects */}

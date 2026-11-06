@@ -2,6 +2,12 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { getCurriculumBySemester } from '../../../src/services/curriculumData.js';
 
+const safeToFixed = (val, decimals = 2, fallback = '0.00') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export const getStudentTempPassword = (student) => {
   if (student?.tempPassword) return student.tempPassword;
   if (!student?.regNo) return 'Seu@2024Pass';
@@ -855,7 +861,7 @@ export default function StudentManagement({
                       <span className="adm-batch-metric-val">
                         {batch.currentSemester?.includes('Freshers') || batch.avgCgpa === 0
                           ? '0.00'
-                          : (batch.avgCgpa ? batch.avgCgpa.toFixed(2) : '0.00')}
+                          : safeToFixed(batch.avgCgpa, 2, '0.00')}
                       </span>
                       <span className="adm-batch-metric-lbl">
                         {batch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
@@ -991,7 +997,7 @@ export default function StudentManagement({
                 <div className="adm-batch-hero-stat-val">
                   {selectedBatch.currentSemester?.includes('Freshers') || selectedBatch.avgCgpa === 0
                     ? '0.00'
-                    : (selectedBatch.avgCgpa ? selectedBatch.avgCgpa.toFixed(2) : '0.00')}
+                    : safeToFixed(selectedBatch.avgCgpa, 2, '0.00')}
                 </div>
                 <div className="adm-batch-hero-stat-lbl">
                   {selectedBatch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}

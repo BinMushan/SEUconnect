@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { DEPARTMENT_STUDENTS_LIST, HOD_BATCH_CONFIG, getCalculatedHodTotal } from '../hodData.js';
 
+const safeToFixed = (val, decimals = 2, fallback = '—') => {
+  if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
+  const num = typeof val === 'number' ? val : Number(val);
+  return Number.isFinite(num) ? num.toFixed(decimals) : fallback;
+};
+
 export default function DepartmentStudents({ onNavigate }) {
   const [batchFilter, setBatchFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -164,7 +170,7 @@ export default function DepartmentStudents({ onNavigate }) {
                       <span className="hod-subject-tag">{stu.specialization}</span>
                     </td>
                     <td>
-                      <span className="hod-gpa-badge">{stu.cgpa.toFixed(2)}</span>
+                      <span className="hod-gpa-badge">{safeToFixed(stu.cgpa, 2, '—')}</span>
                     </td>
                     <td>
                       <div className="hod-att-cell">
@@ -239,7 +245,7 @@ export default function DepartmentStudents({ onNavigate }) {
                 <div className="hod-dossier-item">
                   <label>Cumulative GPA</label>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f2b5c' }}>
-                    {selectedStudent.cgpa.toFixed(2)}
+                    {safeToFixed(selectedStudent.cgpa, 2, '—')}
                   </div>
                 </div>
                 <div className="hod-dossier-item">
