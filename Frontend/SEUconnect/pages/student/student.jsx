@@ -172,8 +172,8 @@ export default function Student({ user, onLogout }) {
     for (let i = 0; i < pts.length - 1; i++) {
       const p0 = pts[i];
       const p1 = pts[i + 1];
-      const cpX1 = (p0.x + (p1.x - p0.x) * 0.45).toFixed(1);
-      const cpX2 = (p1.x - (p1.x - p0.x) * 0.45).toFixed(1);
+      const cpX1 = Number((p0.x + (p1.x - p0.x) * 0.45) || 0).toFixed(1);
+      const cpX2 = Number((p1.x - (p1.x - p0.x) * 0.45) || 0).toFixed(1);
       linePath += ` C ${cpX1},${p0.y} ${cpX2},${p1.y} ${p1.x},${p1.y}`;
     }
 

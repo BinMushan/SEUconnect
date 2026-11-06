@@ -309,7 +309,15 @@ const assertCanAct = (user, process) => {
 
 const canView = (user, process) => {
   const role = normalizeRole(user.role);
-  if (role === 'student') return String(process.student?.email || '').toLowerCase() === String(user.email || '').toLowerCase();
+  if (role === 'student') {
+    const userEmail = String(user.email || '').toLowerCase().trim();
+    const procEmail = String(process.student?.email || '').toLowerCase().trim();
+    if (userEmail && procEmail && userEmail === procEmail) return true;
+    const userReg = String(user.regNo || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const procReg = String(process.student?.regNo || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    if (userReg && procReg && userReg === procReg) return true;
+    return false;
+  }
   if (READ_ALL_ROLES.includes(role)) return true;
 
   const wf = getWorkflow(process.type);

@@ -726,7 +726,7 @@ export default function ResultsCompilation() {
                             {s.grade}
                           </span>
                         </td>
-                        <td>{s.gp.toFixed(2)}</td>
+                        <td>{Number.isFinite(Number(s.gp)) ? Number(s.gp).toFixed(2) : '—'}</td>
                       </tr>
                     ))}
                   </tbody>

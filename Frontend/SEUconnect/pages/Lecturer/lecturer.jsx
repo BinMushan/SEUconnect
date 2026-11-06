@@ -447,7 +447,7 @@ export default function Lecturer({ user, onLogout }) {
           />
         );
       case 'profile':
-        return <LecturerProfile onShowToast={showToast} />;
+        return <LecturerProfile user={user} onShowToast={showToast} />;
       case 'dashboard':
       default:
         return (

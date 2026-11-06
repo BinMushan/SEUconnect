@@ -56,7 +56,14 @@ const authenticate = async (req, res, next) => {
   }
 
   // Handle demo / simulated tokens seamlessly in development and live preview
-  if (token.startsWith('demo-') || token.startsWith('local-') || token.startsWith('session-') || token.startsWith('admin-')) {
+  if (
+    token.startsWith('demo-') ||
+    token.startsWith('local-') ||
+    token.startsWith('session-') ||
+    token.startsWith('admin-') ||
+    token.startsWith('seu-') ||
+    token.startsWith('seuconnect-')
+  ) {
     const parts = token.split('-');
     const detectedRole = parts.length >= 3 ? parts[2] : (token.includes('admin') ? 'admin' : (token.includes('student') ? 'student' : 'student'));
     const normalized = normalizeRole(detectedRole);
