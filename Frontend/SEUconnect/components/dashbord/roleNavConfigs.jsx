@@ -167,9 +167,8 @@ export const STUDENT_NAV_SECTIONS = [
     title: 'ACADEMIC',
     items: [
       { id: 'academic_profile', label: 'Academic Profile', icon: Icons.user },
-      { id: 'semester_registration', label: 'Semester Registration', icon: Icons.calendar },
+      { id: 'semester_registration', label: 'Enrolled Subjects', icon: Icons.book },
       { id: 'attendance', label: 'Attendance', icon: Icons.clipboardCheck },
-      { id: 'medical_requests', label: 'Medical Requests', icon: Icons.medical },
       { id: 'examinations', label: 'Examinations', icon: Icons.award },
       { id: 'results', label: 'Results', icon: Icons.chart },
       { id: 'gpa_cgpa', label: 'GPA / CGPA', icon: Icons.gradCap },

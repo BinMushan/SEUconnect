@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AttendanceTable from './components/AttendanceTable.jsx';
-import { INITIAL_SUBJECTS, ENROLLED_STUDENTS } from './lecturerMockData.js';
+import { INITIAL_SUBJECTS, ENROLLED_STUDENTS, ENROLLMENT_STUDENTS_LIST } from './lecturerMockData.js';
 import { resultsPipelineService } from '../../src/services/resultsPipelineService.js';
 
 /**
@@ -15,15 +15,34 @@ const calculateStudentRate = (baseRate, isPresent) => {
   }
 };
 
-const getInitialStudentCohort = () => {
-  return ENROLLED_STUDENTS.map((st) => {
-    const base = st.attendanceRate || 80;
-    return {
-      ...st,
-      baseRate: base,
-      attendanceRate: calculateStudentRate(base, st.present),
-    };
-  });
+const getInitialStudentCohort = (subjectCode) => {
+  if (!subjectCode) return [];
+  const normCode = String(subjectCode).replace(/\s+/g, '').toUpperCase();
+  const matched = (ENROLLMENT_STUDENTS_LIST || []).filter(
+    (s) => String(s.subjectCode || '').replace(/\s+/g, '').toUpperCase() === normCode
+  );
+  if (matched.length > 0) {
+    return matched.map((st) => {
+      const base = st.attendanceRate || 80;
+      return {
+        ...st,
+        present: true,
+        baseRate: base,
+        attendanceRate: calculateStudentRate(base, true),
+      };
+    });
+  }
+  if (normCode === 'SWT22022') {
+    return ENROLLED_STUDENTS.map((st) => {
+      const base = st.attendanceRate || 80;
+      return {
+        ...st,
+        baseRate: base,
+        attendanceRate: calculateStudentRate(base, st.present),
+      };
+    });
+  }
+  return [];
 };
 
 /**
@@ -44,7 +63,7 @@ export default function Attendance({ subjects = INITIAL_SUBJECTS, initialSubject
     return today.toISOString().split('T')[0];
   });
 
-  const [students, setStudents] = useState(getInitialStudentCohort);
+  const [students, setStudents] = useState(() => getInitialStudentCohort(defaultCode));
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Subject-level attendance rates dictionary (persisted across module switches)
@@ -58,7 +77,7 @@ export default function Attendance({ subjects = INITIAL_SUBJECTS, initialSubject
 
   // Saved rosters store for discarding or restoring per subject
   const [savedRosters, setSavedRosters] = useState(() => ({
-    [defaultCode]: getInitialStudentCohort(),
+    [defaultCode]: getInitialStudentCohort(defaultCode),
   }));
 
   useEffect(() => {
@@ -175,7 +194,7 @@ export default function Attendance({ subjects = INITIAL_SUBJECTS, initialSubject
     if (existing) {
       setStudents(existing);
     } else {
-      const fresh = getInitialStudentCohort();
+      const fresh = getInitialStudentCohort(newCode);
       setStudents(fresh);
       setSavedRosters((prev) => ({ ...prev, [newCode]: fresh }));
     }

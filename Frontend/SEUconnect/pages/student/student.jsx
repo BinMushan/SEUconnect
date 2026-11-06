@@ -45,9 +45,9 @@ export default function Student({ user, onLogout }) {
       if (hash.includes('result')) return 'results';
       if (hash.includes('progress')) return 'academic_progress';
       if (hash.includes('gpa') || hash.includes('cgpa')) return 'gpa_cgpa';
-      if (hash.includes('medical')) return 'medical_requests';
+      if (hash.includes('medical')) return 'forms_medical';
       if (hash.includes('attendance')) return 'attendance';
-      if (hash.includes('registration')) return 'semester_registration';
+      if (hash.includes('registration') || hash.includes('enrolled')) return 'semester_registration';
       if (hash.includes('profile')) return 'academic_profile';
     }
     return 'attendance';
@@ -86,10 +86,10 @@ export default function Student({ user, onLogout }) {
       } else if (hash.includes('gpa') || hash.includes('cgpa')) {
         setActiveTab('gpa_cgpa');
       } else if (hash.includes('medical')) {
-        setActiveTab('medical_requests');
+        setActiveTab('forms_medical');
       } else if (hash.includes('attendance')) {
         setActiveTab('attendance');
-      } else if (hash.includes('registration')) {
+      } else if (hash.includes('registration') || hash.includes('enrolled')) {
         setActiveTab('semester_registration');
       } else if (hash.includes('profile')) {
         setActiveTab('academic_profile');
@@ -213,7 +213,7 @@ export default function Student({ user, onLogout }) {
 
   const quickActions = [  
     { 
-      label: 'Register Subjects',
+      label: 'Enrolled Subjects',
       actionId: 'semester_registration',
       colorTheme: 'purple',
       icon: (
@@ -264,7 +264,7 @@ export default function Student({ user, onLogout }) {
     },
     {
       label: 'Submit Medical Request',
-      actionId: 'medical_requests',
+      actionId: 'forms_medical',
       colorTheme: 'teal',
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -320,12 +320,12 @@ export default function Student({ user, onLogout }) {
       categoryType: 'registration',
       status: 'Open • 4 Days Left',
       statusType: 'urgent',
-      title: 'Semester Subject Registration (Add/Drop)',
-      description: 'Department coordinator sign-off for elective additions and credit adjustments.',
-      deadline: 'Deadline: 2026-11-15',
-      countdown: '4 days remaining',
+      title: 'Semester Enrolled Subjects',
+      description: 'Department coordinator registered course modules and credit allocations.',
+      deadline: 'Status: Active Registration',
+      countdown: 'Enrolled this semester',
       actionId: 'semester_registration',
-      actionText: 'Register Subjects'
+      actionText: 'View Enrolled Subjects'
     },
     {
       id: 'exam',
@@ -350,7 +350,7 @@ export default function Student({ user, onLogout }) {
       description: 'Submit government/UMO certified form within 7 days of absence for ESA concessions.',
       deadline: 'Deadline: Within 7 days of absence',
       countdown: 'Strict Institutional Rule',
-      actionId: 'medical_requests',
+      actionId: 'forms_medical',
       actionText: 'Submit Medical'
     },
     {
@@ -400,15 +400,24 @@ export default function Student({ user, onLogout }) {
         <Attendance
           user={studentUser || user}
           onNavigateMedical={() => {
-            setActiveTab('medical_requests');
+            setActiveTab('forms_medical');
             if (typeof window !== 'undefined') {
-              window.location.hash = '#student/medical_requests';
+              window.location.hash = '#student/forms_medical';
             }
           }}
         />
       ) : activeTab === 'medical_requests' ? (
-        <MedicalRequests
+        <FacultyForms
           user={studentUser || user}
+          activeSubTab="forms_medical"
+          resubmitProcess={resubmitProcess}
+          onResubmitDone={() => {}}
+          onNavigate={(id) => {
+            setActiveTab(id);
+            if (typeof window !== 'undefined') {
+              window.location.hash = `#student/${id}`;
+            }
+          }}
         />
       ) : activeTab === 'examinations' || activeTab === 'examination' ? (
         <StudentExamination
