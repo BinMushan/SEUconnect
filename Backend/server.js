@@ -70,7 +70,7 @@ if (!isTest) {
   app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: Number(process.env.API_RATE_LIMIT || 600), standardHeaders: 'draft-7', legacyHeaders: false }));
 }
 
-// Health check endpoint (handles /, /health, and /api/health for Render/Vercel zero-downtime checks)
+// Health check endpoint for Render zero-downtime checks.
 app.all(['/', '/health', '/api/health'], (req, res) => {
   res.json({
     status: 'online',
