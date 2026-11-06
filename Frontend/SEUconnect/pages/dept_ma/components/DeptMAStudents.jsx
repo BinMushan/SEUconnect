@@ -301,7 +301,7 @@ export default function DeptMAStudents({
                     </td>
                     <td>
                       <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>
-                        CGPA: {student.cgpa.toFixed(2)}
+                        CGPA: {student.cgpa !== null && student.cgpa !== undefined ? Number(student.cgpa).toFixed(2) : 'N/A'}
                       </span>
                     </td>
                     <td>
@@ -549,7 +549,7 @@ export default function DeptMAStudents({
                     >
                       <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>CUMULATIVE GPA</div>
                       <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a' }}>
-                        {selectedStudent.cgpa.toFixed(2)}
+                        {selectedStudent.cgpa !== null && selectedStudent.cgpa !== undefined ? Number(selectedStudent.cgpa).toFixed(2) : 'N/A'}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>Good Standing</div>
                     </div>

@@ -1,10 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CA_MODERATION_DATA } from '../hodData.js';
+import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from '../../../src/services/resultsPipelineService.js';
 
 export default function CAMarksModeration({ onNavigate }) {
   const [caList, setCaList] = useState(CA_MODERATION_DATA);
   const [selectedCA, setSelectedCA] = useState(null);
   const [feedback, setFeedback] = useState('');
+  const [pipelineStatus, setPipelineStatus] = useState(() => resultsPipelineService.getPipelineStatus('Year 2 Semester 2'));
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setPipelineStatus(resultsPipelineService.getPipelineStatus('Year 2 Semester 2'));
+    };
+    window.addEventListener('seu_pipeline_update', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('seu_pipeline_update', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const handleHodSubmitToExamOfficer = () => {
+    const updated = resultsPipelineService.hodSubmitToExamOfficer('Year 2 Semester 2', 'Dr. Rifky (HOD)');
+    setPipelineStatus(updated);
+    setFeedback('All moderated cohort results across 9 subjects endorsed and forwarded to Examination Officer for verification.');
+    setTimeout(() => setFeedback(''), 5000);
+  };
+
+  const handleHodPublish = () => {
+    const updated = resultsPipelineService.hodPublishResults('Year 2 Semester 2', 'Dr. Rifky (HOD)');
+    setPipelineStatus(updated);
+    setFeedback('🎉 Semester examination results officially published to the Student Portal! All students can now view verified marks, SGPA, and academic standings.');
+    setTimeout(() => setFeedback(''), 6000);
+  };
 
   const handleSignOff = (code) => {
     setCaList((prev) =>
@@ -63,6 +91,118 @@ export default function CAMarksModeration({ onNavigate }) {
           <button type="button" onClick={() => setFeedback('')}>✕</button>
         </div>
       )}
+
+      {/* Results Moderation & Publishing Pipeline Flow Banner */}
+      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.25rem', marginBottom: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#1e40af', background: '#dbeafe', padding: '3px 8px', borderRadius: '4px', marginBottom: '4px' }}>
+              Multi-Role Results Moderation Pipeline (Year 2 Semester 2)
+            </div>
+            <h3 style={{ margin: '4px 0 2px', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+              Current Status: <span style={{ color: pipelineStatus.stage === PIPELINE_STAGES.PUBLISHED ? '#15803d' : '#2563eb' }}>{PIPELINE_LABELS[pipelineStatus.stage] || pipelineStatus.stage}</span>
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              DMA compiles marks from all course lecturers &rarr; HOD moderates cohort &rarr; Exam Officer audits &rarr; Dean affixes Senate seal &rarr; HOD publishes to student portal.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {pipelineStatus.stage === PIPELINE_STAGES.SUBMITTED_TO_HOD && (
+              <button
+                type="button"
+                onClick={handleHodSubmitToExamOfficer}
+                style={{
+                  background: 'linear-gradient(135deg, #1e3a8a, #2563eb)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '0.86rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>Approve All Marks & Submit to Exam Officer &rarr;</span>
+              </button>
+            )}
+
+            {pipelineStatus.stage === PIPELINE_STAGES.DEAN_APPROVED && (
+              <button
+                type="button"
+                onClick={handleHodPublish}
+                style={{
+                  background: 'linear-gradient(135deg, #15803d, #16a34a)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: '8px',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(22,163,74,0.35)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  animation: 'pulse 2s infinite'
+                }}
+              >
+                <span>📢 Publish Results to Student Portal</span>
+              </button>
+            )}
+
+            {pipelineStatus.stage === PIPELINE_STAGES.PUBLISHED && (
+              <span style={{ background: '#dcfce7', color: '#15803d', padding: '6px 12px', borderRadius: '6px', fontWeight: 700, fontSize: '0.84rem' }}>
+                ✓ Official Results Published to Students
+              </span>
+            )}
+
+            {pipelineStatus.stage === PIPELINE_STAGES.SUBMITTED_TO_EXAM_OFFICER && (
+              <span style={{ background: '#fef3c7', color: '#b45309', padding: '6px 12px', borderRadius: '6px', fontWeight: 700, fontSize: '0.84rem' }}>
+                ⏳ Under Verification by Examination Branch
+              </span>
+            )}
+
+            {pipelineStatus.stage === PIPELINE_STAGES.FORWARDED_TO_DEAN && (
+              <span style={{ background: '#ede9fe', color: '#6d28d9', padding: '6px 12px', borderRadius: '6px', fontWeight: 700, fontSize: '0.84rem' }}>
+                ⏳ Forwarded to Dean for Senate Seal
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 6-step progress bar */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+          {[
+            { label: '1. Lecturer Marks', done: true },
+            { label: '2. DMA Compilation', done: pipelineStatus.stage !== PIPELINE_STAGES.LECTURER_DRAFT },
+            { label: '3. HOD Moderation', done: [PIPELINE_STAGES.SUBMITTED_TO_EXAM_OFFICER, PIPELINE_STAGES.FORWARDED_TO_DEAN, PIPELINE_STAGES.DEAN_APPROVED, PIPELINE_STAGES.PUBLISHED].includes(pipelineStatus.stage) },
+            { label: '4. Exam Officer', done: [PIPELINE_STAGES.FORWARDED_TO_DEAN, PIPELINE_STAGES.DEAN_APPROVED, PIPELINE_STAGES.PUBLISHED].includes(pipelineStatus.stage) },
+            { label: '5. Dean Seal', done: [PIPELINE_STAGES.DEAN_APPROVED, PIPELINE_STAGES.PUBLISHED].includes(pipelineStatus.stage) },
+            { label: '6. Student Portal', done: pipelineStatus.stage === PIPELINE_STAGES.PUBLISHED },
+          ].map((st, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: st.done ? '#ecfdf5' : '#f8fafc',
+                border: `1px solid ${st.done ? '#10b981' : '#cbd5e1'}`,
+                padding: '6px 8px',
+                borderRadius: '6px',
+                textAlign: 'center',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                color: st.done ? '#065f46' : '#64748b'
+              }}
+            >
+              {st.done ? '✓ ' : ''}{st.label}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 2. Moderation KPI Strip */}
       <div className="hod-stats-strip">

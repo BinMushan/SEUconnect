@@ -1,12 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { COURSE_ALLOCATION_MATRIX, ACADEMIC_STAFF_LIST } from '../hodData.js';
+import { provisionedUserStorage } from '../../../src/services/api.js';
 
 export default function CourseAllocations({ onNavigate }) {
   const [yearFilter, setYearFilter] = useState('All');
-  const [courses, setCourses] = useState(COURSE_ALLOCATION_MATRIX);
+  const [courses, setCourses] = useState(() => {
+    try {
+      const stored = localStorage.getItem('seu_course_allocations');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return COURSE_ALLOCATION_MATRIX;
+  });
   const [editingCourse, setEditingCourse] = useState(null);
   const [selectedLecturer, setSelectedLecturer] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState('');
+
+  // Combine default academic staff with newly provisioned lecturers
+  const allStaffList = useMemo(() => {
+    try {
+      const provisioned = provisionedUserStorage.getAll() || [];
+      const newLecturers = provisioned
+        .filter((u) => u.role?.toLowerCase().includes('lecturer'))
+        .map((u) => ({
+          name: u.name,
+          designation: u.designation || 'Lecturer',
+          email: u.email,
+        }));
+      const existingNames = new Set(ACADEMIC_STAFF_LIST.map((s) => s.name));
+      const additions = newLecturers.filter((l) => !existingNames.has(l.name));
+      return [...ACADEMIC_STAFF_LIST, ...additions];
+    } catch (e) {
+      return ACADEMIC_STAFF_LIST;
+    }
+  }, []);
 
   const filteredCourses = courses.filter((c) => {
     return yearFilter === 'All' || c.year === yearFilter;
@@ -19,9 +48,20 @@ export default function CourseAllocations({ onNavigate }) {
 
   const handleSaveReallocate = () => {
     if (!editingCourse || !selectedLecturer) return;
-    setCourses((prev) =>
-      prev.map((c) => (c.code === editingCourse.code ? { ...c, lecturerInCharge: selectedLecturer } : c))
+    const selectedStaffObj = allStaffList.find((s) => s.name === selectedLecturer);
+    const updated = courses.map((c) =>
+      c.code === editingCourse.code
+        ? {
+            ...c,
+            lecturerInCharge: selectedLecturer,
+            lecturerEmail: selectedStaffObj?.email || '',
+          }
+        : c
     );
+    setCourses(updated);
+    try {
+      localStorage.setItem('seu_course_allocations', JSON.stringify(updated));
+    } catch (e) {}
     setFeedbackMsg(`Successfully reallocated ${editingCourse.code} to ${selectedLecturer}.`);
     setEditingCourse(null);
     setTimeout(() => setFeedbackMsg(''), 4000);
@@ -224,7 +264,7 @@ export default function CourseAllocations({ onNavigate }) {
                   onChange={(e) => setSelectedLecturer(e.target.value)}
                   style={{ width: '100%', padding: '0.6rem' }}
                 >
-                  {ACADEMIC_STAFF_LIST.map((staff) => (
+                  {allStaffList.map((staff) => (
                     <option key={staff.id} value={staff.name}>
                       {staff.name} ({staff.designation})
                     </option>

@@ -137,19 +137,46 @@ const notifications = {
 
   async delete(id) {
     if (connected()) {
-      if (isObjectId(String(id))) await Notification.findByIdAndDelete(id);
+      try {
+        const idStr = String(id);
+        const orConditions = [
+          { trackingNumber: idStr },
+          { id: idStr }
+        ];
+        if (isObjectId(idStr)) {
+          orConditions.push({ _id: id });
+          await Notification.findByIdAndDelete(id);
+        }
+        await Notification.deleteMany({ $or: orConditions });
+      } catch (err) {
+        console.error('Error deleting notification from DB:', err);
+      }
     }
-    mem.notifications = mem.notifications.filter((n) => String(n._id) !== String(id));
+    mem.notifications = mem.notifications.filter((n) => String(n._id) !== String(id) && String(n.id) !== String(id) && String(n.trackingNumber) !== String(id));
     return true;
   },
 
   async deleteAllForUser(user) {
     const userNotifs = await this.forUser(user);
-    const ids = userNotifs.map((n) => String(n._id));
+    const validObjectIds = userNotifs.map((n) => n._id).filter((id) => isObjectId(String(id)));
+    const role = normalizeRole(user.role);
+    const userEmail = String(user.email || '').toLowerCase();
     if (connected()) {
-      await Notification.deleteMany({ _id: { $in: ids } });
+      try {
+        const orConditions = [
+          { recipientRole: role },
+          { recipientEmail: userEmail }
+        ];
+        if (validObjectIds.length > 0) {
+          orConditions.push({ _id: { $in: validObjectIds } });
+        }
+        await Notification.deleteMany({ $or: orConditions });
+      } catch (err) {
+        console.error('Error clearing all notifications from DB:', err);
+      }
     }
-    mem.notifications = mem.notifications.filter((n) => !ids.includes(String(n._id)));
+    const allDeletedIds = new Set(userNotifs.map((n) => String(n._id || n.id || n.trackingNumber)));
+    mem.notifications = mem.notifications.filter((n) => !allDeletedIds.has(String(n._id)) && !allDeletedIds.has(String(n.id)) && !allDeletedIds.has(String(n.trackingNumber)));
     return true;
   },
 };
@@ -179,15 +206,56 @@ const users = {
     const variants = [clean];
     if (!clean.includes('@')) {
       variants.push(`${clean}@gmail.com`);
+      variants.push(`${clean}@seu.ac.lk`);
     }
 
+    const alphanumeric = clean.replace(/[^a-z0-9]/gi, '');
+
     if (connected()) {
-      return User.findOne({
+      let user = await User.findOne({
         $or: [
           { email: { $in: variants } },
-          { regNo: new RegExp(`^${clean.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') }
+          { regNo: new RegExp(`^${clean.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') },
+          ...(alphanumeric.length >= 4 ? [{ regNo: new RegExp(alphanumeric, 'i') }] : [])
         ]
       });
+
+      if (!user) {
+        // Fallback: Check if student exists in Student collection
+        try {
+          const Student = require('../models/Student');
+          const studentDoc = await Student.findOne({
+            $or: [
+              { email: { $in: variants } },
+              { studentId: new RegExp(`^${clean.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') },
+              ...(alphanumeric.length >= 4 ? [{ studentId: new RegExp(alphanumeric, 'i') }, { indexNo: new RegExp(alphanumeric, 'i') }] : [])
+            ]
+          });
+
+          if (studentDoc) {
+            const { hashPassword } = require('../utils/password');
+            const effectiveName = studentDoc.fullName || 'Undergraduate Student';
+            const defaultPass = 'Seu@' + (studentDoc.studentId ? studentDoc.studentId.replace(/[^a-zA-Z0-9]/g, '') : '2026');
+            user = await User.create({
+              name: effectiveName,
+              email: studentDoc.email,
+              password: hashPassword(defaultPass),
+              role: 'student',
+              roleKey: 'student',
+              regNo: studentDoc.studentId,
+              department: studentDoc.department || 'Department of Information and Communication Technology',
+              faculty: studentDoc.faculty || 'Faculty of Technology',
+              programme: studentDoc.degreeProgramme || 'BICT (Hons)',
+              semester: studentDoc.currentSemester || 'Semester 1',
+              designation: 'Undergraduate',
+              avatarInitial: effectiveName.split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'ST',
+              status: 'active'
+            });
+          }
+        } catch (_) {}
+      }
+
+      return user;
     }
     return mem.users.find((u) => (u.email && variants.includes(u.email.toLowerCase())) || (u.regNo && u.regNo.toLowerCase() === clean)) || null;
   },

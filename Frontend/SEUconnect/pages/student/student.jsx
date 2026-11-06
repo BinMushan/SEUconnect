@@ -183,12 +183,13 @@ export default function Student({ user, onLogout }) {
   // Active semester for top stat boxes
   const activeProg = chartPoints[selectedSemesterIdx] || chartPoints[chartPoints.length - 1] || {
     semester: 'Sem 1',
-    fullLabel: 'Semester 1 (Current)',
-    sgpa: 3.75,
-    delta: '+0.00',
-    credits: 17,
-    standing: 'First Class Standing',
-    isFirstClass: true
+    fullLabel: currentCurriculum?.defaultSgpa ? 'Semester 1 (Current)' : 'Semester 1 (Enrolled / In Progress)',
+    sgpa: currentCurriculum?.defaultSgpa ?? null,
+    delta: currentCurriculum?.defaultSgpa ? '+0.00' : 'Pending',
+    credits: currentCurriculum?.defaultSgpa ? (currentCurriculum.totalCredits || 17) : 0,
+    totalEnrolledCredits: currentCurriculum?.totalCredits || 17,
+    standing: currentCurriculum?.defaultSgpa ? 'First Class Standing' : 'Enrolled (In Progress)',
+    isFirstClass: Boolean(currentCurriculum?.defaultSgpa && currentCurriculum.defaultSgpa >= 3.70)
   };
 
   // Cumulative degree requirements based on student's progression
@@ -500,7 +501,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">CURRENT SGPA</span>
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
-              <div className="std-stat-number">{studentUser?.sgpa !== undefined && studentUser?.sgpa !== null ? Number(studentUser.sgpa).toFixed(2) : currentCurriculum.defaultSgpa.toFixed(2)}</div>
+              <div className="std-stat-number">
+                {studentUser?.sgpa !== undefined && studentUser?.sgpa !== null
+                  ? Number(studentUser.sgpa).toFixed(2)
+                  : currentCurriculum?.defaultSgpa !== undefined && currentCurriculum?.defaultSgpa !== null
+                    ? Number(currentCurriculum.defaultSgpa).toFixed(2)
+                    : 'N/A'}
+              </div>
               <div className="std-stat-target">Target: First Class (≥ 3.70)</div>
             </div>
           </div>
@@ -518,8 +525,26 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-title">CURRENT CGPA</span>
                 <span className="std-stat-badge">Cumulative</span>
               </div>
-              <div className="std-stat-number">{studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa).toFixed(2) : currentCurriculum.defaultCgpa.toFixed(2)}</div>
-              <div className="std-stat-target">{((studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa) : currentCurriculum.defaultCgpa) >= 3.70) ? 'First Class Honours' : ((studentUser?.cgpa !== undefined && studentUser?.cgpa !== null ? Number(studentUser.cgpa) : currentCurriculum.defaultCgpa) >= 3.30) ? 'Second Class (Upper Division)' : 'General Standing'}</div>
+              <div className="std-stat-number">
+                {studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
+                  ? Number(studentUser.cgpa).toFixed(2)
+                  : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
+                    ? Number(currentCurriculum.defaultCgpa).toFixed(2)
+                    : 'N/A'}
+              </div>
+              <div className="std-stat-target">
+                {(() => {
+                  const val = studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
+                    ? Number(studentUser.cgpa)
+                    : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
+                      ? Number(currentCurriculum.defaultCgpa)
+                      : null;
+                  if (val === null || isNaN(val)) return 'Enrolled (In Progress)';
+                  if (val >= 3.70) return 'First Class Honours';
+                  if (val >= 3.30) return 'Second Class (Upper Division)';
+                  return 'General Standing';
+                })()}
+              </div>
             </div>
           </div>
 
@@ -690,9 +715,13 @@ export default function Student({ user, onLogout }) {
                 <div className="std-trend-box-content">
                   <span className="std-trend-box-lbl">SEMESTER GPA ({activeProg.semester || 'Current'})</span>
                   <div className="std-trend-box-val-row">
-                    <span className="std-trend-box-val">{(Number(activeProg.sgpa) || 0).toFixed(2)}</span>
-                    <span className={`std-trend-box-delta ${(activeProg.delta || '').startsWith('+') ? 'positive' : (activeProg.delta || '').startsWith('-') ? 'negative' : 'neutral'}`}>
-                      {activeProg.delta || '+0.00'}
+                    <span className="std-trend-box-val">
+                      {activeProg.sgpa !== null && activeProg.sgpa !== undefined
+                        ? (Number(activeProg.sgpa) || 0).toFixed(2)
+                        : 'N/A'}
+                    </span>
+                    <span className={`std-trend-box-delta ${activeProg.sgpa === null ? 'neutral' : (activeProg.delta || '').startsWith('+') ? 'positive' : (activeProg.delta || '').startsWith('-') ? 'negative' : 'neutral'}`}>
+                      {activeProg.sgpa !== null ? (activeProg.delta || '+0.00') : 'Pending Exam'}
                     </span>
                   </div>
                 </div>
@@ -708,8 +737,10 @@ export default function Student({ user, onLogout }) {
                 <div className="std-trend-box-content">
                   <span className="std-trend-box-lbl">REGISTERED CREDITS</span>
                   <div className="std-trend-box-val-row">
-                    <span className="std-trend-box-val">{activeProg.credits || 0}</span>
-                    <span className="std-trend-box-denom">/ {activeProg.credits || 0} Cleared</span>
+                    <span className="std-trend-box-val">{activeProg.totalEnrolledCredits || activeProg.credits || currentCurriculum?.totalCredits || 17}</span>
+                    <span className="std-trend-box-denom">
+                      / {activeProg.sgpa !== null ? `${activeProg.credits || 0} Cleared` : '0 Cleared (In Progress)'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -724,8 +755,8 @@ export default function Student({ user, onLogout }) {
                 </div>
                 <div className="std-trend-box-content">
                   <span className="std-trend-box-lbl">FACULTY STANDING</span>
-                  <div className={`std-trend-box-standing-badge ${activeProg.isFirstClass ? 'first-class' : 'second-upper'}`}>
-                    <span>{activeProg.standing || 'First Class Standing'}</span>
+                  <div className={`std-trend-box-standing-badge ${activeProg.sgpa === null ? 'second-upper' : activeProg.isFirstClass ? 'first-class' : 'second-upper'}`}>
+                    <span>{activeProg.standing || (activeProg.sgpa === null ? 'Enrolled (In Progress)' : 'First Class Standing')}</span>
                   </div>
                 </div>
               </div>
@@ -812,7 +843,8 @@ export default function Student({ user, onLogout }) {
                 {/* Data Points & Interactive Floating Badges */}
                 {chartPoints.map((p, idx) => {
                   const isSelected = selectedSemesterIdx === idx;
-                  const sgpaFormatted = (Number(p.sgpa) || 0).toFixed(2);
+                  const hasSgpa = p.sgpa !== null && p.sgpa !== undefined;
+                  const sgpaFormatted = hasSgpa ? (Number(p.sgpa) || 0).toFixed(2) : 'Pending';
 
                   return (
                     <g
@@ -825,9 +857,9 @@ export default function Student({ user, onLogout }) {
                       {isSelected ? (
                         <g filter="url(#chartTooltipShadow)">
                           <rect
-                            x={p.x - 34}
+                            x={p.x - 38}
                             y={p.y - 32}
-                            width="68"
+                            width="76"
                             height="22"
                             rx="6"
                             fill="#071732"
@@ -845,7 +877,7 @@ export default function Student({ user, onLogout }) {
                             fontWeight="800"
                             letterSpacing="-0.01em"
                           >
-                            {sgpaFormatted} SGPA
+                            {hasSgpa ? `${sgpaFormatted} SGPA` : 'Pending SGPA'}
                           </text>
                         </g>
                       ) : (

@@ -13,9 +13,12 @@ import { INITIAL_SUBJECTS, ENROLLMENT_STUDENTS_LIST } from './lecturerMockData.j
  * - Reactive search, multi-field filtering, pagination, and CSV/Excel exports
  */
 export default function StudentEnrollment({
+  subjects = INITIAL_SUBJECTS,
   initialSubjectCode = 'ALL',
   onShowToast,
 }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+
   // Navigation & View mode: 'overview' (Subject-wise Overview) or 'students' (Registered Students List)
   const [activeTab, setActiveTab] = useState(initialSubjectCode !== 'ALL' ? 'students' : 'overview');
   const [selectedSubjectCode, setSelectedSubjectCode] = useState(initialSubjectCode);
@@ -42,7 +45,7 @@ export default function StudentEnrollment({
 
   // Calculate subject-level statistics dynamically from ENROLLMENT_STUDENTS_LIST
   const subjectStats = useMemo(() => {
-    return INITIAL_SUBJECTS.map((sub) => {
+    return availableSubjects.map((sub) => {
       const subjectStudents = ENROLLMENT_STUDENTS_LIST.filter((s) => s.subjectCode === sub.code);
       const registeredCount = subjectStudents.filter((s) => s.status === 'Registered').length;
       const pendingCount = subjectStudents.filter((s) => s.status === 'Pending').length;
@@ -55,7 +58,7 @@ export default function StudentEnrollment({
         droppedCount,
       };
     });
-  }, []);
+  }, [availableSubjects]);
 
   // Total students sum (no deduplication, matching Section 7.2 regulations)
   const totalStudentsEnrolled = useMemo(() => {
@@ -168,7 +171,7 @@ export default function StudentEnrollment({
     }
 
     const subjectLabel = selectedSubjectCode !== 'ALL'
-      ? `${selectedSubjectCode} (${INITIAL_SUBJECTS.find((s) => s.code === selectedSubjectCode)?.name || ''})`
+      ? `${selectedSubjectCode} (${availableSubjects.find((s) => s.code === selectedSubjectCode)?.name || ''})`
       : 'All Assigned Course Modules';
 
     const headerLines = [
@@ -221,7 +224,7 @@ export default function StudentEnrollment({
     }
 
     const subjectLabel = selectedSubjectCode !== 'ALL'
-      ? `${selectedSubjectCode} - ${INITIAL_SUBJECTS.find((s) => s.code === selectedSubjectCode)?.name || ''}`
+      ? `${selectedSubjectCode} - ${availableSubjects.find((s) => s.code === selectedSubjectCode)?.name || ''}`
       : 'All Assigned Modules';
 
     // Generate SpreadsheetML XML (Excel 2003+ XML format supported natively by Excel with styling)
@@ -333,7 +336,32 @@ export default function StudentEnrollment({
     }
   };
 
-  const selectedSubjectObj = INITIAL_SUBJECTS.find((s) => s.code === selectedSubjectCode);
+  const selectedSubjectObj = availableSubjects.find((s) => s.code === selectedSubjectCode);
+
+  if (availableSubjects.length === 0) {
+    return (
+      <div className="lec-enrollment-container">
+        <div className="lec-module-header-card">
+          <div>
+            <h2 className="lec-module-title">Student Enrollment &amp; Subject-wise Registration</h2>
+            <p className="lec-module-sub">
+              Faculty of Technology • Department of ICT • BICT (Hons) Programme • Handbook Section 7.2 Subject Registration
+            </p>
+          </div>
+        </div>
+        <div className="lec-empty-state-card" style={{ padding: '60px 24px', background: '#fff', borderRadius: '14px', border: '1px dashed #cbd5e1', textAlign: 'center', margin: '24px 0' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+          <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>No Enrolled Students</h4>
+          <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            You currently have no course modules assigned. When your Head of Department (HOD) assigns subjects to you, your registered student cohorts will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="lec-enrollment-container">
@@ -400,9 +428,9 @@ export default function StudentEnrollment({
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               </svg>
             </span>
-            <span className="kpi-badge badge-indigo">{INITIAL_SUBJECTS.length} Allocated</span>
+            <span className="kpi-badge badge-indigo">{availableSubjects.length} Allocated</span>
           </div>
-          <div className="kpi-value">{INITIAL_SUBJECTS.length}</div>
+          <div className="kpi-value">{availableSubjects.length}</div>
           <div className="kpi-label">Assigned Course Modules</div>
           <div className="kpi-subtext">Current Semester active curriculum modules</div>
         </div>
@@ -686,8 +714,8 @@ export default function StudentEnrollment({
                     setCurrentPage(1);
                   }}
                 >
-                  <option value="ALL">All Assigned Subjects (120)</option>
-                  {INITIAL_SUBJECTS.map((sub) => (
+                  <option value="ALL">All Assigned Subjects ({totalStudentsEnrolled})</option>
+                  {availableSubjects.map((sub) => (
                     <option key={sub.code} value={sub.code}>
                       {sub.code} — {sub.name} ({sub.studentsCount})
                     </option>

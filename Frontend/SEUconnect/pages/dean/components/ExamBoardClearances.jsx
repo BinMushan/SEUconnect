@@ -1,9 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EXAM_BOARD_CLEARANCES } from '../deanData.js';
+import { resultsPipelineService, PIPELINE_STAGES, PIPELINE_LABELS } from '../../../src/services/resultsPipelineService.js';
 
 export default function ExamBoardClearances({ onNavigate }) {
   const [candidates, setCandidates] = useState(EXAM_BOARD_CLEARANCES);
   const [feedback, setFeedback] = useState('');
+  const [pipelineStatus, setPipelineStatus] = useState(() => resultsPipelineService.getPipelineStatus('Year 2 Semester 2'));
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setPipelineStatus(resultsPipelineService.getPipelineStatus('Year 2 Semester 2'));
+    };
+    window.addEventListener('seu_pipeline_update', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('seu_pipeline_update', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const handleDeanApproveClearance = () => {
+    const updated = resultsPipelineService.deanApproveClearance('Year 2 Semester 2', 'Prof. Rifai Kariapper (Dean)');
+    setPipelineStatus(updated);
+    setFeedback('Executive Senate Clearance approved with Dean digital seal. Clearance message sent to HOD for final publication.');
+    setTimeout(() => setFeedback(''), 5000);
+  };
 
   const handleClear = (id) => {
     setCandidates((prev) =>
@@ -48,6 +69,66 @@ export default function ExamBoardClearances({ onNavigate }) {
           <button type="button" onClick={() => setFeedback('')}>✕</button>
         </div>
       )}
+
+      {/* Cohort Semester Results Moderation & Seal Approval */}
+      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.25rem', marginBottom: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#6d28d9', background: '#ede9fe', padding: '3px 8px', borderRadius: '4px', marginBottom: '4px' }}>
+              Faculty Examination Board · Senate Clearance Docket
+            </div>
+            <h3 style={{ margin: '4px 0 2px', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+              Batch 2022/2023 (Year 2 Semester 2) — Senate Award &amp; Clearance
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              Status: <strong>{PIPELINE_LABELS[pipelineStatus.stage] || pipelineStatus.stage}</strong>
+            </p>
+          </div>
+
+          <div>
+            {pipelineStatus.stage === PIPELINE_STAGES.FORWARDED_TO_DEAN && (
+              <button
+                type="button"
+                onClick={handleDeanApproveClearance}
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '0.65rem 1.3rem',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>Affix Dean Seal &amp; Send Approved Clearance to HOD &rarr;</span>
+              </button>
+            )}
+
+            {pipelineStatus.stage === PIPELINE_STAGES.DEAN_APPROVED && (
+              <span style={{ background: '#dcfce7', color: '#15803d', padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '0.84rem' }}>
+                ✓ Dean Executive Seal Affixed &middot; Dispatched to HOD for Publication
+              </span>
+            )}
+
+            {pipelineStatus.stage === PIPELINE_STAGES.PUBLISHED && (
+              <span style={{ background: '#ecfdf5', color: '#047857', padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '0.84rem' }}>
+                ✓ Published by HOD to Student Portal
+              </span>
+            )}
+
+            {[PIPELINE_STAGES.LECTURER_DRAFT, PIPELINE_STAGES.SUBMITTED_TO_DMA, PIPELINE_STAGES.SUBMITTED_TO_HOD, PIPELINE_STAGES.SUBMITTED_TO_EXAM_OFFICER].includes(pipelineStatus.stage) && (
+              <span style={{ background: '#f1f5f9', color: '#64748b', padding: '6px 14px', borderRadius: '6px', fontWeight: 600, fontSize: '0.84rem' }}>
+                Awaiting Examination Officer Submission
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* 2. Candidate Table */}
       <div className="dean-table-card">

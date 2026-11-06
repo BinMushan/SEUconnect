@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import './attendance.css';
-import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
+import api from '../../src/services/api.js';
+import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
+import { resultsPipelineService } from '../../src/services/resultsPipelineService.js';
 
 // 1. Official Course Directory matching the uploaded Department Timetable (Yr 2 - Sem II)
 const TIMETABLE_COURSES = [
@@ -635,7 +637,66 @@ export default function Attendance({ onNavigateMedical, user }) {
   const cur = getCurriculumBySemester(user?.semester);
   const activeTimetableCourses = (cur.subjects && cur.subjects.length > 0) ? cur.subjects : TIMETABLE_COURSES;
   const activeMatrixColumns = (cur.matrixColumns && cur.matrixColumns.length > 0) ? cur.matrixColumns : MATRIX_COLUMNS;
-  const activeMatrixDailyRows = (cur.matrixDailyRows && cur.matrixDailyRows.length > 0) ? cur.matrixDailyRows : MATRIX_DAILY_ROWS;
+  const rawMatrixDailyRows = (cur.matrixDailyRows && cur.matrixDailyRows.length > 0) ? cur.matrixDailyRows : MATRIX_DAILY_ROWS;
+
+  // Real-time synchronization with Lecturer attendance submissions
+  const [liveAttendanceMap, setLiveAttendanceMap] = useState(() => {
+    return resultsPipelineService.getStudentAttendance(user?.regNo || '22ICT091');
+  });
+
+  // Real-time weekly timetable synchronized with HOD department timetable
+  const [liveTimetableSlots, setLiveTimetableSlots] = useState(() => {
+    try {
+      const cacheKey = `seu_tt_${normalizeSemester(user?.semester)}_${user?.batch || '2022/2023'}_${user?.department?.includes('Bio') ? 'BST' : 'BICT'}`;
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if (cached && Array.isArray(cached) && cached.length > 0) return cached;
+    } catch (_) {}
+    return cur.timetableSlots || [];
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getTimetable({
+      semester: user?.semester,
+      batch: user?.batch,
+      department: user?.department,
+    }).then((res) => {
+      if (!cancelled && res && res.data && res.data.slots && res.data.slots.length > 0) {
+        setLiveTimetableSlots(res.data.slots);
+      }
+    }).catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setLiveAttendanceMap(resultsPipelineService.getStudentAttendance(user?.regNo || '22ICT091'));
+    };
+    window.addEventListener('seu_pipeline_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('seu_pipeline_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [user]);
+
+  // Combined matrix rows with live lecturer records
+  const activeMatrixDailyRows = useMemo(() => {
+    return rawMatrixDailyRows.map((row) => {
+      const dateSlash = row.date;
+      const dateDash = row.date.replace(/\//g, '-');
+      const liveSession = liveAttendanceMap[dateSlash] || liveAttendanceMap[dateDash] || {};
+      return {
+        ...row,
+        records: {
+          ...row.records,
+          ...liveSession,
+        },
+      };
+    });
+  }, [rawMatrixDailyRows, liveAttendanceMap]);
 
   // Default tab set to the Daily Attendance Grid (Date x Subject Matrix) requested by the user
   const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'subject' | 'datewise' | 'timetable'
@@ -1355,13 +1416,15 @@ export default function Attendance({ onNavigateMedical, user }) {
                       <tr key={tSlot}>
                         <td className="timetable-time-cell">{tSlot}</td>
                         {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => {
-                          const slot = (cur.timetableSlots || []).find((s) => {
+                          const slotList = (liveTimetableSlots && liveTimetableSlots.length > 0) ? liveTimetableSlots : (cur.timetableSlots || []);
+                          const slot = slotList.find((s) => {
                             if (s.day !== day) return false;
-                            if (s.time.includes(startH)) return true;
-                            if (startH === '9.30' && s.time.startsWith('8.30')) return true;
-                            if (startH === '10.30' && (s.time.startsWith('8.30') || s.time.startsWith('9.30'))) return true;
-                            if (startH === '2.30' && s.time.startsWith('1.30')) return true;
-                            if (startH === '3.30' && s.time.startsWith('1.30')) return true;
+                            const slotTimeStr = s.timeSlot || s.time || '';
+                            if (slotTimeStr.includes(startH)) return true;
+                            if (startH === '9.30' && slotTimeStr.startsWith('8.30')) return true;
+                            if (startH === '10.30' && (slotTimeStr.startsWith('8.30') || slotTimeStr.startsWith('9.30'))) return true;
+                            if (startH === '2.30' && slotTimeStr.startsWith('1.30')) return true;
+                            if (startH === '3.30' && slotTimeStr.startsWith('1.30')) return true;
                             return false;
                           });
                           return (

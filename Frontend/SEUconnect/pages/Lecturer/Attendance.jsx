@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AttendanceTable from './components/AttendanceTable.jsx';
 import { INITIAL_SUBJECTS, ENROLLED_STUDENTS } from './lecturerMockData.js';
+import { resultsPipelineService } from '../../src/services/resultsPipelineService.js';
 
 /**
  * Helper to compute an individual student's standing rate
@@ -34,8 +35,10 @@ const getInitialStudentCohort = () => {
  * - Live updating Subject-Level Breakdown card
  * - Live updating Student Cohort Distribution with individual status badges & bars
  */
-export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToast }) {
-  const [selectedSubject, setSelectedSubject] = useState(initialSubjectCode);
+export default function Attendance({ subjects = INITIAL_SUBJECTS, initialSubjectCode = 'SWT22022', onShowToast }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+  const defaultCode = availableSubjects[0]?.code || initialSubjectCode;
+  const [selectedSubject, setSelectedSubject] = useState(defaultCode);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -47,7 +50,7 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
   // Subject-level attendance rates dictionary (persisted across module switches)
   const [subjectRates, setSubjectRates] = useState(() => {
     const initialMap = {};
-    INITIAL_SUBJECTS.forEach((sub) => {
+    availableSubjects.forEach((sub) => {
       initialMap[sub.code] = sub.attendanceRate;
     });
     return initialMap;
@@ -55,8 +58,14 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
 
   // Saved rosters store for discarding or restoring per subject
   const [savedRosters, setSavedRosters] = useState(() => ({
-    [initialSubjectCode]: getInitialStudentCohort(),
+    [defaultCode]: getInitialStudentCohort(),
   }));
+
+  useEffect(() => {
+    if (availableSubjects.length > 0 && !availableSubjects.some((s) => s.code === selectedSubject)) {
+      setSelectedSubject(availableSubjects[0].code);
+    }
+  }, [availableSubjects, selectedSubject]);
 
   useEffect(() => {
     if (initialSubjectCode) {
@@ -126,9 +135,18 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
       [selectedSubject]: currentSessionRate,
     }));
     setHasUnsavedChanges(false);
+
+    // Sync to resultsPipelineService for real-time student dashboard display
+    const studentStatusMap = {};
+    students.forEach((st) => {
+      studentStatusMap[st.regNo] = !!st.present;
+    });
+    const normalizedDate = selectedDate.replace(/-/g, '/');
+    resultsPipelineService.recordAttendance(selectedSubject, normalizedDate, studentStatusMap, 'Dr. K. Perera');
+
     if (onShowToast) {
       onShowToast(
-        `Attendance for ${selectedSubject} on ${selectedDate} saved successfully! Standing: ${currentSessionRate}%`,
+        `Attendance for ${selectedSubject} on ${selectedDate} submitted successfully! Standing: ${currentSessionRate}% (Live synced to Student Dashboards)`,
         'success'
       );
     }
@@ -164,10 +182,35 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
     setHasUnsavedChanges(false);
   };
 
-  const activeSubjectData = INITIAL_SUBJECTS.find((s) => s.code === selectedSubject) || INITIAL_SUBJECTS[0];
+  const activeSubjectData = availableSubjects.find((s) => s.code === selectedSubject) || availableSubjects[0] || null;
 
   // Overall Attendance Standing reaches 100% when all students are present
   const overallStandingRate = currentSessionRate;
+
+  if (availableSubjects.length === 0) {
+    return (
+      <div className="lec-attendance-container">
+        <div className="lec-module-header-card">
+          <div>
+            <h2 className="lec-module-title">Student Attendance Recording & Analytics</h2>
+            <p className="lec-module-sub">
+              Record, verify, and synchronize daily class attendances for lecture sessions and practical laboratories.
+            </p>
+          </div>
+        </div>
+        <div className="lec-empty-state-card" style={{ padding: '60px 24px', background: '#fff', borderRadius: '14px', border: '1px dashed #cbd5e1', textAlign: 'center', margin: '24px 0' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+          </svg>
+          <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>No Attendance Registers Allocated</h4>
+          <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            You currently have no course modules assigned for attendance tracking. When your Head of Department (HOD) assigns subjects to you, student rosters will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="lec-attendance-container">
@@ -224,7 +267,7 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
             </svg>
-            Save Session Record
+            Submit & Sync Attendance
           </button>
         </div>
       </div>
@@ -238,7 +281,7 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
             value={selectedSubject}
             onChange={(e) => handleSubjectChange(e.target.value)}
           >
-            {INITIAL_SUBJECTS.map((sub) => (
+            {availableSubjects.map((sub) => (
               <option key={sub.code} value={sub.code}>
                 {sub.code} — {sub.name} ({sub.semester}{sub.batch ? ` • Batch ${sub.batch}` : ''})
               </option>
@@ -257,9 +300,9 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
         </div>
 
         <div className="lec-subject-quick-tag">
-          <span>Venue: <strong>{activeSubjectData.classroom}</strong></span>
+          <span>Venue: <strong>{activeSubjectData?.classroom || 'TBA'}</strong></span>
           <span className="dot">•</span>
-          <span>Time: <strong>{activeSubjectData.schedule}</strong></span>
+          <span>Time: <strong>{activeSubjectData?.schedule || 'TBA'}</strong></span>
         </div>
       </div>
 
@@ -310,7 +353,7 @@ export default function Attendance({ initialSubjectCode = 'SWT22022', onShowToas
           <div className="lec-analytics-card">
             <h4 className="analytics-card-title">Subject-Level Breakdown</h4>
             <div className="analytics-breakdown-list">
-              {INITIAL_SUBJECTS.map((sub) => {
+              {availableSubjects.map((sub) => {
                 const isSelected = sub.code === selectedSubject;
                 const rate = isSelected ? currentSessionRate : (subjectRates[sub.code] ?? sub.attendanceRate);
                 const bandClass = rate >= 80 ? 'band-good' : rate >= 70 ? 'band-warning' : 'band-low';
