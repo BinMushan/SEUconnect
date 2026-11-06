@@ -348,6 +348,72 @@ exports.provisionUser = async (req, res) => {
 
     const normRole = normalizeRole(resolvedRoleKey || 'lecturer');
 
+    // Enforce Institutional System Rules on single-seat and quota roles
+    const allUsers = await store.users.all();
+
+    if (normRole === 'admin') {
+      const activeAdmins = allUsers.filter((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'admin');
+      if (activeAdmins.length >= 2) {
+        return res.status(400).json({
+          success: false,
+          message: `System Rule Limit: Maximum 2 System Administrators permitted. Currently held by ${activeAdmins.map((a) => a.name).join(' & ')}.`
+        });
+      }
+    } else if (normRole === 'dean') {
+      const existingDean = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'dean');
+      if (existingDean) {
+        existingDean.role = 'lecturer';
+        existingDean.roleKey = 'lecturer';
+        existingDean.designation = 'Senior Lecturer (Former Dean)';
+        await store.users.save(existingDean).catch(() => {});
+      }
+    } else if (normRole === 'hod') {
+      const isBst = (department || '').toLowerCase().includes('bio') || (department || '').toLowerCase().includes('bst');
+      const existingHod = allUsers.find((u) => {
+        if (u.email.toLowerCase() === cleanEmail || normalizeRole(u.role) !== 'hod') return false;
+        const uIsBst = (u.department || '').toLowerCase().includes('bio') || (u.department || '').toLowerCase().includes('bst');
+        return uIsBst === isBst;
+      });
+      if (existingHod) {
+        existingHod.role = 'lecturer';
+        existingHod.roleKey = 'lecturer';
+        existingHod.designation = `Senior Lecturer Gr. I in ${isBst ? 'BST' : 'DICT'} (Former HOD)`;
+        await store.users.save(existingHod).catch(() => {});
+      }
+    } else if (normRole === 'sar') {
+      const existingSar = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'sar');
+      if (existingSar) {
+        existingSar.role = 'lecturer';
+        existingSar.roleKey = 'lecturer';
+        existingSar.designation = 'Faculty Administrative Officer (Former SAR)';
+        await store.users.save(existingSar).catch(() => {});
+      }
+    } else if (normRole === 'examination') {
+      const existingExam = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'examination');
+      if (existingExam) {
+        existingExam.role = 'lecturer';
+        existingExam.roleKey = 'lecturer';
+        existingExam.designation = 'Senior Lecturer (Former Exam Officer)';
+        await store.users.save(existingExam).catch(() => {});
+      }
+    } else if (normRole === 'dept_ma') {
+      const existingDeptMa = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'dept_ma');
+      if (existingDeptMa) {
+        existingDeptMa.role = 'lecturer';
+        existingDeptMa.roleKey = 'lecturer';
+        existingDeptMa.designation = 'Management Assistant (Former Dept MA)';
+        await store.users.save(existingDeptMa).catch(() => {});
+      }
+    } else if (normRole === 'fma') {
+      const existingFma = allUsers.find((u) => u.email.toLowerCase() !== cleanEmail && normalizeRole(u.role) === 'fma');
+      if (existingFma) {
+        existingFma.role = 'lecturer';
+        existingFma.roleKey = 'lecturer';
+        existingFma.designation = 'Management Assistant (Former FMA)';
+        await store.users.save(existingFma).catch(() => {});
+      }
+    }
+
     const userData = {
       name: name.trim(),
       email: cleanEmail,
