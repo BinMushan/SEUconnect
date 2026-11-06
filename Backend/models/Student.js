@@ -217,8 +217,8 @@ const StudentSchema = new mongoose.Schema({
     semesterHistory: [
       {
         semester: { type: String, required: true },
-        sgpa: { type: Number, required: true },
-        credits: { type: Number, required: true }
+        sgpa: { type: Number, default: 0 },
+        credits: { type: Number, default: 0 }
       }
     ]
   },

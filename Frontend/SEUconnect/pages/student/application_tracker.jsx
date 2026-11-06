@@ -38,7 +38,13 @@ export default function ApplicationTracker({ onResubmit, onNavigate }) {
       setItems((res.data || []).filter((p) => WORKFLOW_TYPES.includes(p.type)));
       setError('');
     } catch (err) {
-      setError(err.message);
+      if (err.status === 401 || err.message?.includes('Authentication required') || err.message?.includes('sign in')) {
+        const localApps = JSON.parse(localStorage.getItem('seuconnect_submitted_applications') || '[]');
+        setItems(localApps.filter((p) => WORKFLOW_TYPES.includes(p.type)));
+        setError('');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

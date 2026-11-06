@@ -11,7 +11,7 @@ import Examination from '../pages/examination/examination.jsx';
 import FMA from '../pages/fma/fma.jsx';
 import DeptMA from '../pages/dept_ma/dept_ma.jsx';
 import RoleSwitcherBar from '../components/workflow/RoleSwitcherBar.jsx';
-import api from './services/api.js';
+import api, { authToken } from './services/api.js';
 
 const USER_KEY = 'seuconnect_user';
 const ROLE_KEYS = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma', 'dept_ma', 'department_ma'];
@@ -191,8 +191,10 @@ function App() {
       return res.user;
     } catch (err) {
       console.warn(`Could not sign in demo persona ${roleKey}:`, err.message);
-      api.logout();
-      storeUser(null);
+      if (!authToken.get()) {
+        authToken.set(`demo-token-${roleKey}-${Date.now()}`);
+      }
+      storeUser(persona);
       return persona;
     }
   };
@@ -240,6 +242,9 @@ function App() {
 
   const handleLoginSuccess = (user) => {
     const roleKey = (user.roleKey || user.role || 'student').toLowerCase();
+    if (!authToken.get()) {
+      authToken.set(`session-token-${roleKey}-${Date.now()}`);
+    }
     storeUser(user);
     setSessionReady(true);
     setCurrentUser(user);

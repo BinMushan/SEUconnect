@@ -305,17 +305,19 @@ exports.createStudent = async (req, res) => {
             }))
           }],
           gpaCgpa: {
-            currentSgpa: cur.defaultSgpa,
-            cgpa: cur.defaultCgpa,
-            academicStanding: 'Good Standing',
-            targetClass: cur.defaultCgpa >= 3.70 ? 'First Class' : 'Second Class (Upper)',
-            totalCreditsEarned: cur.totalCredits,
+            currentSgpa: cur.defaultSgpa !== null && cur.defaultSgpa !== undefined ? cur.defaultSgpa : 0.0,
+            cgpa: cur.defaultCgpa !== null && cur.defaultCgpa !== undefined ? cur.defaultCgpa : 0.0,
+            academicStanding: cur.isFreshers ? 'Enrolled (Freshers)' : 'Good Standing',
+            targetClass: (cur.defaultCgpa || 0) >= 3.70 ? 'First Class' : 'Second Class (Upper)',
+            totalCreditsEarned: cur.defaultSgpa ? cur.totalCredits : 0,
             totalCreditsRequired: 120,
-            semesterHistory: cur.progressionData.map(p => ({
-              semester: p.semester,
-              sgpa: p.sgpa,
-              credits: p.credits
-            }))
+            semesterHistory: (cur.progressionData || [])
+              .filter(p => p.sgpa !== null && p.sgpa !== undefined)
+              .map(p => ({
+                semester: p.semester,
+                sgpa: p.sgpa,
+                credits: p.credits || 0
+              }))
           },
           results: [],
           examinations: [{
@@ -451,17 +453,19 @@ exports.createStudentsBulk = async (req, res) => {
                 }))
               }],
               gpaCgpa: {
-                currentSgpa: cur.defaultSgpa,
-                cgpa: cur.defaultCgpa,
-                academicStanding: 'Good Standing',
-                targetClass: cur.defaultCgpa >= 3.70 ? 'First Class' : 'Second Class (Upper)',
-                totalCreditsEarned: cur.totalCredits,
+                currentSgpa: cur.defaultSgpa !== null && cur.defaultSgpa !== undefined ? cur.defaultSgpa : 0.0,
+                cgpa: cur.defaultCgpa !== null && cur.defaultCgpa !== undefined ? cur.defaultCgpa : 0.0,
+                academicStanding: cur.isFreshers ? 'Enrolled (Freshers)' : 'Good Standing',
+                targetClass: (cur.defaultCgpa || 0) >= 3.70 ? 'First Class' : 'Second Class (Upper)',
+                totalCreditsEarned: cur.defaultSgpa ? cur.totalCredits : 0,
                 totalCreditsRequired: 120,
-                semesterHistory: cur.progressionData.map(p => ({
-                  semester: p.semester,
-                  sgpa: p.sgpa,
-                  credits: p.credits
-                }))
+                semesterHistory: (cur.progressionData || [])
+                  .filter(p => p.sgpa !== null && p.sgpa !== undefined)
+                  .map(p => ({
+                    semester: p.semester,
+                    sgpa: p.sgpa,
+                    credits: p.credits || 0
+                  }))
               },
               results: [],
               examinations: [{
