@@ -30,14 +30,21 @@ export default function Dean({ user, onLogout }) {
   const [returnProcessModal, setReturnProcessModal] = useState(null);
   const [activeNav, setActiveNav] = useState('dashboard');
 
-  // Official Dean Persona: Prof. Rifai Kariapper
+  // Official Dean Persona: Dynamic with fallback
   const effectiveUser = {
     ...user,
-    name: 'Prof. Rifai Kariapper',
+    name: user?.name || 'Prof. Rifai Kariapper',
     email: user?.email || 'dean@seu.ac.lk',
-    designation: 'Dean, Faculty of Technology',
-    faculty: 'Faculty of Technology, SEUSL',
-    avatarInitial: 'RK',
+    designation: user?.designation || 'Dean, Faculty of Technology',
+    faculty: user?.faculty || 'Faculty of Technology, SEUSL',
+    staffId: user?.staffId || 'STAFF-DEAN-001',
+    avatarInitial: (user?.name || 'RK')
+      .split(' ')
+      .map((n) => n[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'RK',
     role: 'dean',
     roleKey: 'dean',
   };

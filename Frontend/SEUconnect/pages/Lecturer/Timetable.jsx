@@ -84,7 +84,9 @@ function getSessionTimeStatus(session, isSelectedDayToday) {
  * Timetable Component
  * Teaching Timetable for SEUConnect Lecturer Portal
  */
-export default function Timetable({ onNavigateModule, onShowToast }) {
+export default function Timetable({ subjects = INITIAL_SUBJECTS, onNavigateModule, onShowToast }) {
+  const availableSubjects = Array.isArray(subjects) ? subjects : [];
+
   // View mode: 'weekly' or 'daily'
   const [viewMode, setViewMode] = useState('weekly');
 
@@ -146,8 +148,12 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
 
   // Filtered timetable dataset
   const filteredClasses = useMemo(() => {
+    if (availableSubjects.length === 0) return [];
+    const allowedCodes = new Set(availableSubjects.map((s) => s.code));
     const q = searchQuery.trim().toLowerCase();
     return LECTURER_TIMETABLE_CLASSES.filter((session) => {
+      // Must belong to this lecturer's assigned subjects
+      if (!allowedCodes.has(session.subjectCode)) return false;
       // Search query across subjectCode, subjectName, venue, topic, batch
       if (q) {
         const matchesQuery =
@@ -335,6 +341,34 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
   const totalPracticals = filteredClasses.filter((c) => c.classType === 'Practical').length;
   const totalTutorials = filteredClasses.filter((c) => c.classType === 'Tutorial').length;
 
+  if (availableSubjects.length === 0) {
+    return (
+      <div className="lec-timetable-container">
+        <div className="lec-module-header-card">
+          <div className="lec-timetable-header-left">
+            <h2 className="lec-module-title">My Teaching Timetable</h2>
+            <p className="lec-module-sub">
+              Review allocated weekly teaching slots, lecture theatres, laboratory practical sessions,
+              and academic tutorial hours. All schedules follow SEUSL Faculty of Technology academic allocations.
+            </p>
+          </div>
+        </div>
+        <div className="lec-empty-state-card" style={{ padding: '60px 24px', background: '#fff', borderRadius: '14px', border: '1px dashed #cbd5e1', textAlign: 'center', margin: '24px 0' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" style={{ margin: '0 auto 12px', display: 'block' }}>
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <h4 style={{ fontSize: '18px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>No Teaching Schedule Allocated</h4>
+          <p style={{ color: '#64748b', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            You currently have no course modules allocated for timetable scheduling. When your Head of Department (HOD) assigns subjects to you, your scheduled lecture and practical sessions will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="lec-timetable-container">
       {/* 1. Header Banner */}
@@ -436,7 +470,7 @@ export default function Timetable({ onNavigateModule, onShowToast }) {
               onChange={(e) => setFilterSubject(e.target.value)}
             >
               <option value="ALL">All Assigned Subjects</option>
-              {INITIAL_SUBJECTS.map((sub) => (
+              {availableSubjects.map((sub) => (
                 <option key={sub.code} value={sub.code}>
                   {sub.code} – {sub.name}
                 </option>

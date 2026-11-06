@@ -35,15 +35,22 @@ export default function HOD({ user, onLogout }) {
   const [returnProcessModal, setReturnProcessModal] = useState(null);
   const [activeNav, setActiveNav] = useState('dashboard');
 
-  // Official HOD Persona: M.J Ahamed Sabani
+  // Official HOD Persona: Dynamic with fallback
   const effectiveUser = {
     ...user,
-    name: 'M.J Ahamed Sabani',
+    name: user?.name || 'M.J Ahamed Sabani',
     email: user?.email || 'sabani@seu.ac.lk',
-    designation: 'Head of the Department (ICT)',
-    department: 'Department of Information and Communication Technology',
-    faculty: 'Faculty of Technology, SEUSL',
-    avatarInitial: 'AS',
+    designation: user?.designation || 'Head of the Department (ICT)',
+    department: user?.department || 'Department of Information and Communication Technology',
+    faculty: user?.faculty || 'Faculty of Technology, SEUSL',
+    staffId: user?.staffId || 'STAFF-ICT-001',
+    avatarInitial: (user?.name || 'AS')
+      .split(' ')
+      .map((n) => n[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'AS',
     role: 'hod',
     roleKey: 'hod',
   };

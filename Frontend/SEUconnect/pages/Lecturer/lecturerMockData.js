@@ -1448,3 +1448,119 @@ export const INITIAL_ASSIGNED_ECA_APPLICATIONS = [
     ],
   },
 ];
+
+/**
+ * Resolves assigned subjects dynamically for a lecturer.
+ * - Demo account (lecturer@gmail.com, Dr. K. Perera): keeps INITIAL_SUBJECTS.
+ * - Newly appointed / custom lecturers: loads subjects allocated by HOD from localStorage
+ *   or user.allocatedCourses. If none allocated yet, returns [] (isolated fresh section).
+ */
+export function getLecturerAssignedSubjects(user) {
+  if (!user) return INITIAL_SUBJECTS;
+
+  const email = (user.email || '').toLowerCase().trim();
+  const name = (user.name || '').trim();
+
+  const isDefaultDemo =
+    email === 'lecturer@gmail.com' ||
+    email === 'lecturer@seu.ac.lk' ||
+    name.includes('Perera') ||
+    name.includes('Kirushanth') ||
+    email === 'dr.kirushanth@seu.ac.lk';
+
+  // 1. Check HOD Course Allocation Matrix in localStorage
+  try {
+    const rawAlloc = localStorage.getItem('seu_course_allocations');
+    if (rawAlloc) {
+      const parsed = JSON.parse(rawAlloc);
+      if (Array.isArray(parsed)) {
+        const matches = parsed.filter((c) => {
+          const lecName = (c.lecturerInCharge || '').toLowerCase();
+          const targetName = name.toLowerCase();
+          const lecEmail = (c.lecturerEmail || '').toLowerCase();
+          return (
+            (lecEmail && email && lecEmail === email) ||
+            (targetName && lecName && (lecName.includes(targetName) || targetName.includes(lecName)))
+          );
+        });
+
+        if (matches.length > 0) {
+          return matches.map((c) => ({
+            id: c.code,
+            code: c.code,
+            name: c.name || c.title || c.code,
+            semester: c.semester || 'Semester 1',
+            semesterNumber: c.semesterNumber || 1,
+            academicYear: c.year || 'Year 1',
+            batch: c.batch || '2023/2024',
+            studentsCount: c.studentsCount || c.enrolledStudents || 0,
+            schedule: c.schedule || 'Scheduled via Timetable',
+            classroom: c.room || c.classroom || 'ICT Lab',
+            attendanceRate: 0,
+            credits: c.credits || 3,
+            status: 'Active',
+            caWeight: 40,
+            esaWeight: 60,
+          }));
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error reading seu_course_allocations:', err);
+  }
+
+  // 2. Check user-specific storage
+  if (email) {
+    try {
+      const stored = localStorage.getItem(`seu_lecturer_courses_${email}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+  }
+
+  if (Array.isArray(user.allocatedCourses) && user.allocatedCourses.length > 0) {
+    return user.allocatedCourses;
+  }
+
+  // 3. Fallback: only demo accounts retain default INITIAL_SUBJECTS
+  if (isDefaultDemo) {
+    return INITIAL_SUBJECTS;
+  }
+
+  // Fresh newly appointed lecturer starts completely clean with 0 subjects
+  return [];
+}
+
+/**
+ * Resolves assigned ECA applications dynamically for a lecturer.
+ */
+export function getLecturerEcaApplications(user) {
+  if (!user) return INITIAL_ASSIGNED_ECA_APPLICATIONS;
+
+  const email = (user.email || '').toLowerCase().trim();
+  const name = (user.name || '').trim();
+
+  const isDefaultDemo =
+    email === 'lecturer@gmail.com' ||
+    email === 'lecturer@seu.ac.lk' ||
+    name.includes('Perera') ||
+    name.includes('Kirushanth') ||
+    email === 'dr.kirushanth@seu.ac.lk';
+
+  if (isDefaultDemo) {
+    return INITIAL_ASSIGNED_ECA_APPLICATIONS;
+  }
+
+  // Check if any ECA applications were assigned to this specific lecturer
+  return INITIAL_ASSIGNED_ECA_APPLICATIONS.filter((a) => {
+    const lecName = (a.assignedLecturer?.name || '').toLowerCase();
+    const lecEmail = (a.assignedLecturer?.email || '').toLowerCase();
+    return (
+      (email && lecEmail === email) ||
+      (name && lecName && (lecName.includes(name.toLowerCase()) || name.toLowerCase().includes(lecName)))
+    );
+  });
+}
+
