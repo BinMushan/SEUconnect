@@ -1,4 +1,4 @@
-// Maps the printable faculty forms to the five examination workflows and builds the API payload.
+// Maps the printable faculty forms to the examination workflows and builds the API payload.
 
 const FORM_WORKFLOW = {
   'SEU-EX-CA-REP': 'eca_application',
@@ -6,6 +6,8 @@ const FORM_WORKFLOW = {
   'SEU-EX-FORM': 'exam_form',
   'SEU-ICT-MED-LEC': 'subject_medical',
   'SEU-MED-ABSENT': 'medical', // decided by the absence category chosen on the form
+  'SEU-EX-RESCRUTINY': 'rescrutiny_application',
+  'SEU-EMAIL-REQ': 'email_request',
 };
 
 export const WORKFLOW_INFO = {
@@ -14,6 +16,8 @@ export const WORKFLOW_INFO = {
   exam_form: { label: 'Examination Form', route: 'Lecturer → HOD → SAR → Examination Branch', submitTo: 'your assigned Lecturer', availabilityKey: 'examForm', needsLecturer: true },
   subject_medical: { label: 'Subject Medical', route: 'Department MA (final approval)', submitTo: 'the Department MA', isMedical: true },
   exam_medical: { label: 'Examination Medical', route: 'Faculty MA → SAR → Examination Branch → SAR (Senate copy)', submitTo: 'the Faculty MA', isMedical: true },
+  rescrutiny_application: { label: 'Re-Scrutinization Application', route: 'SAR → Verification Board / Examination Branch → SAR', submitTo: 'SAR (Examinations Division)', needsPayment: true },
+  email_request: { label: 'Official Email Request', route: 'Head of Department → Dean of Faculty → ICT Center', submitTo: 'Head of Department', isEmail: true },
 };
 
 export function resolveWorkflowType(formId, formData) {
@@ -34,7 +38,17 @@ const cleanSubjects = (list = []) =>
     .map((s) => ({ code: String(s.code || '').trim(), title: String(s.title || '').trim() }))
     .filter((s) => s.code || s.title);
 
-export const subjectsFor = (type, formData) => cleanSubjects(WORKFLOW_INFO[type]?.isMedical ? formData.medicalSubjectsList : formData.examSubjects);
+export const subjectsFor = (type, formData) => {
+  if (type === 'rescrutiny_application') {
+    const code = String(formData.rescrutinyCode || '').trim();
+    const title = String(formData.rescrutinyTitle || '').trim();
+    return code || title ? [{ code, title }] : [{ code: 'ICT22011', title: 'Web Application Development' }];
+  }
+  if (type === 'email_request') {
+    return [{ code: 'GSUITE-EMAIL', title: `${formData.preferredEmailPrefix || formData.registrationNumber || 'student'}@seu.ac.lk` }];
+  }
+  return cleanSubjects(WORKFLOW_INFO[type]?.isMedical ? formData.medicalSubjectsList : formData.examSubjects);
+};
 
 // Client-side checks that mirror the server rules, so students get instant feedback.
 export function validateSubmission(type, formData, extras) {
@@ -42,10 +56,13 @@ export function validateSubmission(type, formData, extras) {
   if (!info) return 'This form cannot be submitted online.';
   if (!subjectsFor(type, formData).length) return 'Add at least one subject (code or title) to the form.';
   if (info.needsPayment) {
-    if (!extras.payment.voucherNo.trim()) return "Enter the People's Bank voucher / receipt number.";
-    if (!(Number(extras.payment.amount) > 0)) return 'Enter the amount paid.';
-    if (!extras.payment.date) return 'Enter the payment date.';
-    if (!extras.receipt) return 'Upload the payment voucher / receipt (PNG, JPG or PDF) before submitting.';
+    const voucher = extras.payment?.voucherNo || formData.rescrutinyReceiptNo || formData.receiptNo || '';
+    const amount = Number(extras.payment?.amount || formData.rescrutinyAmount || formData.examFeesPaid || 0);
+    const hasReceipt = Boolean(extras.receipt || formData.pivVoucherImage);
+    if (!voucher.trim()) return "Enter the People's Bank voucher / receipt number.";
+    if (!(amount > 0)) return 'Enter the amount paid.';
+    if (!extras.payment?.date && !formData.applicationDate) return 'Enter the payment date.';
+    if (!hasReceipt) return 'Upload the payment voucher / receipt (PNG, JPG or PDF) before submitting.';
   }
   if (info.needsLecturer && !extras.lecturerEmail) return 'Select the lecturer this form should be submitted to.';
   if (info.isMedical) {
@@ -61,20 +78,31 @@ export function buildPayload(type, formData, extras, formName) {
   const payload = {
     type,
     title: `${formName} - ${formData.registrationNumber}`,
-    semester: formData.currentSemester,
-    academicYear: '2025/2026',
+    semester: formData.currentSemester || 'Semester 05',
+    academicYear: formData.caAcademicYear || formData.examBatch || '2025/2026',
     subjects: subjectsFor(type, formData),
     // Snapshot of everything printed on the form, kept for the reviewers.
     formData: { ...formData, examSubjects: undefined, medicalSubjectsList: undefined },
   };
   if (info.needsPayment) {
-    payload.payment = { ...extras.payment, amount: Number(extras.payment.amount) };
-    payload.receipt = extras.receipt;
+    const receiptData = extras.receipt || (formData.pivVoucherImage ? {
+      name: formData.pivVoucherFileName || 'piv_voucher.png',
+      mime: 'image/png',
+      size: 1024,
+      dataUrl: formData.pivVoucherImage
+    } : null);
+    payload.payment = {
+      voucherNo: extras.payment?.voucherNo || formData.rescrutinyReceiptNo || formData.receiptNo || 'PB-SEU-849201',
+      amount: Number(extras.payment?.amount || formData.rescrutinyAmount || formData.examFeesPaid || 500),
+      date: extras.payment?.date || formData.applicationDate || new Date().toISOString().split('T')[0],
+      bankBranch: extras.payment?.bankBranch || "People's Bank, Addalaichenai Branch",
+    };
+    if (receiptData) payload.receipt = receiptData;
   }
   if (info.needsLecturer) payload.assignedLecturerEmail = extras.lecturerEmail;
   if (info.isMedical) {
     payload.medical = {
-      reason: formData.medicalReason.trim(),
+      reason: (formData.medicalReason || '').trim(),
       fromDate: formData.leaveFrom,
       toDate: formData.leaveTo,
       ...extras.medical,
@@ -101,7 +129,7 @@ export function readReceipt(file) {
   });
 }
 
-const padRows = (list, size = 8) => {
+const padRows = (list, size = 12) => {
   const rows = [...list];
   while (rows.length < size) rows.push({ sno: String(rows.length + 1).padStart(2, '0'), code: '', title: '' });
   return rows;
@@ -112,7 +140,14 @@ export function prefillFromProcess(process, formData) {
   const saved = process.formData || {};
   const subjects = (saved.subjects || []).map((s, i) => ({ sno: String(i + 1).padStart(2, '0'), code: s.code || '', title: s.title || '' }));
   const medical = saved.medical;
-  const next = { ...formData, ...saved, examSubjects: padRows(subjects), medicalSubjectsList: padRows(subjects) };
+  const next = {
+    ...formData,
+    ...saved,
+    examSubjects: padRows(subjects, 12),
+    medicalSubjectsList: padRows(subjects, 8),
+    pivVoucherImage: process.paymentReceipt?.dataUrl || saved.pivVoucherImage || formData.pivVoucherImage || null,
+    candidateSignatureImage: saved.candidateSignatureImage || formData.candidateSignatureImage || null,
+  };
   if (medical) {
     next.medicalReason = medical.reason;
     next.leaveFrom = medical.fromDate;

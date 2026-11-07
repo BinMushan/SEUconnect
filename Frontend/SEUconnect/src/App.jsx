@@ -222,8 +222,19 @@ function App() {
           (role) => cleanPath === role || cleanPath.startsWith(`${role}/`)
         );
         if (matchedRole) {
-          setCurrentPage(matchedRole);
-          setCurrentUser((prev) => prev || DEFAULT_USERS_BY_ROLE[matchedRole]);
+          const canonical = canonicalRole(matchedRole);
+          setCurrentPage(canonical);
+          setCurrentUser((prev) => {
+            const prevRole = canonicalRole(prev?.roleKey || prev?.role);
+            if (prev && prevRole === canonical) {
+              return prev;
+            }
+            const stored = readStoredUser();
+            if (stored && canonicalRole(stored.roleKey || stored.role) === canonical) {
+              return stored;
+            }
+            return DEFAULT_USERS_BY_ROLE[canonical] || DEFAULT_USERS_BY_ROLE[matchedRole];
+          });
         }
       }
     };
@@ -303,6 +314,7 @@ function App() {
       {currentPage !== 'login' && (
         <RoleSwitcherBar
           currentUser={currentUser || DEFAULT_USERS_BY_ROLE[currentPage]}
+          currentPage={currentPage}
           onSwitchRole={handleSwitchRole}
         />
       )}

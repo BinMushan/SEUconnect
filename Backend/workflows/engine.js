@@ -45,7 +45,7 @@ const targetTabFor = (role, type) => {
     case 'student':
       return 'track_applications';
     case 'sar':
-      return { eca_application: 'inbox_eca', esa_application: 'inbox_esa', exam_form: 'inbox_exam_forms', exam_medical: 'inbox_exam_medicals' }[type] || 'inboxes';
+      return { eca_application: 'inbox_eca', esa_application: 'inbox_esa', exam_form: 'inbox_exam_forms', exam_medical: 'inbox_exam_medicals', rescrutiny_application: 'inbox_esa' }[type] || 'inboxes';
     case 'dept_ma':
       return type === 'subject_medical' ? 'medical_applications' : 'workflow_applications';
     default:

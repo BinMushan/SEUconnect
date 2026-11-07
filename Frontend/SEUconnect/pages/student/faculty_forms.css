@@ -634,8 +634,275 @@
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
-    page-break-after: always;
   }
+
+  .printable-page-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-sizing: border-box !important;
+    padding: 10px 0 !important;
+    margin: 0 !important;
+  }
+
+  .printable-page-block.exam-page-1 {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+}
+
+/* ==========================================================================
+   OFFICIAL SEUSL EXAMINATION APPLICATION FORM STYLES
+   ========================================================================== */
+.exam-form-container {
+  font-family: "Times New Roman", Times, Georgia, serif;
+  color: #000000;
+  line-height: 1.35;
+}
+
+.exam-header-grid {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.exam-office-box {
+  border: 1.5px solid #000000;
+  width: 140px;
+  text-align: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.exam-office-box-title {
+  border-bottom: 1px solid #000000;
+  font-size: 0.72rem;
+  font-weight: bold;
+  padding: 3px 4px;
+  background-color: #f8f8f8;
+  letter-spacing: 0.05em;
+}
+
+.exam-office-box-content {
+  height: 38px;
+}
+
+.exam-field-row {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+/* Segmented Registration Box */
+.exam-reg-grid {
+  display: inline-flex;
+  border: 1px solid #000000;
+  vertical-align: middle;
+}
+
+.exam-reg-seg {
+  border-right: 1px solid #000000;
+  padding: 3px 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.86rem;
+  min-width: 38px;
+  background-color: #ffffff;
+}
+
+.exam-reg-seg:last-child {
+  border-right: none;
+}
+
+/* Tick Selection Boxes */
+.exam-tick-table {
+  border-collapse: collapse;
+  display: inline-table;
+  vertical-align: middle;
+}
+
+.exam-tick-table th,
+.exam-tick-table td {
+  border: 1px solid #000000 !important;
+  padding: 2px 6px !important;
+  text-align: center !important;
+  font-size: 0.8rem !important;
+}
+
+.exam-tick-table th {
+  background-color: #f5f5f5 !important;
+  font-weight: 600 !important;
+}
+
+.exam-tick-table td {
+  height: 22px !important;
+  font-weight: bold !important;
+  font-size: 0.9rem !important;
+  background-color: #ffffff !important;
+}
+
+/* 12-Row Applied Subjects Table */
+.exam-subjects-grid {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+
+.exam-subjects-grid th {
+  border: 1px solid #000000;
+  background-color: #e5e7eb !important;
+  color: #000000;
+  font-size: 0.82rem;
+  font-weight: bold;
+  padding: 4px 6px;
+  text-align: center;
+}
+
+.exam-subjects-grid td {
+  border: 1px solid #000000;
+  padding: 3px 6px;
+  font-size: 0.82rem;
+  height: 24px;
+}
+
+/* Designated PIV Affix Box on Page 2 */
+.piv-affix-box {
+  border: 2px solid #000000;
+  min-height: 330px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  padding: 14px;
+  box-sizing: border-box;
+  margin: 10px 0 16px 0;
+  text-align: center;
+}
+
+.piv-watermark-text {
+  font-family: Impact, "Arial Black", -apple-system, sans-serif;
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #1e293b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transform: rotate(-9deg);
+  opacity: 0.82;
+  user-select: none;
+  pointer-events: none;
+  line-height: 1.2;
+}
+
+.piv-upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.piv-upload-btn {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid #172554;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(30, 58, 138, 0.25);
+  transition: all 0.15s ease;
+}
+
+.piv-upload-btn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.piv-preview-img {
+  max-height: 300px;
+  max-width: 96%;
+  object-fit: contain;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background-color: #ffffff;
+}
+
+.piv-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Candidate Signature Box */
+.exam-sig-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 220px;
+}
+
+.exam-sig-display-area {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.sig-preview-img {
+  max-height: 52px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.sig-script-fallback {
+  font-family: "Brush Script MT", "Segoe Script", "Apple Chancery", cursive, serif;
+  font-size: 1.35rem;
+  color: #1e3a8a;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.sig-upload-btn-sm {
+  background-color: #0f766e;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sig-upload-btn-sm:hover {
+  background-color: #0d9488;
+}
+
+.sig-clear-btn-sm {
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
+  cursor: pointer;
+}
+
+.sig-clear-btn-sm:hover {
+  background-color: #fecaca;
 }
 
 
