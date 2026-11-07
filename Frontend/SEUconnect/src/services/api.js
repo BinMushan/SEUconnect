@@ -529,6 +529,9 @@ export const api = {
   async getBatchStats() {
     return request('/stats/batches');
   },
+  getBatches: () => request('/student/batches'),
+  createBatch: (data) => request('/student/batches', json('POST', data)),
+  deleteBatch: (id) => request(`/student/batches/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   /* ------------------------------- academic calendar ------------------------------- */
   getAcademicEvents: (params = {}) =>
