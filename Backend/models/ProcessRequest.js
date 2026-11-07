@@ -88,7 +88,20 @@ const ProcessRequestSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['medical_excuse', 'repeat_exam', 'add_drop', 'leave_absence', 'special_concession', 'eca_application', 'esa_application', 'exam_form', 'subject_medical', 'exam_medical'],
+      enum: [
+        'medical_excuse',
+        'repeat_exam',
+        'add_drop',
+        'leave_absence',
+        'special_concession',
+        'eca_application',
+        'esa_application',
+        'exam_form',
+        'subject_medical',
+        'exam_medical',
+        'rescrutiny_application',
+        'email_request',
+      ],
       default: 'medical_excuse',
     },
     title: {
