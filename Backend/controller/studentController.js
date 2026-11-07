@@ -462,6 +462,8 @@ exports.createStudentsBulk = async (req, res) => {
               degreeProgramme: effectiveProgramme,
               currentSemester: cur.semester,
               batch: s.batch || s.batchCode || '2025/2026',
+              batchId: s.batchId || 'BATCH-05',
+              batchCode: s.batchCode || 'Batch 05 (2024/2025)',
               academicStatus: 'Good Standing'
             },
             $setOnInsert: {
@@ -729,6 +731,23 @@ exports.getStudentAttendance = async (req, res) => {
     const student = await findStudentByAnyIdentifier(req.params.identifier);
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
 
+    const raw = student.toObject ? student.toObject() : { ...student };
+    const cur = getCurriculumBySemester(raw.currentSemester);
+    const isFresh = cur?.isFreshers || (raw.currentSemester && (raw.currentSemester.includes('Semester 1') || raw.currentSemester.includes('Year 1 Semester 1')));
+
+    if (isFresh && (!raw.attendance?.totalLectures || raw.attendance?.totalLectures === 0 || raw.attendance?.overallAttendancePercentage === 92.5 || raw.attendance?.overallAttendancePercentage === null)) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          overallAttendancePercentage: null,
+          totalLectures: 0,
+          attendedLectures: 0,
+          eligibilityStatus: 'Enrolled',
+          subjectRecords: []
+        }
+      });
+    }
+
     res.status(200).json({
       success: true,
       data: student.attendance
@@ -878,5 +897,250 @@ exports.registerSemesterCourses = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Get all batches with live database persistence
+// @route   GET /api/student/batches
+exports.getAllBatches = async (req, res) => {
+  try {
+    const Batch = require('../models/Batch');
+    let batches = await Batch.find({}).sort({ createdAt: 1 }).lean();
+
+    if (!batches || batches.length === 0) {
+      // Seed initial 5 standard cohorts into database
+      const initial = [
+        {
+          id: 'BATCH-01',
+          code: 'B01',
+          name: 'Batch 01 (2020/2021)',
+          academicYear: '2020/2021',
+          currentSemester: 'Semester 8 (Final Year)',
+          status: 'Graduating / Finalizing',
+          totalStudents: 240,
+          ictStudents: 120,
+          bstStudents: 120,
+          coordinator: 'Dr. S. Sabraz Nawaz (HOD - ICT)',
+          departments: ['BICT', 'BST'],
+          avgCgpa: 3.42,
+          attendanceRate: 88,
+          enrollmentDate: '2021-02-15',
+          regPrefix: '20'
+        },
+        {
+          id: 'BATCH-02',
+          code: 'B02',
+          name: 'Batch 02 (2021/2022)',
+          academicYear: '2021/2022',
+          currentSemester: 'Semester 6 (3rd Year)',
+          status: 'Active',
+          totalStudents: 240,
+          ictStudents: 120,
+          bstStudents: 120,
+          coordinator: 'Dr. S. Sabraz Nawaz (HOD - ICT)',
+          departments: ['BICT', 'BST'],
+          avgCgpa: 3.38,
+          attendanceRate: 90,
+          enrollmentDate: '2022-03-01',
+          regPrefix: '21'
+        },
+        {
+          id: 'BATCH-03',
+          code: 'B03',
+          name: 'Batch 03 (2022/2023)',
+          academicYear: '2022/2023',
+          currentSemester: 'Semester 5 (3rd Year)',
+          status: 'Active',
+          totalStudents: 240,
+          ictStudents: 120,
+          bstStudents: 120,
+          coordinator: 'Dr. S. Sabraz Nawaz (HOD - ICT)',
+          departments: ['BICT', 'BST'],
+          avgCgpa: 3.45,
+          attendanceRate: 91,
+          enrollmentDate: '2023-04-10',
+          regPrefix: '22'
+        },
+        {
+          id: 'BATCH-04',
+          code: 'B04',
+          name: 'Batch 04 (2023/2024)',
+          academicYear: '2023/2024',
+          currentSemester: 'Semester 3 (2nd Year)',
+          status: 'Active',
+          totalStudents: 240,
+          ictStudents: 120,
+          bstStudents: 120,
+          coordinator: 'Dr. U.L. Abdul Majeed (HOD - BST)',
+          departments: ['BICT', 'BST'],
+          avgCgpa: 3.25,
+          attendanceRate: 89,
+          enrollmentDate: '2024-05-15',
+          regPrefix: '23'
+        },
+        {
+          id: 'BATCH-05',
+          code: 'B05',
+          name: 'Batch 05 (2024/2025)',
+          academicYear: '2024/2025',
+          currentSemester: 'Semester 1 (Freshers)',
+          status: 'Active (Freshers)',
+          totalStudents: 240,
+          ictStudents: 120,
+          bstStudents: 120,
+          coordinator: 'Dr. S. Sabraz Nawaz (HOD - ICT)',
+          departments: ['BICT', 'BST'],
+          avgCgpa: 0.0,
+          attendanceRate: 100,
+          enrollmentDate: '2025-06-01',
+          regPrefix: '24'
+        }
+      ];
+      await Batch.insertMany(initial);
+      batches = await Batch.find({}).sort({ createdAt: 1 }).lean();
+    }
+
+    res.status(200).json({
+      success: true,
+      count: batches.length,
+      data: batches
+    });
+  } catch (error) {
+    console.error('Error fetching batches:', error);
+    res.status(500).json({ success: false, message: 'Server error retrieving batches: ' + error.message });
+  }
+};
+
+// @desc    Onboard a new intake batch to the database
+// @route   POST /api/student/batches
+exports.createBatch = async (req, res) => {
+  try {
+    const Batch = require('../models/Batch');
+    const {
+      id,
+      code,
+      name,
+      academicYear,
+      currentSemester,
+      status,
+      totalStudents,
+      coordinator,
+      departments,
+      regPrefix,
+      enrollmentDate
+    } = req.body;
+
+    if (!code || !name || !academicYear) {
+      return res.status(400).json({ success: false, message: 'Batch Code, Name, and Academic Year are required.' });
+    }
+
+    const batchId = id || `BATCH-${Date.now()}`;
+    const cleanCode = String(code).trim().toUpperCase();
+    const cleanName = String(name).trim();
+    const cleanYear = String(academicYear).trim();
+
+    const newBatch = await Batch.findOneAndUpdate(
+      { $or: [{ id: batchId }, { code: cleanCode }, { name: cleanName }] },
+      {
+        $set: {
+          id: batchId,
+          code: cleanCode,
+          name: cleanName,
+          academicYear: cleanYear,
+          currentSemester: currentSemester || 'Semester 1 (Freshers)',
+          status: status || 'Active (Freshers)',
+          totalStudents: 0,
+          ictStudents: 0,
+          bstStudents: 0,
+          coordinator: coordinator || 'Assigned by Faculty Board',
+          departments: departments || ['BICT', 'BST'],
+          avgCgpa: 0.0,
+          attendanceRate: 100,
+          enrollmentDate: enrollmentDate || new Date().toISOString().split('T')[0],
+          regPrefix: regPrefix || cleanCode.slice(-2)
+        }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `Intake Batch ${cleanName} onboarded successfully to database.`,
+      data: newBatch
+    });
+  } catch (error) {
+    console.error('Error creating batch:', error);
+    res.status(500).json({ success: false, message: 'Failed to onboard batch: ' + error.message });
+  }
+};
+
+// @desc    Delete an intake batch and remove all its enrolled students
+// @route   DELETE /api/student/batches/:id
+exports.deleteBatch = async (req, res) => {
+  try {
+    const Batch = require('../models/Batch');
+    const User = require('../models/User');
+    const store = require('../store');
+    const batchId = decodeURIComponent(req.params.id);
+
+    // Find the batch in DB
+    const batch = await Batch.findOne({
+      $or: [{ id: batchId }, { code: batchId }, { name: batchId }, ...(batchId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: batchId }] : [])]
+    });
+
+    const searchId = batch?.id || batchId;
+    const searchCode = batch?.code || '';
+    const searchName = batch?.name || '';
+    const searchYear = batch?.academicYear || '';
+    const searchPrefix = batch?.regPrefix || '';
+
+    // Find all students enrolled in this batch
+    const studentConditions = [
+      { batchId: searchId },
+      ...(searchName ? [{ batchCode: searchName }] : []),
+      ...(searchYear ? [{ batch: searchYear }] : []),
+    ];
+    if (searchPrefix) {
+      studentConditions.push(
+        { studentId: new RegExp(`^(${searchPrefix}|SEU/IS/${searchPrefix}|24/)`, 'i') },
+        { indexNo: new RegExp(`^(${searchPrefix}|SEU/IS/${searchPrefix}|24/)`, 'i') }
+      );
+    }
+
+    const studentsToDelete = await Student.find({ $or: studentConditions }).lean();
+    const emails = studentsToDelete.map(s => s.email?.toLowerCase()).filter(Boolean);
+    const studentIds = studentsToDelete.map(s => s._id);
+
+    // 1. Delete students from Student collection
+    if (studentIds.length > 0) {
+      await Student.deleteMany({ _id: { $in: studentIds } });
+    }
+
+    // 2. Delete student user accounts from User collection & memory store
+    if (emails.length > 0) {
+      await User.deleteMany({ email: { $in: emails } });
+      for (const em of emails) {
+        try {
+          await store.users.delete(em);
+        } catch (_) {}
+      }
+    }
+
+    // 3. Delete the batch document
+    if (batch) {
+      await Batch.deleteOne({ _id: batch._id });
+    } else {
+      await Batch.deleteOne({ id: batchId });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Batch "${batch?.name || batchId}" and ${studentsToDelete.length} enrolled student(s) successfully deleted from the database.`,
+      deletedBatchId: batchId,
+      deletedStudentsCount: studentsToDelete.length
+    });
+  } catch (error) {
+    console.error('Error deleting batch:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete batch: ' + error.message });
   }
 };

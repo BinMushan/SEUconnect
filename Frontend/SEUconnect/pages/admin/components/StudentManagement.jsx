@@ -644,7 +644,7 @@ export default function StudentManagement({
             cgpa: 0.00,
             sgpa: 0.00,
             credits: 0,
-            attendance: 92.5,
+            attendance: null,
             email: email.toLowerCase(),
             tempPassword,
             phone,
