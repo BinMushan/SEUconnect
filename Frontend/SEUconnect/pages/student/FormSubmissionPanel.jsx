@@ -28,17 +28,48 @@ export default function FormSubmissionPanel({ type, user, formData, setFormData,
 
   if (!info) return null;
 
+  const isRescrutiny = type === 'rescrutiny_application';
+  const isEmail = type === 'email_request';
+
+  useEffect(() => {
+    if (isRescrutiny) {
+      setExtras((prev) => ({
+        ...prev,
+        payment: {
+          ...prev.payment,
+          amount: prev.payment.amount && prev.payment.amount !== '0' ? prev.payment.amount : (formData.rescrutinyAmount || '500'),
+          voucherNo: prev.payment.voucherNo || formData.rescrutinyReceiptNo || formData.receiptNo || '',
+        }
+      }));
+    }
+  }, [isRescrutiny, formData.rescrutinyAmount, formData.rescrutinyReceiptNo, formData.receiptNo]);
+
   const portal = info.availabilityKey ? availability?.[info.availabilityKey] : null;
   const closed = portal && (!portal.isOpen || (portal.deadline && Date.now() > Date.parse(portal.deadline)));
   const listKey = info.isMedical ? 'medicalSubjectsList' : 'examSubjects';
-  const subjects = formData[listKey] || [];
+  const subjects = isRescrutiny
+    ? [{ code: formData.rescrutinyCode || 'ICT22011', title: formData.rescrutinyTitle || 'Web Application Development' }]
+    : isEmail
+    ? [{ code: 'GSUITE-EMAIL', title: `${formData.preferredEmailPrefix || formData.registrationNumber || 'student'}@seu.ac.lk` }]
+    : formData[listKey] || [];
 
   const setSubject = (index, field, value) => {
+    if (isRescrutiny) {
+      if (field === 'code') setFormData({ ...formData, rescrutinyCode: value });
+      else setFormData({ ...formData, rescrutinyTitle: value });
+      return;
+    }
     const next = subjects.map((s, i) => (i === index ? { ...s, [field]: value } : s));
     setFormData({ ...formData, [listKey]: next });
   };
-  const addSubject = () => setFormData({ ...formData, [listKey]: [...subjects, { sno: String(subjects.length + 1).padStart(2, '0'), code: '', title: '' }] });
-  const removeSubject = (index) => setFormData({ ...formData, [listKey]: subjects.filter((_, i) => i !== index) });
+  const addSubject = () => {
+    if (isRescrutiny || isEmail) return;
+    setFormData({ ...formData, [listKey]: [...subjects, { sno: String(subjects.length + 1).padStart(2, '0'), code: '', title: '' }] });
+  };
+  const removeSubject = (index) => {
+    if (isRescrutiny || isEmail) return;
+    setFormData({ ...formData, [listKey]: subjects.filter((_, i) => i !== index) });
+  };
 
   const setPayment = (field, value) => setExtras({ ...extras, payment: { ...extras.payment, [field]: value } });
   const setMedical = (field, value) => setExtras({ ...extras, medical: { ...extras.medical, [field]: value } });
@@ -121,9 +152,11 @@ export default function FormSubmissionPanel({ type, user, formData, setFormData,
             ))}
           </tbody>
         </table>
-        <button type="button" className="seu-btn-secondary-sm" onClick={addSubject}>
-          + Add subject
-        </button>
+        {!isRescrutiny && !isEmail && (
+          <button type="button" className="seu-btn-secondary-sm" onClick={addSubject}>
+            + Add subject
+          </button>
+        )}
       </div>
 
       {info.needsPayment && (

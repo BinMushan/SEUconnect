@@ -3584,6 +3584,80 @@ Note: Present this completed official document with attached original bank PIV s
                   </div>
                 </>
               )}
+
+              {/* Form Specific Extra Inputs for Official Institutional Email Request */}
+              {selectedForm.formId === 'SEU-EMAIL-REQ' && (
+                <>
+                  <div className="seu-form-group">
+                    <label>Preferred Email Username Prefix (@seu.ac.lk)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 22ict085 or username"
+                      value={formData.preferredEmailPrefix}
+                      onChange={(e) => setFormData({ ...formData, preferredEmailPrefix: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>WhatsApp / Primary Contact Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 077 123 4567"
+                      value={formData.whatsappNo || formData.phone}
+                      onChange={(e) => setFormData({ ...formData, whatsappNo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label>Purpose of Request</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Academic coursework, LMS access, official faculty correspondence, and exam indexing"
+                      value={formData.emailPurpose}
+                      onChange={(e) => setFormData({ ...formData, emailPurpose: e.target.value })}
+                      style={{ width: '100%', padding: '8px', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <label style={{ fontWeight: 700, display: 'block', marginBottom: '4px', color: '#0f766e' }}>
+                      Upload Applicant Signature Image (Email Request)
+                    </label>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                      Upload handwritten signature picture (PNG or JPG). Renders directly on official applicant signature line.
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        onChange={handleSignatureUpload}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                      {formData.candidateSignatureImage && (
+                        <button
+                          type="button"
+                          className="sig-clear-btn-sm"
+                          onClick={handleRemoveSignature}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {formData.candidateSignatureImage && (
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                          src={formData.candidateSignatureImage}
+                          alt="Signature Preview"
+                          style={{ height: '36px', maxWidth: '100px', objectFit: 'contain', border: '1px solid #cbd5e1', padding: '2px', background: '#fff' }}
+                        />
+                        <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                          ✓ Attached: {formData.candidateSignatureFileName || 'signature.png'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -3603,6 +3677,50 @@ Note: Present this completed official document with attached original bank PIV s
               onSubmit={handleSubmit}
               onTrack={() => onNavigate?.('track_applications')}
             />
+          )}
+
+          {selectedForm.formId === 'SEU-PIV-VOUCHER' && (
+            <div className="seu-editor-panel no-print" style={{ borderLeft: '4px solid #1e3a8a', background: '#f8fafc' }}>
+              <h3 className="seu-editor-panel-title">
+                <span>Bank Payment Procedure &amp; Online Submission Guide</span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#64748b' }}>Account: 228 1001 9000 1704 (People&apos;s Bank, Addalaichenai)</span>
+              </h3>
+              <p style={{ fontSize: '0.84rem', color: '#334155', lineHeight: 1.5, margin: '0 0 10px 0' }}>
+                This is an official People&apos;s Bank Pay-In-Voucher. Click <strong>&quot;Print Official Form&quot;</strong> above to print the 3-part bank voucher (Bank Copy, Faculty Copy, Student Copy) and make payment at any People&apos;s Bank branch. Once stamped by the bank teller, take a picture or scan of the stamped voucher and attach it when submitting your online application:
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="seu-btn-secondary-sm"
+                  onClick={() => {
+                    const eca = OFFICIAL_FORMS.find(f => f.formId === 'SEU-EX-CA-REP');
+                    if (eca) handleOpenFiller(eca);
+                  }}
+                >
+                  + Apply for CA Repeat (ECA) Online
+                </button>
+                <button
+                  type="button"
+                  className="seu-btn-secondary-sm"
+                  onClick={() => {
+                    const esa = OFFICIAL_FORMS.find(f => f.formId === 'SEU-EX-ESA-REP');
+                    if (esa) handleOpenFiller(esa);
+                  }}
+                >
+                  + Apply for End Semester Repeat (ESA) Online
+                </button>
+                <button
+                  type="button"
+                  className="seu-btn-secondary-sm"
+                  onClick={() => {
+                    const rescrutiny = OFFICIAL_FORMS.find(f => f.formId === 'SEU-EX-RESCRUTINY');
+                    if (rescrutiny) handleOpenFiller(rescrutiny);
+                  }}
+                >
+                  + Apply for Re-Scrutinization Online
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Official Printable Preview Header */}
