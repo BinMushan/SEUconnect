@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import { INITIAL_SUBJECTS, ENROLLED_STUDENTS, calculateSEUSLGrade, getStoredCustomCAs, getStoredMarks } from './lecturerMockData.js';
 

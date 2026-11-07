@@ -1,7 +1,7 @@
 import React from 'react';
 import './workflow.css';
 
-export default function RoleSwitcherBar({ currentUser, onSwitchRole }) {
+export default function RoleSwitcherBar({ currentUser, currentPage, onSwitchRole }) {
   const roles = [
     { key: 'student', label: '🎓 Student (Afnan)', email: 'student@gmail.com' },
     { key: 'lecturer', label: '👨‍🏫 Lecturer (Dr. Kirushanth)', email: 'lecturer@gmail.com' },
@@ -14,14 +14,16 @@ export default function RoleSwitcherBar({ currentUser, onSwitchRole }) {
     { key: 'admin', label: '⚙️ System Admin', email: 'admin@gmail.com' },
   ];
 
-  const currentRole = currentUser?.roleKey || currentUser?.role || 'student';
+  const canonicalRole = (role) => (role === 'department_ma' ? 'dept_ma' : (role || 'student').toLowerCase());
+  const activeRole = canonicalRole(currentPage || currentUser?.roleKey || currentUser?.role || 'student');
+  const userRole = canonicalRole(currentUser?.roleKey || currentUser?.role || activeRole);
 
   return (
     <div className="seu-demo-bar">
       <div className="seu-demo-bar-left">
         <span className="seu-demo-tag">LIVE MERN DEMO</span>
         <span style={{ color: '#94a3b8' }}>
-          Logged in: <strong style={{ color: '#38bdf8' }}>{currentUser?.name || 'User'}</strong> ({currentUser?.roleKey?.toUpperCase() || 'STU'})
+          Logged in: <strong style={{ color: '#38bdf8' }}>{currentUser?.name || 'User'}</strong> ({activeRole.toUpperCase()})
         </span>
       </div>
 
@@ -30,7 +32,7 @@ export default function RoleSwitcherBar({ currentUser, onSwitchRole }) {
           Quick Switch Persona:
         </span>
         {roles.map((r) => {
-          const isActive = currentRole.toLowerCase() === r.key.toLowerCase();
+          const isActive = activeRole === r.key.toLowerCase();
           return (
             <button
               key={r.key}
