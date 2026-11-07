@@ -94,6 +94,45 @@ export const matchesBatchStudent = (s, batch) => {
   return false;
 };
 
+export const getNextBatchProgression = (batch) => {
+  if (!batch) return { type: 'promote', nextSem: 'Semester 2', currentSem: 'Semester 1' };
+  const term = String(batch.currentSemester || batch.currentTerm || batch.term || batch.status || '').toLowerCase();
+  if (term.includes('graduated') || term.includes('passed out')) {
+    return { type: 'passed_out', label: 'Passed Out (Graduated)' };
+  }
+  if (term.includes('semester 8') || term.includes('sem 8') || term.includes('4th year (sem 2)') || term.includes('4th year sem 2') || term.includes('final year')) {
+    return { type: 'pass_out', label: 'Pass Out Batch' };
+  }
+  const match = term.match(/semester\s*(\d)/i) || term.match(/sem\s*(\d)/i);
+  if (match) {
+    const semNum = parseInt(match[1], 10);
+    if (semNum >= 8) return { type: 'pass_out', label: 'Pass Out Batch' };
+    const nextSemNum = semNum + 1;
+    const yearNum = Math.ceil(nextSemNum / 2);
+    const semInYear = nextSemNum % 2 === 1 ? 1 : 2;
+    const suffix = yearNum === 1 ? '1st' : yearNum === 2 ? '2nd' : yearNum === 3 ? '3rd' : '4th';
+    return {
+      type: 'promote',
+      nextSem: `Semester ${nextSemNum}`,
+      nextTerm: `${suffix} Year (Sem ${semInYear})`,
+      currentSem: `Semester ${semNum}`
+    };
+  }
+  if (term.includes('1st year') || term.includes('1st') || term.includes('freshers')) {
+    return { type: 'promote', nextSem: 'Semester 2', nextTerm: '1st Year (Sem 2)' };
+  }
+  if (term.includes('2nd year') || term.includes('2nd')) {
+    return { type: 'promote', nextSem: 'Semester 4', nextTerm: '2nd Year (Sem 2)' };
+  }
+  if (term.includes('3rd year') || term.includes('3rd')) {
+    return { type: 'promote', nextSem: 'Semester 6', nextTerm: '3rd Year (Sem 2)' };
+  }
+  if (term.includes('4th year') || term.includes('4th')) {
+    return { type: 'pass_out', label: 'Pass Out Batch' };
+  }
+  return { type: 'promote', nextSem: 'Next Semester', nextTerm: 'Next Term' };
+};
+
 export default function StudentManagement({
   batches = [],
   students = [],
@@ -297,6 +336,8 @@ export default function StudentManagement({
     currentSemester: 'Semester 1 (Freshers)',
     regPrefix: '24'
   };
+
+  const drillProgression = getNextBatchProgression(selectedBatch || activeBatch);
 
   // Pagination State for Student Roster
   const [currentPage, setCurrentPage] = useState(1);

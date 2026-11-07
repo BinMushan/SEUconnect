@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api, { enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
+import api, { enrolledStorage, provisionedUserStorage, penaltyStorage } from '../../src/services/api.js';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
