@@ -2326,10 +2326,61 @@ const buildSeedNotifications = (workflowSeeds) => {
   return events;
 };
 
+const ensureCoreUsers = async () => {
+  const updated = [];
+  try {
+    if (mongoose.connection.readyState !== 1) return updated;
+    const User = require('./models/User');
+    for (const u of SEED_USERS) {
+      const email = String(u.email || '').toLowerCase().trim();
+      const existing = await User.findOne({ email });
+      if (existing) {
+        let changed = false;
+        if (existing.role !== u.role || existing.roleKey !== (u.roleKey || u.role)) {
+          existing.role = u.role;
+          existing.roleKey = u.roleKey || u.role;
+          changed = true;
+        }
+        if (existing.designation !== u.designation) {
+          existing.designation = u.designation;
+          changed = true;
+        }
+        if (existing.department !== u.department) {
+          existing.department = u.department;
+          changed = true;
+        }
+        if (existing.name !== u.name) {
+          existing.name = u.name;
+          changed = true;
+        }
+        if (changed) {
+          await existing.save();
+          console.log(` Restored core user role for ${email} -> ${u.role} (${u.designation})`);
+          updated.push({ email, role: u.role, status: 'restored' });
+        } else {
+          updated.push({ email, role: u.role, status: 'verified' });
+        }
+      } else {
+        await User.create({
+          ...u,
+          email,
+          password: hashPassword(u.password || '123456'),
+        });
+        console.log(` Created missing core user ${email} (${u.role})`);
+        updated.push({ email, role: u.role, status: 'created' });
+      }
+    }
+  } catch (error) {
+    console.warn(' ensureCoreUsers note:', error.message);
+  }
+  return updated;
+};
+
 // Demo accounts all share a well-known password, so they are never created in production unless asked for.
 const demoSeedingEnabled = () => (process.env.SEED_DEMO_DATA ? process.env.SEED_DEMO_DATA === 'true' : process.env.NODE_ENV !== 'production');
 
 const seedDatabase = async () => {
+  await ensureCoreUsers();
   if (!demoSeedingEnabled()) {
     console.log(' Demo data seeding is disabled (set SEED_DEMO_DATA=true to enable).');
     return;
@@ -2358,4 +2409,4 @@ const seedDatabase = async () => {
   }
 };
 
-module.exports = { SEED_USERS, SEED_PROCESSES: LEGACY_SEED_PROCESSES, seedDatabase };
+module.exports = { SEED_USERS, SEED_PROCESSES: LEGACY_SEED_PROCESSES, seedDatabase, ensureCoreUsers };
