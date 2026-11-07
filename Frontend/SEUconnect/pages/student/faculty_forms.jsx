@@ -422,10 +422,18 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     emailPurpose: 'Academic coursework, LMS access, official faculty correspondence, and exam indexing',
     whatsappNo: studentPhone,
 
-    // Rescrutiny specific
+    // Rescrutiny specific matching physical form
+    rescrutinyTitlePrefix: 'Mr.',
+    rescrutinyYear: '3rd', // 1st, 2nd, 3rd, 4th
+    rescrutinySemester: 'I', // I, II
+    rescrutinyFaculty: 'FT', // FAC, FMC, FAS, FIA, FE, FT
+    rescrutinyExamNameYear: 'Third Year Examination in Technology - Semester I - 2025/2026',
     rescrutinyCode: 'ICT22011',
     rescrutinyTitle: 'Web Application Development',
     gradeReceived: 'C-',
+    rescrutinyAmount: '500',
+    rescrutinyReceiptNo: 'PB-SEU-849201',
+    rescrutinyExamNo: 'EX-2026-085',
     signatureName: studentName
   }));
 
@@ -970,7 +978,367 @@ Note: Present this completed official document with attached original bank PIV s
           </div>
         );
 
-      // 3. APPLICATION FOR EXAMINATION (Continuous Assessment) (Repeat Candidates only)
+      // 3. APPLICATION FOR RE-SCRUTINIZATION OF MARKS & GRADES (Exact Physical Layout)
+      case 'SEU-EX-RESCRUTINY': {
+        const regStr = formData.registrationNumber || `${initialParts.p1}/${initialParts.p2}/${initialParts.p3}/${initialParts.p4}/${initialParts.p5}`;
+        const regPartsClean = parseRegParts(regStr);
+        const sigImg = formData.candidateSignatureImage || formData.rescrutinySignImage;
+
+        return (
+          <div className="printable-document exam-form-container" style={{ fontSize: '0.84rem' }}>
+            <div className="printable-page-block">
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginBottom: '8px' }}>
+                <div style={{ position: 'absolute', left: 0, top: 0 }}>
+                  <UniversityEmblem size={52} />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '0.03em' }}>
+                    South Eastern University of Sri Lanka
+                  </div>
+                  <div style={{ fontSize: '0.98rem', fontWeight: 800, letterSpacing: '0.04em', margin: '1px 0' }}>
+                    Examinations Division
+                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 900, textDecoration: 'underline', marginTop: '2px' }}>
+                    Application for re-scrutinization of Marks &amp; Grades
+                  </div>
+                  <div style={{ fontSize: '0.74rem', fontStyle: 'italic', marginTop: '2px' }}>
+                    (Should be filled in CAPITAL letters and check &apos;&#10003;&apos; appropriate box)
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 1: Details of the Candidate */}
+              <div style={{ fontWeight: 800, fontSize: '0.9rem', textDecoration: 'underline', margin: '8px 0 6px 0' }}>
+                Details of the Candidate:
+              </div>
+
+              {/* 01. Name with Initials */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ width: '190px', fontWeight: 600, flexShrink: 0 }}>
+                  01. Name with Initials:
+                </div>
+                <div style={{ marginRight: '14px', display: 'flex', gap: '8px' }}>
+                  <span>[{formData.rescrutinyTitlePrefix === 'Mr.' || formData.candidateTitle === 'Mr.' ? '✓' : ' '}] Mr.</span>
+                  <span>[{formData.rescrutinyTitlePrefix === 'Ms.' || formData.candidateTitle === 'Ms.' ? '✓' : ' '}] Ms.</span>
+                </div>
+                <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  {formData.name}
+                </div>
+              </div>
+
+              {/* 02. Registration No & 03. Index No */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '14px', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '190px', fontWeight: 600, flexShrink: 0 }}>
+                    02. Registration No:
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold' }}>
+                    SEU/IS/ {regPartsClean.p3} / {regPartsClean.p4} / {regPartsClean.p5}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '90px', fontWeight: 600, flexShrink: 0 }}>
+                    03. Index No:
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold' }}>
+                    {formData.indexNumber || 'ICT22085'}
+                  </div>
+                </div>
+              </div>
+
+              {/* 04. Subject/ Course Year & 05. Semester */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '14px', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '190px', fontWeight: 600, flexShrink: 0 }}>
+                    04. Subject/ Course Year:
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {['1st', '2nd', '3rd', '4th'].map((yr) => (
+                      <span key={yr} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        {yr} <span style={{ border: '1px solid #000', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                          {(formData.rescrutinyYear || '3rd') === yr ? '✓' : ''}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '90px', fontWeight: 600, flexShrink: 0 }}>
+                    05. Semester:
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {['I', 'II'].map((sem) => (
+                      <span key={sem} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        {sem} <span style={{ border: '1px solid #000', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                          {(formData.rescrutinySemester || 'I') === sem ? '✓' : ''}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 06. Faculty */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ width: '190px', fontWeight: 600, flexShrink: 0 }}>
+                  06. Faculty:
+                </div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {['FAC', 'FMC', 'FAS', 'FIA', 'FE', 'FT'].map((fac) => (
+                    <span key={fac} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      {fac} <span style={{ border: '1px solid #000', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                        {(formData.rescrutinyFaculty || 'FT') === fac ? '✓' : ''}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* 07. Contact No & 08. E-mail */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1.3fr', gap: '14px', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '190px', fontWeight: 600, flexShrink: 0 }}>
+                    07. Contact No:
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 600 }}>
+                    {formData.phone}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '70px', fontWeight: 600, flexShrink: 0 }}>
+                    08. E-mail:
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontSize: '0.8rem' }}>
+                    {formData.personalEmail || formData.email}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Subject/ Course Unit Details */}
+              <div style={{ fontWeight: 800, fontSize: '0.9rem', textDecoration: 'underline', margin: '10px 0 6px 0' }}>
+                Subject/ Course Unit Details:
+              </div>
+
+              {/* 09. Name & Year of the Examination */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ width: '230px', fontWeight: 600, flexShrink: 0 }}>
+                  09. Name &amp; Year of the Examination:
+                </div>
+                <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold' }}>
+                  {formData.rescrutinyExamNameYear || formData.examNameYear || 'Third Year Examination in Technology - Semester I - 2025/2026'}
+                </div>
+              </div>
+
+              {/* 10. Subject/ Course Code & Title */}
+              <div style={{ marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ width: '230px', fontWeight: 600, flexShrink: 0 }}>
+                    10. Subject/ Course Code &amp; Title:
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold' }}>
+                    {formData.rescrutinyCode ? `${formData.rescrutinyCode} — ${formData.rescrutinyTitle}` : 'ICT22011 — Web Application Development'}
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.72rem', fontStyle: 'italic', color: '#444', marginLeft: '230px' }}>
+                  (Use separate application for each subject)
+                </div>
+              </div>
+
+              {/* 11. Grade Received */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ width: '230px', fontWeight: 600, flexShrink: 0 }}>
+                  11. Grade Received:
+                </div>
+                <div style={{ border: '1.5px solid #000', padding: '3px 18px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.92rem', minWidth: '45px' }}>
+                  {formData.gradeReceived || 'C-'}
+                </div>
+              </div>
+
+              {/* 12. Amount Paid & 13. Receipt No */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', alignItems: 'flex-start', marginBottom: '10px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: '140px', fontWeight: 600, flexShrink: 0 }}>
+                      12. Amount Paid: Rs.
+                    </div>
+                    <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold' }}>
+                      {formData.rescrutinyAmount || '500'}/=
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', fontStyle: 'italic', color: '#444' }}>
+                    (at the rate of Rs. 500/- per subject/ course)
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: '120px', fontWeight: 600, flexShrink: 0 }}>
+                      13. Receipt No:
+                    </div>
+                    <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 6px', fontWeight: 'bold' }}>
+                      {formData.rescrutinyReceiptNo || formData.receiptNo || 'PB-SEU-849201'}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', fontStyle: 'italic', color: '#444' }}>
+                    (Original receipt should be attached)
+                  </div>
+                </div>
+              </div>
+
+              {/* Date & Signature of the candidate */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '16px', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.84rem' }}>
+                  Date: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', minWidth: '140px', padding: '0 6px', fontWeight: 600 }}>{formData.applicationDate}</span>
+                </div>
+
+                <div className="exam-sig-container">
+                  <div className="exam-sig-display-area">
+                    {sigImg ? (
+                      <img
+                        src={sigImg}
+                        alt="Candidate Signature"
+                        className="sig-preview-img"
+                      />
+                    ) : (
+                      <span className="sig-script-fallback">
+                        {formData.name || studentName}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', width: '100%', marginBottom: '4px' }}></div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>Signature of the candidate:</div>
+
+                  {/* Candidate Signature Upload Button (no-print) */}
+                  <div className="no-print" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      className="sig-upload-btn-sm"
+                      onClick={() => sigFileInputRef.current?.click()}
+                    >
+                      {sigImg ? 'Change Signature' : 'Upload Signature'}
+                    </button>
+                    {sigImg && (
+                      <button
+                        type="button"
+                        className="sig-clear-btn-sm"
+                        onClick={handleRemoveSignature}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={sigFileInputRef}
+                    accept="image/png,image/jpeg"
+                    style={{ display: 'none' }}
+                    onChange={handleSignatureUpload}
+                  />
+                </div>
+              </div>
+
+              {/* Divider double line */}
+              <div style={{ borderTop: '2px solid #000', borderBottom: '1px solid #000', height: '3px', margin: '14px 0 10px 0' }} />
+
+              {/* For Office Use Only Section */}
+              <div style={{ border: '1.5px solid #000', padding: '10px 14px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.88rem', letterSpacing: '0.04em', background: '#e5e7eb', padding: '2px 8px', display: 'inline-block' }}>
+                    For Office Use Only
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>Exam No:</span>
+                    <span style={{ border: '1px solid #000', padding: '2px 14px', minWidth: '90px', textAlign: 'center', fontWeight: 'bold' }}>
+                      {formData.rescrutinyExamNo || 'EX-2026-085'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.82rem', lineHeight: 1.6, marginBottom: '6px' }}>
+                  <div>The above application is received according to the circular: <strong>Yes/ No</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '4px' }}>
+                    <div>The application: <strong>accepted/ rejected</strong></div>
+                    <div style={{ textAlign: 'center', minWidth: '200px' }}>
+                      <div style={{ borderBottom: '1px dotted #000', height: '24px', marginBottom: '2px' }}></div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>Deputy Registrar/Exams</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #000', paddingTop: '6px', fontSize: '0.82rem', lineHeight: 1.5 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                    <div style={{ width: '230px', fontWeight: 600, flexShrink: 0 }}>Name &amp; Year of the Examination:</div>
+                    <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 4px' }}>
+                      {formData.rescrutinyExamNameYear || formData.examNameYear || 'Third Year Examination in Technology - Semester I - 2025/2026'}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                    <div style={{ width: '230px', fontWeight: 600, flexShrink: 0 }}>Subject/ Course Code &amp; Title:</div>
+                    <div style={{ borderBottom: '1px dotted #000', flexGrow: 1, padding: '0 4px' }}>
+                      {formData.rescrutinyCode ? `${formData.rescrutinyCode} — ${formData.rescrutinyTitle}` : 'ICT22011 — Web Application Development'}
+                    </div>
+                  </div>
+
+                  {/* Results before and after verification */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 600, textDecoration: 'underline' }}>Results before verification:</span>
+                    <span>Marks: <span style={{ border: '1px solid #000', display: 'inline-block', width: '45px', height: '20px', verticalAlign: 'middle' }}></span></span>
+                    <span>Grade: <span style={{ border: '1px solid #000', display: 'inline-block', width: '45px', height: '20px', verticalAlign: 'middle', textAlign: 'center', fontWeight: 'bold' }}>{formData.gradeReceived || 'C-'}</span></span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 600, textDecoration: 'underline' }}>Results after verification:</span>
+                    <span>Marks: <span style={{ border: '1px solid #000', display: 'inline-block', width: '45px', height: '20px', verticalAlign: 'middle' }}></span></span>
+                    <span>Grade: <span style={{ border: '1px solid #000', display: 'inline-block', width: '45px', height: '20px', verticalAlign: 'middle' }}></span></span>
+                    <span style={{ marginLeft: '10px' }}><strong>Status of Results:</strong> Changed/ Not Changed</span>
+                  </div>
+
+                  <div style={{ marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, width: '180px', flexShrink: 0 }}>Reason if change of results:</span>
+                      <span style={{ borderBottom: '1px dotted #000', flexGrow: 1, height: '18px' }}></span>
+                    </div>
+                    <div style={{ fontSize: '0.7rem', fontStyle: 'italic', color: '#555', marginLeft: '180px' }}>(Use next page when necessary)</div>
+                  </div>
+
+                  {/* Verification Board Members Table */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '6px 0 2px 0' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.8rem', textDecoration: 'underline' }}>Name and Signatures of Verification Board Members</span>
+                    <span style={{ fontSize: '0.78rem' }}>Date of Verification: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '100px' }}></span></span>
+                  </div>
+
+                  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4px' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: '40%', border: '1px solid #000', padding: '3px 6px', background: '#f3f4f6', fontSize: '0.78rem' }}>Name</th>
+                        <th style={{ width: '30%', border: '1px solid #000', padding: '3px 6px', background: '#f3f4f6', fontSize: '0.78rem' }}>Designation</th>
+                        <th style={{ width: '30%', border: '1px solid #000', padding: '3px 6px', background: '#f3f4f6', fontSize: '0.78rem' }}>Signature</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3, 4].map((row) => (
+                        <tr key={row}>
+                          <td style={{ border: '1px solid #000', height: '22px' }}></td>
+                          <td style={{ border: '1px solid #000', height: '22px' }}></td>
+                          <td style={{ border: '1px solid #000', height: '22px' }}></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // 4. APPLICATION FOR EXAMINATION (Continuous Assessment) (Repeat Candidates only)
       case 'SEU-EX-CA-REP': {
         const subjects8 = (formData.examSubjects || []).slice(0, 8);
         while (subjects8.length < 8) {
@@ -2132,6 +2500,222 @@ Note: Present this completed official document with attached original bank PIV s
                   onChange={(e) => setFormData({ ...formData, applicationDate: e.target.value })}
                 />
               </div>
+
+              {/* Form Specific Extra Inputs for Application for re-scrutinization of Marks & Grades */}
+              {selectedForm.formId === 'SEU-EX-RESCRUTINY' && (
+                <>
+                  <div className="seu-form-group">
+                    <label>Title (01. Name with Initials)</label>
+                    <select
+                      value={formData.rescrutinyTitlePrefix || formData.candidateTitle || 'Mr.'}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyTitlePrefix: e.target.value, candidateTitle: e.target.value })}
+                    >
+                      <option value="Mr.">Mr.</option>
+                      <option value="Ms.">Ms.</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>03. Index Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ICT22085"
+                      value={formData.indexNumber}
+                      onChange={(e) => setFormData({ ...formData, indexNumber: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>04. Subject/ Course Year</label>
+                    <select
+                      value={formData.rescrutinyYear || '3rd'}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyYear: e.target.value })}
+                    >
+                      <option value="1st">1st Year</option>
+                      <option value="2nd">2nd Year</option>
+                      <option value="3rd">3rd Year</option>
+                      <option value="4th">4th Year</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>05. Semester</label>
+                    <select
+                      value={formData.rescrutinySemester || 'I'}
+                      onChange={(e) => setFormData({ ...formData, rescrutinySemester: e.target.value })}
+                    >
+                      <option value="I">Semester I</option>
+                      <option value="II">Semester II</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>06. Faculty</label>
+                    <select
+                      value={formData.rescrutinyFaculty || 'FT'}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyFaculty: e.target.value })}
+                    >
+                      <option value="FT">FT — Faculty of Technology</option>
+                      <option value="FAC">FAC — Faculty of Applied Sciences</option>
+                      <option value="FMC">FMC — Faculty of Management &amp; Commerce</option>
+                      <option value="FAS">FAS — Faculty of Arts &amp; Culture</option>
+                      <option value="FIA">FIA — Faculty of Islamic Studies &amp; Arabic</option>
+                      <option value="FE">FE — Faculty of Engineering</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>08. Email Address</label>
+                    <input
+                      type="email"
+                      value={formData.personalEmail || formData.email}
+                      onChange={(e) => setFormData({ ...formData, personalEmail: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label>09. Name &amp; Year of the Examination</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Third Year Examination in Technology - Semester I - 2025/2026"
+                      value={formData.rescrutinyExamNameYear || formData.examNameYear}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyExamNameYear: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>10. Subject/ Course Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ICT22011"
+                      value={formData.rescrutinyCode}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyCode: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>10. Subject/ Course Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Web Application Development"
+                      value={formData.rescrutinyTitle}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyTitle: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>11. Grade Received (as published)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. C-, D+, E"
+                      value={formData.gradeReceived}
+                      onChange={(e) => setFormData({ ...formData, gradeReceived: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>12. Amount Paid (Rs. 500/- per subject)</label>
+                    <input
+                      type="text"
+                      value={formData.rescrutinyAmount || '500'}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyAmount: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label>13. People&apos;s Bank Receipt / Voucher No.</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PB-SEU-849201"
+                      value={formData.rescrutinyReceiptNo || formData.receiptNo}
+                      onChange={(e) => setFormData({ ...formData, rescrutinyReceiptNo: e.target.value, receiptNo: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Upload Candidate Handwritten Signature Image Card & PIV Slip Card */}
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      {/* Candidate Signature Upload */}
+                      <div>
+                        <label style={{ fontWeight: 700, display: 'block', marginBottom: '4px', color: '#0f766e' }}>
+                          Upload Candidate Signature Image (Re-scrutinization)
+                        </label>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                          Upload handwritten signature picture (PNG or JPG). Renders directly on official candidate signature line.
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            onChange={handleSignatureUpload}
+                            style={{ fontSize: '0.82rem' }}
+                          />
+                          {formData.candidateSignatureImage && (
+                            <button
+                              type="button"
+                              className="sig-clear-btn-sm"
+                              onClick={handleRemoveSignature}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        {formData.candidateSignatureImage && (
+                          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={formData.candidateSignatureImage}
+                              alt="Signature Preview"
+                              style={{ height: '36px', maxWidth: '100px', objectFit: 'contain', border: '1px solid #cbd5e1', padding: '2px', background: '#fff' }}
+                            />
+                            <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                              ✓ Attached: {formData.candidateSignatureFileName || 'signature.png'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bank Receipt Upload */}
+                      <div>
+                        <label style={{ fontWeight: 700, display: 'block', marginBottom: '4px', color: '#1e3a8a' }}>
+                          Upload People&apos;s Bank PIV Slip / Receipt (Rs. 500)
+                        </label>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                          Original bank slip confirming payment of Rs. 500/- per subject (PNG, JPG, PDF).
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,application/pdf"
+                            onChange={handlePivUpload}
+                            style={{ fontSize: '0.82rem' }}
+                          />
+                          {formData.pivVoucherImage && (
+                            <button
+                              type="button"
+                              className="sig-clear-btn-sm"
+                              onClick={handleRemovePiv}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        {formData.pivVoucherImage && (
+                          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={formData.pivVoucherImage}
+                              alt="Receipt Preview"
+                              style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                            />
+                            <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                              ✓ Attached: {formData.pivVoucherFileName || 'receipt.png'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Form Specific Extra Inputs for CA Repeat Form */}
               {selectedForm.formId === 'SEU-EX-CA-REP' && (
