@@ -31,3 +31,29 @@ test('cosine similarity', () => {
   assert.equal(cosine([0, 0], [1, 1]), 0);
   assert.ok(Math.abs(cosine([1, 1], [2, 2]) - 1) < 1e-9);
 });
+
+test('rulesAnswer fallback accurately answers the user query "1yaer 2nd semester what are the subject we has ??" with subjects and no TOC dots', async () => {
+  const { rulesAnswer } = require('../../modules/assistant/service');
+  const { allowedFor } = require('../../modules/assistant/tools');
+
+  const tools = allowedFor({ studentId: 'stu-1', permissions: new Map([['courses.read', 'faculty'], ['students.read', 'own']]) });
+  const agent = { key: 'student', roleLabel: 'Student', starters: ['What is my attendance?'] };
+  const req = { body: { message: '1yaer 2nd semester what are the subject we has ??' }, user: { id: 'stu-1', name: 'Afnan' }, access: { permissions: new Map([['courses.read', 'faculty']]) } };
+
+  // Even with Table of Contents hits from the RAG retriever:
+  const hits = [
+    { title: 'Handbook 2023 2024 FT', source: 'Handbook', status: 'active', text: 'General Information .............. 133\n7.1 Student Enrolment ........ 133', score: 0.8 },
+  ];
+
+  const ans = await rulesAnswer({ req, agent, tools, message: '1yaer 2nd semester what are the subject we has ??', hits });
+  assert.ok(ans.used.includes('curriculum_subjects'));
+  assert.match(ans.text, /Year 1 Semester 2/);
+  assert.match(ans.text, /SWT12012/);
+  assert.match(ans.text, /Object Oriented Programming/);
+  assert.match(ans.text, /SWT12022/);
+  assert.match(ans.text, /Web systems and Technologies/);
+  assert.match(ans.text, /NST12012/);
+  assert.match(ans.text, /Computer Networks/);
+  // Must NOT include the unhelpful TOC dots
+  assert.doesNotMatch(ans.text, /General Information \.\.\.\.\.\./);
+});
