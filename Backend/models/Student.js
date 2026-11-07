@@ -98,6 +98,13 @@ const StudentSchema = new mongoose.Schema({
     type: String,
     default: '2021/2022'
   },
+  batchId: {
+    type: String,
+    index: true
+  },
+  batchCode: {
+    type: String
+  },
   currentSemester: {
     type: String,
     default: 'Year 3 Semester 1'

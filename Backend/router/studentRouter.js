@@ -27,6 +27,10 @@ const ownRecordOrStaff = async (req, res, next) => {
   next();
 };
 
+router.get('/batches', authorize(...STAFF), studentController.getAllBatches);
+router.post('/batches', authorize('admin', 'superadmin'), studentController.createBatch);
+router.delete('/batches/:id', authorize('admin', 'superadmin'), studentController.deleteBatch);
+
 router.get('/', authorize(...STAFF), studentController.getAllStudents);
 router.post('/bulk', authorize('admin', 'superadmin'), studentController.createStudentsBulk);
 router.post('/', authorize('admin', 'superadmin'), studentController.createStudent);
