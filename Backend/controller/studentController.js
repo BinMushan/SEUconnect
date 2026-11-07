@@ -222,7 +222,9 @@ exports.createStudent = async (req, res) => {
       programme,
       currentSemester,
       semester,
-      batch
+      batch,
+      batchId,
+      batchCode
     } = req.body;
 
     const effectiveId = (studentId || regNo || '').trim().toUpperCase();
@@ -278,7 +280,9 @@ exports.createStudent = async (req, res) => {
           department: effectiveDepartment,
           degreeProgramme: effectiveProgramme,
           currentSemester: cur.semester,
-          batch: batch || '2025/2026'
+          batch: batch || '2025/2026',
+          batchId: batchId || (batch ? `BATCH-${batch}` : 'BATCH-05'),
+          batchCode: batchCode || (batch ? `Batch (${batch})` : 'Batch 05 (2024/2025)')
         });
         if (!existing.semesterRegistrations || existing.semesterRegistrations.length === 0) {
           existing.semesterRegistrations = [{
@@ -317,6 +321,8 @@ exports.createStudent = async (req, res) => {
           degreeProgramme: effectiveProgramme,
           currentSemester: cur.semester,
           batch: batch || '2025/2026',
+          batchId: batchId || (batch ? `BATCH-${batch}` : 'BATCH-05'),
+          batchCode: batchCode || (batch ? `Batch (${batch})` : 'Batch 05 (2024/2025)'),
           academicStatus: 'Good Standing',
           academicProfile: {
             personalPhone: req.body.phone || '+94 77 123 4567',
