@@ -21,7 +21,7 @@ import {
 
 // Admin Subcomponents
 import AdminOverview from './components/AdminOverview.jsx';
-import StudentManagement from './components/StudentManagement.jsx';
+import StudentManagement, { matchesBatchStudent } from './components/StudentManagement.jsx';
 import RegistrationManagement from './components/RegistrationManagement.jsx';
 import MedicalRequests from './components/MedicalRequests.jsx';
 import ExaminationManagement from './components/ExaminationManagement.jsx';
@@ -313,12 +313,13 @@ export default function Admin({ user, onLogout }) {
       try {
         setDbLoading(true);
 
-        const [statsRes, batchStatsRes, processesRes, usersRes, studentsRes] = await Promise.allSettled([
+        const [statsRes, batchStatsRes, processesRes, usersRes, studentsRes, batchesRes] = await Promise.allSettled([
           api.getStats(),
           api.getBatchStats(),
           api.getProcesses(),
           api.getUsers(),
-          api.getAllStudents()
+          api.getAllStudents(),
+          api.getBatches()
         ]);
 
         if (!isMounted) return;
@@ -329,8 +330,9 @@ export default function Admin({ user, onLogout }) {
           const raw = studentsRes.value.data;
           loadedStudents = raw.map((s) => {
             const reg = s.studentId || s.regNo || s.indexNo;
-            const bCode = s.batch || (reg.includes('20') ? 'Batch 01 (2020/2021)' : reg.includes('21') ? 'Batch 02 (2021/2022)' : reg.includes('22') ? 'Batch 03 (2022/2023)' : reg.includes('23') ? 'Batch 04 (2023/2024)' : 'Batch 05 (2024/2025)');
-            const bId = bCode.includes('01') ? 'BATCH-01' : bCode.includes('02') ? 'BATCH-02' : bCode.includes('03') ? 'BATCH-03' : bCode.includes('04') ? 'BATCH-04' : 'BATCH-05';
+            const bCode = s.batchCode || s.batch || (reg.includes('20') ? 'Batch 01 (2020/2021)' : reg.includes('21') ? 'Batch 02 (2021/2022)' : reg.includes('22') ? 'Batch 03 (2022/2023)' : reg.includes('23') ? 'Batch 04 (2023/2024)' : 'Batch 05 (2024/2025)');
+            const bId = s.batchId || (bCode.includes('01') ? 'BATCH-01' : bCode.includes('02') ? 'BATCH-02' : bCode.includes('03') ? 'BATCH-03' : bCode.includes('04') ? 'BATCH-04' : 'BATCH-05');
+            const isFreshStudent = (s.currentSemester && (s.currentSemester.includes('1') && !s.currentSemester.includes('2'))) || (s.semester && (s.semester.includes('1') && !s.semester.includes('2')));
             return {
               id: s._id ? String(s._id) : (s.id || `STU-${reg}`),
               batchId: bId,
@@ -340,11 +342,13 @@ export default function Admin({ user, onLogout }) {
               name: s.fullName || s.name,
               programme: s.degreeProgramme || s.programme || (s.department?.includes('Bio') ? 'BST (Hons)' : 'BICT (Hons)'),
               department: s.department || 'Department of Information & Communication Technology',
-              semester: s.currentSemester || s.semester || 'Semester 5',
-              cgpa: Number(s.cgpa) || 3.40,
-              sgpa: Number(s.sgpa) || 3.45,
-              credits: s.credits || 78,
-              attendance: Number(s.attendance) || 90,
+              semester: s.currentSemester || s.semester || 'Semester 1',
+              cgpa: isFreshStudent ? null : (Number(s.cgpa) || 3.40),
+              sgpa: isFreshStudent ? null : (Number(s.sgpa) || 3.45),
+              credits: isFreshStudent ? 0 : (s.credits || 78),
+              attendance: s.attendance !== null && s.attendance !== undefined && Number(s.attendance) !== 92.5
+                ? Number(s.attendance)
+                : (isFreshStudent ? null : 100),
               email: s.email,
               phone: s.phone || '',
               status: s.academicStatus || s.status || 'Active',
@@ -362,21 +366,14 @@ export default function Admin({ user, onLogout }) {
           setStudents(finalStudents);
         }
 
-        // 2. Synchronize Batches from Database
-        if (batchStatsRes.status === 'fulfilled' && batchStatsRes.value?.data?.batches) {
+        // 2. Synchronize Batches from Database (Preserves all newly onboarded batches)
+        let loadedBatches = [];
+        if (batchesRes.status === 'fulfilled' && batchesRes.value?.data && Array.isArray(batchesRes.value.data) && batchesRes.value.data.length > 0) {
+          loadedBatches = batchesRes.value.data;
+        } else if (batchStatsRes.status === 'fulfilled' && batchStatsRes.value?.data?.batches) {
           const dbBatches = batchStatsRes.value.data.batches;
-          const currentStudents = loadedStudents.length > 0 ? loadedStudents : students;
-
-          const mappedBatches = dbBatches.map((b, idx) => {
+          loadedBatches = dbBatches.map((b, idx) => {
             const bNum = String(idx + 1).padStart(2, '0');
-            const studentsInCohort = currentStudents.filter((s) => s.batchCode?.includes(b.batch) || s.regNo?.includes(`/${b.batch.slice(2, 4)}/`));
-            const cohortAttendance = studentsInCohort.length > 0
-              ? Math.round(studentsInCohort.reduce((sum, s) => sum + (Number(s.attendance) || 90), 0) / studentsInCohort.length)
-              : 90;
-            const cohortCgpa = studentsInCohort.length > 0
-              ? Number((studentsInCohort.reduce((sum, s) => sum + (Number(s.cgpa) || 3.35), 0) / studentsInCohort.length).toFixed(2))
-              : 3.38;
-
             return {
               id: `BATCH-${bNum}`,
               code: `B${bNum}`,
@@ -384,20 +381,41 @@ export default function Admin({ user, onLogout }) {
               academicYear: b.batch,
               currentSemester: b.year ? `${b.year} (Active)` : `Semester ${idx * 2 + 1}`,
               status: idx === 0 ? 'Graduating / Finalizing' : (idx === dbBatches.length - 1 ? 'Freshers' : 'Active'),
-              totalStudents: b.facultyTotal || (b.ict + b.bst) || studentsInCohort.length || 240,
-              ictStudents: b.ict || studentsInCohort.filter((s) => s.programme?.includes('BICT') || s.department?.includes('ICT')).length || 120,
-              bstStudents: b.bst || studentsInCohort.filter((s) => s.programme?.includes('BST') || s.department?.includes('Bio')).length || 120,
               coordinator: b.ict >= b.bst ? 'Dr. S. Sabraz Nawaz (HOD - ICT)' : 'Dr. U.L. Abdul Majeed (HOD - BST)',
               departments: ['BICT', 'BST'],
-              avgCgpa: cohortCgpa,
-              attendanceRate: cohortAttendance,
               regPrefix: b.batch.slice(2, 4)
             };
           });
+        }
 
-          if (mappedBatches.length > 0) {
-            setBatches(mappedBatches);
-          }
+        const currentStudents = loadedStudents.length > 0 ? loadedStudents : students;
+
+        if (loadedBatches.length > 0) {
+          const mappedBatches = loadedBatches.map((b) => {
+            const studentsInCohort = currentStudents.filter((s) => matchesBatchStudent(s, b));
+            const hasAtt = studentsInCohort.filter((s) => s.attendance !== null && s.attendance !== undefined && !isNaN(Number(s.attendance)));
+            const cohortAttendance = hasAtt.length > 0
+              ? Math.round(hasAtt.reduce((sum, s) => sum + Number(s.attendance), 0) / hasAtt.length)
+              : (b.attendanceRate ?? 100);
+            const hasCgpa = studentsInCohort.filter((s) => s.cgpa !== null && s.cgpa !== undefined && !isNaN(Number(s.cgpa)) && Number(s.cgpa) > 0);
+            const cohortCgpa = hasCgpa.length > 0
+              ? Number((hasCgpa.reduce((sum, s) => sum + Number(s.cgpa), 0) / hasCgpa.length).toFixed(2))
+              : (b.avgCgpa ?? 0.0);
+
+            return {
+              ...b,
+              totalStudents: studentsInCohort.length,
+              ictStudents: studentsInCohort.filter((s) => s.programme?.includes('BICT') || s.department?.includes('ICT')).length,
+              bstStudents: studentsInCohort.filter((s) => s.programme?.includes('BST') || s.department?.includes('Bio')).length,
+              avgCgpa: cohortCgpa,
+              attendanceRate: cohortAttendance,
+            };
+          });
+
+          setBatches(mappedBatches);
+          try {
+            localStorage.setItem('seuconnect_batches', JSON.stringify(mappedBatches));
+          } catch {}
         }
 
         // 3. Synchronize Workflow Processes (Medicals, Registrations, Repeat Candidates) from Database
@@ -831,22 +849,37 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 16. Onboard Intake Batch
-  const handleAddBatch = (newBatch) => {
+  const handleAddBatch = async (newBatch) => {
+    const formattedBatch = {
+      ...newBatch,
+      totalStudents: 0,
+      ictStudents: 0,
+      bstStudents: 0
+    };
     setBatches((prev) => {
-      const updated = [newBatch, ...prev];
+      const updated = [formattedBatch, ...prev];
       try {
         localStorage.setItem('seuconnect_batches', JSON.stringify(updated));
       } catch {}
       return updated;
     });
     setStats((prev) => ({ ...prev, totalBatches: prev.totalBatches + 1 }));
-    addAuditLog('Onboarded Intake Batch', `${newBatch.name} (Intake ${newBatch.code}) provisioned.`);
-    showToast(`Intake Batch ${newBatch.name} onboarded successfully.`);
+    addAuditLog('Onboarded Intake Batch', `${formattedBatch.name} (Intake ${formattedBatch.code}) provisioned in database.`);
+    showToast(`Intake Batch ${formattedBatch.name} onboarded successfully.`);
+
+    try {
+      await api.createBatch(formattedBatch);
+    } catch (err) {
+      console.warn('Backend batch onboarding sync:', err.message);
+    }
   };
 
   // 16.b Delete Intake Batch
-  const handleDeleteBatch = (batchId) => {
+  const handleDeleteBatch = async (batchId) => {
     const batch = batches.find((b) => b.id === batchId);
+    const batchName = batch?.name || batchId;
+
+    // 1. Remove batch from batches state & localStorage
     setBatches((prev) => {
       const updated = prev.filter((b) => b.id !== batchId);
       try {
@@ -854,9 +887,32 @@ export default function Admin({ user, onLogout }) {
       } catch {}
       return updated;
     });
-    setStats((prev) => ({ ...prev, totalBatches: Math.max(0, prev.totalBatches - 1) }));
-    addAuditLog('Deleted Intake Batch', `Removed intake batch ${batch?.name || batchId}.`);
-    showToast(`Intake Batch "${batch?.name || batchId}" deleted successfully.`);
+
+    // 2. Remove any enrolled students belonging to this batch from state & storage
+    let removedCount = 0;
+    if (batch) {
+      setStudents((prev) => {
+        const filtered = prev.filter((s) => !matchesBatchStudent(s, batch));
+        removedCount = prev.length - filtered.length;
+        return filtered;
+      });
+    }
+
+    setStats((prev) => ({
+      ...prev,
+      totalBatches: Math.max(0, prev.totalBatches - 1),
+      totalStudents: Math.max(0, prev.totalStudents - removedCount)
+    }));
+
+    addAuditLog('Deleted Intake Batch', `Removed intake batch ${batchName} and ${removedCount} enrolled student(s) from database.`);
+    showToast(`Intake Batch "${batchName}" and enrolled students removed from database.`);
+
+    // 3. Send deletion request to backend (removes batch, students, and user accounts from MongoDB)
+    try {
+      await api.deleteBatch(batchId);
+    } catch (err) {
+      console.warn('Backend batch deletion sync:', err.message);
+    }
   };
 
   // 16.c Pass Out Intake Batch (Graduation of Cohort)
