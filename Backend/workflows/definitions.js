@@ -142,6 +142,51 @@ const WORKFLOWS = {
       }),
     ],
   },
+
+  // 6. Re-scrutinization of Marks & Grades: Student -> SAR -> Examination Branch -> SAR
+  rescrutiny_application: {
+    type: 'rescrutiny_application',
+    code: 'RESCRUTINY',
+    trackingPrefix: 'RESCRUT',
+    label: 'Re-Scrutinization Application',
+    longLabel: 'Application for Re-scrutinization of Marks & Grades',
+    requiresPayment: true,
+    availabilityKey: null,
+    submitTo: 'SAR',
+    stages: [
+      stage('student_submission', 'Re-Scrutinization Application & Payment Submission', 'student', 'Draft'),
+      stage('sar_verification', 'SAR Application & Payment Verification', 'sar', 'Pending SAR Review', {
+        approveLabel: 'Verify & Forward to Verification Board',
+      }),
+      stage('exam_branch_verification', 'Verification Board Assessment of Marks & Grades', 'examination', 'Pending Examination Branch', {
+        approveLabel: 'Complete Assessment & Forward to SAR',
+      }),
+      stage('sar_final_approval', 'SAR Final Endorsement & Grade Notification', 'sar', 'Pending SAR Approval', {
+        approveLabel: 'Publish Verified Grade Result',
+      }),
+    ],
+  },
+
+  // 7. Official Institutional Email Request: Student -> HOD -> Dean
+  email_request: {
+    type: 'email_request',
+    code: 'EMAIL',
+    trackingPrefix: 'EML',
+    label: 'Official Email Request',
+    longLabel: 'University GSuite Institutional Email Account Request',
+    requiresPayment: false,
+    availabilityKey: null,
+    submitTo: 'Head of Department',
+    stages: [
+      stage('student_submission', 'Email Account Request Submission', 'student', 'Draft'),
+      stage('hod_recommendation', 'HOD Academic Verification & Recommendation', 'hod', 'Pending HOD', {
+        approveLabel: 'Recommend & Forward to Dean',
+      }),
+      stage('dean_approval', 'Dean Office Endorsement & ICT Center Issuance', 'dean', 'Pending Dean', {
+        approveLabel: 'Approve & Issue Institutional Email',
+      }),
+    ],
+  },
 };
 
 const WORKFLOW_TYPES = Object.keys(WORKFLOWS);
