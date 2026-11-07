@@ -581,9 +581,13 @@ export default function Student({ user, onLogout }) {
                 </span>
               </div>
               <div className="std-stat-number">
-                {studentUser?.attendance !== undefined && studentUser?.attendance !== null
-                  ? `${studentUser.attendance}%`
-                  : (currentCurriculum.isFreshers ? '—' : '100%')}
+                {currentCurriculum.isFreshers
+                  ? (studentUser?.attendance !== undefined && studentUser?.attendance !== null && Number(studentUser.attendance) > 0 && Number(studentUser.attendance) !== 92.5
+                      ? `${studentUser.attendance}%`
+                      : 'N/A')
+                  : (studentUser?.attendance !== undefined && studentUser?.attendance !== null
+                      ? `${studentUser.attendance}%`
+                      : '100%')}
               </div>
               <div className="std-stat-target">
                 {currentCurriculum.isFreshers ? 'Lectures in Progress' : 'ESA Minimum: 80%'}
