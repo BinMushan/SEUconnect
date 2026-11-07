@@ -16,9 +16,37 @@ const registration = require('../registration/service');
 const courses = require('../courses/service');
 const esa = require('../esa/service');
 const results = require('../results/service');
+const Subject = require('../../models/Subject');
+const { HANDBOOK_SUBJECTS } = require('../../config/subjectSeeder');
 
 const MAX_ROWS = 15;
 const NO_PARAMS = { type: 'object', properties: {} };
+
+const parseYearAndSem = (args = {}, text = '') => {
+  let year = args && args.year ? Number(args.year) : null;
+  let semester = args && args.semester ? Number(args.semester) : null;
+  const s = `${text || ''} ${args ? args.query || '' : ''}`.toLowerCase();
+
+  if (!year) {
+    if (/\b(?:1yaer|1\s*yaer|1st\s*year|first\s*year|year\s*1|level\s*1|y1|1\s*year)\b/i.test(s)) year = 1;
+    else if (/\b(?:2yaer|2\s*yaer|2nd\s*year|second\s*year|year\s*2|level\s*2|y2|2\s*year)\b/i.test(s)) year = 2;
+    else if (/\b(?:3yaer|3\s*yaer|3rd\s*year|third\s*year|year\s*3|level\s*3|y3|3\s*year)\b/i.test(s)) year = 3;
+    else if (/\b(?:4yaer|4\s*yaer|4th\s*year|fourth\s*year|year\s*4|level\s*4|y4|4\s*year)\b/i.test(s)) year = 4;
+  }
+
+  if (!semester) {
+    if (/\b(?:2nd\s*sem(?:ester)?|second\s*sem(?:ester)?|sem(?:ester)?\s*2|semester\s*ii|s2)\b/i.test(s)) semester = 2;
+    else if (/\b(?:1st\s*sem(?:ester)?|first\s*sem(?:ester)?|sem(?:ester)?\s*1|semester\s*i|s1)\b/i.test(s)) semester = 1;
+    else if (/\bsem(?:ester)?\s*3\b/i.test(s)) { year = 2; semester = 1; }
+    else if (/\bsem(?:ester)?\s*4\b/i.test(s)) { year = 2; semester = 2; }
+    else if (/\bsem(?:ester)?\s*5\b/i.test(s)) { year = 3; semester = 1; }
+    else if (/\bsem(?:ester)?\s*6\b/i.test(s)) { year = 3; semester = 2; }
+    else if (/\bsem(?:ester)?\s*7\b/i.test(s)) { year = 4; semester = 1; }
+    else if (/\bsem(?:ester)?\s*8\b/i.test(s)) { year = 4; semester = 2; }
+  }
+
+  return { year, semester };
+};
 
 /** Same request, but with req.access.scope / permission taken from `permission` (what the called service reads). */
 const scoped = (req, permission) => ({ ...req, access: { ...req.access, scope: req.access.permissions.get(permission), permission } });
@@ -209,6 +237,97 @@ const TOOLS = [
       return r.items.map((e) => ({ title: e.title, date: iso(e.date), time: `${e.startTime || ''}-${e.endTime || ''}`, venue: e.venue, status: e.status }));
     },
     format: (rows) => (rows.length ? rows.map((e) => `- ${e.title} — ${e.date} ${e.time} @ ${e.venue || 'TBA'} (${e.status})`).join('\n') : 'No exam schedules are available to you.'),
+  },
+  {
+    name: 'curriculum_subjects',
+    description: 'Official Faculty of Technology handbook subjects and curriculum: course codes, titles, credits, lecture/practical hours, CA/ESA weighting, and lecturers by academic year (1-4) and semester (1-2).',
+    parameters: {
+      type: 'object',
+      properties: {
+        year: { type: 'number', description: 'Academic year (1, 2, 3, or 4)' },
+        semester: { type: 'number', description: 'Semester (1 or 2)' },
+        query: { type: 'string', description: 'Optional subject code or course name filter' },
+      },
+    },
+    permission: 'courses.read',
+    keywords: [
+      'subject', 'subjects', 'course', 'courses', 'curriculum', 'modules', 'syllabus',
+      'year 1', 'year 2', 'year 3', 'year 4', 'semester 1', 'semester 2',
+      '1yaer', '2yaer', '3yaer', '4yaer', '1st year', '2nd year', '3rd year', '4th year',
+      'sem 1', 'sem 2', 'first year', 'second year', 'third year', 'fourth year'
+    ],
+    run: async (req, args = {}) => {
+      const userMsg = req.body && req.body.message ? req.body.message : '';
+      const { year, semester } = parseYearAndSem(args, userMsg);
+      const queryStr = String((args && args.query) || '').trim().toLowerCase();
+
+      // Only filter by query if it is a specific code/title keyword (not the entire natural language prompt)
+      const cleanKeyword = queryStr
+        .replace(/\b(?:1yaer|2yaer|3yaer|4yaer|[1-4](?:st|nd|rd|th)?\s*year|year\s*[1-4])\b/gi, '')
+        .replace(/\b(?:[1-8](?:st|nd|rd|th)?\s*sem(?:ester)?|sem(?:ester)?\s*[1-8]|semester\s*[ivx]+)\b/gi, '')
+        .replace(/\b(?:what|are|the|we|have|has|our|subject|subjects|course|courses|module|modules|curriculum|syllabus|list|show)\b/gi, '')
+        .trim();
+
+      let subjects = [];
+      const isDbConnected = Subject.db && Subject.db.readyState === 1;
+      if (isDbConnected) {
+        try {
+          const filter = {};
+          if (year) filter.year = year;
+          if (semester) filter.semester = semester;
+          if (cleanKeyword.length >= 3) {
+            filter.$or = [
+              { code: new RegExp(cleanKeyword, 'i') },
+              { title: new RegExp(cleanKeyword, 'i') },
+            ];
+          }
+          subjects = await Subject.find(filter).sort({ code: 1 }).lean();
+        } catch (_) {
+          subjects = [];
+        }
+      }
+
+      if (!subjects || !subjects.length) {
+        subjects = HANDBOOK_SUBJECTS.filter((s) => {
+          if (year && s.year !== year) return false;
+          if (semester && s.semester !== semester) return false;
+          if (cleanKeyword.length >= 3 && !s.code.toLowerCase().includes(cleanKeyword) && !s.title.toLowerCase().includes(cleanKeyword)) return false;
+          return true;
+        });
+      }
+
+      const totalCredits = subjects.reduce((sum, s) => sum + (s.credits || s.gpaCredits || 0), 0);
+      const semLabel = year && semester ? `Year ${year} Semester ${semester}` : (year ? `Year ${year}` : (semester ? `Semester ${semester}` : 'Curriculum Subjects'));
+
+      return {
+        label: semLabel,
+        year,
+        semester,
+        totalCredits,
+        count: subjects.length,
+        subjects: subjects.slice(0, 20).map((s) => ({
+          code: s.code,
+          title: s.title,
+          credits: s.credits || s.gpaCredits || 2,
+          type: s.type || 'Theory',
+          category: s.category || 'Compulsory',
+          lectureHours: s.lectureHoursPerWeek ?? (s.type === 'Theory' ? 2 : 0),
+          practicalHours: s.practicalHoursPerWeek ?? (s.type === 'Practical' ? 2 : 0),
+          assessment: `CA ${s.continuousAssessmentPercent || 40}% / ESA ${s.endSemesterAssessmentPercent || 60}%`,
+          lecturer: s.lecturer || 'Faculty Staff',
+        })),
+      };
+    },
+    format: (d) => {
+      if (!d.subjects || !d.subjects.length) {
+        return `No official handbook subjects found matching ${d.label || 'the criteria'}. Please check the year and semester.`;
+      }
+      const header = `### Faculty of Technology — ${d.label} (Official Handbook Curriculum)\n**Total Academic Credits: ${d.totalCredits}**\n`;
+      const rows = d.subjects.map(
+        (s) => `- **${s.code}** ${s.title} — **${s.credits} Credits** (${s.category}, ${s.type}) | ${s.assessment} | Lecturer: ${s.lecturer}`
+      );
+      return `${header}\n${rows.join('\n')}`;
+    },
   },
 ];
 
