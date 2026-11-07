@@ -117,21 +117,40 @@ exports.getStudentByIdentifier = async (req, res) => {
       }];
     }
 
-    if (!raw.attendance || !raw.attendance.subjectRecords || raw.attendance.subjectRecords.length === 0) {
-      raw.attendance = {
-        overallAttendancePercentage: raw.attendance?.overallAttendancePercentage || 92.5,
-        totalLectures: 120,
-        attendedLectures: 111,
-        eligibilityStatus: 'Eligible',
-        subjectRecords: effectiveSubjects.map(s => ({
-          courseCode: s.code,
-          courseName: s.title,
-          totalClasses: 30,
-          attendedClasses: 28,
-          percentage: 93.3,
-          status: 'Eligible'
-        }))
-      };
+    const isFresh = cur.isFreshers || (raw.currentSemester && (raw.currentSemester.includes('Semester 1') || raw.currentSemester.includes('Year 1 Semester 1')));
+
+    if (!raw.attendance || !raw.attendance.subjectRecords || raw.attendance.subjectRecords.length === 0 || (isFresh && raw.attendance?.overallAttendancePercentage === 92.5)) {
+      if (isFresh || raw.attendance?.totalLectures === 0 || raw.attendance?.overallAttendancePercentage === null) {
+        raw.attendance = {
+          overallAttendancePercentage: null,
+          totalLectures: 0,
+          attendedLectures: 0,
+          eligibilityStatus: 'Enrolled',
+          subjectRecords: effectiveSubjects.map(s => ({
+            courseCode: s.code,
+            courseName: s.title,
+            totalClasses: 0,
+            attendedClasses: 0,
+            percentage: null,
+            status: 'Enrolled'
+          }))
+        };
+      } else {
+        raw.attendance = {
+          overallAttendancePercentage: raw.attendance?.overallAttendancePercentage ?? 100,
+          totalLectures: raw.attendance?.totalLectures || 120,
+          attendedLectures: raw.attendance?.attendedLectures || 120,
+          eligibilityStatus: 'Eligible',
+          subjectRecords: effectiveSubjects.map(s => ({
+            courseCode: s.code,
+            courseName: s.title,
+            totalClasses: 30,
+            attendedClasses: 30,
+            percentage: 100,
+            status: 'Eligible'
+          }))
+        };
+      }
     }
 
     if (!raw.examinations || raw.examinations.length === 0) {
