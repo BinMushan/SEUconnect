@@ -869,7 +869,8 @@ export default function Student({ user, onLogout }) {
                 {/* Data Points & Interactive Floating Badges */}
                 {chartPoints.map((p, idx) => {
                   const isSelected = selectedSemesterIdx === idx;
-                  const sgpaFormatted = safeToFixed(p.sgpa, 2, 'Pending');
+                  const hasSgpa = p.sgpa !== null && p.sgpa !== undefined && !isNaN(Number(p.sgpa)) && Number(p.sgpa) > 0;
+                  const sgpaFormatted = hasSgpa ? safeToFixed(p.sgpa, 2, 'Pending') : 'Pending';
 
                   return (
                     <g
