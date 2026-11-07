@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../../src/services/api.js';
-import FormSubmissionPanel from './FormSubmissionPanel.jsx';
 import { WORKFLOW_INFO, resolveWorkflowType, defaultExtras, validateSubmission, buildPayload, prefillFromProcess } from './formSubmission.js';
 import './faculty_forms.css';
 
@@ -575,12 +574,28 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
+  const [lecturers, setLecturers] = useState([]);
   const workflowType = selectedForm ? resolveWorkflowType(selectedForm.formId, formData) : null;
 
   useEffect(() => {
     if (!isStudent) return;
     api.getFormAvailability().then((res) => setAvailability(res.data)).catch(() => {});
   }, [isStudent]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getDirectory({ role: 'lecturer' })
+      .then((res) => {
+        if (!cancelled && Array.isArray(res.data)) {
+          setLecturers(res.data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Opening a returned application pre-fills the matching form so the student can correct it.
   useEffect(() => {
@@ -639,6 +654,180 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const renderInlineSubmission = () => {
+    if (!isStudent || !workflowType) return null;
+    const info = WORKFLOW_INFO[workflowType];
+    const portal = info?.availabilityKey ? availability?.[info.availabilityKey] : null;
+    const closed = portal && (!portal.isOpen || (portal.deadline && Date.now() > Date.parse(portal.deadline)));
+
+    return (
+      <div
+        className="seu-submit-block seu-inline-submission-card"
+        style={{
+          gridColumn: '1 / -1',
+          marginTop: '20px',
+          padding: '18px 20px',
+          background: '#f8fafc',
+          borderRadius: '10px',
+          border: '1.5px solid #cbd5e1',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1e3a8a' }}>
+              Online Submission — {selectedForm?.name}
+            </span>
+            {info?.route && (
+              <span style={{ display: 'block', fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>
+                Official Route: {info.route}
+              </span>
+            )}
+          </div>
+          {info?.submitTo && (
+            <span style={{ fontSize: '0.78rem', background: '#e0e7ff', color: '#3730a3', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+              Direct Target: {info.submitTo}
+            </span>
+          )}
+        </div>
+
+        {closed && (
+          <div className="seu-submit-alert" style={{ marginBottom: '14px', padding: '10px 14px', borderRadius: '6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', fontSize: '0.84rem' }}>
+            The {info?.label || 'online submission'} portal is currently closed{portal?.deadline ? ` (deadline was ${new Date(portal.deadline).toLocaleDateString()})` : ''}.
+          </div>
+        )}
+
+        {info?.needsPayment && (
+          <div style={{ marginBottom: '16px', background: '#ffffff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', marginBottom: '6px' }}>
+              Bank Payment Details (People&apos;s Bank PIV Voucher)
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Voucher / Receipt No:</span>
+                <input
+                  type="text"
+                  placeholder="e.g. PB-SEU-849201"
+                  value={extras.payment.voucherNo || formData.rescrutinyReceiptNo || formData.receiptNo || ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setExtras((prev) => ({ ...prev, payment: { ...prev.payment, voucherNo: v } }));
+                    setFormData((prev) => ({ ...prev, rescrutinyReceiptNo: v, receiptNo: v }));
+                  }}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.82rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Amount Paid (Rs.):</span>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="500"
+                  value={extras.payment.amount || formData.rescrutinyAmount || formData.examFeesPaid || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setExtras((prev) => ({ ...prev, payment: { ...prev.payment, amount: val } }));
+                    setFormData((prev) => ({ ...prev, rescrutinyAmount: val, examFeesPaid: val }));
+                  }}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '0.82rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>PIV Slip Attachment:</span>
+                {(formData.pivVoucherImage || extras.receipt) ? (
+                  <span style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: 600 }}>
+                    ✓ Slip Attached ({formData.pivVoucherFileName || extras.receipt?.name || 'PIV Voucher'})
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 600 }}>
+                    ⚠ Attach bank slip in the form above
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {info?.needsLecturer && (
+          <div style={{ marginBottom: '16px', background: '#ffffff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.86rem', color: '#0f172a', marginBottom: '6px' }}>
+              Assigned Lecturer <span style={{ color: '#dc2626' }}>*</span>
+            </label>
+            <select
+              value={extras.lecturerEmail}
+              onChange={(e) => setExtras({ ...extras, lecturerEmail: e.target.value })}
+              style={{ width: '100%', maxWidth: '440px', padding: '8px 12px', fontSize: '0.86rem', borderRadius: '6px', border: '1px solid #94a3b8', background: '#fff' }}
+            >
+              <option value="">Select assigned lecturer…</option>
+              {lecturers.map((l) => (
+                <option key={l.email} value={l.email}>
+                  {l.name} {l.department ? `(${l.department})` : ''}
+                </option>
+              ))}
+            </select>
+            <span style={{ display: 'block', marginTop: '4px', fontSize: '0.74rem', color: '#64748b' }}>
+              Your examination application will be directly forwarded to this lecturer for course verification and endorsement.
+            </span>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="seu-submit-error" style={{ marginBottom: '14px', padding: '10px 14px', borderRadius: '6px', background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', fontSize: '0.86rem', fontWeight: 600 }}>
+            ⚠ {submitError}
+          </div>
+        )}
+
+        {submitResult && (
+          <div className="seu-editor-panel no-print seu-submit-success" style={{ marginBottom: '14px', borderLeft: '4px solid #15803d', background: '#f0fdf4', padding: '14px 16px', borderRadius: '6px' }}>
+            <h4 style={{ color: '#15803d', margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              ✓ {info?.label || 'Application'} Submitted Successfully
+            </h4>
+            <p style={{ margin: '0 0 10px 0', fontSize: '0.86rem', color: '#166534', lineHeight: 1.5 }}>
+              Your application <strong>{submitResult.trackingNumber}</strong> has been received and routed to <strong>{info?.submitTo || 'the administrative authority'}</strong>. Current status: <strong>{submitResult.status}</strong>.
+            </p>
+            <button
+              type="button"
+              className="seu-btn-primary-sm"
+              onClick={() => onNavigate?.('track_applications')}
+              style={{ background: '#15803d', color: '#fff', padding: '7px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+            >
+              Track This Application
+            </button>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginTop: '4px' }}>
+          <button
+            type="button"
+            className="seu-btn-primary-sm seu-btn-submit"
+            disabled={submitting || closed}
+            onClick={handleSubmit}
+            style={{
+              padding: '10px 24px',
+              fontSize: '0.94rem',
+              fontWeight: 700,
+              background: '#15803d',
+              color: '#ffffff',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: submitting || closed ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            {submitting
+              ? 'Submitting…'
+              : resubmitProcess
+              ? 'Resubmit Corrected Application'
+              : `Submit ${selectedForm.name} Online`}
+          </button>
+          <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+            {resubmitProcess ? 'Resubmits corrected details to the reviewing officer.' : 'Submits form data online directly into official university workflows.'}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   const categories = ['All', 'Examination', 'Medical / Attendance', 'Finance & Fees', 'Academic / Registration'];
@@ -2531,17 +2720,6 @@ Note: Present this completed official document with attached original bank PIV s
                 </svg>
                 Download Data (.txt)
               </button>
-              {isStudent && workflowType && !submitResult && (
-                <button
-                  type="button"
-                  className="seu-btn-primary-sm seu-btn-submit"
-                  disabled={submitting}
-                  onClick={handleSubmit}
-                  title={`Submit this ${WORKFLOW_INFO[workflowType].label} online to ${WORKFLOW_INFO[workflowType].submitTo}`}
-                >
-                  {submitting ? 'Submitting…' : resubmitProcess ? 'Resubmit' : 'Submit'}
-                </button>
-              )}
               <button
                 type="button"
                 className="seu-btn-primary-sm"
@@ -2834,6 +3012,8 @@ Note: Present this completed official document with attached original bank PIV s
                       </div>
                     </div>
                   </div>
+
+                  {renderInlineSubmission()}
                 </>
               )}
 
@@ -3061,6 +3241,8 @@ Note: Present this completed official document with attached original bank PIV s
                       </tbody>
                     </table>
                   </div>
+
+                  {renderInlineSubmission()}
                 </>
               )}
 
@@ -3379,6 +3561,8 @@ Note: Present this completed official document with attached original bank PIV s
                       </tbody>
                     </table>
                   </div>
+
+                  {renderInlineSubmission()}
                 </>
               )}
 
@@ -3582,6 +3766,8 @@ Note: Present this completed official document with attached original bank PIV s
                       </tbody>
                     </table>
                   </div>
+
+                  {renderInlineSubmission()}
                 </>
               )}
 
@@ -3656,28 +3842,12 @@ Note: Present this completed official document with attached original bank PIV s
                       </div>
                     )}
                   </div>
+
+                  {renderInlineSubmission()}
                 </>
               )}
             </div>
           </div>
-
-          {isStudent && workflowType && (
-            <FormSubmissionPanel
-              type={workflowType}
-              user={user}
-              formData={formData}
-              setFormData={setFormData}
-              extras={extras}
-              setExtras={setExtras}
-              availability={availability}
-              submitting={submitting}
-              error={submitError}
-              result={submitResult}
-              isResubmit={Boolean(resubmitProcess)}
-              onSubmit={handleSubmit}
-              onTrack={() => onNavigate?.('track_applications')}
-            />
-          )}
 
           {selectedForm.formId === 'SEU-PIV-VOUCHER' && (
             <div className="seu-editor-panel no-print" style={{ borderLeft: '4px solid #1e3a8a', background: '#f8fafc' }}>
