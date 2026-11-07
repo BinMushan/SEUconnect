@@ -80,6 +80,8 @@ export default function SAR({ user, onLogout }) {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   // Sync activeNav with URL hash if present
