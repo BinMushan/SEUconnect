@@ -101,7 +101,7 @@ export function readReceipt(file) {
   });
 }
 
-const padRows = (list, size = 8) => {
+const padRows = (list, size = 12) => {
   const rows = [...list];
   while (rows.length < size) rows.push({ sno: String(rows.length + 1).padStart(2, '0'), code: '', title: '' });
   return rows;
@@ -112,7 +112,14 @@ export function prefillFromProcess(process, formData) {
   const saved = process.formData || {};
   const subjects = (saved.subjects || []).map((s, i) => ({ sno: String(i + 1).padStart(2, '0'), code: s.code || '', title: s.title || '' }));
   const medical = saved.medical;
-  const next = { ...formData, ...saved, examSubjects: padRows(subjects), medicalSubjectsList: padRows(subjects) };
+  const next = {
+    ...formData,
+    ...saved,
+    examSubjects: padRows(subjects, 12),
+    medicalSubjectsList: padRows(subjects, 8),
+    pivVoucherImage: process.paymentReceipt?.dataUrl || saved.pivVoucherImage || formData.pivVoucherImage || null,
+    candidateSignatureImage: saved.candidateSignatureImage || formData.candidateSignatureImage || null,
+  };
   if (medical) {
     next.medicalReason = medical.reason;
     next.leaveFrom = medical.fromDate;

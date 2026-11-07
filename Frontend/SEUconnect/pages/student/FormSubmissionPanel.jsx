@@ -48,7 +48,13 @@ export default function FormSubmissionPanel({ type, user, formData, setFormData,
     setFileError('');
     if (!file) return;
     try {
-      setExtras({ ...extras, receipt: await readReceipt(file) });
+      const receiptData = await readReceipt(file);
+      setExtras({ ...extras, receipt: receiptData });
+      setFormData((prev) => ({
+        ...prev,
+        pivVoucherImage: receiptData.dataUrl,
+        pivVoucherFileName: receiptData.name
+      }));
     } catch (err) {
       setExtras({ ...extras, receipt: null });
       setFileError(err.message);
@@ -143,9 +149,9 @@ export default function FormSubmissionPanel({ type, user, formData, setFormData,
             <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
               <label>Upload voucher / receipt (PNG, JPG or PDF, max 5 MB)</label>
               <input type="file" accept="image/png,image/jpeg,application/pdf" onChange={onFile} />
-              {extras.receipt && (
-                <div className="seu-submit-hint">
-                  Attached: {extras.receipt.name} ({Math.round(extras.receipt.size / 1024)} KB)
+              {(extras.receipt || formData.pivVoucherImage) && (
+                <div className="seu-submit-hint" style={{ color: '#15803d', fontWeight: 600 }}>
+                  ✓ Attached: {extras.receipt?.name || formData.pivVoucherFileName || 'PIV Payment Voucher Slip'}{extras.receipt?.size ? ` (${Math.round(extras.receipt.size / 1024)} KB)` : ''}
                 </div>
               )}
               {fileError && <div className="seu-submit-error">{fileError}</div>}
