@@ -393,6 +393,7 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     // Medical specific
     medicalCandidateType: 'Fresh',
     medicalSubjectType: 'Attendance for the Lecture',
+    medicalOtherSpecify: '',
     medicalReason: 'Diagnosed with acute viral fever with clinical rest certified by Medical Officer.',
     leaveFrom: new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0],
     leaveTo: new Date().toISOString().split('T')[0],
@@ -534,6 +535,15 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
         idx === index ? { ...item, [field]: value } : item
       );
       return { ...prev, examSubjects: nextSubjects };
+    });
+  };
+
+  const handleMedicalSubjectChange = (index, field, value) => {
+    setFormData((prev) => {
+      const nextSubjects = (prev.medicalSubjectsList || []).map((item, idx) =>
+        idx === index ? { ...item, [field]: value } : item
+      );
+      return { ...prev, medicalSubjectsList: nextSubjects };
     });
   };
 
@@ -807,89 +817,111 @@ Note: Present this completed official document with attached original bank PIV s
         );
 
       // 2. MEDICAL SUBMISSION FORM (2-Page Official Format)
+      // 2. MEDICAL SUBMISSION FORM (Exact 2-Page Official Physical Layout)
       case 'SEU-MED-ABSENT':
-      case 'SEU-ICT-MED-LEC':
+      case 'SEU-ICT-MED-LEC': {
+        const sigImg = formData.candidateSignatureImage || formData.rescrutinySignImage;
         return (
-          <div className="printable-document">
-            {/* Page 1: Student Particulars */}
+          <div className="printable-document exam-form-container" style={{ fontSize: '0.84rem' }}>
+            {/* Page 1: Student Particulars & Requested Subjects */}
             <div className="printable-page-block">
-              <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                <UniversityEmblem size={55} />
-                <div style={{ fontSize: '0.98rem', fontWeight: 'bold', lineHeight: 1.25 }}>ශ්‍රී ලංකා අග්නිදිග විශ්වවිද්‍යාලය</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1.25 }}>இலங்கை தென்கிழக்குப் பல்கலைக்கழகம்</div>
-                <div style={{ fontSize: '1.02rem', fontWeight: 'bold', letterSpacing: '0.04em', lineHeight: 1.3 }}>
-                  SOUTH EASTERN UNIVERSITY OF SRI LANKA
+              {/* Header with Emblem & Trilingual Titles */}
+              <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '4px' }}>
+                  <UniversityEmblem size={55} />
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 'bold', lineHeight: 1.25 }}>ශ්‍රී ලංකා අග්නිදිග විශ්වවිද්‍යාලය</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 'bold', lineHeight: 1.25 }}>இலங்கை தென்கிழக்குப் பல்கலைக்கழகம்</div>
+                    <div style={{ fontSize: '1.02rem', fontWeight: 'bold', letterSpacing: '0.04em', lineHeight: 1.3 }}>
+                      SOUTH EASTERN UNIVERSITY OF SRI LANKA
+                    </div>
+                  </div>
                 </div>
-                <div style={{ borderTop: '2px solid #000', borderBottom: '1px solid #000', height: '3px', margin: '6px 0 8px 0' }} />
-                <div style={{ fontSize: '0.88rem', fontWeight: 'bold', letterSpacing: '0.03em' }}>
+                <div style={{ borderTop: '2px solid #000', borderBottom: '1px solid #000', height: '3px', margin: '4px 0 6px 0' }} />
+                <div style={{ fontSize: '0.90rem', fontWeight: 'bold', letterSpacing: '0.03em' }}>
                   OFFICE OF THE DEAN, FACULTY OF TECHNOLOGY
                 </div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 'bold', textDecoration: 'underline', marginTop: '6px', letterSpacing: '0.04em' }}>
+                <div style={{ borderBottom: '1px solid #000', margin: '4px 0 6px 0' }} />
+                <div style={{ fontSize: '1.04rem', fontWeight: 'bold', textDecoration: 'underline', letterSpacing: '0.04em', marginTop: '4px' }}>
                   MEDICAL SUBMISSION FORM
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '8px', marginTop: '12px' }}>
+              {/* 1. Details of the Applicant & 2. Subject Side-by-Side */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.18fr 0.82fr', gap: '12px', marginTop: '10px' }}>
+                {/* 1. Details of the Applicant */}
                 <div>
                   <div style={{ fontWeight: 'bold', fontSize: '0.82rem', marginBottom: '3px' }}>1. Details of the Applicant:</div>
-                  <table>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000', fontSize: '0.80rem' }}>
                     <tbody>
-                      <tr>
-                        <td style={{ width: '42%', fontWeight: 600 }}>Name</td>
-                        <td><strong>{formData.name.toUpperCase()}</strong></td>
+                      <tr style={{ borderBottom: '1px solid #000' }}>
+                        <td style={{ width: '42%', padding: '4px 6px', fontWeight: 600, borderRight: '1px solid #000' }}>Name</td>
+                        <td style={{ padding: '4px 6px', fontWeight: 'bold' }}>{formData.name.toUpperCase()}</td>
                       </tr>
-                      <tr>
-                        <td style={{ fontWeight: 600 }}>Registration Number</td>
-                        <td><strong>{formData.registrationNumber.toUpperCase()}</strong></td>
+                      <tr style={{ borderBottom: '1px solid #000' }}>
+                        <td style={{ padding: '4px 6px', fontWeight: 600, borderRight: '1px solid #000' }}>Registration Number</td>
+                        <td style={{ padding: '4px 6px', fontWeight: 'bold' }}>{formData.registrationNumber.toUpperCase()}</td>
                       </tr>
-                      <tr>
-                        <td style={{ fontWeight: 600 }}>Index Number</td>
-                        <td>{formData.indexNumber.toUpperCase()}</td>
+                      <tr style={{ borderBottom: '1px solid #000' }}>
+                        <td style={{ padding: '4px 6px', fontWeight: 600, borderRight: '1px solid #000' }}>Index Number</td>
+                        <td style={{ padding: '4px 6px' }}>{formData.indexNumber ? formData.indexNumber.toUpperCase() : '—'}</td>
                       </tr>
-                      <tr>
-                        <td style={{ fontWeight: 600 }}>Candidate Type</td>
-                        <td>
-                          <span style={{ marginRight: '14px' }}>[{formData.medicalCandidateType === 'Repeat' ? '✓' : ' '}] Repeat</span>
-                          <span>[{formData.medicalCandidateType === 'Fresh' ? '✓' : ' '}] Fresh</span>
+                      <tr style={{ borderBottom: '1px solid #000' }}>
+                        <td style={{ padding: '4px 6px', fontWeight: 600, borderRight: '1px solid #000' }}>Are you a Repeat or Fresh Candidate?</td>
+                        <td style={{ padding: '4px 6px' }}>
+                          <span style={{ marginRight: '16px' }}>
+                            [ <span style={{ fontWeight: 'bold' }}>{formData.medicalCandidateType === 'Repeat' ? '✓' : ' '}</span> ] Repeat
+                          </span>
+                          <span>
+                            [ <span style={{ fontWeight: 'bold' }}>{formData.medicalCandidateType === 'Fresh' ? '✓' : ' '}</span> ] Fresh
+                          </span>
                         </td>
                       </tr>
-                      <tr>
-                        <td style={{ fontWeight: 600 }}>Department</td>
-                        <td>{formData.department}</td>
+                      <tr style={{ borderBottom: '1px solid #000' }}>
+                        <td style={{ padding: '4px 6px', fontWeight: 600, borderRight: '1px solid #000' }}>Department</td>
+                        <td style={{ padding: '4px 6px' }}>{formData.department}</td>
                       </tr>
                       <tr>
-                        <td style={{ fontWeight: 600 }}>Postal Address</td>
-                        <td style={{ fontSize: '0.78rem' }}>{formData.address}</td>
+                        <td style={{ padding: '4px 6px', fontWeight: 600, borderRight: '1px solid #000' }}>Postal Address</td>
+                        <td style={{ padding: '4px 6px', fontSize: '0.76rem' }}>{formData.address}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
+                {/* 2. Subject (Please ✓ one) */}
                 <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '0.82rem', marginBottom: '3px' }}>2. Subject (Please ✓ one):</div>
-                  <table>
+                  <div style={{ fontWeight: 'bold', fontSize: '0.82rem', marginBottom: '3px' }}>2. Subject (Please ✓ one) :</div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000', fontSize: '0.80rem' }}>
                     <tbody>
-                      <tr>
-                        <td>Attendance for the Lecture</td>
-                        <td style={{ textAlign: 'center', width: '38px', fontWeight: 'bold' }}>
+                      <tr style={{ borderBottom: '1px solid #000', height: '28px' }}>
+                        <td style={{ padding: '4px 8px' }}>Attendance for the Lecture</td>
+                        <td style={{ width: '38px', borderLeft: '1px solid #000', textAlign: 'center', fontWeight: 'bold', fontSize: '0.92rem' }}>
                           {formData.medicalSubjectType === 'Attendance for the Lecture' ? '✓' : ''}
                         </td>
                       </tr>
-                      <tr>
-                        <td>End Semester Examination</td>
-                        <td style={{ textAlign: 'center', width: '38px', fontWeight: 'bold' }}>
+                      <tr style={{ borderBottom: '1px solid #000', height: '28px' }}>
+                        <td style={{ padding: '4px 8px' }}>End Semester Examination</td>
+                        <td style={{ width: '38px', borderLeft: '1px solid #000', textAlign: 'center', fontWeight: 'bold', fontSize: '0.92rem' }}>
                           {formData.medicalSubjectType === 'End Semester Examination' ? '✓' : ''}
                         </td>
                       </tr>
-                      <tr>
-                        <td>Continuous Assessment (CA)</td>
-                        <td style={{ textAlign: 'center', width: '38px', fontWeight: 'bold' }}>
+                      <tr style={{ borderBottom: '1px solid #000', height: '28px' }}>
+                        <td style={{ padding: '4px 8px' }}>Continuous Assessment (CA)</td>
+                        <td style={{ width: '38px', borderLeft: '1px solid #000', textAlign: 'center', fontWeight: 'bold', fontSize: '0.92rem' }}>
                           {formData.medicalSubjectType === 'Continuous Assessment (CA)' ? '✓' : ''}
                         </td>
                       </tr>
-                      <tr>
-                        <td>Other (Specify)</td>
-                        <td style={{ textAlign: 'center', width: '38px', fontWeight: 'bold' }}>
+                      <tr style={{ height: '36px' }}>
+                        <td style={{ padding: '4px 8px' }}>
+                          Any Other (Please Specify)
+                          {formData.medicalSubjectType.includes('Other') && formData.medicalOtherSpecify && (
+                            <div style={{ fontSize: '0.72rem', fontStyle: 'italic', color: '#1e3a8a', marginTop: '2px' }}>
+                              : {formData.medicalOtherSpecify}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ width: '38px', borderLeft: '1px solid #000', textAlign: 'center', fontWeight: 'bold', fontSize: '0.92rem' }}>
                           {formData.medicalSubjectType.includes('Other') ? '✓' : ''}
                         </td>
                       </tr>
@@ -898,85 +930,173 @@ Note: Present this completed official document with attached original bank PIV s
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-                <div style={{ border: '1px solid #000', padding: '6px 8px', fontSize: '0.82rem' }}>
-                  <strong>3. Dates of Medical Leave:</strong>
-                  <div style={{ marginTop: '4px' }}>
-                    From: <strong>{formData.leaveFrom}</strong> &nbsp; To: <strong>{formData.leaveTo}</strong>
-                  </div>
+              {/* 3. Dates for which you are applying for medical leave */}
+              <div style={{ marginTop: '10px', fontSize: '0.82rem' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                  3. Please specify the dates for which you are applying for medical leave:
                 </div>
-                <div style={{ border: '1px solid #000', padding: '6px 8px', fontSize: '0.82rem' }}>
-                  <strong>4. Reason for Absence:</strong>
-                  <div style={{ marginTop: '2px', fontSize: '0.78rem' }}>{formData.medicalReason}</div>
+                <div style={{ display: 'flex', gap: '30px', alignItems: 'center', paddingLeft: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, marginRight: '8px' }}>From:</span>
+                    <span style={{ borderBottom: '1px dotted #000', minWidth: '180px', display: 'inline-block', padding: '0 8px', fontWeight: 'bold' }}>
+                      {formData.leaveFrom || '...........................................'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, marginRight: '8px' }}>To:</span>
+                    <span style={{ borderBottom: '1px dotted #000', minWidth: '180px', display: 'inline-block', padding: '0 8px', fontWeight: 'bold' }}>
+                      {formData.leaveTo || '...........................................'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ marginTop: '12px' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '0.82rem', marginBottom: '3px' }}>5. Requested Subject/s:</div>
-                <table>
+              {/* 4. Reason for the absence */}
+              <div style={{ marginTop: '10px', fontSize: '0.82rem' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                  4. Please state the reason for the absence. <span style={{ fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.78rem' }}>(Please annex the certified medical certificate and use additional sheets if necessary)</span>
+                </div>
+                <div style={{ border: '1px solid #000', minHeight: '58px', padding: '6px 8px', fontSize: '0.80rem', background: '#fff' }}>
+                  {formData.medicalReason || 'Diagnosed with illness with clinical rest certified by Medical Officer.'}
+                </div>
+              </div>
+
+              {/* 5. Requested Subject/s (8 Rows Table) */}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontWeight: 'bold', fontSize: '0.82rem', marginBottom: '4px' }}>
+                  5. Requested Subject/s: <span style={{ fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.78rem' }}>(Please list the subjects for which you are requesting consideration due to your absence)</span>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000', fontSize: '0.80rem' }}>
                   <thead>
-                    <tr>
-                      <th style={{ width: '45px' }}>S.No</th>
-                      <th style={{ width: '130px' }}>Subject Code</th>
-                      <th>Subject Name</th>
+                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #000' }}>
+                      <th style={{ width: '48px', borderRight: '1px solid #000', padding: '4px', textAlign: 'center' }}>S.No</th>
+                      <th style={{ width: '160px', borderRight: '1px solid #000', padding: '4px 8px', textAlign: 'left' }}>Subject Code</th>
+                      <th style={{ padding: '4px 8px', textAlign: 'left' }}>Subject</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.medicalSubjectsList.map((sub, i) => (
-                      <tr key={i} style={{ height: '24px' }}>
-                        <td style={{ textAlign: 'center' }}>{sub.sno}</td>
-                        <td style={{ fontWeight: 600, paddingLeft: '8px' }}>{sub.code}</td>
-                        <td style={{ paddingLeft: '8px' }}>{sub.title}</td>
+                    {(formData.medicalSubjectsList || []).slice(0, 8).map((sub, i) => (
+                      <tr key={i} style={{ height: '23px', borderBottom: i < 7 ? '1px solid #000' : 'none' }}>
+                        <td style={{ textAlign: 'center', borderRight: '1px solid #000', fontWeight: 'bold' }}>{sub.sno || i + 1}</td>
+                        <td style={{ borderRight: '1px solid #000', padding: '2px 8px', fontWeight: 600 }}>{sub.code}</td>
+                        <td style={{ padding: '2px 8px' }}>{sub.title}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
+              {/* Date & Signature of the Student */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '14px', marginBottom: '8px' }}>
                 <div style={{ fontSize: '0.82rem' }}>
-                  Date: <strong>{formData.applicationDate}</strong>
-                </div>
-                <div style={{ textAlign: 'center', minWidth: '180px' }}>
-                  <div style={{ fontStyle: 'italic', borderBottom: '1px dotted #000', paddingBottom: '2px' }}>
-                    {formData.signatureName || formData.name}
+                  <div style={{ borderBottom: '1px dotted #000', minWidth: '160px', padding: '0 6px', fontWeight: 600 }}>
+                    {formData.applicationDate}
                   </div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: '2px' }}>Signature of the Student</div>
+                  <div style={{ fontSize: '0.80rem', fontWeight: 600, marginTop: '2px' }}>Date</div>
                 </div>
+
+                <div className="exam-sig-container">
+                  <div className="exam-sig-display-area">
+                    {sigImg ? (
+                      <img
+                        src={sigImg}
+                        alt="Student Signature"
+                        className="sig-preview-img"
+                      />
+                    ) : (
+                      <span className="sig-script-fallback">
+                        {formData.signatureName || formData.name || studentName}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', width: '100%', marginBottom: '2px' }}></div>
+                  <div style={{ fontSize: '0.80rem', fontWeight: 600 }}>Signature of the Student</div>
+
+                  <div className="no-print" style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                    <button
+                      type="button"
+                      className="sig-upload-btn-sm"
+                      onClick={() => sigFileInputRef.current?.click()}
+                    >
+                      {sigImg ? 'Change Signature' : 'Upload Signature'}
+                    </button>
+                    {sigImg && (
+                      <button
+                        type="button"
+                        className="sig-clear-btn-sm"
+                        onClick={handleRemoveSignature}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Note in italics at bottom */}
+              <div style={{ fontSize: '0.72rem', fontStyle: 'italic', borderTop: '1px solid #cbd5e1', paddingTop: '4px', marginTop: '6px', color: '#333', lineHeight: 1.35 }}>
+                <strong>Note:</strong> If this request pertains to a final examination, please attach a copy of the notice sent to the Senior Assistant Registrar regarding your absence. As per university policy, if a student falls ill during examinations, the student or guardian must notify the Senior Assistant Registrar in writing within 48 hours. A valid medical certificate must be submitted within two weeks of the last exam date.
               </div>
             </div>
 
             <div className="print-divider" />
 
-            {/* Page 2: Office & HoD Recommendation */}
-            <div className="printable-page-block">
-              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.92rem', marginBottom: '12px', letterSpacing: '0.04em' }}>
-                (FOR OFFICE USE ONLY / FACULTY RECOMMENDATIONS)
-              </div>
-              <div style={{ border: '1px solid #000', padding: '12px', minHeight: '120px', marginBottom: '14px', fontSize: '0.82rem' }}>
-                <strong>Recommendation of the Head of Department:</strong>
-                <div style={{ margin: '8px 0', minHeight: '40px', color: '#444' }}>
-                  Verified with attendance logs. Recommended for medical excuse recording.
+            {/* Page 2: For Office Use, Head of Department, Forwarding to Dean's Office */}
+            <div className="printable-page-block" style={{ minHeight: '800px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '30px', padding: '24px 20px' }}>
+              {/* For Office Use */}
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '0.90rem', marginBottom: '4px' }}>
+                  For Office Use:
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                  <div>Date: .......................................</div>
-                  <div>Signature of Head of Department & Official Stamp</div>
+                <div style={{ borderBottom: '1px solid #000', marginBottom: '16px' }} />
+                <div style={{ fontSize: '0.84rem', lineHeight: 2.2, paddingLeft: '8px' }}>
+                  <div>
+                    • Date Received: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', minWidth: '220px' }}>&nbsp;</span>
+                  </div>
+                  <div>
+                    • Remarks (if any): <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '80%' }}>&nbsp;</span>
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', width: '100%', height: '22px' }}>&nbsp;</div>
                 </div>
               </div>
 
-              <div style={{ border: '1px solid #000', padding: '12px', minHeight: '120px', fontSize: '0.82rem' }}>
-                <strong>Endorsement by the Dean, Faculty of Technology:</strong>
-                <div style={{ margin: '8px 0', minHeight: '40px', color: '#444' }}>
-                  Approved under University Medical Examination Regulations.
+              {/* Recommended /Approved by the Head of Department */}
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '0.90rem', marginBottom: '4px' }}>
+                  Recommended /Approved by the Head of Department:
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                  <div>Date: .......................................</div>
-                  <div>Signature of the Dean / Senior Assistant Registrar</div>
+                <div style={{ borderBottom: '1px solid #000', marginBottom: '24px' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '0.84rem', padding: '0 8px', minHeight: '50px' }}>
+                  <div>
+                    Date: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', minWidth: '180px' }}>&nbsp;</span>
+                  </div>
+                  <div>
+                    Signature: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', minWidth: '200px' }}>&nbsp;</span>
+                  </div>
+                </div>
+                <div style={{ borderBottom: '1px solid #000', marginTop: '26px' }} />
+              </div>
+
+              {/* Forwarding to Dean's Office */}
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '0.90rem', marginBottom: '4px' }}>
+                  Forwarding to Dean&apos;s Office:
+                </div>
+                <div style={{ borderBottom: '1px solid #000', marginBottom: '16px' }} />
+                <div style={{ fontSize: '0.84rem', lineHeight: 2.2, paddingLeft: '8px' }}>
+                  <div>
+                    • Date Received: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', minWidth: '220px' }}>&nbsp;</span>
+                  </div>
+                  <div>
+                    • Remarks (if any): <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '80%' }}>&nbsp;</span>
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', width: '100%', height: '22px' }}>&nbsp;</div>
                 </div>
               </div>
             </div>
           </div>
         );
+      }
 
       // 3. APPLICATION FOR RE-SCRUTINIZATION OF MARKS & GRADES (Exact Physical Layout)
       case 'SEU-EX-RESCRUTINY': {
@@ -3265,31 +3385,202 @@ Note: Present this completed official document with attached original bank PIV s
               {selectedForm.formId.includes('MED') && (
                 <>
                   <div className="seu-form-group">
-                    <label>Medical Absence Category</label>
+                    <label>1. Are you a Repeat or Fresh Candidate?</label>
                     <select
-                      value={formData.medicalSubjectType}
+                      value={formData.medicalCandidateType || 'Fresh'}
+                      onChange={(e) => setFormData({ ...formData, medicalCandidateType: e.target.value })}
+                    >
+                      <option value="Fresh">Fresh Candidate</option>
+                      <option value="Repeat">Repeat Candidate</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>1. Postal Address</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Technology Hostel, Faculty of Technology, SEUSL, Oluvil"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>2. Subject (Please ✓ one)</label>
+                    <select
+                      value={formData.medicalSubjectType || 'Attendance for the Lecture'}
                       onChange={(e) => setFormData({ ...formData, medicalSubjectType: e.target.value })}
                     >
                       <option value="Attendance for the Lecture">Attendance for the Lecture</option>
                       <option value="End Semester Examination">End Semester Examination</option>
                       <option value="Continuous Assessment (CA)">Continuous Assessment (CA)</option>
+                      <option value="Any Other (Please Specify)">Any Other (Please Specify)</option>
                     </select>
                   </div>
 
-                  <div className="seu-form-group">
-                    <label>Medical Leave Range</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                  {formData.medicalSubjectType === 'Any Other (Please Specify)' && (
+                    <div className="seu-form-group">
+                      <label>Specify Other Subject / Purpose</label>
                       <input
-                        type="date"
-                        value={formData.leaveFrom}
-                        onChange={(e) => setFormData({ ...formData, leaveFrom: e.target.value })}
-                      />
-                      <input
-                        type="date"
-                        value={formData.leaveTo}
-                        onChange={(e) => setFormData({ ...formData, leaveTo: e.target.value })}
+                        type="text"
+                        placeholder="Please specify..."
+                        value={formData.medicalOtherSpecify || ''}
+                        onChange={(e) => setFormData({ ...formData, medicalOtherSpecify: e.target.value })}
                       />
                     </div>
+                  )}
+
+                  <div className="seu-form-group">
+                    <label>3. Please specify the dates for medical leave</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>From:</span>
+                        <input
+                          type="date"
+                          value={formData.leaveFrom}
+                          onChange={(e) => setFormData({ ...formData, leaveFrom: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>To:</span>
+                        <input
+                          type="date"
+                          value={formData.leaveTo}
+                          onChange={(e) => setFormData({ ...formData, leaveTo: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label>4. Please state the reason for the absence (Certified by Medical Officer)</label>
+                    <textarea
+                      rows={3}
+                      placeholder="State the reason for absence (e.g. Diagnosed with acute viral fever with clinical rest certified by University Medical Officer)..."
+                      value={formData.medicalReason}
+                      onChange={(e) => setFormData({ ...formData, medicalReason: e.target.value })}
+                      style={{ width: '100%', padding: '8px', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+
+                  {/* Upload Candidate Handwritten Signature Image Card */}
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      {/* Signature Upload */}
+                      <div>
+                        <label style={{ fontWeight: 700, display: 'block', marginBottom: '4px', color: '#0f766e' }}>
+                          Upload Candidate Signature Image (Medical Submission)
+                        </label>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                          Upload handwritten signature picture (PNG or JPG). Renders directly on official candidate signature line.
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            onChange={handleSignatureUpload}
+                            style={{ fontSize: '0.82rem' }}
+                          />
+                          {formData.candidateSignatureImage && (
+                            <button
+                              type="button"
+                              className="sig-clear-btn-sm"
+                              onClick={handleRemoveSignature}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        {formData.candidateSignatureImage && (
+                          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={formData.candidateSignatureImage}
+                              alt="Signature Preview"
+                              style={{ height: '36px', maxWidth: '100px', objectFit: 'contain', border: '1px solid #cbd5e1', padding: '2px', background: '#fff' }}
+                            />
+                            <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                              ✓ Attached: {formData.candidateSignatureFileName || 'signature.png'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Medical Certificate Regulation Info Box */}
+                      <div style={{ background: '#f1f5f9', padding: '8px 12px', borderRadius: '6px', fontSize: '0.78rem', color: '#334155' }}>
+                        <div style={{ fontWeight: 700, color: '#1e3a8a', marginBottom: '4px' }}>
+                          SEUSL Medical Regulations Notice:
+                        </div>
+                        <p style={{ margin: '0 0 4px 0', lineHeight: 1.4 }}>
+                          • If absent for exams: student or guardian must notify Senior Assistant Registrar in writing within <strong>48 hours</strong>.
+                        </p>
+                        <p style={{ margin: 0, lineHeight: 1.4 }}>
+                          • Valid certified medical certificate must be submitted within <strong>two weeks</strong> of the last exam date.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 8 Requested Subjects Inline Table Editor */}
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontWeight: 700 }}>5. Requested Subject/s (8 Rows - Consideration due to absence)</label>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        Row 01 - 08 auto-update on official medical submission form
+                      </span>
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                      <thead>
+                        <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #cbd5e1' }}>
+                          <th style={{ width: '38px', padding: '5px 8px', textAlign: 'center' }}>S.No</th>
+                          <th style={{ width: '180px', padding: '5px 8px', textAlign: 'left' }}>Subject Code</th>
+                          <th style={{ padding: '5px 8px', textAlign: 'left' }}>Subject</th>
+                          <th style={{ width: '45px', padding: '5px 8px', textAlign: 'center' }}>Clear</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(formData.medicalSubjectsList || []).slice(0, 8).map((sub, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
+                              {String(i + 1).padStart(2, '0')}.
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <input
+                                type="text"
+                                placeholder={`ICT3101${i + 1}`}
+                                value={sub.code}
+                                onChange={(e) => handleMedicalSubjectChange(i, 'code', e.target.value)}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <input
+                                type="text"
+                                placeholder={`Subject title ${i + 1}`}
+                                value={sub.title}
+                                onChange={(e) => handleMedicalSubjectChange(i, 'title', e.target.value)}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {(sub.code || sub.title) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleMedicalSubjectChange(i, 'code', '');
+                                    handleMedicalSubjectChange(i, 'title', '');
+                                  }}
+                                  style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}
+                                  title="Clear row"
+                                >
+                                  &times;
+                                </button>
+                              ) : null}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </>
               )}
