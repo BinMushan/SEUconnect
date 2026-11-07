@@ -315,10 +315,38 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
   const studentEmail = user?.email || '22ict085@seu.ac.lk';
   const studentPhone = user?.phone || '+94 77 1234567';
 
+  // Helper to parse Sri Lankan University segmented registration number (e.g. SEU/IS/22/ICT/085)
+  const parseRegParts = (regNo = '') => {
+    const raw = String(regNo || '').trim();
+    const parts = raw.split(/[\/\-_]/).map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 5) {
+      return { p1: parts[0], p2: parts[1], p3: parts[2], p4: parts[3], p5: parts[4] };
+    }
+    const match = raw.match(/^(?:(SEU)[-\/]?([A-Z]+)[-\/]?)?(\d{2})[-\/]?([A-Z]+)[-\/]?(\d+)$/i);
+    if (match) {
+      return {
+        p1: match[1] || 'SEU',
+        p2: match[2] || 'IS',
+        p3: match[3] || '22',
+        p4: match[4] || 'ICT',
+        p5: match[5] || '085'
+      };
+    }
+    return { p1: 'SEU', p2: 'IS', p3: '22', p4: 'ICT', p5: '085' };
+  };
+
+  const initialParts = parseRegParts(studentRegNo);
+
   // Interactive Form Editor State
   const [formData, setFormData] = useState(() => ({
     name: studentName,
     registrationNumber: studentRegNo,
+    candidateTitle: 'Mr.',
+    regPart1: initialParts.p1,
+    regPart2: initialParts.p2,
+    regPart3: initialParts.p3,
+    regPart4: initialParts.p4,
+    regPart5: initialParts.p5,
     indexNumber: studentIndexNo,
     degreeProgramme: studentProgramme,
     department: studentDept,
@@ -329,15 +357,20 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     address: 'Technology Hostel, Faculty of Technology, SEUSL, Oluvil',
     applicationDate: new Date().toISOString().split('T')[0],
     
-    // Exam specific
-    examBatch: '2022/2023',
+    // Exam specific matching physical paper form
+    examBatch: '2021/2022',
     examFaculty: 'FT',
     examMedium: 'English',
-    examSemester: 'I',
+    examSemester: '1st',
     examAppliedFor: 'Repeat',
+    examYear: 'Third Year',
     examAttempts: '1',
     examFeesPaid: '400',
     examNameYear: 'Third Year Examination in Technology - Semester I - 2025/2026',
+    pivVoucherImage: null,
+    pivVoucherFileName: '',
+    candidateSignatureImage: null,
+    candidateSignatureFileName: '',
     examSubjects: [
       { sno: '01', code: 'ICT21013', title: 'Data Structures and Algorithms' },
       { sno: '02', code: 'ICT21023', title: 'Database Management Systems' },
@@ -346,7 +379,11 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
       { sno: '05', code: '', title: '' },
       { sno: '06', code: '', title: '' },
       { sno: '07', code: '', title: '' },
-      { sno: '08', code: '', title: '' }
+      { sno: '08', code: '', title: '' },
+      { sno: '09', code: '', title: '' },
+      { sno: '10', code: '', title: '' },
+      { sno: '11', code: '', title: '' },
+      { sno: '12', code: '', title: '' }
     ],
 
     // Medical specific
@@ -387,6 +424,127 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     gradeReceived: 'C-',
     signatureName: studentName
   }));
+
+  const pivFileInputRef = useRef(null);
+  const sigFileInputRef = useRef(null);
+
+  // Handle live uploading of PIV voucher image
+  const handlePivUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (loadEvt) => {
+      const dataUrl = loadEvt.target.result;
+      setFormData((prev) => ({
+        ...prev,
+        pivVoucherImage: dataUrl,
+        pivVoucherFileName: file.name
+      }));
+      setExtras((prev) => ({
+        ...prev,
+        receipt: {
+          name: file.name,
+          mime: file.type || 'image/jpeg',
+          size: file.size,
+          dataUrl: dataUrl
+        },
+        payment: {
+          ...prev.payment,
+          voucherNo: prev.payment.voucherNo || `PIV-${Date.now().toString().slice(-6)}`,
+          amount: prev.payment.amount || String(formData.examFeesPaid || '400')
+        }
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePiv = () => {
+    setFormData((prev) => ({
+      ...prev,
+      pivVoucherImage: null,
+      pivVoucherFileName: ''
+    }));
+    setExtras((prev) => ({
+      ...prev,
+      receipt: null
+    }));
+    if (pivFileInputRef.current) pivFileInputRef.current.value = '';
+  };
+
+  // Handle live uploading of Candidate Handwritten Signature image
+  const handleSignatureUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (loadEvt) => {
+      setFormData((prev) => ({
+        ...prev,
+        candidateSignatureImage: loadEvt.target.result,
+        candidateSignatureFileName: file.name
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveSignature = () => {
+    setFormData((prev) => ({
+      ...prev,
+      candidateSignatureImage: null,
+      candidateSignatureFileName: ''
+    }));
+    if (sigFileInputRef.current) sigFileInputRef.current.value = '';
+  };
+
+  // Synchronize segmented registration number parts
+  const handleRegPartChange = (partKey, val) => {
+    const cleaned = val.toUpperCase().replace(/\s+/g, '');
+    setFormData((prev) => {
+      const currentParts = {
+        p1: prev.regPart1 || parseRegParts(prev.registrationNumber).p1,
+        p2: prev.regPart2 || parseRegParts(prev.registrationNumber).p2,
+        p3: prev.regPart3 || parseRegParts(prev.registrationNumber).p3,
+        p4: prev.regPart4 || parseRegParts(prev.registrationNumber).p4,
+        p5: prev.regPart5 || parseRegParts(prev.registrationNumber).p5,
+        [partKey]: cleaned
+      };
+      const formatted = `${currentParts.p1}/${currentParts.p2}/${currentParts.p3}/${currentParts.p4}/${currentParts.p5}`;
+      return {
+        ...prev,
+        [partKey]: cleaned,
+        registrationNumber: formatted
+      };
+    });
+  };
+
+  const handleExamSubjectChange = (index, field, value) => {
+    setFormData((prev) => {
+      const nextSubjects = (prev.examSubjects || []).map((item, idx) =>
+        idx === index ? { ...item, [field]: value } : item
+      );
+      return { ...prev, examSubjects: nextSubjects };
+    });
+  };
+
+  // Auto-calculate repeat exam fee per SEUSL Examinations Division rule:
+  // "Payment: Rs. 100/- per subject for Four (04) and more subject Rs. 400/-"
+  useEffect(() => {
+    if (formData.examAppliedFor === 'Fresh') {
+      if (formData.examFeesPaid !== '0') {
+        setFormData((prev) => ({ ...prev, examFeesPaid: '0' }));
+      }
+      return;
+    }
+    const filledCount = (formData.examSubjects || []).filter((s) => s.code?.trim() || s.title?.trim()).length;
+    let fee = '0';
+    if (filledCount === 1) fee = '100';
+    else if (filledCount === 2) fee = '200';
+    else if (filledCount === 3) fee = '300';
+    else if (filledCount >= 4) fee = '400';
+
+    if (formData.examFeesPaid !== fee) {
+      setFormData((prev) => ({ ...prev, examFeesPaid: fee }));
+    }
+  }, [formData.examAppliedFor, formData.examSubjects]);
 
   // ---- Online submission (students only) ----
   const isStudent = String(user?.role || user?.roleKey || 'student').toLowerCase() === 'student';
@@ -808,148 +966,505 @@ Note: Present this completed official document with attached original bank PIV s
           </div>
         );
 
-      // 3. APPLICATION FOR EXAMINATION (Unified ESA / CA Format)
+      // 3. APPLICATION FOR EXAMINATION (Exact Physical Paper Layout - Page 1 & Page 2)
       case 'SEU-EX-ESA-REP':
       case 'SEU-EX-CA-REP':
       case 'SEU-EX-FORM':
-      default:
+      default: {
+        const regP = {
+          p1: formData.regPart1 || parseRegParts(formData.registrationNumber).p1,
+          p2: formData.regPart2 || parseRegParts(formData.registrationNumber).p2,
+          p3: formData.regPart3 || parseRegParts(formData.registrationNumber).p3,
+          p4: formData.regPart4 || parseRegParts(formData.registrationNumber).p4,
+          p5: formData.regPart5 || parseRegParts(formData.registrationNumber).p5,
+        };
+
+        const subjects12 = formData.examSubjects && formData.examSubjects.length >= 12
+          ? formData.examSubjects.slice(0, 12)
+          : [...(formData.examSubjects || []), ...Array(12).fill(null)].slice(0, 12).map((s, idx) => s || { sno: String(idx + 1).padStart(2, '0'), code: '', title: '' });
+
         return (
-          <div className="printable-document">
-            <div className="printable-page-block">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+          <div className="printable-document exam-form-container">
+            {/* ========================================================
+                PAGE 1 (PART - I: CANDIDATE APPLICATION & SUBJECT SCHEDULE)
+                ======================================================== */}
+            <div className="printable-page-block exam-page-1">
+              {/* Header Grid: Crest + Centered Titles + Office Use Only Box */}
+              <div className="exam-header-grid">
+                <div style={{ width: '65px', flexShrink: 0 }}>
+                  <UniversityEmblem size={55} />
+                </div>
+
+                <div style={{ textAlign: 'center', flexGrow: 1, padding: '0 8px' }}>
+                  <div style={{ fontSize: '1.02rem', fontWeight: 800, letterSpacing: '0.04em' }}>
+                    SOUTH EASTERN UNIVERSITY OF SRI LANKA
+                  </div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, letterSpacing: '0.05em', marginTop: '1px' }}>
+                    EXAMINATIONS DIVISION
+                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 900, textDecoration: 'underline', marginTop: '2px', letterSpacing: '0.04em' }}>
+                    APPLICATION FOR EXAMINATION
+                  </div>
+                  <div style={{ fontSize: '0.74rem', fontStyle: 'italic', marginTop: '3px' }}>
+                    (This form should be completed in BLOCK CAPITAL letters &amp; Tick &#10003; appropriate box)
+                  </div>
+                </div>
+
+                <div className="exam-office-box">
+                  <div className="exam-office-box-title">OFFICE USE ONLY</div>
+                  <div className="exam-office-box-content"></div>
+                </div>
+              </div>
+
+              {/* PART - I Header */}
+              <div style={{ fontWeight: 800, fontSize: '0.92rem', margin: '4px 0 6px 0', letterSpacing: '0.03em' }}>
+                PART - I
+              </div>
+
+              {/* 01. Name with initials */}
+              <div style={{ display: 'flex', border: '1px solid #000', marginBottom: '5px' }}>
+                <div style={{ borderRight: '1px solid #000', padding: '3px 8px', fontWeight: 600, width: '150px', flexShrink: 0, fontSize: '0.84rem' }}>
+                  01. Name with initials:
+                </div>
+                <div style={{ display: 'flex', borderRight: '1px solid #000', flexShrink: 0 }}>
+                  <div style={{ borderRight: '1px solid #000', padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.84rem' }}>
+                    <span style={{ fontWeight: 'bold' }}>{formData.candidateTitle === 'Mr.' ? '✓' : ''}</span> Mr.
+                  </div>
+                  <div style={{ padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.84rem' }}>
+                    <span style={{ fontWeight: 'bold' }}>{formData.candidateTitle === 'Ms.' ? '✓' : ''}</span> Ms.
+                  </div>
+                </div>
+                <div style={{ padding: '3px 8px', flexGrow: 1, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.86rem', letterSpacing: '0.04em' }}>
+                  {formData.name}
+                </div>
+              </div>
+
+              {/* 02. Registration No (Segmented Boxes) */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                <div style={{ width: '150px', fontWeight: 600, flexShrink: 0, fontSize: '0.84rem' }}>
+                  02. Registration No:
+                </div>
+                <div className="exam-reg-grid">
+                  <div className="exam-reg-seg">{regP.p1 || 'SEU'}</div>
+                  <div className="exam-reg-seg">{regP.p2 || 'IS'}</div>
+                  <div className="exam-reg-seg">{regP.p3 || '22'}</div>
+                  <div className="exam-reg-seg">{regP.p4 || 'ICT'}</div>
+                  <div className="exam-reg-seg" style={{ minWidth: '55px' }}>{regP.p5 || '085'}</div>
+                </div>
+              </div>
+
+              {/* 03. Current Batch */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                  03. Current Batch (If transferred to others batch indicate intake academic year):
+                </div>
+                <div style={{ border: '1px solid #000', padding: '3px 14px', minWidth: '130px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.86rem' }}>
+                  {formData.examBatch || '2021 / 2022'}
+                </div>
+              </div>
+
+              {/* 04 - 07: Faculty, Medium, Semester, Applied for */}
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexWrap: 'wrap', margin: '4px 0 6px 0' }}>
+                {/* 04. Faculty */}
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>PART I (Candidate Use)</div>
-                  <div style={{ fontSize: '0.75rem', color: '#555' }}>SEUSL / EXAMS / FT-2026</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: '2px' }}>04. Faculty:</div>
+                  <table className="exam-tick-table">
+                    <thead>
+                      <tr>
+                        <th>FAC</th>
+                        <th>FE</th>
+                        <th>FIA</th>
+                        <th>FMC</th>
+                        <th>FT</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{formData.examFaculty === 'FAC' ? '✓' : ''}</td>
+                        <td>{formData.examFaculty === 'FE' ? '✓' : ''}</td>
+                        <td>{formData.examFaculty === 'FIA' ? '✓' : ''}</td>
+                        <td>{formData.examFaculty === 'FMC' ? '✓' : ''}</td>
+                        <td>{formData.examFaculty === 'FT' || !formData.examFaculty ? '✓' : ''}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <UniversityEmblem size={48} />
-                  <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>SOUTH EASTERN UNIVERSITY OF SRI LANKA</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>EXAMINATIONS DIVISION — FACULTY OF TECHNOLOGY</div>
-                  <div style={{ fontSize: '0.98rem', fontWeight: 'bold', textDecoration: 'underline', marginTop: '3px' }}>
-                    {selectedForm.formId === 'SEU-EX-FORM' ? 'EXAMINATION FORM' : selectedForm.formId === 'SEU-EX-CA-REP' ? 'APPLICATION FOR EXAMINATION (CONTINUOUS ASSESSMENT)' : 'APPLICATION FOR EXAMINATION (END SEMESTER)'}
-                  </div>
+
+                {/* 05. Medium */}
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: '2px' }}>05. Medium:</div>
+                  <table className="exam-tick-table">
+                    <thead>
+                      <tr>
+                        <th>English</th>
+                        <th>Tamil</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{formData.examMedium === 'English' || !formData.examMedium ? '✓' : ''}</td>
+                        <td>{formData.examMedium === 'Tamil' ? '✓' : ''}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div style={{ border: '1px solid #000', padding: '4px 8px', fontSize: '0.72rem', textAlign: 'center' }}>
-                  Ref: {selectedForm.formId}
+
+                {/* 06. Semester */}
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: '2px' }}>06. Semester:</div>
+                  <table className="exam-tick-table">
+                    <thead>
+                      <tr>
+                        <th>1st</th>
+                        <th>2nd</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{formData.examSemester === '1st' || formData.examSemester === 'I' || !formData.examSemester ? '✓' : ''}</td>
+                        <td>{formData.examSemester === '2nd' || formData.examSemester === 'II' ? '✓' : ''}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 07. Applied for */}
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.82rem', marginBottom: '2px' }}>07. Applied for:</div>
+                  <table className="exam-tick-table">
+                    <thead>
+                      <tr>
+                        <th>Fresh</th>
+                        <th>Repeat</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{formData.examAppliedFor === 'Fresh' ? '✓' : ''}</td>
+                        <td>{formData.examAppliedFor === 'Repeat' || !formData.examAppliedFor ? '✓' : ''}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              <table>
-                <tbody>
-                  <tr>
-                    <td style={{ width: '38%', fontWeight: 600 }}>01. Name with Initials (in Block Capitals)</td>
-                    <td><strong>{formData.name.toUpperCase()}</strong></td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>02. Registration Number</td>
-                    <td><strong>{formData.registrationNumber.toUpperCase()}</strong></td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>03. Index Number</td>
-                    <td><strong>{formData.indexNumber.toUpperCase()}</strong></td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>04. Batch & Faculty</td>
-                    <td>{formData.examBatch} &bull; {formData.examFaculty} (Faculty of Technology)</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>05. Medium & Semester</td>
-                    <td>{formData.examMedium} &bull; {formData.examSemester}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>06. Applied For</td>
-                    <td>
-                      <span style={{ marginRight: '16px' }}>[{formData.examAppliedFor === 'Fresh' ? '✓' : ' '}] Fresh</span>
-                      <span>[{formData.examAppliedFor === 'Repeat' ? '✓' : ' '}] Repeat Candidate</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>07. Field of Specialization</td>
-                    <td>{formData.specialization}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>08. Present Postal Address</td>
-                    <td>{formData.address}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: 600 }}>09. Contact Mobile No</td>
-                    <td>{formData.phone}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div style={{ fontWeight: 'bold', fontSize: '0.82rem', margin: '8px 0 4px 0' }}>
-                10. Applied Subject Schedule:
-              </div>
-              <table>
-                <thead>
-                  <tr>
-                    <th style={{ width: '45px' }}>S.No</th>
-                    <th style={{ width: '130px' }}>Subject Code</th>
-                    <th>Subject Title</th>
-                    <th style={{ width: '70px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.examSubjects.map((sub, i) => (
-                    <tr key={i} style={{ height: '24px' }}>
-                      <td style={{ textAlign: 'center' }}>{sub.sno}</td>
-                      <td style={{ fontWeight: 600, paddingLeft: '8px' }}>{sub.code}</td>
-                      <td style={{ paddingLeft: '8px' }}>{sub.title}</td>
-                      <td style={{ textAlign: 'center', fontSize: '0.75rem' }}>{sub.code ? 'Repeat' : ''}</td>
+              {/* 08. Year of Examinations */}
+              <div style={{ margin: '4px 0 6px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>08. Year of Examinations:</span>
+                  <span style={{ fontSize: '0.74rem', fontStyle: 'italic', color: '#333' }}>(Use Separate form each year)</span>
+                </div>
+                <table className="exam-tick-table" style={{ width: '100%', maxWidth: '520px' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '25%' }}>First Year</th>
+                      <th style={{ width: '25%' }}>Second Year</th>
+                      <th style={{ width: '25%' }}>Third Year</th>
+                      <th style={{ width: '25%' }}>Fourth Year</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{formData.examYear === 'First Year' ? '✓' : ''}</td>
+                      <td>{formData.examYear === 'Second Year' ? '✓' : ''}</td>
+                      <td>{formData.examYear === 'Third Year' || !formData.examYear ? '✓' : ''}</td>
+                      <td>{formData.examYear === 'Fourth Year' ? '✓' : ''}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '10px', marginTop: '10px' }}>
-                <div style={{ border: '1px solid #000', padding: '8px', fontSize: '0.78rem' }}>
-                  <strong>11. Repeat Examination Fees Paid:</strong>
-                  <div style={{ marginTop: '3px' }}>
-                    Amount: <strong>Rs. {formData.examFeesPaid}/=</strong> &bull; Bank Receipt: <strong>{formData.receiptNo}</strong>
-                  </div>
-                  <div style={{ fontStyle: 'italic', fontSize: '0.72rem', marginTop: '2px' }}>
-                    Paid to People's Bank Addalaichenai Account 228 1001 9000 1704.
-                  </div>
+              {/* 09. Field of Specialization */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                <div style={{ width: '210px', fontWeight: 600, flexShrink: 0, fontSize: '0.84rem' }}>
+                  09. Field of Specialization (if any):
                 </div>
-
-                <div style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontSize: '0.72rem', color: '#666' }}>
-                  [AFFIX PINK COPY OF PEOPLE'S BANK PIV VOUCHER HERE]
+                <div style={{ border: '1px solid #000', padding: '3px 8px', flexGrow: 1, fontSize: '0.84rem' }}>
+                  {formData.specialization || 'Software Systems'}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '16px' }}>
-                <div style={{ fontSize: '0.82rem' }}>
-                  Date: <strong>{formData.applicationDate}</strong>
+              {/* 10. Present Address */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '5px' }}>
+                <div style={{ width: '210px', fontWeight: 600, flexShrink: 0, fontSize: '0.84rem', paddingTop: '3px' }}>
+                  10. Present Address:
                 </div>
-                <div style={{ textAlign: 'center', minWidth: '180px' }}>
-                  <div style={{ fontStyle: 'italic', borderBottom: '1px dotted #000', paddingBottom: '2px' }}>
-                    {formData.signatureName || formData.name}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: '2px' }}>Signature of Candidate</div>
+                <div style={{ border: '1px solid #000', padding: '4px 8px', flexGrow: 1, minHeight: '36px', fontSize: '0.82rem' }}>
+                  {formData.address}
                 </div>
+              </div>
+
+              {/* 11. Contact Mobile No. */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ width: '210px', fontWeight: 600, flexShrink: 0, fontSize: '0.84rem' }}>
+                  11. Contact Mobile No.
+                </div>
+                <div style={{ border: '1px solid #000', padding: '3px 8px', width: '260px', fontSize: '0.84rem', fontWeight: 600 }}>
+                  {formData.phone}
+                </div>
+              </div>
+
+              {/* 12. Applied Subjects (Exact 12 Rows Table) */}
+              <div style={{ margin: '6px 0 4px 0' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '2px' }}>
+                  12. Applied Subjects:
+                </div>
+                <table className="exam-subjects-grid">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '38px' }}>S.No</th>
+                      <th style={{ width: '170px' }}>Subject Code (Specify clearly)</th>
+                      <th>Subject Title</th>
+                      <th style={{ width: '180px' }}>Signature of Head of Department</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subjects12.map((sub, idx) => (
+                      <tr key={idx}>
+                        <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{String(idx + 1).padStart(2, '0')}</td>
+                        <td style={{ textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.04em' }}>{sub.code || ''}</td>
+                        <td style={{ paddingLeft: '8px' }}>{sub.title || ''}</td>
+                        <td style={{ textAlign: 'center', fontSize: '0.72rem', color: '#777' }}></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 13. Repeat candidates please state No. of attempts completed */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '6px 0 10px 0' }}>
+                <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                  13. Repeat candidates please state No. of attempts completed
+                </div>
+                <div style={{ border: '1px solid #000', padding: '3px 18px', minWidth: '70px', textAlign: 'center', fontWeight: 'bold', fontSize: '0.88rem' }}>
+                  {formData.examAttempts || '1'}
+                </div>
+              </div>
+
+              {/* Footnote */}
+              <div style={{ fontSize: '0.73rem', lineHeight: 1.35, marginTop: '8px', borderTop: '0.5px solid #ccc', paddingTop: '4px' }}>
+                <div><strong>Note:</strong></div>
+                <div>
+                  Please note that a Candidate is eligible for 3 consecutive attempts irrespective of whether a candidate appears
+                  for a schedule examinations or not, after completion of course work. Each scheduled examination will be
+                  counted as an exhausted attempt.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#555', marginTop: '6px' }}>
+                <div>D:\NAZAR MHMIEXAMS\Formats\App. of Exam</div>
+                <div style={{ fontWeight: 'bold' }}>(P.T.O)</div>
               </div>
             </div>
 
             <div className="print-divider" />
 
+            {/* ========================================================
+                PAGE 2 (P.T.O / REVERSE SIDE: FEES, PIV AFFIX, DECLARATION & APPROVALS)
+                ======================================================== */}
             <div className="printable-page-block">
-              <div style={{ fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '8px' }}>
-                PART II — DEPARTMENT & EXAMINATIONS DIVISION ENDORSEMENT
+              {/* Centered Page Number */}
+              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '8px' }}>
+                02
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.8rem' }}>
-                <div style={{ border: '1px solid #000', padding: '10px', minHeight: '90px' }}>
-                  <div>Verification of Course Units:</div>
-                  <div style={{ marginTop: '30px' }}>Signature of Head of Department & Seal</div>
+
+              {/* 14. Fees paid by Repeat Candidate */}
+              <div style={{ fontSize: '0.84rem', lineHeight: 1.45, marginBottom: '8px' }}>
+                <div>
+                  <strong>14. Fees paid by Repeat Candidate of Rs. </strong>
+                  <span style={{ borderBottom: '1px solid #000', display: 'inline-block', minWidth: '160px', padding: '0 8px', fontWeight: 'bold', textAlign: 'center' }}>
+                    {formData.examAppliedFor === 'Fresh' ? 'N/A (Fresh Candidate)' : `${formData.examFeesPaid || '400'}/=`}
+                  </span>
                 </div>
-                <div style={{ border: '1px solid #000', padding: '10px', minHeight: '90px' }}>
-                  <div>Senior Assistant Registrar (Exams):</div>
-                  <div style={{ marginTop: '30px' }}>Signature & Date</div>
+                <div style={{ fontSize: '0.78rem', fontStyle: 'italic', color: '#222' }}>
+                  (Please affix a copy of paying in Voucher as proof of the payment of examination fees)
                 </div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, marginTop: '2px' }}>
+                  Payment: Rs. 100/- per subject for Four (04) and more subject Rs. 400/-
+                </div>
+              </div>
+
+              {/* Dedicated Box: A copy of PIV should be affix here */}
+              <div className="piv-affix-box">
+                {formData.pivVoucherImage ? (
+                  <>
+                    <img
+                      src={formData.pivVoucherImage}
+                      alt="Affixed PIV Slip"
+                      className="piv-preview-img"
+                    />
+                    <div className="piv-actions-bar no-print">
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#15803d' }}>
+                        ✓ PIV Voucher Affixed: {formData.pivVoucherFileName || 'piv_voucher.png'}
+                      </span>
+                      <button
+                        type="button"
+                        className="sig-upload-btn-sm"
+                        onClick={() => pivFileInputRef.current?.click()}
+                      >
+                        Change Image
+                      </button>
+                      <button
+                        type="button"
+                        className="sig-clear-btn-sm"
+                        onClick={handleRemovePiv}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="piv-watermark-text">
+                      A copy of PIV should be affix here
+                    </div>
+                    <div className="piv-upload-prompt no-print">
+                      <button
+                        type="button"
+                        className="piv-upload-btn"
+                        onClick={() => pivFileInputRef.current?.click()}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="17 8 12 3 7 8" />
+                          <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        Upload / Affix PIV Voucher Image
+                      </button>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Supported formats: PNG, JPG, JPEG, PDF (max 5 MB)
+                      </span>
+                    </div>
+                  </>
+                )}
+                {/* Hidden input for PIV */}
+                <input
+                  type="file"
+                  ref={pivFileInputRef}
+                  accept="image/png,image/jpeg,application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={handlePivUpload}
+                />
+              </div>
+
+              {/* Candidate Declaration */}
+              <div style={{ fontSize: '0.84rem', margin: '14px 0 10px 0', fontWeight: 500 }}>
+                The above details are given by me true and correct according to my knowledge.
+              </div>
+
+              {/* Date & Signature Row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '16px', marginBottom: '14px' }}>
+                <div style={{ fontSize: '0.84rem' }}>
+                  Date: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', minWidth: '160px', padding: '0 8px', fontWeight: 600 }}>{formData.applicationDate}</span>
+                </div>
+
+                <div className="exam-sig-container">
+                  <div className="exam-sig-display-area">
+                    {formData.candidateSignatureImage ? (
+                      <img
+                        src={formData.candidateSignatureImage}
+                        alt="Candidate Signature"
+                        className="sig-preview-img"
+                      />
+                    ) : (
+                      <span className="sig-script-fallback">
+                        {formData.name || studentName}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ borderBottom: '1px dotted #000', width: '100%', marginBottom: '4px' }}></div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>Signature of Candidate</div>
+
+                  {/* Candidate Signature Upload Button (no-print) */}
+                  <div className="no-print" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      className="sig-upload-btn-sm"
+                      onClick={() => sigFileInputRef.current?.click()}
+                    >
+                      {formData.candidateSignatureImage ? 'Change Signature' : 'Upload Signature'}
+                    </button>
+                    {formData.candidateSignatureImage && (
+                      <button
+                        type="button"
+                        className="sig-clear-btn-sm"
+                        onClick={handleRemoveSignature}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={sigFileInputRef}
+                    accept="image/png,image/jpeg"
+                    style={{ display: 'none' }}
+                    onChange={handleSignatureUpload}
+                  />
+                </div>
+              </div>
+
+              {/* Divider Line */}
+              <hr style={{ border: 'none', borderTop: '1.5px solid #000', margin: '14px 0 10px 0' }} />
+
+              {/* Part - II */}
+              <div style={{ fontWeight: 800, fontSize: '0.88rem', letterSpacing: '0.04em' }}>Part - II</div>
+              <div style={{ fontSize: '0.82rem', margin: '2px 0 16px 0', fontStyle: 'italic' }}>
+                Particulars from 01 - 14 are checked with me and found correct
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 1.4fr', gap: '15px', alignItems: 'flex-end', fontSize: '0.82rem', marginBottom: '8px' }}>
+                <div>
+                  <div style={{ borderBottom: '1px dotted #000', height: '35px', marginBottom: '4px' }}></div>
+                  <div style={{ fontWeight: 600 }}>Signature of Subject in-charge</div>
+                  <div style={{ marginTop: '8px' }}>
+                    Dept. of <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '170px' }}>{formData.department ? formData.department.replace('Department of ', '') : ''}</span>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ marginTop: '35px' }}>
+                    Date: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '90px' }}></span>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ borderBottom: '1px dotted #000', height: '35px', marginBottom: '4px' }}></div>
+                  <div style={{ fontWeight: 600 }}>Senior Asst. Registrar</div>
+                  <div style={{ marginTop: '8px' }}>
+                    Faculty of <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '140px', textAlign: 'center', fontWeight: 'bold' }}>Technology</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider Line */}
+              <hr style={{ border: 'none', borderTop: '1.5px solid #000', margin: '16px 0 10px 0' }} />
+
+              {/* Part - III */}
+              <div style={{ fontWeight: 800, fontSize: '0.88rem', letterSpacing: '0.04em' }}>Part - III</div>
+              <div style={{ fontSize: '0.82rem', margin: '2px 0 16px 0' }}>
+                Please register / do not register the candidate for the examination
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '0.82rem', marginBottom: '16px' }}>
+                <div>
+                  Date: <span style={{ borderBottom: '1px dotted #000', display: 'inline-block', width: '140px' }}></span>
+                </div>
+
+                <div style={{ textAlign: 'center', minWidth: '220px' }}>
+                  <div style={{ borderBottom: '1px dotted #000', height: '35px', marginBottom: '4px' }}></div>
+                  <div style={{ fontWeight: 600 }}>Deputy Registrar/ Examinations</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '22px', fontSize: '0.68rem', color: '#666' }}>
+                <div>D:\NAZAR MHMIEXAMS\Formats\App. of Exam</div>
+                <div>(P.T.O)</div>
               </div>
             </div>
           </div>
         );
+      }
     }
   };
 
@@ -1324,29 +1839,319 @@ Note: Present this completed official document with attached original bank PIV s
               </div>
 
               {/* Form Specific Extra Inputs */}
-              {selectedForm.formId === 'SEU-PIV-VOUCHER' && (
+              {(selectedForm.formId === 'SEU-EX-FORM' || selectedForm.formId === 'SEU-EX-ESA-REP' || selectedForm.formId === 'SEU-EX-CA-REP') && (
                 <>
                   <div className="seu-form-group">
-                    <label>Payment Purpose</label>
+                    <label>Title (01. Name with Initials)</label>
                     <select
-                      value={formData.pivPurpose}
-                      onChange={(e) => setFormData({ ...formData, pivPurpose: e.target.value })}
+                      value={formData.candidateTitle || 'Mr.'}
+                      onChange={(e) => setFormData({ ...formData, candidateTitle: e.target.value })}
                     >
-                      <option value="Repeat Examination Fee">Repeat Examination Fee</option>
-                      <option value="Medical Submission Fee / Condonation">Medical Submission Fee / Condonation</option>
-                      <option value="Marks Re-scrutinization Fee">Marks Re-scrutinization Fee</option>
-                      <option value="Official Transcript Fee">Official Transcript Fee</option>
+                      <option value="Mr.">Mr.</option>
+                      <option value="Ms.">Ms.</option>
                     </select>
                   </div>
 
                   <div className="seu-form-group">
-                    <label>Amount (in Figures &amp; Words)</label>
+                    <label>03. Current Batch (Academic Year)</label>
                     <input
                       type="text"
-                      placeholder="e.g. 400"
-                      value={formData.pivAmount}
-                      onChange={(e) => setFormData({ ...formData, pivAmount: e.target.value })}
+                      placeholder="e.g. 2021 / 2022"
+                      value={formData.examBatch}
+                      onChange={(e) => setFormData({ ...formData, examBatch: e.target.value })}
                     />
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label>02. Segmented Registration Number (SEU / IS / Batch / Dept / Roll No)</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Univ</span>
+                        <input
+                          type="text"
+                          value={formData.regPart1 || 'SEU'}
+                          onChange={(e) => handleRegPartChange('regPart1', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Type</span>
+                        <input
+                          type="text"
+                          value={formData.regPart2 || 'IS'}
+                          onChange={(e) => handleRegPartChange('regPart2', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Intake Year</span>
+                        <input
+                          type="text"
+                          value={formData.regPart3 || '22'}
+                          onChange={(e) => handleRegPartChange('regPart3', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Department</span>
+                        <input
+                          type="text"
+                          value={formData.regPart4 || 'ICT'}
+                          onChange={(e) => handleRegPartChange('regPart4', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Student No</span>
+                        <input
+                          type="text"
+                          value={formData.regPart5 || '085'}
+                          onChange={(e) => handleRegPartChange('regPart5', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>04. Faculty</label>
+                    <select
+                      value={formData.examFaculty || 'FT'}
+                      onChange={(e) => setFormData({ ...formData, examFaculty: e.target.value })}
+                    >
+                      <option value="FT">FT — Faculty of Technology</option>
+                      <option value="FAC">FAC — Faculty of Applied Sciences</option>
+                      <option value="FE">FE — Faculty of Engineering</option>
+                      <option value="FIA">FIA — Faculty of Islamic Studies &amp; Arabic</option>
+                      <option value="FMC">FMC — Faculty of Management &amp; Commerce</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>05. Medium of Instruction</label>
+                    <select
+                      value={formData.examMedium || 'English'}
+                      onChange={(e) => setFormData({ ...formData, examMedium: e.target.value })}
+                    >
+                      <option value="English">English</option>
+                      <option value="Tamil">Tamil</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>06. Semester</label>
+                    <select
+                      value={formData.examSemester || '1st'}
+                      onChange={(e) => setFormData({ ...formData, examSemester: e.target.value })}
+                    >
+                      <option value="1st">1st Semester</option>
+                      <option value="2nd">2nd Semester</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>07. Applied For</label>
+                    <select
+                      value={formData.examAppliedFor || 'Repeat'}
+                      onChange={(e) => setFormData({ ...formData, examAppliedFor: e.target.value })}
+                    >
+                      <option value="Repeat">Repeat Candidate</option>
+                      <option value="Fresh">Fresh Candidate</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>08. Year of Examinations</label>
+                    <select
+                      value={formData.examYear || 'Third Year'}
+                      onChange={(e) => setFormData({ ...formData, examYear: e.target.value })}
+                    >
+                      <option value="First Year">First Year</option>
+                      <option value="Second Year">Second Year</option>
+                      <option value="Third Year">Third Year</option>
+                      <option value="Fourth Year">Fourth Year</option>
+                    </select>
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>09. Field of Specialization</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Software Systems / Network Systems"
+                      value={formData.specialization}
+                      onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label>10. Present Address</label>
+                    <input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>13. Repeat Candidates: No. of attempts completed</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="3"
+                      value={formData.examAttempts}
+                      onChange={(e) => setFormData({ ...formData, examAttempts: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="seu-form-group">
+                    <label>14. Repeat Examination Fee (Rs.)</label>
+                    <input
+                      type="text"
+                      value={formData.examFeesPaid}
+                      onChange={(e) => setFormData({ ...formData, examFeesPaid: e.target.value })}
+                      placeholder="Rs. 100/subject (4+ subjects Rs. 400)"
+                    />
+                  </div>
+
+                  {/* Upload PIV Slip & Upload Signature Cards */}
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      {/* PIV Slip Upload */}
+                      <div>
+                        <label style={{ fontWeight: 700, display: 'block', marginBottom: '4px', color: '#1e3a8a' }}>
+                          Upload A copy of PIV Voucher (Affixes to Page 2)
+                        </label>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                          Proof of examination payment. PNG, JPG or PDF (max 5 MB).
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,application/pdf"
+                            onChange={handlePivUpload}
+                            style={{ fontSize: '0.82rem' }}
+                          />
+                          {formData.pivVoucherImage && (
+                            <button
+                              type="button"
+                              className="sig-clear-btn-sm"
+                              onClick={handleRemovePiv}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        {formData.pivVoucherImage && (
+                          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={formData.pivVoucherImage}
+                              alt="PIV Slip Preview"
+                              style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                            />
+                            <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                              ✓ Affixed: {formData.pivVoucherFileName || 'piv_voucher.png'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Signature Upload */}
+                      <div>
+                        <label style={{ fontWeight: 700, display: 'block', marginBottom: '4px', color: '#0f766e' }}>
+                          Upload Candidate Signature Image (Page 2)
+                        </label>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                          Scanned or handwritten signature image. PNG or JPG.
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            onChange={handleSignatureUpload}
+                            style={{ fontSize: '0.82rem' }}
+                          />
+                          {formData.candidateSignatureImage && (
+                            <button
+                              type="button"
+                              className="sig-clear-btn-sm"
+                              onClick={handleRemoveSignature}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        {formData.candidateSignatureImage && (
+                          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={formData.candidateSignatureImage}
+                              alt="Signature Preview"
+                              style={{ height: '36px', maxWidth: '100px', objectFit: 'contain', border: '1px solid #cbd5e1', padding: '2px', background: '#fff' }}
+                            />
+                            <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                              ✓ Attached: {formData.candidateSignatureFileName || 'signature.png'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 12 Applied Subjects Inline Table Editor */}
+                  <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontWeight: 700 }}>12. Applied Subjects Schedule (Up to 12 Course Units)</label>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        Row 01 - 12 auto-update on physical examination paper
+                      </span>
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                      <thead>
+                        <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #cbd5e1' }}>
+                          <th style={{ width: '38px', padding: '5px 8px', textAlign: 'center' }}>#</th>
+                          <th style={{ width: '160px', padding: '5px 8px', textAlign: 'left' }}>Subject Code</th>
+                          <th style={{ padding: '5px 8px', textAlign: 'left' }}>Subject Title</th>
+                          <th style={{ width: '45px', padding: '5px 8px', textAlign: 'center' }}>Clear</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(formData.examSubjects || []).map((sub, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
+                              {String(i + 1).padStart(2, '0')}
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <input
+                                type="text"
+                                placeholder={`ICT${20 + i}012`}
+                                value={sub.code}
+                                onChange={(e) => handleExamSubjectChange(i, 'code', e.target.value)}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <input
+                                type="text"
+                                placeholder={`Course unit ${i + 1} name`}
+                                value={sub.title}
+                                onChange={(e) => handleExamSubjectChange(i, 'title', e.target.value)}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {(sub.code || sub.title) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleExamSubjectChange(i, 'code', '');
+                                    handleExamSubjectChange(i, 'title', '');
+                                  }}
+                                  style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}
+                                  title="Clear row"
+                                >
+                                  &times;
+                                </button>
+                              ) : null}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </>
               )}
