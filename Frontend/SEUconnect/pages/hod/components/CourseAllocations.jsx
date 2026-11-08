@@ -1,18 +1,39 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { COURSE_ALLOCATION_MATRIX, ACADEMIC_STAFF_LIST } from '../hodData.js';
+import { INITIAL_CURRICULUM_COURSES, SEMESTER_LIST } from '../../admin/curriculumData.js';
 import api, { provisionedUserStorage } from '../../../src/services/api.js';
 
 export default function CourseAllocations({ onNavigate }) {
   const [yearFilter, setYearFilter] = useState('All');
+  const [semesterFilter, setSemesterFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [courses, setCourses] = useState(() => {
     try {
       const stored = localStorage.getItem('seu_course_allocations');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length >= 50 && parsed.some(c => c.code === 'CIS11011')) {
+          return parsed;
+        }
       }
     } catch (e) {}
-    return COURSE_ALLOCATION_MATRIX;
+
+    // Initialize with authentic BICT curriculum from university handbook
+    return INITIAL_CURRICULUM_COURSES.filter((c) => c.department === 'BICT').map((c) => ({
+      id: c.id,
+      code: c.code,
+      title: c.name,
+      credits: c.credits,
+      year: c.year === 'Year 1' ? '1st Year' : c.year === 'Year 2' ? '2nd Year' : c.year === 'Year 3' ? '3rd Year' : '4th Year',
+      semester: c.semester,
+      lecturerInCharge: c.coordinator || 'Faculty of Technology Academic Staff',
+      demonstrators: ['Ms. F. Rifdha', 'Mr. M. Sajeer'],
+      enrolledStudents: 104,
+      syllabusProgress: 75,
+      caComponentsCount: '4 (2 Quizzes, 1 Assignment, 1 Midterm)',
+      status: 'On Schedule',
+    }));
   });
   const [editingCourse, setEditingCourse] = useState(null);
   const [selectedLecturer, setSelectedLecturer] = useState('');
@@ -94,9 +115,20 @@ export default function CourseAllocations({ onNavigate }) {
     }
   }, [dbStaff]);
 
-  const filteredCourses = courses.filter((c) => {
-    return yearFilter === 'All' || c.year === yearFilter;
-  });
+  const filteredCourses = useMemo(() => {
+    return courses.filter((c) => {
+      if (yearFilter !== 'All' && c.year !== yearFilter) return false;
+      if (semesterFilter !== 'All' && c.semester !== semesterFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchCode = c.code.toLowerCase().includes(q);
+        const matchTitle = c.title.toLowerCase().includes(q);
+        const matchLecturer = c.lecturerInCharge?.toLowerCase().includes(q);
+        if (!matchCode && !matchTitle && !matchLecturer) return false;
+      }
+      return true;
+    });
+  }, [courses, yearFilter, semesterFilter, searchQuery]);
 
   const handleOpenReallocate = (course) => {
     setEditingCourse(course);
@@ -215,50 +247,105 @@ export default function CourseAllocations({ onNavigate }) {
 
       {/* 2. Stats Strip */}
       <div className="hod-stats-strip">
-        <div className="hod-strip-card" onClick={() => setYearFilter('All')} style={{ cursor: 'pointer' }}>
+        <div className="hod-strip-card" onClick={() => { setYearFilter('All'); setSemesterFilter('All'); }} style={{ cursor: 'pointer' }}>
           <span className="hod-strip-val">{courses.length}</span>
-          <span className="hod-strip-lbl">Total Semester Modules</span>
+          <span className="hod-strip-lbl">Total Curriculum Modules</span>
         </div>
-        <div className="hod-strip-card" onClick={() => setYearFilter('3rd Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">4</span>
-          <span className="hod-strip-lbl">3rd Year Modules</span>
-        </div>
-        <div className="hod-strip-card" onClick={() => setYearFilter('2nd Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">2</span>
-          <span className="hod-strip-lbl">2nd Year Modules</span>
-        </div>
-        <div className="hod-strip-card" onClick={() => setYearFilter('1st Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">1</span>
+        <div className="hod-strip-card" onClick={() => { setYearFilter('1st Year'); setSemesterFilter('All'); }} style={{ cursor: 'pointer', border: yearFilter === '1st Year' ? '2px solid #0f2b5c' : undefined }}>
+          <span className="hod-strip-val">{courses.filter((c) => c.year === '1st Year').length}</span>
           <span className="hod-strip-lbl">1st Year Modules</span>
         </div>
-        <div className="hod-strip-card" onClick={() => setYearFilter('4th Year')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">1</span>
+        <div className="hod-strip-card" onClick={() => { setYearFilter('2nd Year'); setSemesterFilter('All'); }} style={{ cursor: 'pointer', border: yearFilter === '2nd Year' ? '2px solid #0f2b5c' : undefined }}>
+          <span className="hod-strip-val">{courses.filter((c) => c.year === '2nd Year').length}</span>
+          <span className="hod-strip-lbl">2nd Year Modules</span>
+        </div>
+        <div className="hod-strip-card" onClick={() => { setYearFilter('3rd Year'); setSemesterFilter('All'); }} style={{ cursor: 'pointer', border: yearFilter === '3rd Year' ? '2px solid #0f2b5c' : undefined }}>
+          <span className="hod-strip-val">{courses.filter((c) => c.year === '3rd Year').length}</span>
+          <span className="hod-strip-lbl">3rd Year Modules</span>
+        </div>
+        <div className="hod-strip-card" onClick={() => { setYearFilter('4th Year'); setSemesterFilter('All'); }} style={{ cursor: 'pointer', border: yearFilter === '4th Year' ? '2px solid #0f2b5c' : undefined }}>
+          <span className="hod-strip-val">{courses.filter((c) => c.year === '4th Year').length}</span>
           <span className="hod-strip-lbl">4th Year Modules</span>
         </div>
       </div>
 
-      {/* 3. Toolbar & Year Filter */}
-      <div className="hod-toolbar-card">
-        <div className="hod-filter-tabs">
-          {['All', '1st Year', '2nd Year', '3rd Year', '4th Year'].map((tab) => (
+      {/* 3. Toolbar & Year / Semester Filters */}
+      <div className="hod-toolbar-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {/* Year Filter Tabs */}
+          <div className="hod-filter-tabs">
+            {['All', '1st Year', '2nd Year', '3rd Year', '4th Year'].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                className={`hod-tab-btn ${yearFilter === tab ? 'active' : ''}`}
+                onClick={() => setYearFilter(tab)}
+              >
+                {tab === 'All' ? `All Years (${courses.length})` : tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <input
+              type="text"
+              placeholder="Search module code or title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '0.45rem 0.75rem',
+                fontSize: '0.82rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                outline: 'none',
+                minWidth: '220px'
+              }}
+            />
             <button
-              key={tab}
               type="button"
-              className={`hod-tab-btn ${yearFilter === tab ? 'active' : ''}`}
-              onClick={() => setYearFilter(tab)}
+              className="hod-btn-outline"
+              onClick={() => alert('Official Teaching Load & Course Allocation Memorandum exported for Dean.')}
             >
-              {tab === 'All' ? `All Years (${courses.length})` : tab}
+              Export Memo (PDF)
             </button>
-          ))}
+          </div>
         </div>
-        <div>
+
+        {/* Semester Filter Tabs (Semester 1 to Semester 8) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', paddingTop: '0.25rem', borderTop: '1px solid #f1f5f9' }}>
+          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginRight: '4px' }}>
+            Semester Filter:
+          </span>
           <button
             type="button"
-            className="hod-btn-outline"
-            onClick={() => alert('Official Teaching Load & Course Allocation Memorandum exported for Dean.')}
+            className={`hod-tab-btn ${semesterFilter === 'All' ? 'active' : ''}`}
+            onClick={() => setSemesterFilter('All')}
+            style={{ fontSize: '0.78rem', padding: '0.3rem 0.65rem' }}
           >
-            Export Formal Allocation Memo (PDF)
+            All Semesters
           </button>
+          {SEMESTER_LIST.map((sem) => {
+            const count = courses.filter((c) => c.semester === sem && (yearFilter === 'All' || c.year === yearFilter)).length;
+            const isSel = semesterFilter === sem;
+            return (
+              <button
+                key={sem}
+                type="button"
+                className={`hod-tab-btn ${isSel ? 'active' : ''}`}
+                onClick={() => setSemesterFilter(sem)}
+                style={{
+                  fontSize: '0.78rem',
+                  padding: '0.3rem 0.65rem',
+                  fontWeight: isSel ? 700 : 500,
+                  background: isSel ? '#0f2b5c' : '#f8fafc',
+                  color: isSel ? '#ffffff' : '#334155'
+                }}
+              >
+                {sem} ({count})
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -271,7 +358,9 @@ export default function CourseAllocations({ onNavigate }) {
               Module coordination, demonstrator appointments, syllabus coverage milestones, and CA evaluations.
             </p>
           </div>
-          <span className="hod-badge-blue">Semester 1 Active</span>
+          <span className="hod-badge-blue">
+            {semesterFilter === 'All' ? 'All Semesters Active' : `${semesterFilter} Active`} • {filteredCourses.length} Modules
+          </span>
         </div>
 
         <div className="hod-table-wrapper">
@@ -290,7 +379,14 @@ export default function CourseAllocations({ onNavigate }) {
               </tr>
             </thead>
             <tbody>
-              {filteredCourses.map((c) => (
+              {filteredCourses.length === 0 ? (
+                <tr>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
+                    No modules match the selected filter ({yearFilter !== 'All' ? yearFilter : ''} {semesterFilter !== 'All' ? semesterFilter : ''}). Try selecting another semester or clearing your search.
+                  </td>
+                </tr>
+              ) : (
+                filteredCourses.map((c) => (
                 <tr key={c.code}>
                   <td>
                     <span className="hod-tracking-badge">{c.code}</span>
@@ -343,7 +439,7 @@ export default function CourseAllocations({ onNavigate }) {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

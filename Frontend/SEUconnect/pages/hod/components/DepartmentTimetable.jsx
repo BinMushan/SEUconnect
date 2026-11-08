@@ -103,6 +103,20 @@ export default function DepartmentTimetable({ onNavigate }) {
     return getCurriculumBySemester(selectedSemester);
   }, [selectedSemester]);
 
+  // Dynamic course allocations from HOD allocation matrix / database
+  const allocationsMap = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('seu_course_allocations');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return new Map(parsed.map((c) => [(c.code || '').toUpperCase().trim(), c.lecturerInCharge]));
+        }
+      }
+    } catch (_) {}
+    return new Map();
+  }, []);
+
   // Available subjects for the chosen semester
   const availableSubjects = useMemo(() => {
     const rawList = curData?.subjects || [];
@@ -117,18 +131,19 @@ export default function DepartmentTimetable({ onNavigate }) {
     return list.map((s, idx) => {
       const palette = SUBJECT_COLORS[idx % SUBJECT_COLORS.length];
       const isPractical = s.type?.toLowerCase().includes('practical') || s.title?.toLowerCase().includes('practical') || s.code?.toLowerCase().includes('lab');
+      const allocatedLecturer = allocationsMap.get((s.code || '').toUpperCase().trim());
       return {
         id: s.id || `sub-${s.code}-${idx}`,
         code: s.code,
         name: s.title || s.name,
-        lecturer: s.lecturer || 'Department Academic Staff',
+        lecturer: allocatedLecturer || s.lecturer || 'Department Academic Staff',
         venue: s.venue || (isPractical ? 'CIS' : 'LH5'),
         type: isPractical ? 'Practical' : 'Theory',
         credits: s.credits || 2,
         ...palette,
       };
     });
-  }, [curData, selectedDepartment]);
+  }, [curData, selectedDepartment, allocationsMap]);
 
   // 2. Fetch Timetable from Backend / Database on mount & when batch/semester changes
   useEffect(() => {
@@ -315,6 +330,16 @@ export default function DepartmentTimetable({ onNavigate }) {
       // Cache locally
       const cacheKey = `seu_tt_${normalizeSemester(selectedSemester)}_${selectedBatch}_${selectedDepartment}`;
       localStorage.setItem(cacheKey, JSON.stringify(activeSlots));
+      window.dispatchEvent(
+        new CustomEvent('seu_timetable_saved', {
+          detail: {
+            semester: selectedSemester,
+            batch: selectedBatch,
+            department: selectedDepartment,
+            slots: activeSlots,
+          },
+        })
+      );
     } catch (err) {
       console.warn('Backend save notice:', err.message);
       // Fallback cache
@@ -322,6 +347,16 @@ export default function DepartmentTimetable({ onNavigate }) {
       localStorage.setItem(cacheKey, JSON.stringify(activeSlots));
       setIsSavedInDb(true);
       showToast(`✓ Timetable saved locally and synced (${activeSlots.length} slots).`);
+      window.dispatchEvent(
+        new CustomEvent('seu_timetable_saved', {
+          detail: {
+            semester: selectedSemester,
+            batch: selectedBatch,
+            department: selectedDepartment,
+            slots: activeSlots,
+          },
+        })
+      );
     } finally {
       setIsSavingDb(false);
     }
