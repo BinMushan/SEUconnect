@@ -212,6 +212,93 @@ router.patch('/:code/allocation', updateSubjectHandler);
 router.put('/:code', updateSubjectHandler);
 
 /**
+ * POST /api/subjects
+ * Create new academic subject / course module
+ * Lecturer allocation is left unassigned / pending HOD appointment
+ */
+router.post('/', async (req, res) => {
+  try {
+    const {
+      code,
+      name,
+      title,
+      department,
+      semester,
+      semesterName,
+      credits,
+      type,
+      prerequisites,
+      hours,
+      capacity,
+    } = req.body;
+
+    if (!code || (!title && !name)) {
+      return res.status(400).json({ success: false, message: 'Course Code and Course Title are required.' });
+    }
+
+    const cleanCode = String(code).toUpperCase().trim();
+    const cleanTitle = (title || name).trim();
+    const cleanDept = department || (cleanCode.startsWith('BST') ? 'BST' : 'BICT');
+    const fullDeptName = cleanDept === 'BST' || cleanDept.toLowerCase().includes('bio')
+      ? 'Department of Biosystems Technology'
+      : 'Department of Information and Communication Technology';
+
+    const numCredits = Number(credits) || 3;
+    const semName = semesterName || semester || 'Semester 1';
+
+    let yrNum = 1;
+    let semNum = 1;
+    if (semName.includes('3') || semName.includes('4')) yrNum = 2;
+    if (semName.includes('5') || semName.includes('6')) yrNum = 3;
+    if (semName.includes('7') || semName.includes('8')) yrNum = 4;
+    if (semName.includes('2') || semName.includes('4') || semName.includes('6') || semName.includes('8')) semNum = 2;
+
+    const newSubjectData = {
+      code: cleanCode,
+      title: cleanTitle,
+      department: fullDeptName,
+      faculty: 'Faculty of Technology',
+      year: yrNum,
+      semester: semNum,
+      semesterName: semName,
+      credits: numCredits,
+      gpaCredits: numCredits,
+      category: 'Compulsory',
+      type: type === 'Practical' ? 'Practical' : 'Theory',
+      lecturer: req.body.lecturer || 'Pending HOD Allocation',
+      lecturerEmail: req.body.lecturerEmail || '',
+      capacity: Number(capacity) || 120,
+    };
+
+    let savedSubject = null;
+    try {
+      savedSubject = await Subject.findOneAndUpdate(
+        { code: cleanCode },
+        { $set: newSubjectData },
+        { new: true, upsert: true }
+      ).lean();
+    } catch (dbErr) {
+      console.warn('DB subject create note:', dbErr.message);
+    }
+
+    const memIdx = HANDBOOK_SUBJECTS.findIndex((s) => s.code === cleanCode);
+    if (memIdx !== -1) {
+      HANDBOOK_SUBJECTS[memIdx] = { ...HANDBOOK_SUBJECTS[memIdx], ...newSubjectData };
+    } else {
+      HANDBOOK_SUBJECTS.push({ ...newSubjectData, id: cleanCode });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Course ${cleanCode} created successfully. Lecturer allocation delegated to ${cleanDept} HOD.`,
+      data: savedSubject || newSubjectData,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to create subject', error: err.message });
+  }
+});
+
+/**
  * POST /api/subjects/allocations
  * Bulk save course allocations matrix
  */
