@@ -1,8 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ICT_DEPARTMENT_INFO } from '../hodData.js';
+import api, { provisionedUserStorage } from '../../../src/services/api.js';
 
 export default function DepartmentOverview({ onNavigate }) {
   const { name, shortName, faculty, university, campus, established, hod, vision, mission, programmes, stats, laboratories, committees } = ICT_DEPARTMENT_INFO;
+
+  const [dynamicStats, setDynamicStats] = useState({
+    enrolledStudents: stats.totalUndergraduates,
+    cadreCount: stats.academicCadre,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadRealCounts = async () => {
+      try {
+        const [stdRes, staffRes] = await Promise.allSettled([
+          api.getStudents(),
+          api.getDirectory({ role: 'lecturer' })
+        ]);
+
+        let studentsCount = stats.totalUndergraduates;
+        if (stdRes.status === 'fulfilled' && stdRes.value?.data && Array.isArray(stdRes.value.data) && stdRes.value.data.length > 0) {
+          studentsCount = stdRes.value.data.length;
+        }
+
+        let cadreCount = stats.academicCadre;
+        const provisioned = (provisionedUserStorage.getAll() || []).filter((u) => u.role?.toLowerCase().includes('lecturer'));
+        if (staffRes.status === 'fulfilled' && staffRes.value?.data && Array.isArray(staffRes.value.data)) {
+          cadreCount = Math.max(stats.academicCadre, staffRes.value.data.length + provisioned.length);
+        } else if (provisioned.length > 0) {
+          cadreCount = stats.academicCadre + provisioned.length;
+        }
+
+        if (!cancelled) {
+          setDynamicStats({
+            enrolledStudents: studentsCount,
+            cadreCount,
+          });
+        }
+      } catch (err) {
+        console.warn('Department overview dynamic stats notice:', err.message);
+      }
+    };
+    loadRealCounts();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="hod-view-container">
@@ -30,7 +72,7 @@ export default function DepartmentOverview({ onNavigate }) {
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
             </svg>
-            Academic Staff ({stats.academicCadre})
+            Academic Staff ({dynamicStats.cadreCount})
           </button>
           <button type="button" className="hod-banner-btn primary" onClick={() => onNavigate('course_coordination')}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -45,11 +87,11 @@ export default function DepartmentOverview({ onNavigate }) {
       {/* 2. Key Stats Strip */}
       <div className="hod-stats-strip">
         <div className="hod-strip-card">
-          <span className="hod-strip-val">{stats.totalUndergraduates}</span>
+          <span className="hod-strip-val">{dynamicStats.enrolledStudents}</span>
           <span className="hod-strip-lbl">Enrolled Students (BICT)</span>
         </div>
         <div className="hod-strip-card">
-          <span className="hod-strip-val">{stats.academicCadre}</span>
+          <span className="hod-strip-val">{dynamicStats.cadreCount}</span>
           <span className="hod-strip-lbl">Teaching Cadre</span>
         </div>
         <div className="hod-strip-card">

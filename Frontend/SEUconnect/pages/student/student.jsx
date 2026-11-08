@@ -226,6 +226,17 @@ export default function Student({ user, onLogout }) {
       )
     },
     {
+      label: 'Class Timetable',
+      actionId: 'timetable',
+      colorTheme: 'cyan',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      )
+    },
+    {
       label: 'Check Attendance',
       actionId: 'attendance',
       colorTheme: 'blue',
@@ -1055,7 +1066,13 @@ export default function Student({ user, onLogout }) {
                   type="button"
                   className="std-qa-item-btn"
                   onClick={() => {
-                    if (action.actionId) setActiveTab(action.actionId);
+                    if (action.actionId === 'timetable') {
+                      setActiveTab('attendance');
+                      if (typeof window !== 'undefined') window.location.hash = '#student/timetable';
+                    } else if (action.actionId) {
+                      setActiveTab(action.actionId);
+                      if (typeof window !== 'undefined') window.location.hash = `#student/${action.actionId}`;
+                    }
                   }}
                 >
                   <div className="std-qa-item-left">

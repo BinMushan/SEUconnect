@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ICT_DEPARTMENT_INFO } from '../hodData.js';
+import api, { provisionedUserStorage } from '../../../src/services/api.js';
 
 export default function HODDashboardOverview({
   processes = [],
@@ -13,6 +14,18 @@ export default function HODDashboardOverview({
 }) {
   const [filter, setFilter] = useState('pending_hod');
   const [searchQuery, setSearchQuery] = useState('');
+  const [cadreCount, setCadreCount] = useState(ICT_DEPARTMENT_INFO.stats.academicCadre);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getDirectory({ role: 'lecturer' }).then((res) => {
+      if (!cancelled && res && res.data && Array.isArray(res.data)) {
+        const prov = (provisionedUserStorage.getAll() || []).filter((u) => u.role?.toLowerCase().includes('lecturer'));
+        setCadreCount(Math.max(ICT_DEPARTMENT_INFO.stats.academicCadre, res.data.length + prov.length));
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const safeProcesses = Array.isArray(processes) ? processes : [];
   const safePendingHOD = Array.isArray(pendingHOD) ? pendingHOD : [];
@@ -115,7 +128,7 @@ export default function HODDashboardOverview({
               <span className="hod-stat-title">DEPARTMENT INSTRUCTORS</span>
               <span className="hod-stat-badge badge-blue">ICT Dept</span>
             </div>
-            <div className="hod-stat-number">{ICT_DEPARTMENT_INFO.stats.academicCadre} Staff</div>
+            <div className="hod-stat-number">{cadreCount} Staff</div>
             <div className="hod-stat-target">Academic & Demonstrators</div>
           </div>
         </div>

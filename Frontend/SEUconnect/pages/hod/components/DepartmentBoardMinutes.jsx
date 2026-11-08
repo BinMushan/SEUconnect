@@ -2,7 +2,16 @@ import React, { useState } from 'react';
 import { DEPARTMENT_BOARD_MINUTES, ACADEMIC_STAFF_LIST } from '../hodData.js';
 
 export default function DepartmentBoardMinutes({ onNavigate }) {
-  const [minutes, setMinutes] = useState(DEPARTMENT_BOARD_MINUTES);
+  const [minutes, setMinutes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seu_hod_board_minutes');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return DEPARTMENT_BOARD_MINUTES;
+  });
   const [isRecordingNew, setIsRecordingNew] = useState(false);
   const [meetingNumber, setMeetingNumber] = useState('59th Department Board Meeting');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -30,11 +39,15 @@ export default function DepartmentBoardMinutes({ onNavigate }) {
       status: 'Signed & Archived',
     };
 
-    setMinutes([newMeeting, ...minutes]);
+    const updated = [newMeeting, ...minutes];
+    setMinutes(updated);
+    try {
+      localStorage.setItem('seu_hod_board_minutes', JSON.stringify(updated));
+    } catch (_) {}
     setIsRecordingNew(false);
     setAgendaInput('');
     setResolutionsInput('');
-    setFeedback(`Minutes for ${newMeeting.meetingNumber} have been formally archived under HOD authority.`);
+    setFeedback(`✓ Minutes for ${newMeeting.meetingNumber} have been formally archived under HOD authority.`);
     setTimeout(() => setFeedback(''), 5000);
   };
 
