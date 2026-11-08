@@ -2,23 +2,34 @@ import React, { useState } from 'react';
 import { ATTENDANCE_AUDIT_DATA } from '../hodData.js';
 
 export default function AttendanceAudit({ onNavigate }) {
-  const [auditList, setAuditList] = useState(ATTENDANCE_AUDIT_DATA);
+  const [auditList, setAuditList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seu_attendance_audit');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return ATTENDANCE_AUDIT_DATA;
+  });
   const [selectedModule, setSelectedModule] = useState(null);
   const [feedback, setFeedback] = useState('');
 
   const handleGrantWaiver = (courseCode, regNo) => {
-    setAuditList((prev) =>
-      prev.map((m) => {
-        if (m.courseCode !== courseCode) return m;
-        return {
-          ...m,
-          barredStudents: m.barredStudents.map((s) =>
-            s.regNo === regNo ? { ...s, medicalValid: true } : s
-          ),
-        };
-      })
-    );
-    setFeedback(`Approved medical waiver for ${regNo} in ${courseCode}. Student attendance standing cleared for ESA.`);
+    const updated = auditList.map((m) => {
+      if (m.courseCode !== courseCode) return m;
+      return {
+        ...m,
+        barredStudents: m.barredStudents.map((s) =>
+          s.regNo === regNo ? { ...s, medicalValid: true } : s
+        ),
+      };
+    });
+    setAuditList(updated);
+    try {
+      localStorage.setItem('seu_attendance_audit', JSON.stringify(updated));
+    } catch (_) {}
+    setFeedback(`✓ Approved medical waiver for ${regNo} in ${courseCode}. Student attendance standing cleared for ESA.`);
     setTimeout(() => setFeedback(''), 4000);
   };
 

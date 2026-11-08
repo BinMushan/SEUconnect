@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { INITIAL_CURRICULUM_COURSES, SEMESTER_LIST } from '../curriculumData.js';
 
 /**
@@ -17,9 +17,31 @@ export default function CourseAllocationManagement({
   onShowToast,
   onAddAuditLog
 }) {
-  const [courses, setCourses] = useState(INITIAL_CURRICULUM_COURSES);
+  const [courses, setCourses] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seuconnect_admin_curriculum_courses');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 100 && parsed.some((c) => c.code === 'CIS11011')) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read curriculum from localStorage', e);
+    }
+    return INITIAL_CURRICULUM_COURSES;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('seuconnect_admin_curriculum_courses', JSON.stringify(courses));
+    } catch (e) {
+      console.warn('Could not save curriculum to localStorage', e);
+    }
+  }, [courses]);
+
   const [selectedDept, setSelectedDept] = useState('BICT'); // 'BICT' | 'BST'
-  const [selectedSemester, setSelectedSemester] = useState('Semester 3');
+  const [selectedSemester, setSelectedSemester] = useState('Semester 1');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
 
@@ -191,6 +213,18 @@ export default function CourseAllocationManagement({
     }
   };
 
+  // Reset to Official Faculty Handbook Curriculum
+  const handleResetToOfficialCurriculum = () => {
+    if (window.confirm('Reset all course allocations to the official Faculty of Technology Handbook specifications (111 courses)?')) {
+      setCourses(INITIAL_CURRICULUM_COURSES);
+      try {
+        localStorage.setItem('seuconnect_admin_curriculum_courses', JSON.stringify(INITIAL_CURRICULUM_COURSES));
+      } catch (e) {}
+      if (onShowToast) onShowToast('Reset course allocations to official university handbook curriculum (111 modules).');
+      if (onAddAuditLog) onAddAuditLog('Reset Curriculum', 'Restored 111 official handbook courses across all 8 semesters.');
+    }
+  };
+
   // Execute Batch Promotion & Auto-Shift Curriculum
   const handleExecutePromotion = () => {
     if (!selectedBatch || nextSemester.includes('Graduated')) return;
@@ -255,6 +289,23 @@ export default function CourseAllocationManagement({
             Promote Batch & Shift Subjects
           </button>
 
+          {/* Reset to Official Handbook */}
+          <button
+            type="button"
+            className="adm-find-process-btn"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1' }}
+            onClick={handleResetToOfficialCurriculum}
+            title="Restore official Faculty of Technology handbook subjects (111 modules)"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M8 16H3v5" />
+            </svg>
+            Reset Handbook
+          </button>
+
           {/* Add Course Button */}
           <button
             type="button"
@@ -306,7 +357,9 @@ export default function CourseAllocationManagement({
               <span className="adm-badge badge-active">ICT Dept</span>
             </div>
             <div className="adm-stat-value">{courses.filter((c) => c.department === 'BICT').length} Modules</div>
-            <div className="adm-stat-sub">120 Total Academic Credits</div>
+            <div className="adm-stat-sub">
+              {courses.filter((c) => c.department === 'BICT').reduce((sum, c) => sum + (c.credits || 0), 0)} Total Academic Credits
+            </div>
           </div>
         </div>
 
@@ -323,7 +376,9 @@ export default function CourseAllocationManagement({
               <span className="adm-badge badge-active">Biosystems Dept</span>
             </div>
             <div className="adm-stat-value">{courses.filter((c) => c.department === 'BST').length} Modules</div>
-            <div className="adm-stat-sub">120 Total Academic Credits</div>
+            <div className="adm-stat-sub">
+              {courses.filter((c) => c.department === 'BST').reduce((sum, c) => sum + (c.credits || 0), 0)} Total Academic Credits
+            </div>
           </div>
         </div>
 

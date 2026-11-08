@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DEPARTMENT_STUDENTS_LIST, HOD_BATCH_CONFIG, getCalculatedHodTotal } from '../hodData.js';
+import api from '../../../src/services/api.js';
 
 const safeToFixed = (val, decimals = 2, fallback = '—') => {
   if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
@@ -11,10 +12,60 @@ export default function DepartmentStudents({ onNavigate }) {
   const [batchFilter, setBatchFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [dbStudents, setDbStudents] = useState([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
 
-  const totalEnrolled = getCalculatedHodTotal();
+  // Fetch real students from MongoDB Atlas
+  useEffect(() => {
+    let cancelled = false;
+    const fetchStudents = async () => {
+      setIsLoadingStudents(true);
+      try {
+        const res = await api.getStudents();
+        if (!cancelled && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped = res.data.map((s, idx) => ({
+            id: s._id || s.studentId || `std-db-${idx}`,
+            regNo: s.studentId || s.regNo || `2022/ICT/${String(idx + 1).padStart(3, '0')}`,
+            indexNo: s.indexNo || s.studentId?.replace(/[^a-zA-Z0-9]/g, '') || `ICT${idx + 1}`,
+            name: s.fullName || s.name || 'Undergraduate',
+            batch: s.batch || s.academicYear || '2022/2023',
+            batchKey: s.batch || '2022/2023',
+            year: s.currentSemester?.includes('1') ? '1st Year' : s.currentSemester?.includes('2') ? '2nd Year' : s.currentSemester?.includes('3') ? '3rd Year' : '4th Year',
+            specialization: s.specialization || s.degreeProgramme || 'Software Systems',
+            cgpa: s.gpaCgpa?.cgpa ?? s.cgpa ?? 3.45,
+            attendanceRate: s.attendance?.overallAttendancePercentage ?? s.attendanceRate ?? 85,
+            attendanceStatus: (s.attendance?.overallAttendancePercentage ?? s.attendanceRate ?? 85) >= 80 ? 'Eligible' : 'Barred Risk (<80%)',
+            academicStatus: s.academicStatus || 'Good Standing',
+            pendingRequests: s.medicalRequests?.length > 0 ? `${s.medicalRequests.length} Medical Request(s)` : 'None',
+            email: s.email || '',
+          }));
+          setDbStudents(mapped);
+        }
+      } catch (err) {
+        console.warn('Backend student directory fetch notice:', err.message);
+      } finally {
+        if (!cancelled) setIsLoadingStudents(false);
+      }
+    };
+    fetchStudents();
+    return () => { cancelled = true; };
+  }, []);
 
-  const filteredStudents = DEPARTMENT_STUDENTS_LIST.filter((student) => {
+  // Merge database students with default roster ensuring no duplicates
+  const allStudents = useMemo(() => {
+    if (dbStudents.length > 0) {
+      const dbRegs = new Set(dbStudents.map((s) => (s.regNo || '').toLowerCase().trim()));
+      const remainingBaseline = DEPARTMENT_STUDENTS_LIST.filter(
+        (s) => !dbRegs.has((s.regNo || '').toLowerCase().trim())
+      );
+      return [...dbStudents, ...remainingBaseline];
+    }
+    return DEPARTMENT_STUDENTS_LIST;
+  }, [dbStudents]);
+
+  const totalEnrolled = allStudents.length;
+
+  const filteredStudents = allStudents.filter((student) => {
     const matchesBatch =
       batchFilter === 'All' ||
       student.batchKey === batchFilter ||
