@@ -29,7 +29,9 @@ export const authToken = {
             token = parsed.token || `session-token-${role}-${Date.now()}`;
             window.localStorage.setItem(TOKEN_KEY, token);
             window.sessionStorage.setItem(TOKEN_KEY, token);
-          } catch {}
+          } catch {
+            /* ignore JSON parse failure */
+          }
         }
       }
       return token;
@@ -132,7 +134,7 @@ export const enrolledStorage = {
         return true;
       }
       return false;
-    } catch (e) {
+    } catch {
       return false;
     }
   },
@@ -154,7 +156,7 @@ export const enrolledStorage = {
         return true;
       }
       return false;
-    } catch (e) {
+    } catch {
       return false;
     }
   },
@@ -176,7 +178,7 @@ export const enrolledStorage = {
         return list[idx];
       }
       return null;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -292,7 +294,9 @@ export const penaltyStorage = {
         if (notes) item.clearanceNotes = notes;
         localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
       }
-    } catch {}
+    } catch {
+      /* ignore storage error */
+    }
   }
 };
 
@@ -450,7 +454,6 @@ export const api = {
   },
   hasSession: () => Boolean(authToken.get()),
   getMe: () => request('/auth/me'),
-  getUsers: () => request('/auth/users'),
   // Staff directory, e.g. getDirectory({ role: 'lecturer', department }) for the lecturer picker.
   getDirectory: (params = {}) => request(`/auth/directory${qs(params)}`),
   uploadProfilePhoto: async (file) => {
@@ -646,7 +649,7 @@ export const api = {
         },
         body: formData
       });
-    } catch (networkErr) {
+    } catch {
       const err = new Error('Cannot reach backend server. Please verify the backend is running.');
       err.network = true;
       throw err;
@@ -662,7 +665,6 @@ export const api = {
   retireKnowledgeDoc: (id) => request(`/v1/knowledge/${id}/retire`, json('POST', {})).then((b) => b.data || b),
 
   /* ------------------- Official Subjects & Curriculum (MongoDB Atlas) ------------------- */
-  getSubjects: (params = {}) => request(`/subjects${qs(params)}`).then((b) => b.data || b),
   getSemesterCurriculum: (semester) => request(`/subjects/semester/${encodeURIComponent(semester)}`).then((b) => b.data || b),
   getSubjectDetails: (code) => request(`/subjects/${encodeURIComponent(code)}`).then((b) => b.data || b),
 };
