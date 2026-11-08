@@ -425,6 +425,11 @@ export default function DashboardTemplate({
     addDeletedNotifId(notifId);
     if (notif?.trackingNumber) addDeletedNotifId(notif.trackingNumber);
 
+    try {
+      localNotificationStorage.remove(notifId);
+      if (notif?.trackingNumber) localNotificationStorage.remove(notif.trackingNumber);
+    } catch (_) {}
+
     setNotifications((prev) => {
       const next = prev.filter((n) => String(n._id || n.id) !== String(notifId) && n.trackingNumber !== notif?.trackingNumber);
       setUnreadCount(next.filter((n) => !n.isRead).length);
@@ -452,6 +457,7 @@ export default function DashboardTemplate({
     setNotifications([]);
     setUnreadCount(0);
     try {
+      localNotificationStorage.clear();
       localStorage.removeItem('seu_live_notifications_v1');
     } catch (_) {}
     try {

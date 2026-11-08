@@ -96,6 +96,10 @@ const SubjectSchema = new mongoose.Schema(
       type: String,
       default: 'Faculty of Technology Academic Staff'
     },
+    lecturerEmail: {
+      type: String,
+      default: ''
+    },
     timetableSlots: [
       {
         day: { type: String, required: true }, // 'Monday', 'Tuesday', ...

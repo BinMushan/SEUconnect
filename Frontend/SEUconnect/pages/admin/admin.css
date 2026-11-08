@@ -1445,12 +1445,17 @@
   justify-content: space-between;
   gap: 1.5rem;
   box-shadow: 0 4px 15px rgba(7, 23, 50, 0.15);
+  flex-wrap: wrap;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-batch-hero-info {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  min-width: 260px;
+  flex: 1 1 auto;
 }
 
 .adm-batch-hero-title {
@@ -1475,7 +1480,9 @@
 .adm-batch-hero-stats {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .adm-batch-hero-stat-box {

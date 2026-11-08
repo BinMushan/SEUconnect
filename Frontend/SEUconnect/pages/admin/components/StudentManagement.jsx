@@ -1247,202 +1247,144 @@ export default function StudentManagement({
                 <div className="adm-batch-hero-stat-val">{batchStudents.length}</div>
                 <div className="adm-batch-hero-stat-lbl">Enrolled</div>
               </div>
+
               <div className="adm-batch-hero-stat-box">
                 <div className="adm-batch-hero-stat-val">
                   {selectedBatch.currentSemester?.includes('Freshers') || selectedBatch.avgCgpa === 0 || selectedBatch.avgCgpa === null
                     ? 'N/A'
                     : safeToFixed(selectedBatch.avgCgpa, 2, '0.00')}
                 </div>
-
-                <div className="adm-batch-hero-stats">
-                  <div className="adm-batch-hero-stat-box">
-                    <div className="adm-batch-hero-stat-val">{getBatchStudentCount(activeBatch)}</div>
-                    <div className="adm-batch-hero-stat-lbl">Enrolled</div>
-                  </div>
-                  <div className="adm-batch-hero-stat-box">
-                    <div className="adm-batch-hero-stat-val">
-                      {activeBatch.currentSemester?.includes('Freshers') || activeBatch.avgCgpa === 0
-                        ? '0.00'
-                        : (activeBatch.avgCgpa ? activeBatch.avgCgpa.toFixed(2) : '0.00')}
-                    </div>
-                    <div className="adm-batch-hero-stat-lbl">
-                      {activeBatch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
-                    </div>
-                  </div>
-                  <div className="adm-batch-hero-stat-box">
-                    <div className="adm-batch-hero-stat-val">{activeBatch.attendanceRate}%</div>
-                    <div className="adm-batch-hero-stat-lbl">Attendance</div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="adm-find-process-btn"
-                    style={{
-                      background: '#f59e0b',
-                      color: '#071732',
-                      fontWeight: 700,
-                      whiteSpace: 'nowrap',
-                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                    onClick={() => {
-                      setNewSemester(activeBatch.currentSemester?.split(' ')[0] || 'Semester 1');
-                      setTargetBatchId(activeBatch.id);
-                      setEnrollMode('bulk');
-                      setIsAddModalOpen(true);
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <line x1="19" y1="8" x2="19" y2="14" />
-                      <line x1="22" y1="11" x2="16" y2="11" />
-                    </svg>
-                    + Enrol Students (Individual / Bulk)
-                  </button>
-
-                  {/* Batch Progression & Pass Out Button in Drill-Down */}
-                  {drillProgression.type === 'passed_out' ? (
-                    <span
-                      style={{
-                        background: '#f5f3ff',
-                        color: '#7c3aed',
-                        padding: '0.55rem 0.85rem',
-                        borderRadius: '8px',
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        border: '1px solid #ddd6fe',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        whiteSpace: 'nowrap'
-                      }}
-                      title="Cohort has officially graduated and passed out"
-                    >
-                      🎓 Passed Out (Graduated)
-                    </span>
-                  ) : drillProgression.type === 'pass_out' ? (
-                    <button
-                      type="button"
-                      style={{
-                        background: '#059669',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        fontSize: '0.78rem',
-                        padding: '0.55rem 0.95rem',
-                        borderRadius: '8px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        whiteSpace: 'nowrap'
-                      }}
-                      onClick={() => setPassOutModalBatch(activeBatch)}
-                      title="Pass Out Batch (Graduation of Semester 8 Cohort)"
-                    >
-                      <span>🎓 Pass Out Batch</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      style={{
-                        background: '#2563eb',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        fontSize: '0.78rem',
-                        padding: '0.55rem 0.95rem',
-                        borderRadius: '8px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        whiteSpace: 'nowrap'
-                      }}
-                      onClick={() => setPromoteModalBatch({ batch: activeBatch, progression: drillProgression })}
-                      title={`Promote Cohort to ${drillProgression.nextSem}`}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="18 15 12 9 6 15" />
-                      </svg>
-                      <span>Promote to {drillProgression.nextSem}</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    className="adm-btn-danger"
-                    style={{
-                      padding: '0.55rem 0.85rem',
-                      fontSize: '0.78rem',
-                      whiteSpace: 'nowrap'
-                    }}
-                    onClick={() => handleDeleteBatchPrompt(activeBatch)}
-                    title="Delete this intake batch"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                    Delete Batch
-                  </button>
+                <div className="adm-batch-hero-stat-lbl">
+                  {selectedBatch.currentSemester?.includes('Freshers') ? 'Freshers GPA' : 'Avg CGPA'}
                 </div>
               </div>
+
               <div className="adm-batch-hero-stat-box">
-                <div className="adm-batch-hero-stat-val">{selectedBatch.currentSemester?.includes('Freshers') ? '—' : `${selectedBatch.attendanceRate}%`}</div>
+                <div className="adm-batch-hero-stat-val">
+                  {selectedBatch.currentSemester?.includes('Freshers') ? '—' : `${selectedBatch.attendanceRate || 100}%`}
+                </div>
                 <div className="adm-batch-hero-stat-lbl">Attendance</div>
               </div>
-              <button
-                type="button"
-                className="adm-find-process-btn"
-                style={{
-                  background: '#f59e0b',
-                  color: '#071732',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-                onClick={() => {
-                  setNewSemester(selectedBatch.currentSemester?.split(' ')[0] || 'Semester 1');
-                  setTargetBatchId(selectedBatch.id);
-                  setEnrollMode('bulk');
-                  setIsAddModalOpen(true);
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <line x1="19" y1="8" x2="19" y2="14" />
-                  <line x1="22" y1="11" x2="16" y2="11" />
-                </svg>
-                + Enrol Students (Individual / Bulk)
-              </button>
 
-              <button
-                type="button"
-                className="adm-btn-danger"
-                style={{
-                  padding: '0.55rem 0.85rem',
-                  fontSize: '0.78rem',
-                  whiteSpace: 'nowrap'
-                }}
-                onClick={() => handleDeleteBatchPrompt(selectedBatch)}
-                title="Delete this intake batch"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-                Delete Batch
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="adm-find-process-btn"
+                  style={{
+                    background: '#f59e0b',
+                    color: '#071732',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onClick={() => {
+                    setNewSemester(selectedBatch.currentSemester?.split(' ')[0] || 'Semester 1');
+                    setTargetBatchId(selectedBatch.id);
+                    setEnrollMode('bulk');
+                    setIsAddModalOpen(true);
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="22" y1="11" x2="16" y2="11" />
+                  </svg>
+                  + Enrol Students (Individual / Bulk)
+                </button>
+
+                {/* Batch Progression & Pass Out Button in Drill-Down */}
+                {drillProgression.type === 'passed_out' ? (
+                  <span
+                    style={{
+                      background: '#f5f3ff',
+                      color: '#7c3aed',
+                      padding: '0.55rem 0.85rem',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      border: '1px solid #ddd6fe',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      whiteSpace: 'nowrap'
+                    }}
+                    title="Cohort has officially graduated and passed out"
+                  >
+                    🎓 Passed Out (Graduated)
+                  </span>
+                ) : drillProgression.type === 'pass_out' ? (
+                  <button
+                    type="button"
+                    style={{
+                      background: '#059669',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      padding: '0.55rem 0.95rem',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onClick={() => setPassOutModalBatch(selectedBatch)}
+                    title="Pass Out Batch (Graduation of Semester 8 Cohort)"
+                  >
+                    <span>🎓 Pass Out Batch</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    style={{
+                      background: '#2563eb',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      padding: '0.55rem 0.95rem',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onClick={() => setPromoteModalBatch({ batch: selectedBatch, progression: drillProgression })}
+                    title={`Promote Cohort to ${drillProgression.nextSem}`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="18 15 12 9 6 15" />
+                    </svg>
+                    <span>Promote to {drillProgression.nextSem}</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="adm-btn-danger"
+                  style={{
+                    padding: '0.55rem 0.85rem',
+                    fontSize: '0.78rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onClick={() => handleDeleteBatchPrompt(selectedBatch)}
+                  title="Delete this intake batch"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  Delete Batch
+                </button>
+              </div>
             </div>
           </div>
 

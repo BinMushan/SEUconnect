@@ -603,8 +603,17 @@ export const api = {
     }
   },
 
+  /* ---------------------------------- subjects & curriculum --------------------- */
+  getSubjects: (params = {}) => request(`/subjects${qs(params)}`),
+  getSubject: (code) => request(`/subjects/${encodeURIComponent(code)}`),
+  getSubjectsBySemester: (semester) => request(`/subjects/semester/${encodeURIComponent(semester)}`),
+  updateSubjectAllocation: (code, data) => request(`/subjects/${encodeURIComponent(code)}/allocation`, json('PATCH', data)),
+  saveSubjectAllocations: (allocations) => request('/subjects/allocations', json('POST', { allocations })),
+
   /* ---------------------------------- timetable ---------------------------------- */
   getTimetable: (params = {}) => request(`/timetable${qs(params)}`),
+  getAllTimetables: () => request('/timetable/all'),
+  getLecturerTimetable: (lecturer) => request(`/timetable?lecturer=${encodeURIComponent(lecturer)}`),
   saveTimetable: (data) => request('/timetable', json('POST', data)),
   deleteTimetable: (params = {}) => request(`/timetable${qs(params)}`, { method: 'DELETE' }),
 

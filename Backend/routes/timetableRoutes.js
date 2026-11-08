@@ -8,11 +8,70 @@ const { normalizeSemester, getCurriculumBySemester } = require('../config/curric
 const memTimetables = new Map();
 
 /**
+ * GET /api/timetable/all
+ * Retrieve all published timetables across all batches and semesters
+ */
+router.get('/all', async (req, res) => {
+  try {
+    let timetables = [];
+    if (mongoose.connection.readyState === 1) {
+      timetables = await Timetable.find({}).lean();
+    }
+    if (!timetables || timetables.length === 0) {
+      timetables = Array.from(memTimetables.values());
+    }
+    res.json({ success: true, count: timetables.length, data: timetables });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to retrieve timetables', error: err.message });
+  }
+});
+
+/**
  * GET /api/timetable
- * Query timetable by semester, batch, or department
+ * Query timetable by semester, batch, department, or lecturer
  */
 router.get('/', async (req, res) => {
   try {
+    const { lecturer } = req.query;
+
+    // If querying by lecturer, find all matching slots across all active timetables
+    if (lecturer) {
+      const lecStr = String(lecturer).toLowerCase().trim();
+      let allDocs = [];
+      if (mongoose.connection.readyState === 1) {
+        allDocs = await Timetable.find({}).lean();
+      }
+      if (!allDocs || allDocs.length === 0) {
+        allDocs = Array.from(memTimetables.values());
+      }
+
+      const lecturerSlots = [];
+      for (const doc of allDocs) {
+        if (Array.isArray(doc.slots)) {
+          for (const slot of doc.slots) {
+            const slotLec = (slot.lecturer || '').toLowerCase();
+            if (slotLec && (slotLec.includes(lecStr) || lecStr.includes(slotLec))) {
+              lecturerSlots.push({
+                ...slot,
+                batch: doc.batch,
+                semester: doc.semester,
+                department: doc.department,
+              });
+            }
+          }
+        }
+      }
+
+      return res.json({
+        success: true,
+        count: lecturerSlots.length,
+        data: {
+          lecturer,
+          slots: lecturerSlots,
+        },
+      });
+    }
+
     const rawSemester = req.query.semester || 'Semester II';
     const batch = req.query.batch || '2022/2023';
     const department = req.query.department || 'Department of Information and Communication Technology';
@@ -24,13 +83,25 @@ router.get('/', async (req, res) => {
     let timetableDoc = null;
     if (mongoose.connection.readyState === 1) {
       try {
-        timetableDoc = await Timetable.findOne({
-          $or: [
-            { semester: normalizedSemester, batch },
-            { semester: rawSemester, batch },
-            { semester: normalizedSemester }
-          ]
-        }).lean();
+        // Prioritize exact match on batch and semester
+        if (batch) {
+          timetableDoc = await Timetable.findOne({
+            $and: [
+              { $or: [{ semester: normalizedSemester }, { semester: rawSemester }] },
+              { batch: batch }
+            ]
+          }).lean();
+        }
+
+        // Secondary fallback to semester
+        if (!timetableDoc) {
+          timetableDoc = await Timetable.findOne({
+            $or: [
+              { semester: normalizedSemester },
+              { semester: rawSemester }
+            ]
+          }).lean();
+        }
       } catch (dbErr) {
         console.warn('Timetable DB fetch warning:', dbErr.message);
       }

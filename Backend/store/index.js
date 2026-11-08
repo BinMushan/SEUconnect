@@ -87,6 +87,28 @@ const processes = {
     }, 0);
     return `${stem}${String(highest + 1).padStart(4, '0')}`;
   },
+
+  async delete(key) {
+    if (!key) return true;
+    const keyStr = String(key);
+    if (connected()) {
+      try {
+        if (isObjectId(keyStr)) {
+          await ProcessRequest.findByIdAndDelete(keyStr);
+        }
+        await ProcessRequest.deleteMany({
+          $or: [
+            { trackingNumber: keyStr },
+            ...(isObjectId(keyStr) ? [{ _id: new mongoose.Types.ObjectId(keyStr) }] : [])
+          ]
+        });
+      } catch (err) {
+        console.error('Error deleting process request from DB:', err);
+      }
+    }
+    mem.processes = mem.processes.filter((p) => p.trackingNumber !== keyStr && String(p._id) !== keyStr);
+    return true;
+  },
 };
 
 /* ---------------------------- notifications ---------------------------- */
@@ -136,37 +158,52 @@ const notifications = {
   },
 
   async delete(id) {
+    if (!id) return true;
+    const idStr = String(id);
     if (connected()) {
       try {
-        const idStr = String(id);
-        const orConditions = [
-          { trackingNumber: idStr },
-          { id: idStr }
-        ];
         if (isObjectId(idStr)) {
-          orConditions.push({ _id: id });
-          await Notification.findByIdAndDelete(id);
+          await Notification.findByIdAndDelete(idStr);
         }
-        await Notification.deleteMany({ $or: orConditions });
+        await Notification.deleteMany({
+          $or: [
+            { trackingNumber: idStr },
+            { relatedRequestId: idStr },
+            { entityId: idStr },
+            ...(isObjectId(idStr) ? [{ _id: new mongoose.Types.ObjectId(idStr) }] : [])
+          ]
+        });
       } catch (err) {
         console.error('Error deleting notification from DB:', err);
       }
     }
-    mem.notifications = mem.notifications.filter((n) => String(n._id) !== String(id) && String(n.id) !== String(id) && String(n.trackingNumber) !== String(id));
+    mem.notifications = mem.notifications.filter((n) => 
+      String(n._id) !== idStr && 
+      String(n.id) !== idStr && 
+      String(n.trackingNumber) !== idStr &&
+      String(n.relatedRequestId) !== idStr
+    );
     return true;
   },
 
   async deleteAllForUser(user) {
-    const userNotifs = await this.forUser(user);
-    const validObjectIds = userNotifs.map((n) => n._id).filter((id) => isObjectId(String(id)));
     const role = normalizeRole(user.role);
     const userEmail = String(user.email || '').toLowerCase();
     if (connected()) {
       try {
+        const userNotifs = await this.forUser(user);
+        const validObjectIds = userNotifs
+          .map((n) => String(n._id))
+          .filter((id) => isObjectId(id))
+          .map((id) => new mongoose.Types.ObjectId(id));
+
         const orConditions = [
           { recipientRole: role },
-          { recipientEmail: userEmail }
+          { recipientRole: 'all' }
         ];
+        if (userEmail) {
+          orConditions.push({ recipientEmail: userEmail });
+        }
         if (validObjectIds.length > 0) {
           orConditions.push({ _id: { $in: validObjectIds } });
         }
@@ -175,8 +212,17 @@ const notifications = {
         console.error('Error clearing all notifications from DB:', err);
       }
     }
-    const allDeletedIds = new Set(userNotifs.map((n) => String(n._id || n.id || n.trackingNumber)));
-    mem.notifications = mem.notifications.filter((n) => !allDeletedIds.has(String(n._id)) && !allDeletedIds.has(String(n.id)) && !allDeletedIds.has(String(n.trackingNumber)));
+    const allDeletedIds = new Set((await this.forUser(user)).map((n) => String(n._id || n.id || n.trackingNumber)));
+    mem.notifications = mem.notifications.filter((n) => {
+      const nRole = normalizeRole(n.recipientRole);
+      const nEmail = String(n.recipientEmail || '').toLowerCase();
+      if (allDeletedIds.has(String(n._id)) || allDeletedIds.has(String(n.id)) || allDeletedIds.has(String(n.trackingNumber))) {
+        return false;
+      }
+      if (nRole === role) return false;
+      if (userEmail && nEmail === userEmail) return false;
+      return true;
+    });
     return true;
   },
 };
@@ -317,11 +363,21 @@ const initialise = async ({ seedUsers, seedProcesses, seedNotifications }) => {
       await User.insertMany(missing);
       console.log(` Seeded ${missing.length} demo user(s).`);
     }
-    for (const proc of seedProcesses) {
-      await ProcessRequest.findOneAndUpdate({ trackingNumber: proc.trackingNumber }, { $setOnInsert: proc }, { upsert: true, timestamps: false });
+
+    const hasSeededProcs = await settings.get('has_seeded_initial_processes', false);
+    if (!hasSeededProcs) {
+      for (const proc of seedProcesses) {
+        await ProcessRequest.findOneAndUpdate({ trackingNumber: proc.trackingNumber }, { $setOnInsert: proc }, { upsert: true, timestamps: false });
+      }
+      await settings.set('has_seeded_initial_processes', true);
     }
-    if ((await Notification.countDocuments()) === 0 && seedNotifications.length) {
-      await Notification.insertMany(seedNotifications);
+
+    const hasSeededNotifs = await settings.get('has_seeded_initial_notifications', false);
+    if (!hasSeededNotifs) {
+      if ((await Notification.countDocuments()) === 0 && seedNotifications.length) {
+        await Notification.insertMany(seedNotifications);
+      }
+      await settings.set('has_seeded_initial_notifications', true);
     }
     return;
   }
