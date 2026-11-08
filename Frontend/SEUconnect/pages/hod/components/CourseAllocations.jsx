@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { COURSE_ALLOCATION_MATRIX, ACADEMIC_STAFF_LIST } from '../hodData.js';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { ACADEMIC_STAFF_LIST } from '../hodData.js';
 import { INITIAL_CURRICULUM_COURSES, SEMESTER_LIST } from '../../admin/curriculumData.js';
 import api, { provisionedUserStorage } from '../../../src/services/api.js';
 
@@ -121,9 +121,11 @@ export default function CourseAllocations({ onNavigate, user }) {
   const [courses, setCourses] = useState(() => buildCourseMatrix());
 
   // Reload courses whenever department scope changes
-  useEffect(() => {
+  const [prevDept, setPrevDept] = useState(departmentScope);
+  if (prevDept !== departmentScope) {
+    setPrevDept(departmentScope);
     setCourses(buildCourseMatrix());
-  }, [buildCourseMatrix]);
+  }
 
   // Load directory staff from Backend MongoDB
   useEffect(() => {
@@ -212,7 +214,7 @@ export default function CourseAllocations({ onNavigate, user }) {
       const existingNames = new Set(baseCadre.map((s) => s.name));
       const additions = [...newLecturers, ...dbLecturers, ...otherCadre].filter((l) => !existingNames.has(l.name));
       return [...baseCadre, ...additions];
-    } catch (e) {
+    } catch {
       return departmentScope === 'BST' ? BST_ACADEMIC_STAFF : ACADEMIC_STAFF_LIST;
     }
   }, [departmentScope, dbStaff]);
@@ -344,7 +346,7 @@ export default function CourseAllocations({ onNavigate, user }) {
         lecturerEmail: updatedEmail,
       });
       setFeedbackMsg(`✓ Officially appointed ${updatedLecturer} for ${editingCourse.code}. Teaching rights granted by ${departmentScope} HOD.`);
-    } catch (err) {
+    } catch {
       setFeedbackMsg(`✓ Appointed ${updatedLecturer} for ${editingCourse.code} (Teaching rights saved and broadcasted).`);
     }
 
@@ -362,7 +364,7 @@ export default function CourseAllocations({ onNavigate, user }) {
       }));
       await api.saveSubjectAllocations(payload);
       setFeedbackMsg(`✓ All ${courses.length} ${departmentScope} course allocations synchronized to MongoDB database successfully!`);
-    } catch (err) {
+    } catch {
       setFeedbackMsg(`✓ Course allocations saved locally.`);
     } finally {
       setIsSyncingDb(false);
