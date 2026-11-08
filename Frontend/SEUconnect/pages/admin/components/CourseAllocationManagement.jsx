@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { INITIAL_CURRICULUM_COURSES, SEMESTER_LIST } from '../curriculumData.js';
+import api from '../../../src/services/api.js';
 
 /**
  * SEUConnect - Course Allocation & Semester Curriculum Engine
@@ -39,6 +40,44 @@ export default function CourseAllocationManagement({
       console.warn('Could not save curriculum to localStorage', e);
     }
   }, [courses]);
+
+  // Synchronize when HOD allocates lecturers or modifies curriculum
+  useEffect(() => {
+    const handleAllocUpdate = (e) => {
+      const { code, lecturer } = e.detail || {};
+      if (code && lecturer) {
+        setCourses((prev) =>
+          prev.map((c) =>
+            c.code.toUpperCase() === code.toUpperCase()
+              ? { ...c, coordinator: lecturer }
+              : c
+          )
+        );
+      }
+    };
+
+    const handleCurriculumReload = () => {
+      try {
+        const saved = localStorage.getItem('seuconnect_admin_curriculum_courses');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCourses(parsed);
+          }
+        }
+      } catch (_) {}
+    };
+
+    window.addEventListener('seu_course_allocations_updated', handleAllocUpdate);
+    window.addEventListener('seuconnect_curriculum_updated', handleCurriculumReload);
+    window.addEventListener('storage', handleCurriculumReload);
+
+    return () => {
+      window.removeEventListener('seu_course_allocations_updated', handleAllocUpdate);
+      window.removeEventListener('seuconnect_curriculum_updated', handleCurriculumReload);
+      window.removeEventListener('storage', handleCurriculumReload);
+    };
+  }, []);
 
   const [selectedDept, setSelectedDept] = useState('BICT'); // 'BICT' | 'BST'
   const [selectedSemester, setSelectedSemester] = useState('Semester 1');
@@ -127,14 +166,14 @@ export default function CourseAllocationManagement({
     setCourseSem(course.semester);
     setCourseCredits(String(course.credits));
     setCourseType(course.type);
-    setCourseCoordinator(course.coordinator);
+    setCourseCoordinator(course.coordinator || 'Pending HOD Allocation');
     setCoursePrerequisites(course.prerequisites || 'None');
     setCourseHours(course.hours || '45 Lecture Hrs');
     setFormError('');
     setIsAddModalOpen(true);
   };
 
-  // Open modal for creating
+  // Open modal for creating - Admin does not appoint lecturer (delegated to HOD)
   const openAddModal = () => {
     setEditingCourse(null);
     setCourseCode('');
@@ -143,7 +182,7 @@ export default function CourseAllocationManagement({
     setCourseSem(selectedSemester);
     setCourseCredits('3');
     setCourseType('Core');
-    setCourseCoordinator('');
+    setCourseCoordinator('Pending HOD Allocation');
     setCoursePrerequisites('None');
     setCourseHours('30 Lecture Hrs • 30 Lab Hrs');
     setFormError('');
@@ -159,7 +198,7 @@ export default function CourseAllocationManagement({
     }
 
     if (editingCourse) {
-      // Update existing course
+      // Update existing course - Lecturer remains under HOD authority
       const updated = {
         ...editingCourse,
         code: courseCode.trim().toUpperCase(),
@@ -169,7 +208,7 @@ export default function CourseAllocationManagement({
         semester: courseSem,
         credits: parseInt(courseCredits, 10) || 3,
         type: courseType,
-        coordinator: courseCoordinator.trim() || 'Unassigned Staff',
+        coordinator: editingCourse.coordinator || 'Pending HOD Allocation',
         prerequisites: coursePrerequisites.trim() || 'None',
         hours: courseHours.trim() || '45 Lecture Hrs'
       };
@@ -178,7 +217,7 @@ export default function CourseAllocationManagement({
       if (onShowToast) onShowToast(`Updated course ${updated.code} - ${updated.name}.`);
       if (onAddAuditLog) onAddAuditLog('Updated Curriculum Course', `${updated.code} (${updated.semester} - ${updated.department})`);
     } else {
-      // Add new course
+      // Add new course without appointed lecturer (reserved for HOD of particular department)
       const newCourse = {
         id: `CRS-${courseDept}-${Date.now().toString().slice(-6)}`,
         code: courseCode.trim().toUpperCase(),
@@ -189,7 +228,7 @@ export default function CourseAllocationManagement({
         year: courseSem.includes('1') || courseSem.includes('2') ? 'Year 1' : courseSem.includes('3') || courseSem.includes('4') ? 'Year 2' : courseSem.includes('5') || courseSem.includes('6') ? 'Year 3' : 'Year 4',
         credits: parseInt(courseCredits, 10) || 3,
         type: courseType,
-        coordinator: courseCoordinator.trim() || 'Faculty Lecturer',
+        coordinator: 'Pending HOD Allocation',
         prerequisites: coursePrerequisites.trim() || 'None',
         hours: courseHours.trim() || '45 Lecture Hrs',
         capacity: 120,
@@ -197,8 +236,51 @@ export default function CourseAllocationManagement({
       };
 
       setCourses((prev) => [newCourse, ...prev]);
-      if (onShowToast) onShowToast(`Added new course ${newCourse.code} to ${newCourse.semester}.`);
-      if (onAddAuditLog) onAddAuditLog('Created Curriculum Course', `${newCourse.code} (${newCourse.semester} - ${newCourse.department})`);
+
+      // Sync with HOD allocations matrix in localStorage so the target department HOD immediately receives it
+      try {
+        const rawAlloc = localStorage.getItem('seu_course_allocations');
+        let allocList = rawAlloc ? JSON.parse(rawAlloc) : [];
+        if (!Array.isArray(allocList)) allocList = [];
+        const exists = allocList.some((c) => c.code === newCourse.code);
+        if (!exists) {
+          allocList.push({
+            id: newCourse.id,
+            code: newCourse.code,
+            title: newCourse.name,
+            credits: newCourse.credits,
+            year: newCourse.year === 'Year 1' ? '1st Year' : newCourse.year === 'Year 2' ? '2nd Year' : newCourse.year === 'Year 3' ? '3rd Year' : '4th Year',
+            semester: newCourse.semester,
+            department: newCourse.department,
+            deptName: newCourse.deptName,
+            lecturerInCharge: 'Pending HOD Allocation',
+            demonstrators: ['Demonstrator to be appointed'],
+            enrolledStudents: 120,
+            syllabusProgress: 0,
+            caComponentsCount: '4 (2 Quizzes, 1 Assignment, 1 Midterm)',
+            status: 'Pending HOD Allocation',
+          });
+          localStorage.setItem('seu_course_allocations', JSON.stringify(allocList));
+        }
+      } catch (err) {
+        console.warn('Could not sync to seu_course_allocations', err);
+      }
+
+      // Dispatch cross-tab & reactive events
+      window.dispatchEvent(new CustomEvent('seuconnect_curriculum_updated', { detail: newCourse }));
+      window.dispatchEvent(new CustomEvent('seu_course_allocations_updated', {
+        detail: { code: newCourse.code, lecturer: 'Pending HOD Allocation' }
+      }));
+
+      // Persist to MongoDB backend API
+      if (api?.createSubject) {
+        api.createSubject(newCourse).catch((err) => {
+          console.warn('Backend createSubject call:', err.message);
+        });
+      }
+
+      if (onShowToast) onShowToast(`Added new course ${newCourse.code}. Lecturer appointment delegated to ${courseDept} HOD.`);
+      if (onAddAuditLog) onAddAuditLog('Created Curriculum Course', `${newCourse.code} (${newCourse.semester} - ${newCourse.department}) - Awaiting ${courseDept} HOD appointment`);
     }
 
     setIsAddModalOpen(false);
@@ -643,8 +725,24 @@ export default function CourseAllocationManagement({
                       </span>
                     </td>
                     <td>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#334155' }}>{c.coordinator}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Capacity: {c.capacity} students</div>
+                      {c.coordinator && !c.coordinator.includes('Pending') && c.coordinator !== 'Faculty Lecturer' && c.coordinator !== 'Unassigned Staff' ? (
+                        <div>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f2b5c' }}>👤 {c.coordinator}</div>
+                          <span className="adm-badge" style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.68rem', padding: '1px 6px', marginTop: '2px', display: 'inline-block' }}>
+                            ✓ Assigned by {c.department} HOD
+                          </span>
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="adm-badge" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 600, display: 'inline-block' }}>
+                            ⏳ Pending HOD Allocation
+                          </span>
+                          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
+                            Awaiting {c.department} HOD appointment
+                          </div>
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '1px' }}>Capacity: {c.capacity || 120} students</div>
                     </td>
                     <td>
                       <span style={{ fontSize: '0.78rem', color: c.prerequisites === 'None' ? '#94a3b8' : '#0284c7', fontWeight: c.prerequisites === 'None' ? 400 : 600 }}>
@@ -799,16 +897,53 @@ export default function CourseAllocationManagement({
                     </select>
                   </div>
 
-                  <div className="adm-form-group">
-                    <label className="adm-label">Appointed Lecturer / Coordinator</label>
-                    <input
-                      type="text"
-                      className="adm-input"
-                      placeholder="e.g. Dr. S. Sabraz Nawaz / Dr. U.L. Abdul Majeed"
-                      value={courseCoordinator}
-                      onChange={(e) => setCourseCoordinator(e.target.value)}
-                    />
-                  </div>
+                  {!editingCourse ? (
+                    <div className="adm-form-group full-width" style={{
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: '8px',
+                      padding: '0.85rem 1rem',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.75rem',
+                      margin: '0.25rem 0'
+                    }}>
+                      <div style={{ fontSize: '1.4rem', lineHeight: 1 }}>🏛️</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#166534' }}>
+                            Lecturer Appointment Governance: Delegated to HOD
+                          </span>
+                          <span className="adm-badge" style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.7rem' }}>
+                            {courseDept === 'BICT' ? 'HOD ICT Authority' : 'HOD BST Authority'}
+                          </span>
+                        </div>
+                        <p style={{ margin: '4px 0 0', fontSize: '0.76rem', color: '#166534', lineHeight: 1.4 }}>
+                          No appointed lecturer is required for adding a new course. Under university regulations, teaching rights and lecturer appointments are officially conducted by the particular Head of Department (<strong>{courseDept === 'BICT' ? 'Department of ICT HOD' : 'Department of Bio Systems Technology HOD'}</strong>) once this course is provisioned.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="adm-form-group">
+                      <label className="adm-label">Appointed Lecturer (HOD Authority)</label>
+                      <div style={{
+                        padding: '0.6rem 0.75rem',
+                        background: '#f8fafc',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: editingCourse.coordinator?.includes('Pending') ? '#b45309' : '#0f2b5c'
+                      }}>
+                        {editingCourse.coordinator?.includes('Pending')
+                          ? '⏳ Pending HOD Allocation'
+                          : `👤 ${editingCourse.coordinator || 'Pending HOD Allocation'}`}
+                      </div>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px', display: 'block' }}>
+                        Lecturer assignments are governed by the {editingCourse.department} Department HOD.
+                      </span>
+                    </div>
+                  )}
 
                   <div className="adm-form-group">
                     <label className="adm-label">Prerequisite Module(s)</label>

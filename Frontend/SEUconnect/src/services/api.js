@@ -607,6 +607,7 @@ export const api = {
   getSubjects: (params = {}) => request(`/subjects${qs(params)}`),
   getSubject: (code) => request(`/subjects/${encodeURIComponent(code)}`),
   getSubjectsBySemester: (semester) => request(`/subjects/semester/${encodeURIComponent(semester)}`),
+  createSubject: (data) => request('/subjects', json('POST', data)),
   updateSubjectAllocation: (code, data) => request(`/subjects/${encodeURIComponent(code)}/allocation`, json('PATCH', data)),
   saveSubjectAllocations: (allocations) => request('/subjects/allocations', json('POST', { allocations })),
 
