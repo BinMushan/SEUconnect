@@ -286,7 +286,23 @@ export default function Admin({ user, onLogout }) {
   const [medicals, setMedicals] = useState(INITIAL_MEDICALS);
   const [examinations] = useState(INITIAL_EXAMINATIONS);
   const [repeatCandidates, setRepeatCandidates] = useState(INITIAL_REPEAT_CANDIDATES);
-  const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
+  const [announcements, setAnnouncements] = useState(() => {
+    try {
+      const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_announcement_ids') || '[]'));
+      const saved = localStorage.getItem('seuconnect_admin_announcements');
+      const base = saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+      return base.filter((a) => !deleted.has(String(a.id)));
+    } catch {
+      return INITIAL_ANNOUNCEMENTS;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('seuconnect_admin_announcements', JSON.stringify(announcements));
+    } catch (_) {}
+  }, [announcements]);
+
   const [facultyForms, setFacultyForms] = useState(INITIAL_FACULTY_FORMS);
   const [penalties, setPenalties] = useState(() => {
     const stored = penaltyStorage.getAll();
@@ -797,6 +813,13 @@ export default function Admin({ user, onLogout }) {
   // 9. Delete Announcement
   const handleDeleteAnnouncement = (id) => {
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_announcement_ids') || '[]');
+      if (!deleted.includes(String(id))) {
+        deleted.push(String(id));
+        localStorage.setItem('seu_deleted_announcement_ids', JSON.stringify(deleted));
+      }
+    } catch (_) {}
     addAuditLog('Deleted Announcement', `Notice ID ${id} removed.`);
     showToast('Announcement removed.');
   };

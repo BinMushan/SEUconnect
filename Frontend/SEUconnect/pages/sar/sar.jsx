@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
-import api from '../../src/services/api.js';
+import api, { localNotificationStorage } from '../../src/services/api.js';
 import './sar.css';
 
 export default function SAR({ user, onLogout }) {
@@ -248,6 +248,46 @@ export default function SAR({ user, onLogout }) {
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (err) {
       console.warn('Failed to mark all notifications read:', err);
+    }
+  };
+
+  const handleDeleteNotif = async (id, e) => {
+    if (e) e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n._id !== id && String(n._id) !== String(id)));
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
+      if (!deleted.includes(String(id))) {
+        deleted.push(String(id));
+        localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+      }
+    } catch (_) {}
+    try {
+      localNotificationStorage.remove(id);
+    } catch (_) {}
+    try {
+      await api.deleteNotification(id);
+    } catch (err) {
+      console.warn('Failed to delete notification:', err);
+    }
+  };
+
+  const handleClearAllNotifs = async () => {
+    const ids = notifications.map((n) => String(n._id || n.id));
+    setNotifications([]);
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
+      ids.forEach((id) => {
+        if (!deleted.includes(id)) deleted.push(id);
+      });
+      localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+    } catch (_) {}
+    try {
+      localNotificationStorage.clear();
+    } catch (_) {}
+    try {
+      await api.deleteAllNotifications();
+    } catch (err) {
+      console.warn('Failed to clear notifications:', err);
     }
   };
 
@@ -1412,6 +1452,16 @@ export default function SAR({ user, onLogout }) {
                     ✓ Mark All as Read
                   </button>
                 )}
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    className="sar-btn-pill"
+                    style={{ color: '#ef4444', borderColor: '#fca5a5' }}
+                    onClick={handleClearAllNotifs}
+                  >
+                    🗑 Clear All
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1437,9 +1487,34 @@ export default function SAR({ user, onLogout }) {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                           <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>{n.title}</span>
-                          <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                            {new Date(n.createdAt).toLocaleString('en-GB')}
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                              {new Date(n.createdAt).toLocaleString('en-GB')}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteNotif(n._id, e)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#94a3b8',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                borderRadius: '4px',
+                                transition: 'color 0.2s'
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                              title="Delete notification"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                         <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.82rem', color: '#334155', lineHeight: 1.45 }}>
                           {n.message}

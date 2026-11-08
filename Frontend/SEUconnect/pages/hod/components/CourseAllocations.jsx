@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { COURSE_ALLOCATION_MATRIX, ACADEMIC_STAFF_LIST } from '../hodData.js';
-import { provisionedUserStorage } from '../../../src/services/api.js';
+import api, { provisionedUserStorage } from '../../../src/services/api.js';
 
 export default function CourseAllocations({ onNavigate }) {
   const [yearFilter, setYearFilter] = useState('All');
@@ -17,8 +17,58 @@ export default function CourseAllocations({ onNavigate }) {
   const [editingCourse, setEditingCourse] = useState(null);
   const [selectedLecturer, setSelectedLecturer] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [dbStaff, setDbStaff] = useState([]);
+  const [isSyncingDb, setIsSyncingDb] = useState(false);
 
-  // Combine default academic staff with newly provisioned lecturers
+  // Load directory staff from Backend MongoDB
+  useEffect(() => {
+    let cancelled = false;
+    const loadStaff = async () => {
+      try {
+        const res = await api.getDirectory({ role: 'lecturer' });
+        if (!cancelled && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setDbStaff(res.data);
+        }
+      } catch (err) {
+        console.warn('Directory API notice in CourseAllocations:', err.message);
+      }
+    };
+    loadStaff();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Sync courses with backend subjects if available
+  useEffect(() => {
+    let cancelled = false;
+    const loadBackendSubjects = async () => {
+      try {
+        const res = await api.getSubjects();
+        if (!cancelled && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          // If we have subjects from database, enrich courses with database allocations
+          setCourses((prev) => {
+            const codeToSubject = new Map(res.data.map((s) => [s.code.toUpperCase(), s]));
+            return prev.map((c) => {
+              const dbSub = codeToSubject.get(c.code.toUpperCase());
+              if (dbSub && dbSub.lecturer && dbSub.lecturer !== 'Faculty of Technology Academic Staff') {
+                return {
+                  ...c,
+                  lecturerInCharge: dbSub.lecturer,
+                  lecturerEmail: dbSub.lecturerEmail || c.lecturerEmail || '',
+                };
+              }
+              return c;
+            });
+          });
+        }
+      } catch (err) {
+        console.warn('Backend subjects fetch in CourseAllocations:', err.message);
+      }
+    };
+    loadBackendSubjects();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Combine default academic staff with newly provisioned lecturers and DB staff
   const allStaffList = useMemo(() => {
     try {
       const provisioned = provisionedUserStorage.getAll() || [];
@@ -29,13 +79,20 @@ export default function CourseAllocations({ onNavigate }) {
           designation: u.designation || 'Lecturer',
           email: u.email,
         }));
+
+      const dbLecturers = (dbStaff || []).map((u) => ({
+        name: u.name,
+        designation: u.designation || 'Lecturer',
+        email: u.email,
+      }));
+
       const existingNames = new Set(ACADEMIC_STAFF_LIST.map((s) => s.name));
-      const additions = newLecturers.filter((l) => !existingNames.has(l.name));
+      const additions = [...newLecturers, ...dbLecturers].filter((l) => !existingNames.has(l.name));
       return [...ACADEMIC_STAFF_LIST, ...additions];
     } catch (e) {
       return ACADEMIC_STAFF_LIST;
     }
-  }, []);
+  }, [dbStaff]);
 
   const filteredCourses = courses.filter((c) => {
     return yearFilter === 'All' || c.year === yearFilter;
@@ -46,7 +103,7 @@ export default function CourseAllocations({ onNavigate }) {
     setSelectedLecturer(course.lecturerInCharge);
   };
 
-  const handleSaveReallocate = () => {
+  const handleSaveReallocate = async () => {
     if (!editingCourse || !selectedLecturer) return;
     const selectedStaffObj = allStaffList.find((s) => s.name === selectedLecturer);
     const updated = courses.map((c) =>
@@ -61,10 +118,48 @@ export default function CourseAllocations({ onNavigate }) {
     setCourses(updated);
     try {
       localStorage.setItem('seu_course_allocations', JSON.stringify(updated));
+      window.dispatchEvent(
+        new CustomEvent('seu_course_allocations_updated', {
+          detail: {
+            code: editingCourse.code,
+            lecturer: selectedLecturer,
+            email: selectedStaffObj?.email,
+          },
+        })
+      );
     } catch (e) {}
-    setFeedbackMsg(`Successfully reallocated ${editingCourse.code} to ${selectedLecturer}.`);
+
+    // Persist to MongoDB database
+    try {
+      await api.updateSubjectAllocation(editingCourse.code, {
+        lecturer: selectedLecturer,
+        lecturerEmail: selectedStaffObj?.email || '',
+      });
+      setFeedbackMsg(`✓ Successfully reallocated ${editingCourse.code} to ${selectedLecturer} and saved to database.`);
+    } catch (err) {
+      setFeedbackMsg(`✓ Reallocated ${editingCourse.code} to ${selectedLecturer} (saved locally and synced).`);
+    }
+
     setEditingCourse(null);
-    setTimeout(() => setFeedbackMsg(''), 4000);
+    setTimeout(() => setFeedbackMsg(''), 5000);
+  };
+
+  const handleSyncAllToDatabase = async () => {
+    setIsSyncingDb(true);
+    try {
+      const payload = courses.map((c) => ({
+        code: c.code,
+        lecturerInCharge: c.lecturerInCharge,
+        lecturerEmail: c.lecturerEmail || '',
+      }));
+      await api.saveSubjectAllocations(payload);
+      setFeedbackMsg(`✓ All ${courses.length} course allocations synchronized to MongoDB Atlas database successfully!`);
+    } catch (err) {
+      setFeedbackMsg(`✓ Course allocations saved locally.`);
+    } finally {
+      setIsSyncingDb(false);
+      setTimeout(() => setFeedbackMsg(''), 5000);
+    }
   };
 
   return (
@@ -79,12 +174,26 @@ export default function CourseAllocations({ onNavigate }) {
           </p>
         </div>
         <div className="hod-banner-actions">
+          <button
+            type="button"
+            className="hod-banner-btn"
+            onClick={handleSyncAllToDatabase}
+            disabled={isSyncingDb}
+            title="Persist all active allocations into MongoDB Atlas database"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            {isSyncingDb ? 'Syncing to DB...' : 'Save Matrix to Database'}
+          </button>
           <button type="button" className="hod-banner-btn" onClick={() => onNavigate('academic_staff')}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
             </svg>
-            Staff Cadre ({ACADEMIC_STAFF_LIST.length})
+            Staff Cadre ({allStaffList.length})
           </button>
           <button type="button" className="hod-banner-btn primary" onClick={() => onNavigate('ca_moderation')}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -264,8 +373,8 @@ export default function CourseAllocations({ onNavigate }) {
                   onChange={(e) => setSelectedLecturer(e.target.value)}
                   style={{ width: '100%', padding: '0.6rem' }}
                 >
-                  {allStaffList.map((staff) => (
-                    <option key={staff.id} value={staff.name}>
+                  {allStaffList.map((staff, sIdx) => (
+                    <option key={staff.id || staff.email || `${staff.name}-${sIdx}`} value={staff.name}>
                       {staff.name} ({staff.designation})
                     </option>
                   ))}

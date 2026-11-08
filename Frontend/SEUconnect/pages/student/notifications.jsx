@@ -124,7 +124,7 @@ export default function StudentNotifications({ onNavigate }) {
 
   // Mark single notification as read
   const handleDeleteNotification = async (id) => {
-    setNotifications((prev) => prev.filter((n) => n._id !== id));
+    setNotifications((prev) => prev.filter((n) => n._id !== id && n.id !== id));
     try {
       const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
       if (!deleted.includes(String(id))) {
@@ -132,26 +132,31 @@ export default function StudentNotifications({ onNavigate }) {
         localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
       }
     } catch (_) {}
-    const target = notifications.find((n) => n._id === id);
-    if (target?.live) await api.deleteNotification(id).catch(() => {});
+    try {
+      localNotificationStorage.remove(id);
+    } catch (_) {}
+    await api.deleteNotification(id).catch(() => {});
   };
 
   const handleClearAll = async () => {
     try {
       const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
       notifications.forEach((n) => {
-        if (!deleted.includes(String(n._id))) deleted.push(String(n._id));
+        const notifKey = String(n._id || n.id || n.trackingNumber);
+        if (!deleted.includes(notifKey)) deleted.push(notifKey);
       });
       localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+    } catch (_) {}
+    try {
+      localNotificationStorage.clear();
     } catch (_) {}
     setNotifications([]);
     await api.deleteAllNotifications().catch(() => {});
   };
 
   const handleMarkAsRead = async (id) => {
-    setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
-    const target = notifications.find((n) => n._id === id);
-    if (target?.live) await api.markNotificationRead(id).catch(() => {});
+    setNotifications((prev) => prev.map((n) => (n._id === id || n.id === id ? { ...n, isRead: true } : n)));
+    await api.markNotificationRead(id).catch(() => {});
   };
 
   // Mark all as read

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AnnouncementCard from './components/AnnouncementCard.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import { INITIAL_ANNOUNCEMENTS, INITIAL_SUBJECTS } from './lecturerMockData.js';
@@ -12,7 +12,22 @@ import { INITIAL_ANNOUNCEMENTS, INITIAL_SUBJECTS } from './lecturerMockData.js';
  */
 export default function Announcements({ subjects = INITIAL_SUBJECTS, onShowToast }) {
   const availableSubjects = Array.isArray(subjects) ? subjects : [];
-  const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
+  const [announcements, setAnnouncements] = useState(() => {
+    try {
+      const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_announcement_ids') || '[]'));
+      const saved = localStorage.getItem('seuconnect_lecturer_announcements');
+      const base = saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+      return base.filter((a) => !deleted.has(String(a.id)));
+    } catch {
+      return INITIAL_ANNOUNCEMENTS;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('seuconnect_lecturer_announcements', JSON.stringify(announcements));
+    } catch (_) {}
+  }, [announcements]);
 
   // New announcement form states
   const [title, setTitle] = useState('');
@@ -78,6 +93,13 @@ export default function Announcements({ subjects = INITIAL_SUBJECTS, onShowToast
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     setAnnouncements((prev) => prev.filter((item) => item.id !== deleteId));
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_announcement_ids') || '[]');
+      if (!deleted.includes(String(deleteId))) {
+        deleted.push(String(deleteId));
+        localStorage.setItem('seu_deleted_announcement_ids', JSON.stringify(deleted));
+      }
+    } catch (_) {}
     setDeleteId(null);
     if (onShowToast) {
       onShowToast('Announcement removed', 'info');

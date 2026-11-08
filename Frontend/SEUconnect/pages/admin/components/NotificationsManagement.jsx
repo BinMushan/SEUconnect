@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import api, { localNotificationStorage } from '../../../src/services/api.js';
 
 /**
  * Top-level immutable initial notification dataset
@@ -219,7 +220,23 @@ export default function NotificationsManagement({
   onApproveRegistration,
   onShowToast
 }) {
-  const [notifications, setNotifications] = useState(INITIAL_ADMIN_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]'));
+      const saved = localStorage.getItem('seuconnect_admin_notifications');
+      const base = saved ? JSON.parse(saved) : INITIAL_ADMIN_NOTIFICATIONS;
+      return base.filter((n) => !deleted.has(String(n.id || n._id)));
+    } catch {
+      return INITIAL_ADMIN_NOTIFICATIONS;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('seuconnect_admin_notifications', JSON.stringify(notifications));
+    } catch (_) {}
+  }, [notifications]);
+
   const [activeTab, setActiveTab] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [readFilter, setReadFilter] = useState('ALL');
@@ -278,22 +295,56 @@ export default function NotificationsManagement({
   };
 
   // Mark all as read
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     if (onShowToast) onShowToast('All notifications marked as read.');
+    try {
+      await api.markAllNotificationsRead();
+    } catch (_) {}
   };
 
   // Clear read notifications
-  const handleClearRead = () => {
+  const handleClearRead = async () => {
     const unreadOnly = notifications.filter((n) => !n.isRead);
+    const readOnes = notifications.filter((n) => n.isRead);
     setNotifications(unreadOnly);
     if (onShowToast) onShowToast('Cleared read notifications.');
+
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
+      readOnes.forEach((r) => {
+        const key = String(r.id || r._id);
+        if (!deleted.includes(key)) deleted.push(key);
+      });
+      localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+    } catch (_) {}
+
+    for (const r of readOnes) {
+      const key = r.id || r._id;
+      try {
+        localNotificationStorage.remove(key);
+        await api.deleteNotification(key);
+      } catch (_) {}
+    }
   };
 
   // Delete / Dismiss
-  const handleDismiss = (id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const handleDismiss = async (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id && n._id !== id));
     if (onShowToast) onShowToast('Notification dismissed.');
+
+    try {
+      const deleted = JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]');
+      if (!deleted.includes(String(id))) {
+        deleted.push(String(id));
+        localStorage.setItem('seu_deleted_notif_ids', JSON.stringify(deleted));
+      }
+    } catch (_) {}
+
+    try {
+      localNotificationStorage.remove(id);
+      await api.deleteNotification(id);
+    } catch (_) {}
   };
 
   // Action Click
