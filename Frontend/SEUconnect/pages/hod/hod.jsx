@@ -141,7 +141,7 @@ export default function HOD({ user, onLogout }) {
       case 'student_roster':
         return <DepartmentStudents onNavigate={setActiveNav} />;
       case 'course_coordination':
-        return <CourseAllocations onNavigate={setActiveNav} />;
+        return <CourseAllocations onNavigate={setActiveNav} user={effectiveUser} />;
       case 'department_calendar':
         return <DepartmentAcademicCalendar onNavigate={setActiveNav} />;
       case 'department_timetable':
