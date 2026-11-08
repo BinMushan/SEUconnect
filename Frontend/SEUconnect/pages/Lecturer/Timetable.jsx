@@ -3,6 +3,62 @@ import {
   INITIAL_SUBJECTS,
   LECTURER_TIMETABLE_CLASSES,
 } from './lecturerMockData.js';
+import api from '../../src/services/api.js';
+
+/**
+ * Helper: Convert a database timetable slot to a Lecturer Class model
+ */
+function convertSlotToLecturerClass(slot, idx) {
+  const dayMap = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
+  const dayOfWeek = dayMap[slot.day] || 1;
+
+  let startHour = 8;
+  let startMinute = 30;
+  let endHour = 9;
+  let endMinute = 30;
+
+  if (slot.timeSlot) {
+    const parts = slot.timeSlot.split('-');
+    if (parts.length === 2) {
+      const sParts = parts[0].trim().replace(/[a-zA-Z]/g, '').split(/[:.]/);
+      const eParts = parts[1].trim().replace(/[a-zA-Z]/g, '').split(/[:.]/);
+      if (sParts[0]) startHour = parseInt(sParts[0], 10) || 8;
+      if (sParts[1]) startMinute = parseInt(sParts[1], 10) || 0;
+      if (eParts[0]) endHour = parseInt(eParts[0], 10) || 9;
+      if (eParts[1]) endMinute = parseInt(eParts[1], 10) || 30;
+
+      // Normalize afternoon slots like 1.30 or 2.30
+      if (startHour >= 1 && startHour <= 6) startHour += 12;
+      if (endHour >= 1 && endHour <= 6) endHour += 12;
+    }
+  }
+
+  return {
+    id: slot.id || `slot-db-${idx}`,
+    dayOfWeek,
+    dayName: slot.day,
+    subjectCode: slot.code,
+    subjectName: slot.name || slot.code,
+    timeslot: slot.timeSlot,
+    startTime: `${startHour}:${startMinute < 10 ? '0' : ''}${startMinute}`,
+    endTime: `${endHour}:${endMinute < 10 ? '0' : ''}${endMinute}`,
+    startHour,
+    startMinute,
+    endHour,
+    endMinute,
+    duration: '1h 00m',
+    classType: slot.type || 'Lecture',
+    venue: slot.venue || 'LH5',
+    registeredStudentsCount: 45,
+    academicBatch: slot.batch || '2022/2023',
+    academicYear: '2025/2026',
+    semester: slot.semester || 'Semester 2',
+    degreeProgramme: 'BICT (Hons)',
+    lecturerName: slot.lecturer || 'Faculty Staff',
+    topic: `${slot.code} Regular Curriculum Session`,
+    notes: 'Scheduled by Head of Department via official Timetable matrix.',
+  };
+}
 
 /**
  * Helper: Obtain current date/time anchored to Asia/Colombo timezone.
@@ -84,8 +140,72 @@ function getSessionTimeStatus(session, isSelectedDayToday) {
  * Timetable Component
  * Teaching Timetable for SEUConnect Lecturer Portal
  */
-export default function Timetable({ subjects = INITIAL_SUBJECTS, onNavigateModule, onShowToast }) {
+export default function Timetable({ user, subjects = INITIAL_SUBJECTS, onNavigateModule, onShowToast }) {
   const availableSubjects = Array.isArray(subjects) ? subjects : [];
+  const [dbTimetableSlots, setDbTimetableSlots] = useState([]);
+
+  // Fetch published timetable slots from MongoDB Atlas backend
+  useEffect(() => {
+    let cancelled = false;
+    const fetchTimetable = async () => {
+      try {
+        const identifier = user?.name || user?.email || '';
+        const res = await api.getAllTimetables();
+        if (!cancelled && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const lecLower = identifier.toLowerCase().trim();
+          const subCodes = new Set(availableSubjects.map((s) => (s.code || '').toUpperCase().trim()));
+
+          const matchedSlots = [];
+          for (const doc of res.data) {
+            if (Array.isArray(doc.slots)) {
+              for (const slot of doc.slots) {
+                const sLec = (slot.lecturer || '').toLowerCase();
+                const sCode = (slot.code || '').toUpperCase().trim();
+                const isLecturerMatch = lecLower && (sLec.includes(lecLower) || lecLower.includes(sLec));
+                const isSubjectMatch = subCodes.has(sCode);
+
+                if (isLecturerMatch || isSubjectMatch) {
+                  matchedSlots.push({
+                    ...slot,
+                    batch: doc.batch || slot.batch,
+                    semester: doc.semester || slot.semester,
+                  });
+                }
+              }
+            }
+          }
+          if (matchedSlots.length > 0) {
+            setDbTimetableSlots(matchedSlots);
+          }
+        }
+      } catch (err) {
+        console.warn('Lecturer timetable fetch notice:', err.message);
+      }
+    };
+
+    fetchTimetable();
+
+    const handleSaved = () => {
+      fetchTimetable();
+    };
+    window.addEventListener('seu_timetable_saved', handleSaved);
+    window.addEventListener('storage', handleSaved);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('seu_timetable_saved', handleSaved);
+      window.removeEventListener('storage', handleSaved);
+    };
+  }, [user, availableSubjects]);
+
+  // Combine database timetable classes with baseline defaults
+  const allClasses = useMemo(() => {
+    const fromDb = (dbTimetableSlots || []).map((s, idx) => convertSlotToLecturerClass(s, idx));
+    const dbKeys = new Set(fromDb.map((c) => `${c.subjectCode}-${c.dayOfWeek}-${c.timeslot}`));
+    const baselineFiltered = LECTURER_TIMETABLE_CLASSES.filter(
+      (c) => !dbKeys.has(`${c.subjectCode}-${c.dayOfWeek}-${c.timeslot}`)
+    );
+    return [...fromDb, ...baselineFiltered];
+  }, [dbTimetableSlots]);
 
   // View mode: 'weekly' or 'daily'
   const [viewMode, setViewMode] = useState('weekly');
@@ -139,21 +259,24 @@ export default function Timetable({ subjects = INITIAL_SUBJECTS, onNavigateModul
 
   // Derived unique filter options
   const filterOptions = useMemo(() => {
-    const batches = Array.from(new Set(LECTURER_TIMETABLE_CLASSES.map((c) => c.academicBatch))).filter(Boolean);
-    const years = Array.from(new Set(LECTURER_TIMETABLE_CLASSES.map((c) => c.academicYear))).filter(Boolean);
-    const semesters = Array.from(new Set(LECTURER_TIMETABLE_CLASSES.map((c) => c.semester))).filter(Boolean);
+    const batches = Array.from(new Set(allClasses.map((c) => c.academicBatch))).filter(Boolean);
+    const years = Array.from(new Set(allClasses.map((c) => c.academicYear))).filter(Boolean);
+    const semesters = Array.from(new Set(allClasses.map((c) => c.semester))).filter(Boolean);
     const classTypes = ['Lecture', 'Practical', 'Tutorial'];
     return { batches, years, semesters, classTypes };
-  }, []);
+  }, [allClasses]);
 
   // Filtered timetable dataset
   const filteredClasses = useMemo(() => {
     if (availableSubjects.length === 0) return [];
-    const allowedCodes = new Set(availableSubjects.map((s) => s.code));
+    const allowedCodes = new Set(availableSubjects.map((s) => (s.code || '').toUpperCase().trim()));
     const q = searchQuery.trim().toLowerCase();
-    return LECTURER_TIMETABLE_CLASSES.filter((session) => {
-      // Must belong to this lecturer's assigned subjects
-      if (!allowedCodes.has(session.subjectCode)) return false;
+    return allClasses.filter((session) => {
+      // Must belong to this lecturer's assigned subjects or assigned directly
+      const sessionCode = (session.subjectCode || '').toUpperCase().trim();
+      if (!allowedCodes.has(sessionCode) && dbTimetableSlots.every((s) => (s.code || '').toUpperCase().trim() !== sessionCode)) {
+        return false;
+      }
       // Search query across subjectCode, subjectName, venue, topic, batch
       if (q) {
         const matchesQuery =
@@ -192,7 +315,7 @@ export default function Timetable({ subjects = INITIAL_SUBJECTS, onNavigateModul
 
       return true;
     });
-  }, [searchQuery, filterSubject, filterBatch, filterYear, filterSemester, filterClassType]);
+  }, [allClasses, availableSubjects, dbTimetableSlots, searchQuery, filterSubject, filterBatch, filterYear, filterSemester, filterClassType]);
 
   // Filter any scheduled weekend classes (Saturday = 6, Sunday = 7)
   const weekendClasses = useMemo(() => {

@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../../src/services/api.js';
+import {
+  CURRICULUM_DATA,
+  getCurriculumBySemester,
+  normalizeSemester,
+  mapSemesterNameToExamYearSem,
+  mapExamYearSemToSemesterName,
+  getSubjectsForYearSemester,
+  getAllCurriculumSubjects,
+  ALL_SEMESTERS
+} from '../../src/services/curriculumData.js';
 import { WORKFLOW_INFO, resolveWorkflowType, defaultExtras, validateSubmission, buildPayload, prefillFromProcess } from './formSubmission.js';
 import './faculty_forms.css';
 
@@ -336,6 +346,34 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
 
   const initialParts = parseRegParts(studentRegNo);
 
+  const defaultYearSem = mapSemesterNameToExamYearSem(studentSemester);
+  const studentCurriculum = getCurriculumBySemester(studentSemester);
+  const initialSubjectsList = (studentCurriculum?.subjects || []).slice(0, 12).map((s, idx) => ({
+    sno: String(idx + 1).padStart(2, '0'),
+    code: s.code || s.rawCode || '',
+    title: s.title || ''
+  }));
+  while (initialSubjectsList.length < 12) {
+    initialSubjectsList.push({
+      sno: String(initialSubjectsList.length + 1).padStart(2, '0'),
+      code: '',
+      title: ''
+    });
+  }
+
+  const initialMedicalList = (studentCurriculum?.subjects || []).slice(0, 8).map((s, idx) => ({
+    sno: idx + 1,
+    code: s.code || s.rawCode || '',
+    title: s.title || ''
+  }));
+  while (initialMedicalList.length < 8) {
+    initialMedicalList.push({
+      sno: initialMedicalList.length + 1,
+      code: '',
+      title: ''
+    });
+  }
+
   // Interactive Form Editor State
   const [formData, setFormData] = useState(() => ({
     name: studentName,
@@ -357,37 +395,24 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     applicationDate: new Date().toISOString().split('T')[0],
     
     // Exam specific matching physical paper form
-    examBatch: '2021/2022',
+    examBatch: user?.batch || '2021/2022',
     examFaculty: 'FT',
     examMedium: 'English',
-    examSemester: '1st',
-    examAppliedFor: 'Repeat',
-    examYear: 'Third Year',
-    examAttempts: '1',
-    examFeesPaid: '400',
-    examNameYear: 'Third Year Examination in Technology - Semester I - 2025/2026',
+    examSemester: defaultYearSem.examSemester,
+    examAppliedFor: 'Fresh',
+    examYear: defaultYearSem.examYear,
+    examAttempts: '0',
+    examFeesPaid: '0',
+    examNameYear: `${defaultYearSem.examYear} Examination in Technology - Semester ${defaultYearSem.examSemester === '1st' ? 'I' : 'II'} - 2025/2026`,
     caAcademicYear: '2025/2026',
     caFaculty: 'FT',
-    caSemester: 'I',
-    caYearOfExam: 'Third Year',
+    caSemester: defaultYearSem.caSemester,
+    caYearOfExam: defaultYearSem.caYearOfExam,
     pivVoucherImage: null,
     pivVoucherFileName: '',
     candidateSignatureImage: null,
     candidateSignatureFileName: '',
-    examSubjects: [
-      { sno: '01', code: 'ICT21013', title: 'Data Structures and Algorithms' },
-      { sno: '02', code: 'ICT21023', title: 'Database Management Systems' },
-      { sno: '03', code: 'ICT21032', title: 'Computer Networks' },
-      { sno: '04', code: 'ICT22011', title: 'Web Application Development' },
-      { sno: '05', code: '', title: '' },
-      { sno: '06', code: '', title: '' },
-      { sno: '07', code: '', title: '' },
-      { sno: '08', code: '', title: '' },
-      { sno: '09', code: '', title: '' },
-      { sno: '10', code: '', title: '' },
-      { sno: '11', code: '', title: '' },
-      { sno: '12', code: '', title: '' }
-    ],
+    examSubjects: initialSubjectsList,
 
     // Medical specific
     medicalCandidateType: 'Fresh',
@@ -396,16 +421,7 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
     medicalReason: 'Diagnosed with acute viral fever with clinical rest certified by Medical Officer.',
     leaveFrom: new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0],
     leaveTo: new Date().toISOString().split('T')[0],
-    medicalSubjectsList: [
-      { sno: 1, code: 'ICT31012', title: 'Advanced Software Engineering' },
-      { sno: 2, code: 'ICT31023', title: 'Mobile Application Development' },
-      { sno: 3, code: 'ICT31033', title: 'Cloud Computing Architecture' },
-      { sno: 4, code: '', title: '' },
-      { sno: 5, code: '', title: '' },
-      { sno: 6, code: '', title: '' },
-      { sno: 7, code: '', title: '' },
-      { sno: 8, code: '', title: '' }
-    ],
+    medicalSubjectsList: initialMedicalList,
 
     // PIV specific
     pivPurpose: 'Repeat Examination Fee',
@@ -544,6 +560,128 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
       );
       return { ...prev, medicalSubjectsList: nextSubjects };
     });
+  };
+
+  // State to filter and select subjects from any semester curriculum
+  const [subjectFilterSemester, setSubjectFilterSemester] = useState(() => defaultYearSem.semesterName || 'Year 1 Semester 1');
+  const activeFilterSubjects = useMemo(() => getSubjectsForYearSemester(subjectFilterSemester), [subjectFilterSemester]);
+  const allCurriculumGrouped = useMemo(() => getAllCurriculumSubjects(), []);
+
+  // Update curriculum filter when exam year changes
+  const handleExamYearChange = (newYear) => {
+    const newSemName = mapExamYearSemToSemesterName(newYear, formData.examSemester);
+    setSubjectFilterSemester(newSemName);
+    setFormData((prev) => ({
+      ...prev,
+      examYear: newYear,
+      caYearOfExam: newYear,
+      examNameYear: `${newYear} Examination in Technology - Semester ${prev.examSemester === '1st' ? 'I' : 'II'} - 2025/2026`
+    }));
+  };
+
+  // Update curriculum filter when exam semester changes
+  const handleExamSemesterChange = (newSem) => {
+    const newSemName = mapExamYearSemToSemesterName(formData.examYear, newSem);
+    setSubjectFilterSemester(newSemName);
+    setFormData((prev) => ({
+      ...prev,
+      examSemester: newSem,
+      caSemester: newSem === '1st' ? 'I' : 'II',
+      examNameYear: `${prev.examYear} Examination in Technology - Semester ${newSem === '1st' ? 'I' : 'II'} - 2025/2026`
+    }));
+  };
+
+  // Handle CA Form year change
+  const handleCaYearChange = (newYear) => {
+    const newSemName = mapExamYearSemToSemesterName(newYear, formData.caSemester === 'I' ? '1st' : '2nd');
+    setSubjectFilterSemester(newSemName);
+    setFormData((prev) => ({
+      ...prev,
+      caYearOfExam: newYear,
+      examYear: newYear
+    }));
+  };
+
+  // Handle CA Form semester change
+  const handleCaSemesterChange = (newSemRoman) => {
+    const newSem = newSemRoman === 'I' ? '1st' : '2nd';
+    const newSemName = mapExamYearSemToSemesterName(formData.caYearOfExam, newSem);
+    setSubjectFilterSemester(newSemName);
+    setFormData((prev) => ({
+      ...prev,
+      caSemester: newSemRoman,
+      examSemester: newSem
+    }));
+  };
+
+  // Auto-fill all exam subjects from selected curriculum
+  const handleAutoFillExamSubjects = (semesterName) => {
+    const targetSem = semesterName || subjectFilterSemester;
+    const subs = getSubjectsForYearSemester(targetSem);
+    if (!subs || subs.length === 0) return;
+
+    setFormData((prev) => {
+      const nextList = subs.slice(0, 12).map((s, idx) => ({
+        sno: String(idx + 1).padStart(2, '0'),
+        code: s.code || s.rawCode || '',
+        title: s.title || ''
+      }));
+      while (nextList.length < 12) {
+        nextList.push({
+          sno: String(nextList.length + 1).padStart(2, '0'),
+          code: '',
+          title: ''
+        });
+      }
+      return { ...prev, examSubjects: nextList };
+    });
+  };
+
+  // Clear all exam subject rows
+  const handleClearAllExamSubjects = () => {
+    setFormData((prev) => ({
+      ...prev,
+      examSubjects: Array.from({ length: 12 }, (_, idx) => ({
+        sno: String(idx + 1).padStart(2, '0'),
+        code: '',
+        title: ''
+      }))
+    }));
+  };
+
+  // Auto-fill medical subjects from selected curriculum
+  const handleAutoFillMedicalSubjects = (semesterName) => {
+    const targetSem = semesterName || subjectFilterSemester;
+    const subs = getSubjectsForYearSemester(targetSem);
+    if (!subs || subs.length === 0) return;
+
+    setFormData((prev) => {
+      const nextList = subs.slice(0, 8).map((s, idx) => ({
+        sno: idx + 1,
+        code: s.code || s.rawCode || '',
+        title: s.title || ''
+      }));
+      while (nextList.length < 8) {
+        nextList.push({
+          sno: nextList.length + 1,
+          code: '',
+          title: ''
+        });
+      }
+      return { ...prev, medicalSubjectsList: nextList };
+    });
+  };
+
+  // Clear all medical subject rows
+  const handleClearAllMedicalSubjects = () => {
+    setFormData((prev) => ({
+      ...prev,
+      medicalSubjectsList: Array.from({ length: 8 }, (_, idx) => ({
+        sno: idx + 1,
+        code: '',
+        title: ''
+      }))
+    }));
   };
 
   // Auto-calculate repeat exam fee per SEUSL Examinations Division rule:
@@ -3057,7 +3195,7 @@ Note: Present this completed official document with attached original bank PIV s
                     <label>05. Semester (Continuous Assessment)</label>
                     <select
                       value={formData.caSemester || 'I'}
-                      onChange={(e) => setFormData({ ...formData, caSemester: e.target.value, examSemester: e.target.value === 'I' ? '1st' : '2nd' })}
+                      onChange={(e) => handleCaSemesterChange(e.target.value)}
                     >
                       <option value="I">Semester I</option>
                       <option value="II">Semester II</option>
@@ -3067,8 +3205,8 @@ Note: Present this completed official document with attached original bank PIV s
                   <div className="seu-form-group">
                     <label>06. Year of Examination</label>
                     <select
-                      value={formData.caYearOfExam || 'Third Year'}
-                      onChange={(e) => setFormData({ ...formData, caYearOfExam: e.target.value })}
+                      value={formData.caYearOfExam || 'First Year'}
+                      onChange={(e) => handleCaYearChange(e.target.value)}
                     >
                       <option value="First Year">First Year</option>
                       <option value="Second Year">Second Year</option>
@@ -3181,27 +3319,143 @@ Note: Present this completed official document with attached original bank PIV s
 
                   {/* 8 Applied Subjects Inline Table Editor for CA Form */}
                   <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label style={{ fontWeight: 700 }}>10. Applied subjects (Continuous Assessment - 8 Rows)</label>
-                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        Row 01 - 08 auto-update on official CA paper form
-                      </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                      <div>
+                        <label style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f2b54', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>10. Applied subjects (Continuous Assessment - 8 Rows)</span>
+                        </label>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Row 01 - 08 auto-update on official CA paper form. Select subjects from the dropdown or type manually.
+                        </span>
+                      </div>
+
+                      {/* CA Toolbar: Curriculum source + Auto Fill + Clear */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#475569' }}>Curriculum:</span>
+                          <select
+                            value={subjectFilterSemester}
+                            onChange={(e) => setSubjectFilterSemester(e.target.value)}
+                            style={{
+                              fontSize: '0.78rem',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              fontWeight: 600,
+                              color: '#0f2b54',
+                              background: '#f8fafc'
+                            }}
+                          >
+                            {ALL_SEMESTERS.map((sem) => (
+                              <option key={sem} value={sem}>{sem}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAutoFillExamSubjects(subjectFilterSemester)}
+                          style={{
+                            background: '#eff6ff',
+                            border: '1px solid #93c5fd',
+                            color: '#1d4ed8',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title={`Auto-fill rows with all subjects for ${subjectFilterSemester}`}
+                        >
+                          ⚡ Auto-Fill All ({activeFilterSubjects.length})
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleClearAllExamSubjects}
+                          style={{
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            cursor: 'pointer'
+                          }}
+                          title="Clear rows"
+                        >
+                          Clear All
+                        </button>
+                      </div>
                     </div>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                       <thead>
                         <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #cbd5e1' }}>
-                          <th style={{ width: '38px', padding: '5px 8px', textAlign: 'center' }}>SNo.</th>
-                          <th style={{ width: '180px', padding: '5px 8px', textAlign: 'left' }}>Subject Code (Specify Clearly)</th>
-                          <th style={{ padding: '5px 8px', textAlign: 'left' }}>Subject Title</th>
-                          <th style={{ width: '45px', padding: '5px 8px', textAlign: 'center' }}>Clear</th>
+                          <th style={{ width: '38px', padding: '6px 8px', textAlign: 'center' }}>SNo.</th>
+                          <th style={{ width: '270px', padding: '6px 8px', textAlign: 'left' }}>Select Subject (Dropdown)</th>
+                          <th style={{ width: '140px', padding: '6px 8px', textAlign: 'left' }}>Subject Code</th>
+                          <th style={{ padding: '6px 8px', textAlign: 'left' }}>Subject Title</th>
+                          <th style={{ width: '45px', padding: '6px 8px', textAlign: 'center' }}>Clear</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(formData.examSubjects || []).slice(0, 8).map((sub, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: sub.code ? '#f8fafc' : 'transparent' }}>
                             <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
                               {String(i + 1).padStart(2, '0')}.
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <select
+                                value={
+                                  (sub.code && sub.title)
+                                    ? `${sub.code}||${sub.title}`
+                                    : (sub.code || '')
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (!val) {
+                                    handleExamSubjectChange(i, 'code', '');
+                                    handleExamSubjectChange(i, 'title', '');
+                                    return;
+                                  }
+                                  const [c, t] = val.split('||');
+                                  handleExamSubjectChange(i, 'code', c || '');
+                                  handleExamSubjectChange(i, 'title', t || '');
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '4px 6px',
+                                  fontSize: '0.80rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid #94a3b8',
+                                  background: sub.code ? '#f0fdf4' : '#ffffff',
+                                  color: sub.code ? '#166534' : '#1e293b',
+                                  fontWeight: sub.code ? 600 : 400
+                                }}
+                              >
+                                <option value="">-- Choose Subject from Dropdown --</option>
+                                <optgroup label={`📌 Current: ${subjectFilterSemester} (${activeFilterSubjects.length} Modules)`}>
+                                  {activeFilterSubjects.map((s) => (
+                                    <option key={s.code} value={`${s.code}||${s.title}`}>
+                                      {s.code} — {s.title}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="📚 Other Semesters (Repeats)">
+                                  {allCurriculumGrouped.filter(g => g.semester !== subjectFilterSemester).map(g => (
+                                    g.subjects.map(s => (
+                                      <option key={`${g.semester}-${s.code}`} value={`${s.code}||${s.title}`}>
+                                        [{g.semester}] {s.code} — {s.title}
+                                      </option>
+                                    ))
+                                  ))}
+                                </optgroup>
+                              </select>
                             </td>
                             <td style={{ padding: '3px 6px' }}>
                               <input
@@ -3209,7 +3463,7 @@ Note: Present this completed official document with attached original bank PIV s
                                 placeholder={`ICT${20 + i}012`}
                                 value={sub.code}
                                 onChange={(e) => handleExamSubjectChange(i, 'code', e.target.value)}
-                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box', fontFamily: 'monospace', fontWeight: 600 }}
                               />
                             </td>
                             <td style={{ padding: '3px 6px' }}>
@@ -3345,7 +3599,7 @@ Note: Present this completed official document with attached original bank PIV s
                     <label>06. Semester</label>
                     <select
                       value={formData.examSemester || '1st'}
-                      onChange={(e) => setFormData({ ...formData, examSemester: e.target.value })}
+                      onChange={(e) => handleExamSemesterChange(e.target.value)}
                     >
                       <option value="1st">1st Semester</option>
                       <option value="2nd">2nd Semester</option>
@@ -3355,19 +3609,19 @@ Note: Present this completed official document with attached original bank PIV s
                   <div className="seu-form-group">
                     <label>07. Applied For</label>
                     <select
-                      value={formData.examAppliedFor || 'Repeat'}
+                      value={formData.examAppliedFor || 'Fresh'}
                       onChange={(e) => setFormData({ ...formData, examAppliedFor: e.target.value })}
                     >
-                      <option value="Repeat">Repeat Candidate</option>
                       <option value="Fresh">Fresh Candidate</option>
+                      <option value="Repeat">Repeat Candidate</option>
                     </select>
                   </div>
 
                   <div className="seu-form-group">
                     <label>08. Year of Examinations</label>
                     <select
-                      value={formData.examYear || 'Third Year'}
-                      onChange={(e) => setFormData({ ...formData, examYear: e.target.value })}
+                      value={formData.examYear || 'First Year'}
+                      onChange={(e) => handleExamYearChange(e.target.value)}
                     >
                       <option value="First Year">First Year</option>
                       <option value="Second Year">Second Year</option>
@@ -3499,29 +3753,145 @@ Note: Present this completed official document with attached original bank PIV s
                     </div>
                   </div>
 
-                  {/* 12 Applied Subjects Inline Table Editor */}
+                  {/* 12 Applied Subjects Inline Table Editor with Dropdown Selection */}
                   <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label style={{ fontWeight: 700 }}>12. Applied Subjects Schedule (Up to 12 Course Units)</label>
-                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        Row 01 - 12 auto-update on physical examination paper
-                      </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                      <div>
+                        <label style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f2b54', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>12. Applied Subjects Schedule (Up to 12 Course Units)</span>
+                        </label>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Row 01 - 12 auto-update on physical examination paper. Choose from dropdown or type directly.
+                        </span>
+                      </div>
+
+                      {/* Toolbar: Curriculum selector + Auto-Fill + Clear */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#475569' }}>Curriculum:</span>
+                          <select
+                            value={subjectFilterSemester}
+                            onChange={(e) => setSubjectFilterSemester(e.target.value)}
+                            style={{
+                              fontSize: '0.78rem',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              fontWeight: 600,
+                              color: '#0f2b54',
+                              background: '#f8fafc'
+                            }}
+                          >
+                            {ALL_SEMESTERS.map((sem) => (
+                              <option key={sem} value={sem}>{sem}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAutoFillExamSubjects(subjectFilterSemester)}
+                          style={{
+                            background: '#eff6ff',
+                            border: '1px solid #93c5fd',
+                            color: '#1d4ed8',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title={`Auto-fill rows with all subjects for ${subjectFilterSemester}`}
+                        >
+                          ⚡ Auto-Fill All ({activeFilterSubjects.length})
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleClearAllExamSubjects}
+                          style={{
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            cursor: 'pointer'
+                          }}
+                          title="Clear all 12 rows"
+                        >
+                          Clear All
+                        </button>
+                      </div>
                     </div>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                       <thead>
                         <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #cbd5e1' }}>
-                          <th style={{ width: '38px', padding: '5px 8px', textAlign: 'center' }}>#</th>
-                          <th style={{ width: '160px', padding: '5px 8px', textAlign: 'left' }}>Subject Code</th>
-                          <th style={{ padding: '5px 8px', textAlign: 'left' }}>Subject Title</th>
-                          <th style={{ width: '45px', padding: '5px 8px', textAlign: 'center' }}>Clear</th>
+                          <th style={{ width: '38px', padding: '6px 8px', textAlign: 'center' }}>#</th>
+                          <th style={{ width: '270px', padding: '6px 8px', textAlign: 'left' }}>Select Subject (Dropdown)</th>
+                          <th style={{ width: '140px', padding: '6px 8px', textAlign: 'left' }}>Subject Code</th>
+                          <th style={{ padding: '6px 8px', textAlign: 'left' }}>Subject Title</th>
+                          <th style={{ width: '45px', padding: '6px 8px', textAlign: 'center' }}>Clear</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(formData.examSubjects || []).map((sub, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: sub.code ? '#f8fafc' : 'transparent' }}>
                             <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
                               {String(i + 1).padStart(2, '0')}
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <select
+                                value={
+                                  (sub.code && sub.title)
+                                    ? `${sub.code}||${sub.title}`
+                                    : (sub.code || '')
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (!val) {
+                                    handleExamSubjectChange(i, 'code', '');
+                                    handleExamSubjectChange(i, 'title', '');
+                                    return;
+                                  }
+                                  const [c, t] = val.split('||');
+                                  handleExamSubjectChange(i, 'code', c || '');
+                                  handleExamSubjectChange(i, 'title', t || '');
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '4px 6px',
+                                  fontSize: '0.80rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid #94a3b8',
+                                  background: sub.code ? '#f0fdf4' : '#ffffff',
+                                  color: sub.code ? '#166534' : '#1e293b',
+                                  fontWeight: sub.code ? 600 : 400
+                                }}
+                              >
+                                <option value="">-- Choose Subject from Dropdown --</option>
+                                <optgroup label={`📌 Current: ${subjectFilterSemester} (${activeFilterSubjects.length} Modules)`}>
+                                  {activeFilterSubjects.map((s) => (
+                                    <option key={s.code} value={`${s.code}||${s.title}`}>
+                                      {s.code} — {s.title}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="📚 Other Semesters (Repeats)">
+                                  {allCurriculumGrouped.filter(g => g.semester !== subjectFilterSemester).map(g => (
+                                    g.subjects.map(s => (
+                                      <option key={`${g.semester}-${s.code}`} value={`${s.code}||${s.title}`}>
+                                        [{g.semester}] {s.code} — {s.title}
+                                      </option>
+                                    ))
+                                  ))}
+                                </optgroup>
+                              </select>
                             </td>
                             <td style={{ padding: '3px 6px' }}>
                               <input
@@ -3529,7 +3899,7 @@ Note: Present this completed official document with attached original bank PIV s
                                 placeholder={`ICT${20 + i}012`}
                                 value={sub.code}
                                 onChange={(e) => handleExamSubjectChange(i, 'code', e.target.value)}
-                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box', fontFamily: 'monospace', fontWeight: 600 }}
                               />
                             </td>
                             <td style={{ padding: '3px 6px' }}>
@@ -3704,29 +4074,145 @@ Note: Present this completed official document with attached original bank PIV s
                     </div>
                   </div>
 
-                  {/* 8 Requested Subjects Inline Table Editor */}
+                  {/* 8 Requested Subjects Inline Table Editor with Dropdown Selection */}
                   <div className="seu-form-group" style={{ gridColumn: '1 / -1' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label style={{ fontWeight: 700 }}>5. Requested Subject/s (8 Rows - Consideration due to absence)</label>
-                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        Row 01 - 08 auto-update on official medical submission form
-                      </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                      <div>
+                        <label style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f2b54', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>5. Requested Subject/s (8 Rows - Consideration due to absence)</span>
+                        </label>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Row 01 - 08 auto-update on official medical submission form. Select from dropdown or type directly.
+                        </span>
+                      </div>
+
+                      {/* Toolbar: Curriculum selector + Auto-Fill + Clear */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#475569' }}>Curriculum:</span>
+                          <select
+                            value={subjectFilterSemester}
+                            onChange={(e) => setSubjectFilterSemester(e.target.value)}
+                            style={{
+                              fontSize: '0.78rem',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              fontWeight: 600,
+                              color: '#0f2b54',
+                              background: '#f8fafc'
+                            }}
+                          >
+                            {ALL_SEMESTERS.map((sem) => (
+                              <option key={sem} value={sem}>{sem}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAutoFillMedicalSubjects(subjectFilterSemester)}
+                          style={{
+                            background: '#eff6ff',
+                            border: '1px solid #93c5fd',
+                            color: '#1d4ed8',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title={`Auto-fill rows with all subjects for ${subjectFilterSemester}`}
+                        >
+                          ⚡ Auto-Fill All ({activeFilterSubjects.length})
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleClearAllMedicalSubjects}
+                          style={{
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            cursor: 'pointer'
+                          }}
+                          title="Clear all 8 rows"
+                        >
+                          Clear All
+                        </button>
+                      </div>
                     </div>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                       <thead>
                         <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #cbd5e1' }}>
-                          <th style={{ width: '38px', padding: '5px 8px', textAlign: 'center' }}>S.No</th>
-                          <th style={{ width: '180px', padding: '5px 8px', textAlign: 'left' }}>Subject Code</th>
-                          <th style={{ padding: '5px 8px', textAlign: 'left' }}>Subject</th>
-                          <th style={{ width: '45px', padding: '5px 8px', textAlign: 'center' }}>Clear</th>
+                          <th style={{ width: '38px', padding: '6px 8px', textAlign: 'center' }}>S.No</th>
+                          <th style={{ width: '270px', padding: '6px 8px', textAlign: 'left' }}>Select Subject (Dropdown)</th>
+                          <th style={{ width: '140px', padding: '6px 8px', textAlign: 'left' }}>Subject Code</th>
+                          <th style={{ padding: '6px 8px', textAlign: 'left' }}>Subject Title</th>
+                          <th style={{ width: '45px', padding: '6px 8px', textAlign: 'center' }}>Clear</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(formData.medicalSubjectsList || []).slice(0, 8).map((sub, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                          <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', background: sub.code ? '#f8fafc' : 'transparent' }}>
                             <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
                               {String(i + 1).padStart(2, '0')}.
+                            </td>
+                            <td style={{ padding: '3px 6px' }}>
+                              <select
+                                value={
+                                  (sub.code && sub.title)
+                                    ? `${sub.code}||${sub.title}`
+                                    : (sub.code || '')
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (!val) {
+                                    handleMedicalSubjectChange(i, 'code', '');
+                                    handleMedicalSubjectChange(i, 'title', '');
+                                    return;
+                                  }
+                                  const [c, t] = val.split('||');
+                                  handleMedicalSubjectChange(i, 'code', c || '');
+                                  handleMedicalSubjectChange(i, 'title', t || '');
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '4px 6px',
+                                  fontSize: '0.80rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid #94a3b8',
+                                  background: sub.code ? '#f0fdf4' : '#ffffff',
+                                  color: sub.code ? '#166534' : '#1e293b',
+                                  fontWeight: sub.code ? 600 : 400
+                                }}
+                              >
+                                <option value="">-- Choose Subject from Dropdown --</option>
+                                <optgroup label={`📌 Current: ${subjectFilterSemester} (${activeFilterSubjects.length} Modules)`}>
+                                  {activeFilterSubjects.map((s) => (
+                                    <option key={s.code} value={`${s.code}||${s.title}`}>
+                                      {s.code} — {s.title}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="📚 Other Semesters">
+                                  {allCurriculumGrouped.filter(g => g.semester !== subjectFilterSemester).map(g => (
+                                    g.subjects.map(s => (
+                                      <option key={`${g.semester}-${s.code}`} value={`${s.code}||${s.title}`}>
+                                        [{g.semester}] {s.code} — {s.title}
+                                      </option>
+                                    ))
+                                  ))}
+                                </optgroup>
+                              </select>
                             </td>
                             <td style={{ padding: '3px 6px' }}>
                               <input
@@ -3734,7 +4220,7 @@ Note: Present this completed official document with attached original bank PIV s
                                 placeholder={`ICT3101${i + 1}`}
                                 value={sub.code}
                                 onChange={(e) => handleMedicalSubjectChange(i, 'code', e.target.value)}
-                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '0.82rem', boxSizing: 'border-box', fontFamily: 'monospace', fontWeight: 600 }}
                               />
                             </td>
                             <td style={{ padding: '3px 6px' }}>

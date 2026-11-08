@@ -90,6 +90,19 @@ export default function Attendance({ onNavigateMedical, user }) {
     return resultsPipelineService.getStudentAttendance(user?.regNo || '22ICT091');
   });
 
+  // Selected semester for viewing timetable (defaults to student's enrolled semester)
+  const [selectedTimetableSemester, setSelectedTimetableSemester] = useState(() => normalizeSemester(user?.semester));
+
+  useEffect(() => {
+    if (user?.semester) {
+      setSelectedTimetableSemester(normalizeSemester(user?.semester));
+    }
+  }, [user?.semester]);
+
+  const activeTimetableCurriculum = useMemo(() => {
+    return getCurriculumBySemester(selectedTimetableSemester);
+  }, [selectedTimetableSemester]);
+
   // Real-time weekly timetable synchronized with HOD department timetable
   const [liveTimetableSlots, setLiveTimetableSlots] = useState(() => {
     try {
@@ -102,17 +115,31 @@ export default function Attendance({ onNavigateMedical, user }) {
 
   useEffect(() => {
     let cancelled = false;
-    api.getTimetable({
-      semester: user?.semester,
-      batch: user?.batch,
-      department: user?.department,
-    }).then((res) => {
-      if (!cancelled && res && res.data && res.data.slots && res.data.slots.length > 0) {
-        setLiveTimetableSlots(res.data.slots);
-      }
-    }).catch(() => {});
+    const fetchTimetable = () => {
+      api.getTimetable({
+        semester: user?.semester,
+        batch: user?.batch,
+        department: user?.department,
+      }).then((res) => {
+        if (!cancelled && res && res.data && res.data.slots && res.data.slots.length > 0) {
+          setLiveTimetableSlots(res.data.slots);
+        }
+      }).catch(() => {});
+    };
+
+    fetchTimetable();
+
+    const handleTimetableSaved = () => {
+      fetchTimetable();
+    };
+
+    window.addEventListener('seu_timetable_saved', handleTimetableSaved);
+    window.addEventListener('storage', handleTimetableSaved);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('seu_timetable_saved', handleTimetableSaved);
+      window.removeEventListener('storage', handleTimetableSaved);
     };
   }, [user]);
 
@@ -172,7 +199,10 @@ export default function Attendance({ onNavigateMedical, user }) {
   const isOverallEligible = overallPercentage === null ? true : overallPercentage >= minThreshold;
 
   // Tab controls: 'matrix' | 'subject' | 'datewise' | 'timetable'
-  const [activeTab, setActiveTab] = useState('matrix');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('timetable')) return 'timetable';
+    return 'matrix';
+  });
   const [matrixPeriod, setMatrixPeriod] = useState('all');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [onlyMissedDates, setOnlyMissedDates] = useState(false);
@@ -915,14 +945,51 @@ export default function Attendance({ onNavigateMedical, user }) {
           ========================================================================= */}
       {activeTab === 'timetable' && (
         <div className="timetable-card">
-          <div className="timetable-header-banner">
-            <h2 className="timetable-header-title">Official Department Timetable</h2>
-            <p className="timetable-header-sub">
-              {user?.department || 'Department of Information and Communication Technology'}
-            </p>
-            <p style={{ margin: '2px 0 0 0', fontSize: '0.80rem', fontWeight: 700, color: '#475569' }}>
-              Academic Batch {user?.batch || cur.batch || '2025/2026'} ({cur.semester})
-            </p>
+          <div className="timetable-header-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h2 className="timetable-header-title">Official Department Timetable</h2>
+              <p className="timetable-header-sub">
+                {user?.department || 'Department of Information and Communication Technology'}
+              </p>
+              <p style={{ margin: '2px 0 0 0', fontSize: '0.80rem', fontWeight: 700, color: '#475569' }}>
+                Academic Batch {user?.batch || activeTimetableCurriculum.batch || '2025/2026'} ({activeTimetableCurriculum.semester})
+              </p>
+            </div>
+
+            {/* Semester Switcher Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.92)', padding: '6px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>
+                📅 View Timetable:
+              </label>
+              <select
+                value={selectedTimetableSemester}
+                onChange={(e) => setSelectedTimetableSemester(e.target.value)}
+                style={{
+                  fontSize: '0.80rem',
+                  fontWeight: 600,
+                  color: '#0f2b54',
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #94a3b8',
+                  background: '#ffffff',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="Year 1 Semester 1">1st Year - 1st Semester (Freshers)</option>
+                <option value="Year 1 Semester 2">1st Year - 2nd Semester</option>
+                <option value="Year 2 Semester 1">2nd Year - 1st Semester</option>
+                <option value="Year 2 Semester 2">2nd Year - 2nd Semester</option>
+                <option value="Year 3 Semester 1">3rd Year - 1st Semester</option>
+                <option value="Year 3 Semester 2">3rd Year - 2nd Semester</option>
+                <option value="Year 4 Semester 1">4th Year - 1st Semester</option>
+                <option value="Year 4 Semester 2">4th Year - 2nd Semester</option>
+              </select>
+              {selectedTimetableSemester === normalizeSemester(user?.semester) && (
+                <span style={{ fontSize: '0.70rem', background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                  Current Enrolled
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Timetable Weekly Grid */}
@@ -949,9 +1016,10 @@ export default function Attendance({ onNavigateMedical, user }) {
                     );
                   }
 
-                  const slotList = (liveTimetableSlots && liveTimetableSlots.length > 0)
+                  const isCurrentSem = selectedTimetableSemester === normalizeSemester(user?.semester);
+                  const slotList = (isCurrentSem && liveTimetableSlots && liveTimetableSlots.length > 0)
                     ? liveTimetableSlots
-                    : (cur.timetableSlots || []);
+                    : (activeTimetableCurriculum.timetableSlots || []);
 
                   return (
                     <tr key={gridRow.label}>
@@ -968,6 +1036,11 @@ export default function Attendance({ onNavigateMedical, user }) {
                                 <span className="timetable-venue-badge">
                                   ({matchingSlot.hall || matchingSlot.venue || matchingSlot.title})
                                 </span>
+                                {matchingSlot.lecturer && (
+                                  <span className="timetable-lecturer-badge" style={{ display: 'block', fontSize: '0.72rem', color: '#1e3a8a', marginTop: '2px', fontWeight: 500 }}>
+                                    👨‍🏫 {matchingSlot.lecturer}
+                                  </span>
+                                )}
                               </>
                             ) : (
                               '—'
@@ -993,7 +1066,7 @@ export default function Attendance({ onNavigateMedical, user }) {
           {/* Course Directory for the Active Semester */}
           <div style={{ marginTop: '20px' }}>
             <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f2b54', marginBottom: '8px' }}>
-              Registered Course Module Directory ({cur.semester})
+              Course Module Directory ({activeTimetableCurriculum.semester})
             </h4>
             <table className="timetable-directory-table">
               <thead>
@@ -1006,9 +1079,9 @@ export default function Attendance({ onNavigateMedical, user }) {
                 </tr>
               </thead>
               <tbody>
-                {enrolledSubjects.map((item, idx) => (
+                {(activeTimetableCurriculum.subjects || []).map((item, idx) => (
                   <tr key={item.code || idx}>
-                    <td style={{ fontWeight: 700, color: '#0f2b54' }}>{item.code}</td>
+                    <td style={{ fontWeight: 700, color: '#0f2b54', fontFamily: 'monospace' }}>{item.code}</td>
                     <td>{item.title}</td>
                     <td>{item.lecturer || 'Faculty Staff'}</td>
                     <td>

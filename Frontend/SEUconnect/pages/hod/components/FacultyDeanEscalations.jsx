@@ -2,7 +2,16 @@ import React, { useState } from 'react';
 import { FACULTY_ESCALATIONS_HISTORY } from '../hodData.js';
 
 export default function FacultyDeanEscalations({ onNavigate }) {
-  const [history, setHistory] = useState(FACULTY_ESCALATIONS_HISTORY);
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seu_hod_dean_escalations');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return FACULTY_ESCALATIONS_HISTORY;
+  });
   const [category, setCategory] = useState('Curriculum & Special Concessions');
   const [priority, setPriority] = useState('Urgent');
   const [subject, setSubject] = useState('');
@@ -27,11 +36,16 @@ export default function FacultyDeanEscalations({ onNavigate }) {
       deanNote: 'Awaiting formal review by Prof. Rifai Kariapper (Dean, Faculty of Technology).',
     };
 
-    setHistory([newMemo, ...history]);
+    const updated = [newMemo, ...history];
+    setHistory(updated);
+    try {
+      localStorage.setItem('seu_hod_dean_escalations', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('seu_dean_escalation_transmitted', { detail: newMemo }));
+    } catch (_) {}
     setSubject('');
     setRefStudent('');
     setBody('');
-    setFeedback(`Executive Memorandum ${newMemo.memoId} transmitted successfully to the Dean's Office.`);
+    setFeedback(`✓ Executive Memorandum ${newMemo.memoId} transmitted successfully to the Dean's Office.`);
     setTimeout(() => setFeedback(''), 5000);
   };
 

@@ -1,19 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ACADEMIC_STAFF_LIST } from '../hodData.js';
+import api, { provisionedUserStorage } from '../../../src/services/api.js';
 
 export default function AcademicStaffManagement({ onNavigate }) {
   const [cadreFilter, setCadreFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStaff, setSelectedStaff] = useState(null);
+  const [dbStaff, setDbStaff] = useState([]);
 
-  const filteredStaff = ACADEMIC_STAFF_LIST.filter((staff) => {
+  // Fetch registered staff directory from MongoDB Atlas backend
+  useEffect(() => {
+    let cancelled = false;
+    const fetchStaff = async () => {
+      try {
+        const res = await api.getDirectory({ role: 'lecturer' });
+        if (!cancelled && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setDbStaff(res.data);
+        }
+      } catch (err) {
+        console.warn('Academic staff directory fetch notice:', err.message);
+      }
+    };
+    fetchStaff();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Merge database staff with provisioned users and baseline roster
+  const allStaff = useMemo(() => {
+    try {
+      const provisioned = (provisionedUserStorage.getAll() || [])
+        .filter((u) => u.role?.toLowerCase().includes('lecturer'))
+        .map((u, idx) => ({
+          id: u.staffId || `STAFF-PRV-${idx + 1}`,
+          name: u.name,
+          designation: u.designation || 'Lecturer',
+          cadre: u.designation?.includes('Senior') ? 'Senior Lecturer' : 'Lecturer',
+          email: u.email,
+          phone: u.phone || '+94 67 2255444',
+          qualification: u.qualification || 'M.Sc., B.Sc. Hons in IT',
+          researchAreas: u.specialization || 'Software Engineering, Information Systems',
+          assignedModules: ['Allocated by HOD'],
+          officeRoom: 'Technology Complex',
+          status: 'Active Duty',
+          teachingHoursPerWeek: 12,
+        }));
+
+      const dbLecturers = (dbStaff || []).map((u, idx) => ({
+        id: u.staffId || `STAFF-DB-${idx + 1}`,
+        name: u.name,
+        designation: u.designation || 'Lecturer',
+        cadre: u.designation?.includes('Senior') ? 'Senior Lecturer' : 'Lecturer',
+        email: u.email,
+        phone: u.phone || '+94 67 2255444',
+        qualification: u.qualification || 'Ph.D. / M.Sc. in Computing',
+        researchAreas: u.specialization || 'Computer Science & Technology',
+        assignedModules: ['Allocated by HOD'],
+        officeRoom: 'Tech Complex Room 210',
+        status: 'Active Duty',
+        teachingHoursPerWeek: 12,
+      }));
+
+      const existingNames = new Set(ACADEMIC_STAFF_LIST.map((s) => s.name.toLowerCase()));
+      const newFromStorage = [...provisioned, ...dbLecturers].filter(
+        (s) => !existingNames.has(s.name.toLowerCase())
+      );
+      return [...ACADEMIC_STAFF_LIST, ...newFromStorage];
+    } catch (_) {
+      return ACADEMIC_STAFF_LIST;
+    }
+  }, [dbStaff]);
+
+  const filteredStaff = allStaff.filter((staff) => {
     const matchesCadre = cadreFilter === 'All' || staff.cadre === cadreFilter;
     const matchesSearch =
       !searchQuery ||
       staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       staff.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      staff.researchAreas.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      staff.email.toLowerCase().includes(searchQuery.toLowerCase());
+      (staff.researchAreas && staff.researchAreas.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (staff.email && staff.email.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCadre && matchesSearch;
   });
 
@@ -42,30 +106,30 @@ export default function AcademicStaffManagement({ onNavigate }) {
       {/* 2. Cadre Distribution Metric Cards */}
       <div className="hod-stats-strip">
         <div className="hod-strip-card" onClick={() => setCadreFilter('All')} style={{ cursor: 'pointer' }}>
-          <span className="hod-strip-val">{ACADEMIC_STAFF_LIST.length}</span>
+          <span className="hod-strip-val">{allStaff.length}</span>
           <span className="hod-strip-lbl">Total Academic Cadre</span>
         </div>
         <div className="hod-strip-card" onClick={() => setCadreFilter('Senior Lecturer')} style={{ cursor: 'pointer' }}>
           <span className="hod-strip-val">
-            {ACADEMIC_STAFF_LIST.filter((s) => s.cadre === 'Senior Lecturer').length}
+            {allStaff.filter((s) => s.cadre === 'Senior Lecturer').length}
           </span>
           <span className="hod-strip-lbl">Senior Lecturers (Gr. I & II)</span>
         </div>
         <div className="hod-strip-card" onClick={() => setCadreFilter('Lecturer')} style={{ cursor: 'pointer' }}>
           <span className="hod-strip-val">
-            {ACADEMIC_STAFF_LIST.filter((s) => s.cadre === 'Lecturer').length}
+            {allStaff.filter((s) => s.cadre === 'Lecturer').length}
           </span>
           <span className="hod-strip-lbl">Lecturers (Probationary)</span>
         </div>
         <div className="hod-strip-card" onClick={() => setCadreFilter('Demonstrator')} style={{ cursor: 'pointer' }}>
           <span className="hod-strip-val">
-            {ACADEMIC_STAFF_LIST.filter((s) => s.cadre === 'Demonstrator').length}
+            {allStaff.filter((s) => s.cadre === 'Demonstrator').length}
           </span>
           <span className="hod-strip-lbl">Demonstrators / TAs</span>
         </div>
         <div className="hod-strip-card" onClick={() => setCadreFilter('Visiting Academic')} style={{ cursor: 'pointer' }}>
           <span className="hod-strip-val">
-            {ACADEMIC_STAFF_LIST.filter((s) => s.cadre === 'Visiting Academic').length}
+            {allStaff.filter((s) => s.cadre === 'Visiting Academic').length}
           </span>
           <span className="hod-strip-lbl">Visiting Industry Academics</span>
         </div>
@@ -81,7 +145,7 @@ export default function AcademicStaffManagement({ onNavigate }) {
               className={`hod-tab-btn ${cadreFilter === tab ? 'active' : ''}`}
               onClick={() => setCadreFilter(tab)}
             >
-              {tab === 'All' ? `All Cadre (${ACADEMIC_STAFF_LIST.length})` : tab}
+              {tab === 'All' ? `All Cadre (${allStaff.length})` : tab}
             </button>
           ))}
         </div>

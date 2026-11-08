@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import StatCard from './components/StatCard.jsx';
 import ClassCard from './components/ClassCard.jsx';
 import { INITIAL_STATS, INITIAL_TODAY_CLASSES, INITIAL_SUBJECTS } from './lecturerMockData.js';
@@ -23,15 +23,29 @@ export default function LecturerDashboard({
     ? 0
     : availableSubjects === INITIAL_SUBJECTS
     ? INITIAL_STATS.totalStudents
-    : availableSubjects.reduce((acc, s) => acc + (s.studentsCount || 0), 0);
+    : availableSubjects.reduce((acc, s) => acc + (s.studentsCount || 45), 0);
 
   const assignedSubjectsCount = availableSubjects.length;
 
-  const todayClassesList = isFreshLecturer
-    ? []
-    : availableSubjects === INITIAL_SUBJECTS
-    ? INITIAL_TODAY_CLASSES
-    : [];
+  const todayClassesList = useMemo(() => {
+    if (isFreshLecturer) return [];
+    if (availableSubjects === INITIAL_SUBJECTS) return INITIAL_TODAY_CLASSES;
+
+    return availableSubjects.slice(0, 3).map((sub, idx) => ({
+      id: `cls-dyn-${sub.code}-${idx}`,
+      subjectCode: sub.code,
+      subjectName: sub.name,
+      timeslot: idx === 0 ? '08:30 AM - 10:30 AM' : idx === 1 ? '10:30 AM - 12:30 PM' : '02:00 PM - 04:00 PM',
+      startHour: idx === 0 ? 8 : idx === 1 ? 10 : 14,
+      startMinute: idx === 0 ? 30 : idx === 1 ? 30 : 0,
+      endHour: idx === 0 ? 10 : idx === 1 ? 12 : 16,
+      endMinute: idx === 0 ? 30 : idx === 1 ? 30 : 0,
+      location: sub.classroom || (idx % 2 === 0 ? 'LT-01 (Lecture Theatre 1)' : 'ICT Lab 02'),
+      enrolledCount: sub.studentsCount || 45,
+      sessionType: sub.type === 'Practical' ? 'Hands-on Lab Session' : 'Lecture & Discussion',
+      batch: sub.batch || '2022/2023',
+    }));
+  }, [availableSubjects, isFreshLecturer]);
 
   const ecaPendingCount = typeof assignedEcaCount === 'number' ? assignedEcaCount : (INITIAL_STATS.assignedECA ?? 3);
 
@@ -177,7 +191,9 @@ export default function LecturerDashboard({
                 Continuous Assessment (ECA) repeat applications forwarded by the Examination Branch for course lecturer verification and recommendation before Head of Department (HOD) final approval.
               </p>
               <div className="lec-assigned-eca-meta-tags">
-                <span className="lec-eca-meta-tag">Assigned Modules: SWT21032, SWT22022, SWT21022</span>
+                <span className="lec-eca-meta-tag">
+                  Assigned Modules: {availableSubjects.length > 0 ? availableSubjects.map((s) => s.code).join(', ') : 'None'}
+                </span>
                 <span className="lec-eca-meta-tag">Workflow Step 4 of 5</span>
               </div>
             </div>

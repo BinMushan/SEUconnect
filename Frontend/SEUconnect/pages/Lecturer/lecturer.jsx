@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import WorkflowDesk from '../../components/workflow/WorkflowDesk.jsx';
 import NotificationCenter from '../../components/workflow/NotificationCenter.jsx';
 import { workflowNavItem, ROLE_WORKFLOW_TYPES } from '../../components/workflow/workflowNav.jsx';
 import ToastStack from './components/ToastStack.jsx';
+import api from '../../src/services/api.js';
 
 import LecturerDashboard from './LecturerDashboard.jsx';
 import StudentEnrollment from './StudentEnrollment.jsx';
@@ -171,8 +172,65 @@ export default function Lecturer({ user, onLogout }) {
   const [currentPath, setCurrentPath] = useState('dashboard');
   const [toasts, setToasts] = useState([]);
 
-  // Resolve assigned subjects dynamically based on lecturer identity
-  const activeSubjects = useMemo(() => getLecturerAssignedSubjects(user), [user]);
+  // Fetch database assigned subjects dynamically based on lecturer identity
+  const [dbAssignedSubjects, setDbAssignedSubjects] = useState([]);
+
+  const refreshLecturerSubjects = useCallback(async () => {
+    try {
+      const identifier = user?.name || user?.email || '';
+      if (!identifier) return;
+      const res = await api.getSubjects({ lecturer: identifier });
+      if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+        const mapped = res.data.map((s) => ({
+          id: s.code,
+          code: s.code,
+          name: s.title || s.name || s.code,
+          semester: s.semesterName || `Semester ${s.semester}`,
+          semesterNumber: s.semester || 1,
+          academicYear: `Year ${s.year || 1}`,
+          batch: '2022/2023',
+          studentsCount: 45,
+          schedule: s.timetableSlots?.[0] ? `${s.timetableSlots[0].day} ${s.timetableSlots[0].startTime} - ${s.timetableSlots[0].endTime}` : 'Scheduled via Timetable',
+          classroom: s.timetableSlots?.[0]?.hall || 'LH5',
+          attendanceRate: 85,
+          credits: s.credits || s.gpaCredits || 2,
+          status: 'Active',
+          caWeight: s.continuousAssessmentPercent || 40,
+          esaWeight: s.endSemesterAssessmentPercent || 60,
+        }));
+        setDbAssignedSubjects(mapped);
+      }
+    } catch (e) {
+      console.warn('Notice loading DB subjects for lecturer:', e.message);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refreshLecturerSubjects();
+    const handleAllocUpdate = () => {
+      refreshLecturerSubjects();
+    };
+    window.addEventListener('seu_course_allocations_updated', handleAllocUpdate);
+    window.addEventListener('storage', handleAllocUpdate);
+    return () => {
+      window.removeEventListener('seu_course_allocations_updated', handleAllocUpdate);
+      window.removeEventListener('storage', handleAllocUpdate);
+    };
+  }, [refreshLecturerSubjects]);
+
+  // Resolve assigned subjects combining DB allocations with storage/baseline
+  const fallbackSubjects = useMemo(() => getLecturerAssignedSubjects(user), [user]);
+  const activeSubjects = useMemo(() => {
+    if (dbAssignedSubjects.length > 0) {
+      const dbCodes = new Set(dbAssignedSubjects.map((s) => (s.code || '').toUpperCase().trim()));
+      const extraFallback = fallbackSubjects.filter(
+        (s) => !dbCodes.has((s.code || '').toUpperCase().trim())
+      );
+      return [...dbAssignedSubjects, ...extraFallback];
+    }
+    return fallbackSubjects;
+  }, [dbAssignedSubjects, fallbackSubjects]);
+
   const [selectedSubjectCode, setSelectedSubjectCode] = useState(() => activeSubjects[0]?.code || '');
 
   // Synchronize selected subject when active subjects change
@@ -379,6 +437,7 @@ export default function Lecturer({ user, onLogout }) {
       case 'timetable':
         return (
           <Timetable
+            user={user}
             subjects={activeSubjects}
             onNavigateModule={(modId, params) => {
               if (params?.subjectCode) {

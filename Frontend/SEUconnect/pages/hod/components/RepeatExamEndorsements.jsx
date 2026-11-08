@@ -2,21 +2,38 @@ import React, { useState } from 'react';
 import { REPEAT_EXAM_CANDIDATES } from '../hodData.js';
 
 export default function RepeatExamEndorsements({ onNavigate }) {
-  const [candidates, setCandidates] = useState(REPEAT_EXAM_CANDIDATES);
+  const [candidates, setCandidates] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seu_repeat_exam_endorsements');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return REPEAT_EXAM_CANDIDATES;
+  });
   const [feedback, setFeedback] = useState('');
 
   const handleEndorse = (id) => {
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, hodStatus: 'Endorsed for ESA' } : c))
+    const updated = candidates.map((c) =>
+      c.id === id ? { ...c, hodStatus: 'Endorsed for ESA' } : c
     );
-    setFeedback(`Repeat candidacy for ${id} has been formally endorsed for the Examination Board.`);
+    setCandidates(updated);
+    try {
+      localStorage.setItem('seu_repeat_exam_endorsements', JSON.stringify(updated));
+    } catch (_) {}
+    setFeedback(`✓ Repeat candidacy for ${id} has been formally endorsed for the Examination Board.`);
     setTimeout(() => setFeedback(''), 4000);
   };
 
   const handleReject = (id) => {
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, hodStatus: 'Rejected by HOD' } : c))
+    const updated = candidates.map((c) =>
+      c.id === id ? { ...c, hodStatus: 'Rejected by HOD' } : c
     );
+    setCandidates(updated);
+    try {
+      localStorage.setItem('seu_repeat_exam_endorsements', JSON.stringify(updated));
+    } catch (_) {}
     setFeedback(`Repeat candidacy for ${id} declined.`);
     setTimeout(() => setFeedback(''), 4000);
   };

@@ -1741,8 +1741,341 @@ const CURRICULUM_DATA = {
         "seatNo": "B-18"
       }
     ]
+  },
+  "Year 3 Semester 2": {
+    "semester": "Year 3 Semester 2",
+    "semesterLabel": "Sem 6",
+    "yearNumber": 3,
+    "semesterNumber": 2,
+    "totalCredits": 16,
+    "defaultSgpa": 3.42,
+    "defaultCgpa": 3.40,
+    "isFreshers": false,
+    "batch": "2023/2024",
+    "progressionData": [],
+    "subjects": [
+      {
+        "id": "sub-y3s2-1",
+        "code": "CIS 32012",
+        "rawCode": "CIS32012",
+        "title": "Enterprise Architecture and Leadership",
+        "credits": 2,
+        "theoryHours": 30,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Dr. A. N. Ahmed",
+        "venue": "Tech Lecture Hall TL-1",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y3s2-2",
+        "code": "SWT 32011",
+        "rawCode": "SWT32011",
+        "title": "Mobile Application Development",
+        "credits": 1,
+        "theoryHours": 15,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Mr. S. Rifky",
+        "venue": "Tech Lecture Hall TL-2",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y3s2-3",
+        "code": "UCT 32011",
+        "rawCode": "UCT32011",
+        "title": "Embedded System",
+        "credits": 1,
+        "theoryHours": 15,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Dr. M. Kirushanth",
+        "venue": "Embedded Lab EL-1",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y3s2-4",
+        "code": "NST 32012",
+        "rawCode": "NST32012",
+        "title": "Wireless Network",
+        "credits": 2,
+        "theoryHours": 30,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Eng. K. Thanushan",
+        "venue": "Networking Lab NL-1",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y3s2-5",
+        "code": "SWT 32022",
+        "rawCode": "SWT32022",
+        "title": "Service Oriented Web Application",
+        "credits": 2,
+        "theoryHours": 30,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Mr. S. Rifky",
+        "venue": "Tech Lecture Hall TL-1",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y3s2-6",
+        "code": "SWT 32042",
+        "rawCode": "SWT32042",
+        "title": "Practical for Mobile Application Development",
+        "credits": 2,
+        "theoryHours": 0,
+        "practicalHours": 60,
+        "type": "Core",
+        "lecturer": "Mr. S. Rifky",
+        "venue": "Mobile Lab 01",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 50,
+        "esaPercent": 50
+      }
+    ],
+    "timetableSlots": [
+      { "day": "Monday", "startTime": "08:30", "endTime": "10:30", "code": "CIS 32012", "title": "Enterprise Architecture", "hall": "TL-1", "type": "Lecture" },
+      { "day": "Tuesday", "startTime": "08:30", "endTime": "09:30", "code": "SWT 32011", "title": "Mobile App Dev", "hall": "TL-2", "type": "Lecture" },
+      { "day": "Tuesday", "startTime": "13:30", "endTime": "16:30", "code": "SWT 32042", "title": "Mobile App Lab", "hall": "Mobile Lab 01", "type": "Practical" },
+      { "day": "Wednesday", "startTime": "08:30", "endTime": "09:30", "code": "UCT 32011", "title": "Embedded Systems", "hall": "EL-1", "type": "Lecture" },
+      { "day": "Thursday", "startTime": "08:30", "endTime": "10:30", "code": "NST 32012", "title": "Wireless Networks", "hall": "NL-1", "type": "Lecture" },
+      { "day": "Friday", "startTime": "08:30", "endTime": "10:30", "code": "SWT 32022", "title": "Service Oriented Web", "hall": "TL-1", "type": "Lecture" }
+    ],
+    "examModules": [
+      { "code": "CIS 32012", "title": "Enterprise Architecture and Leadership", "examDate": "2026-11-20", "examTime": "09:00 - 12:00", "hall": "Tech Exam Hall 1", "seatNo": "A-15" },
+      { "code": "SWT 32011", "title": "Mobile Application Development", "examDate": "2026-11-22", "examTime": "09:00 - 11:00", "hall": "Tech Exam Hall 1", "seatNo": "A-15" },
+      { "code": "UCT 32011", "title": "Embedded System", "examDate": "2026-11-24", "examTime": "09:00 - 11:00", "hall": "Tech Exam Hall 2", "seatNo": "B-12" },
+      { "code": "NST 32012", "title": "Wireless Network", "examDate": "2026-11-26", "examTime": "09:00 - 12:00", "hall": "Tech Exam Hall 1", "seatNo": "A-15" },
+      { "code": "SWT 32022", "title": "Service Oriented Web Application", "examDate": "2026-11-28", "examTime": "09:00 - 12:00", "hall": "Tech Exam Hall 2", "seatNo": "B-12" }
+    ]
+  },
+  "Year 4 Semester 1": {
+    "semester": "Year 4 Semester 1",
+    "semesterLabel": "Sem 7",
+    "yearNumber": 4,
+    "semesterNumber": 1,
+    "totalCredits": 15,
+    "defaultSgpa": 3.50,
+    "defaultCgpa": 3.48,
+    "isFreshers": false,
+    "batch": "2022/2023",
+    "progressionData": [],
+    "subjects": [
+      {
+        "id": "sub-y4s1-1",
+        "code": "SWT 41021",
+        "rawCode": "SWT41021",
+        "title": "Cloud Application Development",
+        "credits": 1,
+        "theoryHours": 15,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Dr. M. Kirushanth",
+        "venue": "Tech Lecture Hall TL-1",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y4s1-2",
+        "code": "SWT 41032",
+        "rawCode": "SWT41032",
+        "title": "Advance Software Engineering",
+        "credits": 2,
+        "theoryHours": 30,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Mr. S. Rifky",
+        "venue": "Tech Lecture Hall TL-2",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y4s1-3",
+        "code": "CIS 41022",
+        "rawCode": "CIS41022",
+        "title": "Advance Database Management System",
+        "credits": 2,
+        "theoryHours": 30,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Dr. A. N. Ahmed",
+        "venue": "Database Lab DL-1",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y4s1-4",
+        "code": "CMS 41012",
+        "rawCode": "CMS41012",
+        "title": "Professional Practice",
+        "credits": 2,
+        "theoryHours": 30,
+        "practicalHours": 0,
+        "type": "Core",
+        "lecturer": "Prof. A. Majeed",
+        "venue": "Auditorium Hall A",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 40,
+        "esaPercent": 60
+      },
+      {
+        "id": "sub-y4s1-5",
+        "code": "SWT 40016",
+        "rawCode": "SWT40016",
+        "title": "Final Research and Development Project",
+        "credits": 6,
+        "theoryHours": 0,
+        "practicalHours": 180,
+        "type": "Core",
+        "lecturer": "Academic Supervisors Committee",
+        "venue": "R&D Innovation Lab",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 100,
+        "esaPercent": 0
+      }
+    ],
+    "timetableSlots": [
+      { "day": "Monday", "startTime": "08:30", "endTime": "09:30", "code": "SWT 41021", "title": "Cloud App Development", "hall": "TL-1", "type": "Lecture" },
+      { "day": "Tuesday", "startTime": "08:30", "endTime": "10:30", "code": "SWT 41032", "title": "Advance Software Eng", "hall": "TL-2", "type": "Lecture" },
+      { "day": "Wednesday", "startTime": "08:30", "endTime": "10:30", "code": "CIS 41022", "title": "Advance DBMS", "hall": "DL-1", "type": "Lecture" },
+      { "day": "Thursday", "startTime": "08:30", "endTime": "10:30", "code": "CMS 41012", "title": "Professional Practice", "hall": "Hall A", "type": "Lecture" },
+      { "day": "Friday", "startTime": "09:00", "endTime": "16:00", "code": "SWT 40016", "title": "Research & Dev Project", "hall": "R&D Lab", "type": "Tutorial" }
+    ],
+    "examModules": [
+      { "code": "SWT 41021", "title": "Cloud Application Development", "examDate": "2026-11-20", "examTime": "09:00 - 11:00", "hall": "Tech Exam Hall 1", "seatNo": "A-05" },
+      { "code": "SWT 41032", "title": "Advance Software Engineering", "examDate": "2026-11-22", "examTime": "09:00 - 12:00", "hall": "Tech Exam Hall 1", "seatNo": "A-05" },
+      { "code": "CIS 41022", "title": "Advance Database Management System", "examDate": "2026-11-24", "examTime": "09:00 - 12:00", "hall": "Tech Exam Hall 2", "seatNo": "B-08" },
+      { "code": "CMS 41012", "title": "Professional Practice", "examDate": "2026-11-26", "examTime": "09:00 - 12:00", "hall": "Tech Exam Hall 1", "seatNo": "A-05" }
+    ]
+  },
+  "Year 4 Semester 2": {
+    "semester": "Year 4 Semester 2",
+    "semesterLabel": "Sem 8",
+    "yearNumber": 4,
+    "semesterNumber": 2,
+    "totalCredits": 6,
+    "defaultSgpa": 3.75,
+    "defaultCgpa": 3.60,
+    "isFreshers": false,
+    "batch": "2022/2023",
+    "progressionData": [],
+    "subjects": [
+      {
+        "id": "sub-y4s2-1",
+        "code": "SWT 42016",
+        "rawCode": "SWT42016",
+        "title": "Industrial Placement",
+        "credits": 6,
+        "theoryHours": 0,
+        "practicalHours": 480,
+        "type": "Core",
+        "lecturer": "Faculty Industrial Liaison Division",
+        "venue": "Partner Technology Organization",
+        "status": "REGISTERED",
+        "isGPA": true,
+        "caPercent": 100,
+        "esaPercent": 0
+      }
+    ],
+    "timetableSlots": [
+      { "day": "Monday", "startTime": "08:30", "endTime": "17:00", "code": "SWT 42016", "title": "Industrial Training Placement", "hall": "Industry Partner Org", "type": "Practical" },
+      { "day": "Tuesday", "startTime": "08:30", "endTime": "17:00", "code": "SWT 42016", "title": "Industrial Training Placement", "hall": "Industry Partner Org", "type": "Practical" },
+      { "day": "Wednesday", "startTime": "08:30", "endTime": "17:00", "code": "SWT 42016", "title": "Industrial Training Placement", "hall": "Industry Partner Org", "type": "Practical" },
+      { "day": "Thursday", "startTime": "08:30", "endTime": "17:00", "code": "SWT 42016", "title": "Industrial Training Placement", "hall": "Industry Partner Org", "type": "Practical" },
+      { "day": "Friday", "startTime": "08:30", "endTime": "17:00", "code": "SWT 42016", "title": "Industrial Training Placement", "hall": "Industry Partner Org", "type": "Practical" }
+    ],
+    "examModules": [
+      { "code": "SWT 42016", "title": "Industrial Placement Evaluation & Viva", "examDate": "2026-12-20", "examTime": "09:00 - 16:00", "hall": "Senate Conference Room", "seatNo": "VIVA-01" }
+    ]
   }
 };
+
+const ALL_SEMESTERS = [
+  'Year 1 Semester 1',
+  'Year 1 Semester 2',
+  'Year 2 Semester 1',
+  'Year 2 Semester 2',
+  'Year 3 Semester 1',
+  'Year 3 Semester 2',
+  'Year 4 Semester 1',
+  'Year 4 Semester 2'
+];
+
+function mapExamYearSemToSemesterName(examYear = '', examSemester = '') {
+  let yr = 1;
+  const y = String(examYear || '').toLowerCase();
+  if (y.includes('second') || y.includes('2')) yr = 2;
+  else if (y.includes('third') || y.includes('3')) yr = 3;
+  else if (y.includes('fourth') || y.includes('4')) yr = 4;
+  else yr = 1;
+
+  let sm = 1;
+  const s = String(examSemester || '').toLowerCase();
+  if (s.includes('2') || s.includes('ii') || s.includes('second')) sm = 2;
+  else sm = 1;
+
+  return `Year ${yr} Semester ${sm}`;
+}
+
+function mapSemesterNameToExamYearSem(semName = '') {
+  const norm = normalizeSemester(semName);
+  let examYear = 'First Year';
+  let examSemester = '1st';
+  let caSemester = 'I';
+  let caYearOfExam = 'First Year';
+
+  if (norm.includes('Year 1')) { examYear = 'First Year'; caYearOfExam = 'First Year'; }
+  else if (norm.includes('Year 2')) { examYear = 'Second Year'; caYearOfExam = 'Second Year'; }
+  else if (norm.includes('Year 3')) { examYear = 'Third Year'; caYearOfExam = 'Third Year'; }
+  else if (norm.includes('Year 4')) { examYear = 'Fourth Year'; caYearOfExam = 'Fourth Year'; }
+
+  if (norm.includes('Semester 2')) { examSemester = '2nd'; caSemester = 'II'; }
+  else { examSemester = '1st'; caSemester = 'I'; }
+
+  return { examYear, examSemester, caSemester, caYearOfExam, semesterName: norm };
+}
+
+function getSubjectsForYearSemester(yearOrSemesterName, optionalSemester) {
+  let semName = yearOrSemesterName;
+  if (optionalSemester !== undefined) {
+    semName = mapExamYearSemToSemesterName(yearOrSemesterName, optionalSemester);
+  }
+  const cur = getCurriculumBySemester(semName);
+  return cur?.subjects || [];
+}
+
+function getAllCurriculumSubjects() {
+  return ALL_SEMESTERS.map((sem) => ({
+    semester: sem,
+    subjects: getSubjectsForYearSemester(sem)
+  }));
+}
 
 function getCurriculumBySemester(semesterName) {
   const normalized = normalizeSemester(semesterName);
@@ -1752,5 +2085,10 @@ function getCurriculumBySemester(semesterName) {
 module.exports = {
   CURRICULUM_DATA,
   normalizeSemester,
-  getCurriculumBySemester
+  getCurriculumBySemester,
+  ALL_SEMESTERS,
+  mapExamYearSemToSemesterName,
+  mapSemesterNameToExamYearSem,
+  getSubjectsForYearSemester,
+  getAllCurriculumSubjects
 };
