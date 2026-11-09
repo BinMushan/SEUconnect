@@ -164,4 +164,4 @@ const seedKnowledge = async () => {
   return created;
 };
 
-module.exports = { seedKnowledge, DOCS };
+module.exports = { seedKnowledge, seed: seedKnowledge, DOCS };
