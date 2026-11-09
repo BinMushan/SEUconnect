@@ -223,7 +223,7 @@ knowledge.post('/purge-all', manage, asyncHandler(async (req, res) => {
   const delConvs = await AssistantConversation.deleteMany({});
 
   // Re-seed clean foundational institutional guidelines
-  await seed.seed();
+  await (seed.seedKnowledge ? seed.seedKnowledge() : (seed.seed ? seed.seed() : null));
 
   await audit.record({
     req,
