@@ -120,11 +120,14 @@ export default function Student({ user, onLogout }) {
   useEffect(() => {
     const reg = user?.regNo || user?.studentId || user?.email;
     if (reg) {
-      api.getStudent(reg).then((res) => {
-        if (res && res.data) {
-          setStudentUser((prev) => ({ ...(prev || {}), ...res.data }));
-        }
-      }).catch(() => {});
+      const fetchStudent = (typeof api?.getStudent === 'function' ? api.getStudent : api?.getStudentRecord);
+      if (typeof fetchStudent === 'function') {
+        fetchStudent(reg).then((res) => {
+          if (res && res.data) {
+            setStudentUser((prev) => ({ ...(prev || {}), ...res.data }));
+          }
+        }).catch(() => {});
+      }
     }
   }, [user?.regNo, user?.studentId, user?.email]);
 
