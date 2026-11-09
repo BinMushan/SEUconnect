@@ -63,7 +63,7 @@ export default function Attendance({ onNavigateMedical, user }) {
 
   // Student's enrolled subjects for the active semester
   const enrolledSubjects = useMemo(() => {
-    if (user?.enrolledCourses && user.enrolledCourses.length > 0) {
+    if (user?.enrolledCourses && user.enrolledCourses.length > 0 && !cur.isFreshers) {
       return user.enrolledCourses.map((c, idx) => ({
         id: c.id || `course-${idx}`,
         code: c.courseCode || c.code,

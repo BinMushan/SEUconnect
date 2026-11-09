@@ -7,7 +7,7 @@ export default function SemesterRegistration({ user }) {
   const cur = getCurriculumBySemester(user?.semester);
 
   const getInitialSubjects = () => {
-    if (user?.enrolledCourses && user.enrolledCourses.length > 0) {
+    if (user?.enrolledCourses && user.enrolledCourses.length > 0 && !cur.isFreshers) {
       return user.enrolledCourses.map((c, i) => ({
         id: c.id || `sub-${i + 1}`,
         code: c.courseCode || c.code,
