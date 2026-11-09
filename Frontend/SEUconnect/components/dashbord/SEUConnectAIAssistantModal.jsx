@@ -5,9 +5,9 @@ import { api } from '../../src/services/api';
 import { detectSuggestedActions } from '../../src/services/assistantActions';
 
 /**
- * Inline markdown parser: converts bold, italic, code, links into React nodes.
+ * Inline markdown parser: converts bold, italic, code, links, and line breaks into React nodes.
  */
-function renderInline(text) {
+function renderInlinePure(text) {
   if (!text) return null;
   const tokenRegex = /(`[^`]+`)|(\*\*\*[^*]+\*\*\*)|(\*\*[^*]+\*\*)|(\*[^*]+\*)|(__[^_]+__)|(_[^_]+_)|(~~[^~]+~~)|(\[[^\]]+\]\([^)]+\))/g;
   const parts = [];
@@ -52,6 +52,20 @@ function renderInline(text) {
   }
 
   return parts.length > 0 ? parts : text;
+}
+
+function renderInline(text) {
+  if (!text) return null;
+  if (/<br\s*\/?>/i.test(text)) {
+    const segments = text.split(/<br\s*\/?>/i);
+    return segments.map((seg, sIdx) => (
+      <React.Fragment key={`br-seg-${sIdx}`}>
+        {sIdx > 0 && <br />}
+        {renderInlinePure(seg)}
+      </React.Fragment>
+    ));
+  }
+  return renderInlinePure(text);
 }
 
 function isTableLine(l) {
@@ -192,28 +206,54 @@ function AssistantMessageContent({ text }) {
     <div className="seu-ai-msg-content">
       {blocks.map((block, idx) => {
         if (block.type === 'table') {
+          const hasIndexCol = block.headers.length > 0 && /^(#|no\.?|index|s\.?no\.?)$/i.test(block.headers[0].trim());
+          const displayHeaders = hasIndexCol ? block.headers : ['#', ...block.headers];
+          const displayAlignments = hasIndexCol ? block.alignments : ['center', ...block.alignments];
+
           return (
             <div key={idx} className="seu-ai-table-wrapper">
               <table className="seu-ai-table">
                 <thead>
                   <tr>
-                    {block.headers.map((h, hIdx) => (
-                      <th key={hIdx} style={{ textAlign: block.alignments[hIdx] || 'left' }}>
+                    {displayHeaders.map((h, hIdx) => (
+                      <th
+                        key={hIdx}
+                        className={h === '#' ? 'seu-ai-th-num' : ''}
+                        style={{ textAlign: displayAlignments[hIdx] || 'left' }}
+                      >
                         {renderInline(h)}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {block.rows.map((row, rIdx) => (
-                    <tr key={rIdx}>
-                      {block.headers.map((_, colIdx) => (
-                        <td key={colIdx} style={{ textAlign: block.alignments[colIdx] || 'left' }}>
-                          {renderInline(row[colIdx] !== undefined ? row[colIdx] : '')}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  {block.rows.map((row, rIdx) => {
+                    const rowCells = hasIndexCol ? row : [String(rIdx + 1), ...row];
+                    return (
+                      <tr key={rIdx}>
+                        {displayHeaders.map((_, colIdx) => {
+                          const cellVal = rowCells[colIdx] !== undefined ? rowCells[colIdx] : '';
+                          const isNumCol = colIdx === 0 && !hasIndexCol;
+                          const isCodeCol = !isNumCol && /^[A-Z]{2,5}\s?\d{4,6}$/i.test(cellVal.trim());
+                          return (
+                            <td
+                              key={colIdx}
+                              className={isNumCol ? 'seu-ai-col-num' : isCodeCol ? 'seu-ai-col-code' : ''}
+                              style={{ textAlign: displayAlignments[colIdx] || 'left' }}
+                            >
+                              {isCodeCol ? (
+                                <span className="seu-ai-course-code">{cellVal.trim()}</span>
+                              ) : isNumCol ? (
+                                <span className="seu-ai-num-badge">{cellVal}</span>
+                              ) : (
+                                renderInline(cellVal)
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -275,6 +315,24 @@ function AssistantMessageContent({ text }) {
 
         if (block.type === 'spacer') {
           return <div key={idx} style={{ height: '0.35rem' }} />;
+        }
+
+        // Clean handling for Section Titles or Metric badges like "Total Credits: 18"
+        const trimmed = block.text.trim();
+        if (/^Total (Academic )?Credits:\s*\d+/i.test(trimmed)) {
+          return (
+            <div key={idx} className="seu-ai-credit-pill">
+              <span className="seu-ai-credit-dot" />
+              <span>{renderInline(trimmed)}</span>
+            </div>
+          );
+        }
+        if (/^(\p{Emoji}\s*)?\*\*[^*]+\*\*$/u.test(trimmed)) {
+          return (
+            <div key={idx} className="seu-ai-section-title">
+              {renderInline(trimmed)}
+            </div>
+          );
         }
 
         return (
