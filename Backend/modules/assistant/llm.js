@@ -25,8 +25,8 @@ const BUDGET_MS = Number(process.env.LLM_BUDGET_MS || 30000); // total time one 
 const apiKey = () => (process.env.NODE_ENV === 'test' ? '' : process.env.GEMINI_API_KEY || '');
 const list = (value, fallback) => (value || fallback).split(',').map((m) => m.trim()).filter(Boolean);
 const tiers = () => ({
-  fast: list(process.env.GEMINI_MODELS_FAST, 'gemini-2.5-flash,gemini-2.0-flash,gemini-1.5-flash,gemini-2.0-flash-lite,gemini-1.5-pro'),
-  smart: list(process.env.GEMINI_MODELS_SMART, 'gemini-1.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-1.5-flash,gemini-2.0-flash-lite'),
+  fast: list(process.env.GEMINI_MODELS_FAST, 'gemini-3.5-flash-lite,gemini-3.8-flash,gemini-3.5-flash,gemini-3.1-flash-lite'),
+  smart: list(process.env.GEMINI_MODELS_SMART, 'gemini-3.8-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'),
 });
 const embedModel = () => process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 const EMBED_DIMENSIONS = 256;

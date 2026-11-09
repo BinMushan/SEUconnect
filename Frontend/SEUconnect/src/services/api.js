@@ -660,6 +660,7 @@ export const api = {
   },
   getHandbooks: () => request('/v1/knowledge/handbooks').then((b) => b.data || b),
   retireKnowledgeDoc: (id) => request(`/v1/knowledge/${id}/retire`, json('POST', {})).then((b) => b.data || b),
+  purgeAllKnowledge: () => request('/v1/knowledge/purge-all', json('POST', {})).then((b) => b.data || b),
 
   /* ------------------- Official Subjects & Curriculum (MongoDB Atlas) ------------------- */
   getSubjects: (params = {}) => request(`/subjects${qs(params)}`).then((b) => b.data || b),
