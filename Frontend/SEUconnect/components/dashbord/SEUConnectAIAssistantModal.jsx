@@ -5,6 +5,289 @@ import { api } from '../../src/services/api';
 import { detectSuggestedActions } from '../../src/services/assistantActions';
 
 /**
+ * Inline markdown parser: converts bold, italic, code, links into React nodes.
+ */
+function renderInline(text) {
+  if (!text) return null;
+  const tokenRegex = /(`[^`]+`)|(\*\*\*[^*]+\*\*\*)|(\*\*[^*]+\*\*)|(\*[^*]+\*)|(__[^_]+__)|(_[^_]+_)|(~~[^~]+~~)|(\[[^\]]+\]\([^)]+\))/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = tokenRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const m = match[0];
+    const key = `inl-${match.index}-${lastIndex}`;
+    if (m.startsWith('`') && m.endsWith('`')) {
+      parts.push(<code key={key} className="seu-ai-inline-code">{m.slice(1, -1)}</code>);
+    } else if (m.startsWith('***') && m.endsWith('***')) {
+      parts.push(<strong key={key}><em>{m.slice(3, -3)}</em></strong>);
+    } else if ((m.startsWith('**') && m.endsWith('**')) || (m.startsWith('__') && m.endsWith('__'))) {
+      parts.push(<strong key={key}>{m.slice(2, -2)}</strong>);
+    } else if ((m.startsWith('*') && m.endsWith('*')) || (m.startsWith('_') && m.endsWith('_'))) {
+      parts.push(<em key={key}>{m.slice(1, -1)}</em>);
+    } else if (m.startsWith('~~') && m.endsWith('~~')) {
+      parts.push(<del key={key}>{m.slice(2, -2)}</del>);
+    } else if (m.startsWith('[') && m.includes('](')) {
+      const linkMatch = m.match(/\[([^\]]+)\]\(([^)]+)\)/);
+      if (linkMatch) {
+        parts.push(
+          <a key={key} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="seu-ai-inline-link">
+            {linkMatch[1]}
+          </a>
+        );
+      } else {
+        parts.push(m);
+      }
+    } else {
+      parts.push(m);
+    }
+    lastIndex = tokenRegex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
+function isTableLine(l) {
+  if (!l) return false;
+  const t = l.trim();
+  return t.includes('|') && t.split('|').filter((c) => c.trim().length > 0).length >= 1;
+}
+
+function isTableSeparator(l) {
+  if (!l) return false;
+  const t = l.trim();
+  if (!t.includes('|') || !t.includes('-')) return false;
+  const cells = t.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+  return cells.length > 0 && cells.every((c) => /^:?-+:?$/.test(c));
+}
+
+function parseTableRow(l) {
+  return l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+}
+
+function parseMarkdownBlocks(rawText) {
+  if (!rawText) return [];
+  const normalized = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = normalized.split('\n');
+  const blocks = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Code block
+    if (line.trim().startsWith('```')) {
+      const lang = line.trim().slice(3).trim();
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++;
+      blocks.push({ type: 'code', lang, content: codeLines.join('\n') });
+      continue;
+    }
+
+    // Markdown Table
+    if (isTableLine(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+      const headers = parseTableRow(line);
+      const sep = lines[i + 1];
+      const alignments = parseTableRow(sep).map((s) => {
+        if (s.startsWith(':') && s.endsWith(':')) return 'center';
+        if (s.endsWith(':')) return 'right';
+        return 'left';
+      });
+      const rows = [];
+      i += 2;
+      while (i < lines.length && isTableLine(lines[i])) {
+        rows.push(parseTableRow(lines[i]));
+        i++;
+      }
+      blocks.push({ type: 'table', headers, alignments, rows });
+      continue;
+    }
+
+    // Headings
+    if (line.startsWith('# ')) {
+      blocks.push({ type: 'h1', text: line.slice(2).trim() });
+      i++;
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      blocks.push({ type: 'h2', text: line.slice(3).trim() });
+      i++;
+      continue;
+    }
+    if (line.startsWith('### ')) {
+      blocks.push({ type: 'h3', text: line.slice(4).trim() });
+      i++;
+      continue;
+    }
+    if (line.startsWith('#### ')) {
+      blocks.push({ type: 'h4', text: line.slice(5).trim() });
+      i++;
+      continue;
+    }
+
+    // Blockquote
+    if (line.startsWith('> ') || line === '>') {
+      const quoteLines = [];
+      while (i < lines.length && (lines[i].startsWith('> ') || lines[i] === '>')) {
+        quoteLines.push(lines[i].replace(/^>\s?/, ''));
+        i++;
+      }
+      blocks.push({ type: 'blockquote', text: quoteLines.join('\n') });
+      continue;
+    }
+
+    // Unordered list (•, *, -)
+    if (/^\s*[•*-]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[•*-]\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*[•*-]\s+/, '').trim());
+        i++;
+      }
+      blocks.push({ type: 'ul', items });
+      continue;
+    }
+
+    // Ordered list (1., 2., etc.)
+    if (/^\s*\d+\.\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*\d+\.\s+/, '').trim());
+        i++;
+      }
+      blocks.push({ type: 'ol', items });
+      continue;
+    }
+
+    // Spacer
+    if (!line.trim()) {
+      blocks.push({ type: 'spacer' });
+      i++;
+      continue;
+    }
+
+    // Paragraph
+    blocks.push({ type: 'p', text: line });
+    i++;
+  }
+
+  return blocks;
+}
+
+function AssistantMessageContent({ text }) {
+  const blocks = parseMarkdownBlocks(text);
+
+  return (
+    <div className="seu-ai-msg-content">
+      {blocks.map((block, idx) => {
+        if (block.type === 'table') {
+          return (
+            <div key={idx} className="seu-ai-table-wrapper">
+              <table className="seu-ai-table">
+                <thead>
+                  <tr>
+                    {block.headers.map((h, hIdx) => (
+                      <th key={hIdx} style={{ textAlign: block.alignments[hIdx] || 'left' }}>
+                        {renderInline(h)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {block.rows.map((row, rIdx) => (
+                    <tr key={rIdx}>
+                      {block.headers.map((_, colIdx) => (
+                        <td key={colIdx} style={{ textAlign: block.alignments[colIdx] || 'left' }}>
+                          {renderInline(row[colIdx] !== undefined ? row[colIdx] : '')}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        if (block.type === 'code') {
+          return (
+            <pre key={idx} className="seu-ai-code-block">
+              <code>{block.content}</code>
+            </pre>
+          );
+        }
+
+        if (block.type === 'h1') {
+          return <h2 key={idx} className="seu-ai-h1">{renderInline(block.text)}</h2>;
+        }
+        if (block.type === 'h2') {
+          return <h3 key={idx} className="seu-ai-h2">{renderInline(block.text)}</h3>;
+        }
+        if (block.type === 'h3') {
+          return <h4 key={idx} className="seu-ai-h3">{renderInline(block.text)}</h4>;
+        }
+        if (block.type === 'h4') {
+          return <h5 key={idx} className="seu-ai-h4">{renderInline(block.text)}</h5>;
+        }
+
+        if (block.type === 'blockquote') {
+          return (
+            <blockquote key={idx} className="seu-ai-blockquote">
+              {renderInline(block.text)}
+            </blockquote>
+          );
+        }
+
+        if (block.type === 'ul') {
+          return (
+            <ul key={idx} className="seu-ai-ul">
+              {block.items.map((item, itemIdx) => (
+                <li key={itemIdx} className="seu-ai-li">
+                  {renderInline(item)}
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        if (block.type === 'ol') {
+          return (
+            <ol key={idx} className="seu-ai-ol">
+              {block.items.map((item, itemIdx) => (
+                <li key={itemIdx} className="seu-ai-li">
+                  {renderInline(item)}
+                </li>
+              ))}
+            </ol>
+          );
+        }
+
+        if (block.type === 'spacer') {
+          return <div key={idx} style={{ height: '0.35rem' }} />;
+        }
+
+        return (
+          <p key={idx} className="seu-ai-p">
+            {renderInline(block.text)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
  * SEUConnect AI Assistant - Gemini & ChatGPT Inspired Interface
  * 
  * Features:
@@ -372,68 +655,13 @@ export default function SEUConnectAIAssistantModal({
                   )}
 
                   <div className="seu-ai-msg-bubble">
-                    <div className="seu-ai-msg-content">
-                      {msg.text.split('\n').map((line, idx) => {
-                        if (line.startsWith('### ')) {
-                          return <h4 key={idx} style={{ margin: '0 0 0.4rem', color: 'inherit', fontWeight: 700 }}>{line.replace('### ', '')}</h4>;
-                        }
-                        if (line.startsWith('## ')) {
-                          return <h3 key={idx} style={{ margin: '0 0 0.45rem', color: 'inherit', fontWeight: 700, fontSize: '1rem' }}>{line.replace('## ', '')}</h3>;
-                        }
-                        if (line.startsWith('# ')) {
-                          return <h3 key={idx} style={{ margin: '0 0 0.45rem', color: 'inherit', fontWeight: 700, fontSize: '1.05rem' }}>{line.replace('# ', '')}</h3>;
-                        }
-                        if (line.startsWith('• ') || line.startsWith('* ') || line.startsWith('- ')) {
-                          const raw = line.replace(/^[•*-]\s*/, '');
-                          const parts = raw.split(/(\*\*.*?\*\*)/g);
-                          return (
-                            <div key={idx} style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.35rem' }}>
-                              <span>•</span>
-                              <div>
-                                {parts.map((p, pIdx) => {
-                                  if (p.startsWith('**') && p.endsWith('**')) {
-                                    return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
-                                  }
-                                  return p;
-                                })}
-                              </div>
-                            </div>
-                          );
-                        }
-                        if (/^\d+\.\s/.test(line)) {
-                          const numMatch = line.match(/^\d+\./);
-                          const num = numMatch ? numMatch[0] : '';
-                          const raw = line.replace(/^\d+\.\s*/, '');
-                          const parts = raw.split(/(\*\*.*?\*\*)/g);
-                          return (
-                            <div key={idx} style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.35rem' }}>
-                              <span style={{ fontWeight: 600 }}>{num}</span>
-                              <div>
-                                {parts.map((p, pIdx) => {
-                                  if (p.startsWith('**') && p.endsWith('**')) {
-                                    return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
-                                  }
-                                  return p;
-                                })}
-                              </div>
-                            </div>
-                          );
-                        }
-                        if (!line.trim()) {
-                          return <div key={idx} style={{ height: '0.35rem' }} />;
-                        }
-                        const parts = line.split(/(\*\*.*?\*\*)/g);
-                        return (
-                          <p key={idx} style={{ margin: '0 0 0.45rem' }}>
-                            {parts.map((p, pIdx) => {
-                              if (p.startsWith('**') && p.endsWith('**')) {
-                                return <strong key={pIdx}>{p.slice(2, -2)}</strong>;
-                              }
-                              return p;
-                            })}
-                          </p>
-                        );
-                      })}                    </div>
+                    {msg.sender === 'assistant' ? (
+                      <AssistantMessageContent text={msg.text} />
+                    ) : (
+                      <div className="seu-ai-msg-content user">
+                        <p className="seu-ai-p">{renderInline(msg.text)}</p>
+                      </div>
+                    )}
 
                     {msg.sources && msg.sources.length > 0 && (
                       <div className="seu-ai-msg-sources" style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.4rem' }}>
