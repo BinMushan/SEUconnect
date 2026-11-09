@@ -33,8 +33,8 @@ const DOCS = [
     content: 'Classes by cumulative GPA: First Class Honours - CGPA 3.70 or above with no repeats. Second Class (Upper Division) - 3.30 to 3.69. Second Class (Lower Division) - 3.00 to 3.29. General pass - 2.00 to 2.99.',
   },
   {
-    seedKey: 'reg-officers', title: 'Key officers of the Faculty of Technology', category: 'regulations', status: 'needs_confirmation', source: UNVERIFIED, audience: [],
-    content: 'Dean: Prof. Rifai Kariapper. Head of the Department of ICT: Mr. M.J. Ahamed Sabani. Senior Assistant Registrar: Mr. K.L.M. Riyas.',
+    seedKey: 'reg-officers', title: 'Key officers and administrative leadership of the Faculty of Technology', category: 'regulations', status: 'active', source: 'Faculty Handbook 2023/2024 - Faculty of Technology, SEUSL', audience: [],
+    content: 'Leadership and administrative officers of the Faculty of Technology, South Eastern University of Sri Lanka (SEUSL):\n\n- Dean of the Faculty: Dr. U.L. Abdul Majeed (BSc Food Sc and Tech. (Hons) (SUSL), MSc (USJP), PhD (USJP), Senior Lecturer, ulmajeed@seu.ac.lk)\n- Head of the Department of Information and Communication Technology (ICT): Dr. S. Sabraz Nawaz (Senior Lecturer Mr. R.K.A. Rifai Kariapper, BSc (Hons) Special in Computer Science (SEUSL), MSc (PGIS-UoP), MPhil (SJP), Senior Lecturer, rk@seu.ac.lk)\n- Head of the Department of Bio Systems Technology (BST): Dr. U.L. Abdul Majeed\n- Senior Assistant Registrar (SAR): Mr. K.L.M. Riyas\n- Faculty Location: Faculty of Technology Complex, South Eastern University of Sri Lanka, Oluvil.',
   },
   {
     seedKey: 'wf-overview', title: 'Examination form workflows - overview', category: 'workflow', status: 'active', source: 'SEUConnect workflow reference', audience: [],

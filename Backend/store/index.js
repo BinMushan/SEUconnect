@@ -280,8 +280,12 @@ const users = {
 
           if (studentDoc) {
             const { hashPassword } = require('../utils/password');
+            const { resolveStudentSemester, resolveStudentSpecialization } = require('../config/curriculumTimetables');
             const effectiveName = studentDoc.fullName || 'Undergraduate Student';
             const defaultPass = 'Seu@' + (studentDoc.studentId ? studentDoc.studentId.replace(/[^a-zA-Z0-9]/g, '') : '2026');
+            const reg = studentDoc.studentId || '';
+            const effectiveSem = resolveStudentSemester(studentDoc.currentSemester, reg, studentDoc.batch || studentDoc.batchId);
+            const effectiveSpec = resolveStudentSpecialization(studentDoc.specialization, effectiveSem, reg, studentDoc.department);
             user = await User.create({
               name: effectiveName,
               email: studentDoc.email,
@@ -292,7 +296,8 @@ const users = {
               department: studentDoc.department || 'Department of Information and Communication Technology',
               faculty: studentDoc.faculty || 'Faculty of Technology',
               programme: studentDoc.degreeProgramme || 'BICT (Hons)',
-              semester: studentDoc.currentSemester || 'Semester 1',
+              semester: effectiveSem,
+              specialization: effectiveSpec,
               designation: 'Undergraduate',
               avatarInitial: effectiveName.split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'ST',
               status: 'active'
