@@ -55,13 +55,33 @@ const isTableOfContents = (text) => {
   return dotCount >= 2 || pageMatches >= 2;
 };
 
+/** Strips page headers/footers (e.g. "-- 7 of 157 --", "Page 12 of 150"), standalone page numbers, and long separator dots */
+const cleanNoise = (text) => {
+  return String(text || '')
+    .split(/\r?\n/)
+    .filter((line) => {
+      const l = line.trim();
+      if (!l) return true;
+      if (/^--\s*\d+\s*of\s*\d+\s*--$/i.test(l)) return false; // "-- 7 of 157 --"
+      if (/^page\s*\d+(\s*of\s*\d+)?$/i.test(l)) return false; // "page 7 of 157"
+      if (/^\d{1,3}$/.test(l)) return false; // lone numbers like "7"
+      if (/^[\.\s\-_=~*]{4,}$/.test(l)) return false; // lines of dots
+      return true;
+    })
+    .join('\n');
+};
+
 /** Splits on blank lines / headings and packs paragraphs up to MAX_CHUNK characters; never cuts a sentence in half. */
 const chunkText = (content) => {
-  const paragraphs = String(content).split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  const cleaned = cleanNoise(content);
+  const paragraphs = String(cleaned).split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   const chunks = [];
   let current = '';
   const push = () => {
-    if (current.trim()) chunks.push(current.trim());
+    const trimmed = current.trim();
+    if (trimmed && trimmed.length >= 10 && !/^--\s*\d+\s*of\s*\d+\s*--$/i.test(trimmed)) {
+      chunks.push(trimmed);
+    }
     current = '';
   };
   for (const p of paragraphs) {

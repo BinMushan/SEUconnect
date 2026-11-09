@@ -212,6 +212,43 @@ knowledge.get('/handbooks', manage, asyncHandler(async (req, res) => {
   ok(res, list);
 }));
 
+// Purge all uploaded RAG knowledge, chunks, handbooks, and conversations from MongoDB
+knowledge.post('/purge-all', manage, asyncHandler(async (req, res) => {
+  const { KnowledgeChunk, AssistantConversation } = require('./model');
+  const seed = require('./seed');
+
+  const delChunks = await KnowledgeChunk.deleteMany({});
+  const delDocs = await KnowledgeDocument.deleteMany({});
+  const delHandbooks = await Handbook.deleteMany({});
+  const delConvs = await AssistantConversation.deleteMany({});
+
+  // Re-seed clean foundational institutional guidelines
+  await seed.seed();
+
+  await audit.record({
+    req,
+    action: 'knowledge.purge_all',
+    entityType: 'KnowledgeDocument',
+    entityId: req.user ? req.user.id : null,
+    after: {
+      deletedChunks: delChunks.deletedCount,
+      deletedDocs: delDocs.deletedCount,
+      deletedHandbooks: delHandbooks.deletedCount,
+      deletedConversations: delConvs.deletedCount,
+    }
+  });
+
+  ok(res, {
+    message: 'RAG Knowledge Base and past conversations purged successfully from MongoDB. Clean institutional seed data restored.',
+    purged: {
+      chunks: delChunks.deletedCount,
+      documents: delDocs.deletedCount,
+      handbooks: delHandbooks.deletedCount,
+      conversations: delConvs.deletedCount
+    }
+  });
+}));
+
 knowledge.put('/:id', manage, validate({ params: z.object({ id: objectId }), body: docBody }), asyncHandler(async (req, res) => {
   const doc = await KnowledgeDocument.findById(req.params.id);
   if (!doc) throw notFound('Document not found.');

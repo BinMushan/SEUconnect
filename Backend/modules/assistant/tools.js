@@ -262,11 +262,15 @@ const TOOLS = [
       const queryStr = String((args && args.query) || '').trim().toLowerCase();
 
       // Only filter by query if it is a specific code/title keyword (not the entire natural language prompt)
+      const QUESTION_STOP_WORDS = /\b(?:what|are|the|we|have|has|our|subject|subjects|course|courses|module|modules|curriculum|syllabus|list|show|how|many|much|in|is|do|tell|me|about|can|you|give|all|any|number|of|there|registered|enrolled|taken|allocation|total|unit|units)\b/gi;
       const cleanKeyword = queryStr
         .replace(/\b(?:1yaer|2yaer|3yaer|4yaer|[1-4](?:st|nd|rd|th)?\s*year|year\s*[1-4])\b/gi, '')
         .replace(/\b(?:[1-8](?:st|nd|rd|th)?\s*sem(?:ester)?|sem(?:ester)?\s*[1-8]|semester\s*[ivx]+)\b/gi, '')
-        .replace(/\b(?:what|are|the|we|have|has|our|subject|subjects|course|courses|module|modules|curriculum|syllabus|list|show)\b/gi, '')
+        .replace(QUESTION_STOP_WORDS, ' ')
         .trim();
+
+      // Only apply text filter if user asked for a specific topic or course code (e.g. "CIS11011" or "database")
+      const hasSpecificTopic = cleanKeyword.length >= 3 && !/^(how|many|in|total|list|show|subjects|courses)$/i.test(cleanKeyword);
 
       let subjects = [];
       const isDbConnected = Subject.db && Subject.db.readyState === 1;
@@ -275,7 +279,7 @@ const TOOLS = [
           const filter = {};
           if (year) filter.year = year;
           if (semester) filter.semester = semester;
-          if (cleanKeyword.length >= 3) {
+          if (hasSpecificTopic) {
             filter.$or = [
               { code: new RegExp(cleanKeyword, 'i') },
               { title: new RegExp(cleanKeyword, 'i') },
@@ -291,7 +295,7 @@ const TOOLS = [
         subjects = HANDBOOK_SUBJECTS.filter((s) => {
           if (year && s.year !== year) return false;
           if (semester && s.semester !== semester) return false;
-          if (cleanKeyword.length >= 3 && !s.code.toLowerCase().includes(cleanKeyword) && !s.title.toLowerCase().includes(cleanKeyword)) return false;
+          if (hasSpecificTopic && !s.code.toLowerCase().includes(cleanKeyword) && !s.title.toLowerCase().includes(cleanKeyword)) return false;
           return true;
         });
       }
@@ -322,9 +326,10 @@ const TOOLS = [
       if (!d.subjects || !d.subjects.length) {
         return `No official handbook subjects found matching ${d.label || 'the criteria'}. Please check the year and semester.`;
       }
-      const header = `### Faculty of Technology — ${d.label} (Official Handbook Curriculum)\n**Total Academic Credits: ${d.totalCredits}**\n`;
+      const count = d.count || d.subjects.length;
+      const header = `### Faculty of Technology — ${d.label} (Official Handbook Curriculum)\n**Total Subjects: ${count} Modules | Total Academic Credits: ${d.totalCredits} Credits**\n`;
       const rows = d.subjects.map(
-        (s) => `- **${s.code}** ${s.title} — **${s.credits} Credits** (${s.category}, ${s.type}) | ${s.assessment} | Lecturer: ${s.lecturer}`
+        (s, idx) => `${idx + 1}. **${s.code}** — ${s.title} (${s.credits} Credits, ${s.type || 'Theory'}) | ${s.assessment} | Lecturer: ${s.lecturer}`
       );
       return `${header}\n${rows.join('\n')}`;
     },

@@ -27,6 +27,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const isTest = process.env.NODE_ENV === 'test';
 
+// Trust reverse proxy (e.g. Render, AWS ALB, Nginx) so client IP & X-Forwarded-For are handled correctly
+app.set('trust proxy', 1);
+
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(cors({
@@ -68,7 +71,13 @@ app.use((req, res, next) => {
 });
 
 if (!isTest) {
-  app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: Number(process.env.API_RATE_LIMIT || 600), standardHeaders: 'draft-7', legacyHeaders: false }));
+  app.use('/api', rateLimit({
+    windowMs: 60 * 1000,
+    limit: Number(process.env.API_RATE_LIMIT || 600),
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
+  }));
 }
 
 // Health check endpoint for Render zero-downtime checks.
@@ -84,7 +93,14 @@ app.all(['/', '/health', '/api/health'], (req, res) => {
 
 // ---- Legacy API (examination-form workflows, used by the current frontend) ----
 if (!isTest) {
-  app.use('/api/auth/login', rateLimit({ windowMs: 15 * 60 * 1000, limit: Number(process.env.LOGIN_RATE_LIMIT || 30), standardHeaders: 'draft-7', legacyHeaders: false, message: { success: false, message: 'Too many login attempts. Please wait and try again.' } }));
+  app.use('/api/auth/login', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: Number(process.env.LOGIN_RATE_LIMIT || 30),
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
+    message: { success: false, message: 'Too many login attempts. Please wait and try again.' },
+  }));
 }
 app.use('/api/auth', authRoutes);
 app.use('/api/processes', processRoutes);
