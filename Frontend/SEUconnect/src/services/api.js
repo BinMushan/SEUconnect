@@ -384,6 +384,19 @@ export const api = {
     try {
       const res = await request('/auth/login', json('POST', { email: emailOrRegNo, username: emailOrRegNo, password }));
       authToken.set(res.token);
+      if (res && res.user && (res.user.role === 'student' || res.user.roleKey === 'student' || res.user.regNo || res.user.studentId)) {
+        const reg = res.user.regNo || res.user.studentId || emailOrRegNo;
+        const resolvedSem = resolveStudentSemester(res.user.semester || res.user.currentSemester, reg, res.user.batch || res.user.batchId);
+        const resolvedSpec = resolveStudentSpecialization(res.user.specialization, resolvedSem, reg, res.user.department);
+        res.user.semester = resolvedSem;
+        res.user.currentSemester = resolvedSem;
+        res.user.specialization = resolvedSpec;
+        if (resolvedSem === 'Year 1 Semester 1') {
+          res.user.sgpa = null;
+          res.user.cgpa = null;
+          res.user.isFreshers = true;
+        }
+      }
       return res;
     } catch (err) {
       // If network unreachable or account not yet synced in backend, check local enrolled student database
@@ -583,8 +596,46 @@ export const api = {
     }
   },
   getAllStudents: () => request('/student'),
-  getStudent: (identifier) => request(`/student/${encodeURIComponent(identifier)}`),
-  getStudentRecord: (identifier) => request(`/student/${encodeURIComponent(identifier)}`),
+  getStudent: async (identifier) => {
+    try {
+      const res = await request(`/student/${encodeURIComponent(identifier)}`);
+      if (res && res.data) {
+        const s = res.data;
+        const reg = s.regNo || s.studentId || identifier;
+        const resolvedSem = resolveStudentSemester(s.currentSemester || s.semester, reg, s.batch || s.batchId);
+        const resolvedSpec = resolveStudentSpecialization(s.specialization, resolvedSem, reg, s.department);
+        s.semester = resolvedSem;
+        s.currentSemester = resolvedSem;
+        s.specialization = resolvedSpec;
+        if (resolvedSem === 'Year 1 Semester 1') {
+          s.sgpa = null;
+          s.cgpa = null;
+          s.isFreshers = true;
+        }
+      }
+      return res;
+    } catch (e) {
+      const local = enrolledStorage.find(identifier);
+      if (local) {
+        const reg = local.regNo || local.studentId || identifier;
+        const resolvedSem = resolveStudentSemester(local.semester || local.currentSemester, reg, local.batch || local.batchId);
+        const resolvedSpec = resolveStudentSpecialization(local.specialization, resolvedSem, reg, local.department);
+        return {
+          success: true,
+          data: {
+            ...local,
+            semester: resolvedSem,
+            currentSemester: resolvedSem,
+            specialization: resolvedSpec,
+            isFreshers: resolvedSem === 'Year 1 Semester 1',
+            ...(resolvedSem === 'Year 1 Semester 1' ? { sgpa: null, cgpa: null } : {})
+          }
+        };
+      }
+      throw e;
+    }
+  },
+  getStudentRecord: (identifier) => api.getStudent(identifier),
   createStudent: async (studentData) => {
     enrolledStorage.save(studentData);
     if (!authToken.get()) {
