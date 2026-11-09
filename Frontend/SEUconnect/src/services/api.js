@@ -583,6 +583,7 @@ export const api = {
     }
   },
   getAllStudents: () => request('/student'),
+  getStudent: (identifier) => request(`/student/${encodeURIComponent(identifier)}`),
   getStudentRecord: (identifier) => request(`/student/${encodeURIComponent(identifier)}`),
   createStudent: async (studentData) => {
     enrolledStorage.save(studentData);
