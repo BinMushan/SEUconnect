@@ -125,9 +125,8 @@ const SubjectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound index for querying subjects by year and semester
+// Compound index for querying subjects by year and semester (semesterName is already indexed via schema field definition)
 SubjectSchema.index({ year: 1, semester: 1 });
-SubjectSchema.index({ semesterName: 1 });
 
 module.exports = mongoose.models.Subject || mongoose.model('Subject', SubjectSchema);
 
