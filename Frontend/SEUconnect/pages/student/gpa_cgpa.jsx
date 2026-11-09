@@ -105,7 +105,7 @@ export default function StudentGpaCgpa({ user }) {
     semStr.includes('semester 01') ||
     semStr.includes('1st sem') ||
     (semStr.includes('year 1') && !semStr.includes('sem 2') && !semStr.includes('semester 2')) ||
-    /^2[4-9]ICT/i.test(regNoStr) ||
+    /(?:^|[\/_])2[4-9][\/_]?(?:ICT|BST|\d)/i.test(regNoStr) ||
     user?.completedSemesters === 0 ||
     user?.credits === 0
   );

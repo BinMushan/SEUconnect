@@ -1373,8 +1373,8 @@ export default function Admin({ user, onLogout }) {
     );
 
     // 2. Automatically update all enrolled students in that batch based on department scope
-    setStudents((prev) =>
-      prev.map((s) => {
+    setStudents((prev) => {
+      const updated = prev.map((s) => {
         if (s.batchId !== batchId) return s;
         const isBICT = s.programme?.includes('BICT') || s.department?.includes('Information') || s.regNo?.includes('/ICT/');
         const isBST = s.programme?.includes('BST') || s.department?.includes('Bio') || s.regNo?.includes('/BST/');
@@ -1382,9 +1382,11 @@ export default function Admin({ user, onLogout }) {
         if (departmentScope === 'BICT' && !isBICT) return s;
         if (departmentScope === 'BST' && !isBST) return s;
 
-        return { ...s, semester: nextSem };
-      })
-    );
+        return { ...s, semester: nextSem, currentSemester: nextSem };
+      });
+      enrolledStorage.saveBulk(updated);
+      return updated;
+    });
 
     // 3. Auto-populate course registrations for all target students in that batch with new curriculum courses
     const targetStudents = students.filter((s) => {

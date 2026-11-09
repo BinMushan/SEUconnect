@@ -73,7 +73,7 @@ export default function StudentResults({ user }) {
     };
   }, []);
 
-  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1' || (user?.semester && user.semester.includes('1') && !user.semester.includes('2'));
+  const isFreshers = user?.isFreshers || user?.semester === 'Year 1 Semester 1' || user?.academicYear === 'Year 1' || /(?:^|[\/_])24[\/_]?/i.test(regNo) || (user?.semester && user.semester.includes('1') && !user.semester.includes('2'));
   const livePipelineResults = useMemo(() => {
     return resultsPipelineService.getStudentSemesterResults(regNo, user?.semester || 'Year 1 Semester 1');
   }, [regNo, user?.semester, pipelineTick]);
