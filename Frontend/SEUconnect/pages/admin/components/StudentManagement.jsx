@@ -2131,7 +2131,21 @@ export default function StudentManagement({
                       <select
                         className="adm-input"
                         value={activeTargetBatchId}
-                        onChange={(e) => setTargetBatchId(e.target.value)}
+                        onChange={(e) => {
+                          const bId = e.target.value;
+                          setTargetBatchId(bId);
+                          const bMatch = batches.find((b) => b.id === bId);
+                          if (bMatch?.currentSemester) {
+                            const sem = bMatch.currentSemester.includes('Semester 8') ? 'Semester 8'
+                              : bMatch.currentSemester.includes('Semester 6') ? 'Semester 6'
+                              : bMatch.currentSemester.includes('Semester 5') ? 'Semester 5'
+                              : bMatch.currentSemester.includes('Semester 4') ? 'Semester 4'
+                              : bMatch.currentSemester.includes('Semester 3') ? 'Semester 3'
+                              : bMatch.currentSemester.includes('Semester 2') ? 'Semester 2'
+                              : 'Semester 1';
+                            setNewSemester(sem);
+                          }
+                        }}
                       >
                         {batches.map((b) => (
                           <option key={b.id} value={b.id}>
@@ -2157,6 +2171,11 @@ export default function StudentManagement({
                           if (!newEmail || newEmail.endsWith('@seu.ac.lk')) {
                             const clean = val.toLowerCase().replace(/[^a-z0-9]/g, '');
                             if (clean) setNewEmail(`${clean}@seu.ac.lk`);
+                          }
+                          if (/(?:^|[\/_])24[\/_]?/i.test(val)) {
+                            const b05 = batches.find((b) => b.id === 'BATCH-05' || b.name?.includes('2024'));
+                            if (b05) setTargetBatchId(b05.id);
+                            setNewSemester('Semester 1');
                           }
                         }}
                         required
