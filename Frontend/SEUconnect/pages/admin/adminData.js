@@ -425,13 +425,13 @@ export const INITIAL_STUDENTS = [
     cgpa: 0.00,
     sgpa: 0.00,
     credits: 0,
-    attendance: 0,
+    attendance: 100,
     email: '24ict001@seu.ac.lk',
     tempPassword: 'Seu@24ICT001',
     phone: '+94 77 555 6677',
     status: 'Active',
     welfare: 'Mahapola Merit',
-    specialization: 'Pending Specialization',
+    specialization: 'Core Curriculum',
     repeatModules: []
   },
   {
@@ -447,13 +447,13 @@ export const INITIAL_STUDENTS = [
     cgpa: 0.00,
     sgpa: 0.00,
     credits: 0,
-    attendance: 0,
+    attendance: 100,
     email: '24bst001@seu.ac.lk',
     tempPassword: 'Seu@24BST001',
     phone: '+94 78 666 7788',
     status: 'Active',
     welfare: 'Bursary Ordinary',
-    specialization: 'Pending Specialization',
+    specialization: 'Core Curriculum',
     repeatModules: []
   }
 ];

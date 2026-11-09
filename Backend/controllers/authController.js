@@ -4,7 +4,7 @@ const { uploadImageBuffer } = require('../config/cloudinary');
 const { signToken } = require('../middleware/auth');
 const { verifyPassword, hashPassword, isHashed } = require('../utils/password');
 const { normalizeRole, deptCode } = require('../utils/roles');
-const { getCurriculumBySemester } = require('../config/curriculumTimetables');
+const { getCurriculumBySemester, resolveStudentSemester, resolveStudentSpecialization } = require('../config/curriculumTimetables');
 const Subject = require('../models/Subject');
 
 const publicUser = (user) => ({
@@ -45,8 +45,18 @@ async function buildUserResponse(user) {
     }
   }
 
-  const effectiveSem = studentDoc?.currentSemester || user.semester || 'Year 1 Semester 1';
+  const regNo = user.regNo || (studentDoc && studentDoc.studentId) || '';
+  const effectiveBatch = studentDoc?.batch || user.batch || (/(?:^|[\/_])24[\/_]?/i.test(regNo) ? 'Batch 05 (2024/2025)' : '2025/2026');
+  const rawSem = studentDoc?.currentSemester || user.semester;
+  const effectiveSem = resolveStudentSemester(rawSem, regNo, effectiveBatch);
   const cur = getCurriculumBySemester(effectiveSem);
+  const isFresh = cur.isFreshers || (effectiveSem.includes('Year 1') && !effectiveSem.includes('Semester 2'));
+  const effectiveSpec = resolveStudentSpecialization(
+    studentDoc?.specialization || user.specialization,
+    effectiveSem,
+    regNo,
+    user.department || studentDoc?.department
+  );
 
   let dbSubjects = [];
   try {
@@ -57,14 +67,16 @@ async function buildUserResponse(user) {
 
   return {
     ...base,
-    semester: studentDoc?.currentSemester || user.semester || cur.semester,
-    batch: studentDoc?.batch || user.batch || '2025/2026',
-    sgpa: cur.isFreshers ? null : (studentDoc?.gpaCgpa?.currentSgpa ?? cur.defaultSgpa),
-    cgpa: cur.isFreshers ? null : (studentDoc?.gpaCgpa?.cgpa ?? cur.defaultCgpa),
-    credits: cur.isFreshers ? 0 : (studentDoc?.gpaCgpa?.totalCreditsEarned ?? cur.totalCredits),
-    attendance: studentDoc?.attendance?.overallAttendancePercentage ?? (cur.isFreshers ? null : 100),
+    specialization: effectiveSpec,
+    isFreshers: isFresh,
+    semester: cur.semester,
+    batch: effectiveBatch,
+    sgpa: isFresh ? null : (studentDoc?.gpaCgpa?.currentSgpa ?? cur.defaultSgpa),
+    cgpa: isFresh ? null : (studentDoc?.gpaCgpa?.cgpa ?? cur.defaultCgpa),
+    credits: isFresh ? 0 : (studentDoc?.gpaCgpa?.totalCreditsEarned ?? cur.totalCredits),
+    attendance: isFresh ? null : (studentDoc?.attendance?.overallAttendancePercentage ?? 100),
     progressionData: cur.progressionData || [],
-    enrolledCourses: (studentDoc?.semesterRegistrations?.[0]?.courses?.length > 0)
+    enrolledCourses: (studentDoc?.semesterRegistrations?.[0]?.courses?.length > 0 && !isFresh)
       ? studentDoc.semesterRegistrations[0].courses
       : finalSubjects.map(s => ({
           courseCode: s.code,
@@ -81,8 +93,7 @@ async function buildUserResponse(user) {
     timetable: cur.timetableSlots,
     matrixColumns: cur.matrixColumns,
     matrixDailyRows: cur.matrixDailyRows,
-    examModules: cur.examModules,
-    progressionData: cur.progressionData
+    examModules: cur.examModules
   };
 }
 

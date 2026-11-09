@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../src/services/api.js';
+import { resolveStudentSemester, resolveStudentSpecialization } from '../../src/services/curriculumData.js';
 import './academic_profile.css';
 
 export default function AcademicProfile({ user, onProfileUpdate }) {
@@ -11,11 +12,14 @@ export default function AcademicProfile({ user, onProfileUpdate }) {
   const degreeProgramme = user?.degreeProgramme || user?.programme || 'BICT (Hons)';
   const faculty = user?.faculty || 'Faculty of Technology';
   const department = user?.department || 'Department of Information and Communication Technology';
-  const semester = user?.semester || user?.currentSemester || 'Year 1 Semester 1';
+  const effectiveSem = resolveStudentSemester(user?.semester || user?.currentSemester, registrationNumber, user?.batch);
+  const effectiveSpec = resolveStudentSpecialization(user?.specialization, effectiveSem, registrationNumber, department);
+  const is1stOr2ndYear = effectiveSem.includes('Year 1') || effectiveSem.includes('Year 2');
+  const semester = effectiveSem;
 
   // Editable Form Fields
   const [phone, setPhone] = useState(user?.phone || '');
-  const [specialization, setSpecialization] = useState(user?.specialization || 'Software Technology');
+  const [specialization, setSpecialization] = useState(effectiveSpec);
   const [address, setAddress] = useState(
     user?.address || 'Faculty of Technology, SEUSL'
   );
@@ -267,10 +271,16 @@ export default function AcademicProfile({ user, onProfileUpdate }) {
                 value={specialization}
                 onChange={(e) => setSpecialization(e.target.value)}
               >
-                <option value="Software Systems">Software Systems</option>
-                <option value="Network & Cloud Infrastructure">Network & Cloud Infrastructure</option>
-                <option value="Multimedia & Web Technologies">Multimedia & Web Technologies</option>
-                <option value="Data Engineering">Data Engineering</option>
+                {is1stOr2ndYear ? (
+                  <option value="Core Curriculum">Core Curriculum (General — 1st &amp; 2nd Year)</option>
+                ) : (
+                  <>
+                    <option value="Software Systems">Software Systems</option>
+                    <option value="Network & Cloud Infrastructure">Network &amp; Cloud Infrastructure</option>
+                    <option value="Multimedia & Web Technologies">Multimedia &amp; Web Technologies</option>
+                    <option value="Data Engineering">Data Engineering</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
