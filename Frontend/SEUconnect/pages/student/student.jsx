@@ -15,7 +15,8 @@ import FacultyForms from './faculty_forms.jsx';
 import StudentNotifications from './notifications.jsx';
 import ApplicationTracker from './application_tracker.jsx';
 import StudentPenalties from './penalties_disciplinary.jsx';
-import { getCurriculumBySemester, normalizeSemester } from '../../src/services/curriculumData.js';
+import api from '../../src/services/api.js';
+import { getCurriculumBySemester, normalizeSemester, resolveStudentSemester, resolveStudentSpecialization } from '../../src/services/curriculumData.js';
 import './student.css';
 
 const safeToFixed = (val, decimals = 2, fallback = 'N/A') => {
@@ -114,6 +115,19 @@ export default function Student({ user, onLogout }) {
       setStudentUser(user);
     }
   }, [user]);
+
+  // Synchronize with backend database records on mount
+  useEffect(() => {
+    const reg = user?.regNo || user?.studentId || user?.email;
+    if (reg) {
+      api.getStudent(reg).then((res) => {
+        if (res && res.data) {
+          setStudentUser((prev) => ({ ...(prev || {}), ...res.data }));
+        }
+      }).catch(() => {});
+    }
+  }, [user?.regNo, user?.studentId, user?.email]);
+
   // A returned application the student is correcting (opens the matching form pre-filled).
   const [resubmitProcess, setResubmitProcess] = useState(null);
 
@@ -122,8 +136,29 @@ export default function Student({ user, onLogout }) {
   }, [activeTab]);
   const [searchQuery, setSearchQuery] = useState('');
   
-  const currentCurriculum = getCurriculumBySemester(studentUser?.semester || user?.semester);
-  const rawProgressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0)
+  const effectiveRegNo = studentUser?.regNo || user?.regNo || studentUser?.studentId || user?.studentId || '';
+  const effectiveBatch = studentUser?.batch || user?.batch || studentUser?.batchId || user?.batchId || '';
+  const effectiveSemester = resolveStudentSemester(
+    studentUser?.semester || user?.semester || studentUser?.currentSemester || user?.currentSemester,
+    effectiveRegNo,
+    effectiveBatch
+  );
+  const effectiveSpecialization = resolveStudentSpecialization(
+    studentUser?.specialization || user?.specialization,
+    effectiveSemester,
+    effectiveRegNo,
+    studentUser?.department || user?.department
+  );
+  const currentCurriculum = getCurriculumBySemester(effectiveSemester);
+  const enrichedUser = {
+    ...(studentUser || user || {}),
+    semester: effectiveSemester,
+    currentSemester: effectiveSemester,
+    specialization: effectiveSpecialization,
+    isFreshers: currentCurriculum?.isFreshers
+  };
+
+  const rawProgressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0 && !currentCurriculum?.isFreshers)
     ? studentUser.progressionData
     : (currentCurriculum?.progressionData || []);
 
@@ -381,7 +416,7 @@ export default function Student({ user, onLogout }) {
 
   return (
     <DashboardTemplate
-      user={studentUser || user}
+      user={enrichedUser}
       onLogout={onLogout}
       activeItem={
         activeTab === 'examination' ? 'examinations' :
@@ -400,16 +435,16 @@ export default function Student({ user, onLogout }) {
     >
       {activeTab === 'academic_profile' ? (
         <AcademicProfile
-          user={studentUser || user}
+          user={enrichedUser}
           onProfileUpdate={(updated) => setStudentUser(updated)}
         />
       ) : activeTab === 'semester_registration' ? (
         <SemesterRegistration
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'attendance' ? (
         <Attendance
-          user={studentUser || user}
+          user={enrichedUser}
           onNavigateMedical={() => {
             setActiveTab('forms_medical');
             if (typeof window !== 'undefined') {
@@ -419,7 +454,7 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'medical_requests' ? (
         <FacultyForms
-          user={studentUser || user}
+          user={enrichedUser}
           activeSubTab="forms_medical"
           resubmitProcess={resubmitProcess}
           onResubmitDone={() => {}}
@@ -432,23 +467,23 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'examinations' || activeTab === 'examination' ? (
         <StudentExamination
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'results' || activeTab === 'result' ? (
         <StudentResults
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'gpa_cgpa' || activeTab === 'gpa' ? (
         <StudentGpaCgpa
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'academic_progress' || activeTab === 'progress' ? (
         <StudentAcademicProgress
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'process_guidance' || activeTab === 'processes' ? (
         <StudentProcessGuidance
-          user={studentUser || user}
+          user={enrichedUser}
           onNavigate={(id) => {
             setActiveTab(id);
             if (typeof window !== 'undefined') {
@@ -458,11 +493,11 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'welfare_scholarships' || activeTab === 'welfare' ? (
         <StudentWelfare
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'societies_clubs' || activeTab === 'societies' ? (
         <StudentSocieties
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : activeTab === 'track_applications' ? (
         <ApplicationTracker
@@ -482,7 +517,7 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'faculty_forms' || activeTab === 'forms_all' || activeTab === 'forms_exam' || activeTab === 'forms_medical' || activeTab === 'forms_piv' || activeTab.startsWith('forms') ? (
         <FacultyForms
-          user={studentUser || user}
+          user={enrichedUser}
           activeSubTab={activeTab}
           resubmitProcess={resubmitProcess}
           onResubmitDone={() => {}}
@@ -495,7 +530,7 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'notifications' ? (
         <StudentNotifications
-          user={studentUser || user}
+          user={enrichedUser}
           onNavigate={(id) => {
             setActiveTab(id);
             if (typeof window !== 'undefined') {
@@ -505,7 +540,7 @@ export default function Student({ user, onLogout }) {
         />
       ) : activeTab === 'penalties_disciplinary' || activeTab === 'penalties' ? (
         <StudentPenalties
-          user={studentUser || user}
+          user={enrichedUser}
         />
       ) : (
         <div className="std-dashboard-container">
@@ -586,19 +621,15 @@ export default function Student({ user, onLogout }) {
               <div className="std-stat-top-row">
                 <span className="std-stat-title">ATTENDANCE STANDING</span>
                 <span className="std-stat-badge">
-                  {currentCurriculum.isFreshers || studentUser?.attendance === null || studentUser?.attendance === undefined
+                  {currentCurriculum.isFreshers
                     ? 'Enrolled'
-                    : Number(studentUser.attendance) >= 80 ? 'Eligible' : 'At Risk'}
+                    : Number(studentUser?.attendance ?? 100) >= 80 ? 'Eligible' : 'At Risk'}
                 </span>
               </div>
               <div className="std-stat-number">
-                {currentCurriculum.isFreshers
-                  ? (studentUser?.attendance !== undefined && studentUser?.attendance !== null && Number(studentUser.attendance) > 0 && Number(studentUser.attendance) !== 92.5
-                      ? `${studentUser.attendance}%`
-                      : 'N/A')
-                  : (studentUser?.attendance !== undefined && studentUser?.attendance !== null
-                      ? `${studentUser.attendance}%`
-                      : '100%')}
+                {studentUser?.attendance !== undefined && studentUser?.attendance !== null && Number(studentUser.attendance) >= 0
+                  ? `${studentUser.attendance}%`
+                  : '100%'}
               </div>
               <div className="std-stat-target">
                 {currentCurriculum.isFreshers ? 'Lectures in Progress' : 'ESA Minimum: 80%'}
