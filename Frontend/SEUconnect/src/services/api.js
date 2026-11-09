@@ -4,6 +4,8 @@
  * Every request carries the signed-in user's JWT; the backend decides what that user may see and do.
  */
 
+import { resolveStudentSemester, resolveStudentSpecialization } from './curriculumData.js';
+
 const rawApiUrl = (import.meta.env?.VITE_API_URL || '').trim();
 const API_BASE_URL = (() => {
   if (rawApiUrl) {
@@ -29,7 +31,9 @@ export const authToken = {
             token = parsed.token || `session-token-${role}-${Date.now()}`;
             window.localStorage.setItem(TOKEN_KEY, token);
             window.sessionStorage.setItem(TOKEN_KEY, token);
-          } catch {}
+          } catch {
+            /* ignore JSON parse failure */
+          }
         }
       }
       return token;
@@ -132,7 +136,7 @@ export const enrolledStorage = {
         return true;
       }
       return false;
-    } catch (e) {
+    } catch {
       return false;
     }
   },
@@ -154,7 +158,7 @@ export const enrolledStorage = {
         return true;
       }
       return false;
-    } catch (e) {
+    } catch {
       return false;
     }
   },
@@ -176,7 +180,7 @@ export const enrolledStorage = {
         return list[idx];
       }
       return null;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -292,7 +296,9 @@ export const penaltyStorage = {
         if (notes) item.clearanceNotes = notes;
         localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
       }
-    } catch {}
+    } catch {
+      /* ignore storage error */
+    }
   }
 };
 
@@ -384,30 +390,49 @@ export const api = {
       if (err.network || err.status === 401 || err.status === 404) {
         const localStudent = enrolledStorage.find(emailOrRegNo);
         if (localStudent && (localStudent.tempPassword === password || localStudent.password === password || password === '123456' || password === 'Pass' || password.startsWith('Seu@'))) {
+          const effectiveReg = localStudent.regNo || localStudent.studentId || emailOrRegNo;
+          const effectiveSemester = resolveStudentSemester(
+            localStudent.semester || localStudent.currentSemester,
+            effectiveReg,
+            localStudent.batch || localStudent.batchId
+          );
+          const effectiveSpec = resolveStudentSpecialization(
+            localStudent.specialization,
+            effectiveSemester,
+            effectiveReg,
+            localStudent.department
+          );
+          const isFresh = effectiveSemester.includes('Year 1') && !effectiveSemester.includes('Semester 2');
+
           // Sync student record to backend in background so MongoDB stays populated
           request('/student', json('POST', {
             ...localStudent,
+            semester: effectiveSemester,
+            currentSemester: effectiveSemester,
+            specialization: effectiveSpec,
             tempPassword: localStudent.tempPassword || password
           })).catch(() => {});
 
           const simulatedUser = {
-            id: localStudent.id || `stu-${localStudent.regNo}`,
+            id: localStudent.id || `stu-${effectiveReg}`,
             name: localStudent.name || localStudent.fullName,
             email: localStudent.email,
             role: 'student',
             roleKey: 'student',
-            regNo: localStudent.regNo || localStudent.studentId,
+            regNo: effectiveReg,
             department: localStudent.department || 'Department of Information & Communication Technology',
             faculty: 'Faculty of Technology',
             programme: localStudent.programme || localStudent.degreeProgramme || 'BICT (Hons)',
-            semester: localStudent.semester || localStudent.currentSemester || 'Semester 1',
+            semester: effectiveSemester,
+            currentSemester: effectiveSemester,
             designation: 'Undergraduate',
             avatarInitial: (localStudent.name || localStudent.fullName || 'ST').split(' ').map(n=>n[0]).join('').slice(0, 2).toUpperCase(),
-            sgpa: localStudent.sgpa !== undefined ? localStudent.sgpa : (localStudent.semester?.includes('1') && !localStudent.semester?.includes('2') ? null : 0.00),
-            cgpa: localStudent.cgpa !== undefined ? localStudent.cgpa : (localStudent.semester?.includes('1') && !localStudent.semester?.includes('2') ? null : 0.00),
-            credits: localStudent.credits || 0,
-            attendance: localStudent.attendance || 100,
-            specialization: localStudent.specialization || (localStudent.department?.includes('Bio') ? 'Bio-Processing Technology' : 'Software Technology')
+            sgpa: isFresh ? null : (localStudent.sgpa !== undefined ? localStudent.sgpa : 0.00),
+            cgpa: isFresh ? null : (localStudent.cgpa !== undefined ? localStudent.cgpa : 0.00),
+            credits: isFresh ? 0 : (localStudent.credits || 0),
+            attendance: localStudent.attendance !== undefined && localStudent.attendance !== null ? localStudent.attendance : 100,
+            specialization: effectiveSpec,
+            isFreshers: isFresh
           };
           authToken.set(`local-jwt-${Date.now()}`);
           return { success: true, user: simulatedUser, token: authToken.get() };
@@ -450,7 +475,6 @@ export const api = {
   },
   hasSession: () => Boolean(authToken.get()),
   getMe: () => request('/auth/me'),
-  getUsers: () => request('/auth/users'),
   // Staff directory, e.g. getDirectory({ role: 'lecturer', department }) for the lecturer picker.
   getDirectory: (params = {}) => request(`/auth/directory${qs(params)}`),
   uploadProfilePhoto: async (file) => {
@@ -646,7 +670,7 @@ export const api = {
         },
         body: formData
       });
-    } catch (networkErr) {
+    } catch {
       const err = new Error('Cannot reach backend server. Please verify the backend is running.');
       err.network = true;
       throw err;
@@ -663,7 +687,6 @@ export const api = {
   purgeAllKnowledge: () => request('/v1/knowledge/purge-all', json('POST', {})).then((b) => b.data || b),
 
   /* ------------------- Official Subjects & Curriculum (MongoDB Atlas) ------------------- */
-  getSubjects: (params = {}) => request(`/subjects${qs(params)}`).then((b) => b.data || b),
   getSemesterCurriculum: (semester) => request(`/subjects/semester/${encodeURIComponent(semester)}`).then((b) => b.data || b),
   getSubjectDetails: (code) => request(`/subjects/${encodeURIComponent(code)}`).then((b) => b.data || b),
 };

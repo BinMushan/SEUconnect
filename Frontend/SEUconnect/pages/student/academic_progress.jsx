@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getCurriculumBySemester } from '../../src/services/curriculumData.js';
+import { getCurriculumBySemester, resolveStudentSemester } from '../../src/services/curriculumData.js';
 import './academic_progress.css';
 
 // Safe number formatting helper
@@ -17,14 +17,16 @@ export default function StudentAcademicProgress({ user }) {
   const indexNo = user?.indexNo || user?.regNo || '—';
   const programme = user?.programme ? `${user.programme} (Hons)` : 'BICT (Hons)';
 
+  const effectiveSem = resolveStudentSemester(user?.semester || user?.currentSemester, regNo, user?.batch);
   const isFreshers = Boolean(
     user?.isFreshers ||
+    (effectiveSem.includes('Year 1') && !effectiveSem.includes('Semester 2')) ||
     (user?.semester || '').toLowerCase().includes('sem 1') ||
-    (user?.semester || '').toLowerCase().includes('sem 01') ||
-    (user?.semester || '').toLowerCase().includes('fresh')
+    (user?.semester || '').toLowerCase().includes('fresh') ||
+    /(?:^|[\/_])24[\/_]?/i.test(regNo)
   );
 
-  const curriculum = getCurriculumBySemester(user?.semester);
+  const curriculum = getCurriculumBySemester(effectiveSem);
   const progData = (user?.progressionData && user.progressionData.length > 0)
     ? user.progressionData
     : (curriculum?.progressionData || []);
