@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { getCurriculumBySemester } from '../../../src/services/curriculumData.js';
+import { getCurriculumBySemester, resolveStudentSemester, resolveStudentSpecialization } from '../../../src/services/curriculumData.js';
 
 const safeToFixed = (val, decimals = 2, fallback = '0.00') => {
   if (val === null || val === undefined || val === '' || val === '—' || val === 'N/A') return fallback;
@@ -230,7 +230,7 @@ export default function StudentManagement({
       indexNo: student.indexNo || student.regNo || '',
       programme: student.programme || 'BICT (Hons)',
       department: student.department || 'Department of Information & Communication Technology',
-      semester: student.semester || 'Semester 1',
+      semester: resolveStudentSemester(student.semester, student.regNo || student.studentId, student.batch || student.batchId),
       email: student.email || '',
       phone: student.phone || '',
       tempPassword: student.tempPassword || getStudentTempPassword(student),
@@ -239,16 +239,22 @@ export default function StudentManagement({
       sgpa: student.sgpa !== undefined ? student.sgpa : 0.00,
       attendance: student.attendance !== undefined ? student.attendance : 90,
       welfare: student.welfare || 'Pending Verification',
-      specialization: student.specialization || ''
+      specialization: resolveStudentSpecialization(student.specialization, student.semester, student.regNo || student.studentId, student.department)
     });
   };
 
   const handleSaveEditedStudent = (e) => {
     e.preventDefault();
     if (!editingStudent) return;
+    const targetReg = editForm.regNo || editingStudent.regNo;
+    const effectiveSem = resolveStudentSemester(editForm.semester, targetReg, editingStudent.batch || editingStudent.batchId);
+    const effectiveSpec = resolveStudentSpecialization(editForm.specialization, effectiveSem, targetReg, editForm.department);
     const updated = {
       ...editingStudent,
       ...editForm,
+      semester: effectiveSem,
+      currentSemester: effectiveSem,
+      specialization: effectiveSpec,
       cgpa: Number(editForm.cgpa) || 0,
       sgpa: Number(editForm.sgpa) || 0,
       attendance: Number(editForm.attendance) || 0
@@ -743,9 +749,12 @@ export default function StudentManagement({
     }
 
     const currentBatch = activeBatch;
-    const effectiveTempPassword = newTempPassword.trim() || getStudentTempPassword({ regNo: newRegNo.trim().toUpperCase() });
-    const cur = getCurriculumBySemester(newSemester);
-    const isFresh = cur?.isFreshers || (cur?.semester?.includes('1') && !cur?.semester?.includes('2'));
+    const effectiveReg = newRegNo.trim().toUpperCase();
+    const effectiveTempPassword = newTempPassword.trim() || getStudentTempPassword({ regNo: effectiveReg });
+    const effectiveSem = resolveStudentSemester(newSemester, effectiveReg, currentBatch.academicYear || currentBatch.name);
+    const cur = getCurriculumBySemester(effectiveSem);
+    const isFresh = cur?.isFreshers || (effectiveSem.includes('Year 1') && !effectiveSem.includes('Semester 2'));
+    const effectiveSpec = resolveStudentSpecialization('', effectiveSem, effectiveReg, newDepartment);
 
     onAddStudent({
       id: `STU-${Date.now()}`,
@@ -753,16 +762,17 @@ export default function StudentManagement({
       batchCode: currentBatch.name,
       batch: currentBatch.academicYear,
       academicYear: currentBatch.academicYear,
-      regNo: newRegNo.trim().toUpperCase(),
-      indexNo: newIndexNo.trim() || newRegNo.trim().toUpperCase(),
+      regNo: effectiveReg,
+      indexNo: newIndexNo.trim().toUpperCase() || effectiveReg,
       name: newName.trim(),
       programme: newProgramme,
       department: newDepartment,
       semester: cur.semester,
+      currentSemester: cur.semester,
       cgpa: isFresh ? null : cur.defaultCgpa,
       sgpa: isFresh ? null : cur.defaultSgpa,
       credits: isFresh ? 0 : cur.totalCredits,
-      attendance: isFresh ? null : 100,
+      attendance: isFresh ? 100 : 100,
       enrolledCourses: cur.subjects,
       timetable: cur.timetableSlots,
       examModules: cur.examModules,
@@ -772,7 +782,8 @@ export default function StudentManagement({
       phone: newPhone.trim() || '+94 77 000 0000',
       status: 'Active',
       welfare: 'Pending Verification',
-      specialization: newDepartment.includes('Bio') ? 'Bio-Processing Technology' : 'Software Technology',
+      specialization: effectiveSpec,
+      isFreshers: isFresh,
       repeatModules: []
     });
 
