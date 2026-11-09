@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getNavSectionsForRole, getRoleMetaData, getTimeGreeting } from './roleNavConfigs.jsx';
 import api, { localNotificationStorage } from '../../src/services/api.js';
+import { resolveStudentSemester, resolveStudentSpecialization } from '../../src/services/curriculumData.js';
 import SEUConnectAIAssistantModal from './SEUConnectAIAssistantModal.jsx';
 import './dashboard_template.css';
 
@@ -544,12 +545,16 @@ export default function DashboardTemplate({
     : (currentActive === 'dashboard' || currentActive === 'overview' || currentActive === 'home');
 
   // Role-tailored dynamic values
-  const userName = user?.name || (roleKey === 'student' ? 'M.N.M. Afnan' : 'Portal User');
-  const userEmail = user?.email || (roleKey === 'student' ? '22ict085@seu.ac.lk' : `${roleKey}@seu.ac.lk`);
-  const userRegNo = user?.regNo || '22ICT085';
-  const userProgramme = user?.programme || 'BICT';
-  const userSemester = user?.semester || 'Semester 05';
-  const userSpecialization = user?.specialization || 'Software Systems';
+  const userName = user?.name || (roleKey === 'student' ? 'Undergraduate Student' : 'Portal User');
+  const userRegNo = user?.regNo || user?.studentId || (roleKey === 'student' ? '24ICT001' : '');
+  const userEmail = user?.email || (roleKey === 'student' ? `${userRegNo.toLowerCase().replace(/[^a-z0-9]/g, '')}@seu.ac.lk` : `${roleKey}@seu.ac.lk`);
+  const userProgramme = user?.programme || user?.degreeProgramme || 'BICT (Hons)';
+  const userSemester = roleKey === 'student' 
+    ? resolveStudentSemester(user?.semester || user?.currentSemester, userRegNo, user?.batch)
+    : (user?.semester || 'Semester 05');
+  const userSpecialization = roleKey === 'student'
+    ? resolveStudentSpecialization(user?.specialization, userSemester, userRegNo, user?.department)
+    : (user?.specialization || 'Software Systems');
   const userRole = (user?.role ? user.role : (roleMeta.rolePill || 'STUDENT')).toUpperCase();
   const greeting = greetingText || roleMeta.greeting || `${getTimeGreeting()}, ${userName}`;
   const effectiveFacultyPill = facultyPillText || roleMeta.facultyPill || 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY';

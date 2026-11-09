@@ -1,5 +1,6 @@
 import React from 'react';
 import { workflowNavItem, notificationNavItem } from '../workflow/workflowNav.jsx';
+import { resolveStudentSemester, resolveStudentSpecialization } from '../../src/services/curriculumData.js';
 
 /**
  * Common SVG Icons for Navigation Items
@@ -629,15 +630,18 @@ export function getRoleMetaData(user) {
       };
     case 'student':
     default:
+      const reg = user?.regNo || user?.studentId || '24ICT001';
+      const effSem = resolveStudentSemester(user?.semester || user?.currentSemester, reg, user?.batch);
+      const effSpec = resolveStudentSpecialization(user?.specialization, effSem, reg, user?.department);
       return {
         rolePill: 'STU',
-        greeting: `${getTimeGreeting()}, ${user?.name || 'M.N.M. Afnan'}`,
+        greeting: `${getTimeGreeting()}, ${user?.name || user?.fullName || 'Undergraduate Student'}`,
         facultyPill: 'SOUTH EASTERN UNIVERSITY OF SRI LANKA • FACULTY OF TECHNOLOGY',
         metaItems: [
-          { label: 'Reg No:', value: user?.regNo || user?.studentId || '22ICT085' },
+          { label: 'Reg No:', value: reg },
           { label: 'Programme:', value: user?.programme || user?.degreeProgramme || 'BICT (Hons)' },
-          { label: 'Current:', value: user?.semester || user?.currentSemester || 'Semester 05' },
-          { label: 'Specialization:', value: user?.specialization || 'Software Systems' },
+          { label: 'Current:', value: effSem },
+          { label: 'Specialization:', value: effSpec },
         ],
       };
   }
