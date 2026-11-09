@@ -11,6 +11,7 @@ const loginLimiter = rateLimit({
   limit: Number(process.env.LOGIN_RATE_LIMIT || 30),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   skip: () => process.env.NODE_ENV === 'test',
   message: { success: false, message: 'Too many login attempts. Please wait and try again.', error: { code: 'RATE_LIMITED' } },
 });
