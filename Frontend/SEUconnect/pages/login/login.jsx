@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import api, { authToken, enrolledStorage, provisionedUserStorage } from '../../src/services/api.js';
+import { resolveStudentSemester, resolveStudentSpecialization } from '../../src/services/curriculumData.js';
 import './login.css';
 
 /**
@@ -260,24 +261,39 @@ export default function Login({ onLoginSuccess }) {
         // 1. Check local enrolled student database (enrolled from Admin)
         const localStudent = enrolledStorage.find(trimmedIdentifier);
         if (localStudent && (localStudent.tempPassword === password || localStudent.password === password || password === '123456')) {
+          const effectiveReg = localStudent.regNo || localStudent.studentId || trimmedIdentifier;
+          const effectiveSemester = resolveStudentSemester(
+            localStudent.semester || localStudent.currentSemester,
+            effectiveReg,
+            localStudent.batch || localStudent.batchId
+          );
+          const effectiveSpec = resolveStudentSpecialization(
+            localStudent.specialization,
+            effectiveSemester,
+            effectiveReg,
+            localStudent.department
+          );
+          const isFresh = effectiveSemester.includes('Year 1') && !effectiveSemester.includes('Semester 2');
           loggedUser = {
-            id: localStudent.id || `stu-${localStudent.regNo}`,
+            id: localStudent.id || `stu-${effectiveReg}`,
             name: localStudent.name || localStudent.fullName,
             email: localStudent.email,
             role: 'Student',
             roleKey: 'student',
-            regNo: localStudent.regNo || localStudent.studentId,
+            regNo: effectiveReg,
             department: localStudent.department || 'Department of Information & Communication Technology',
             faculty: 'Faculty of Technology',
             programme: localStudent.programme || localStudent.degreeProgramme || 'BICT (Hons)',
-            semester: localStudent.semester || localStudent.currentSemester || 'Semester 1',
+            semester: effectiveSemester,
+            currentSemester: effectiveSemester,
             designation: 'Undergraduate',
             avatarInitial: (localStudent.name || localStudent.fullName || 'ST').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
-            sgpa: localStudent.sgpa || 0.00,
-            cgpa: localStudent.cgpa || 0.00,
-            credits: localStudent.credits || 0,
-            attendance: localStudent.attendance || 100,
-            specialization: localStudent.specialization || (localStudent.department?.includes('Bio') ? 'Bio-Processing Technology' : 'Software Technology')
+            sgpa: isFresh ? null : (localStudent.sgpa || 0.00),
+            cgpa: isFresh ? null : (localStudent.cgpa || 0.00),
+            credits: isFresh ? 0 : (localStudent.credits || 0),
+            attendance: localStudent.attendance !== undefined && localStudent.attendance !== null ? localStudent.attendance : 100,
+            specialization: effectiveSpec,
+            isFreshers: isFresh
           };
         } else {
           // 2. Check local provisioned staff/admin users (provisioned from Admin)
