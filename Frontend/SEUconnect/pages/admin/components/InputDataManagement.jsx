@@ -409,6 +409,30 @@ export default function InputDataManagement({ onShowToast, onAddAuditLog }) {
     if (onAddAuditLog) onAddAuditLog('Deleted RAG Knowledge Source', `Removed ${target?.fileName}`);
   };
 
+  // Completely purge all uploaded RAG knowledge, chunks, and past conversations from MongoDB
+  const [isPurging, setIsPurging] = useState(false);
+  const handlePurgeAllKnowledge = async () => {
+    if (!window.confirm('⚠️ Are you sure you want to completely purge all uploaded RAG documents, handbooks, and indexed vector chunks from MongoDB? You can re-upload your fresh documents immediately after.')) {
+      return;
+    }
+
+    setIsPurging(true);
+    try {
+      const res = await api.purgeAllKnowledge();
+      try {
+        localStorage.removeItem('seuconnect_handbook_sources');
+      } catch (_) {}
+      setSources(INITIAL_RAG_SOURCES);
+      if (onShowToast) onShowToast(res.message || 'RAG knowledge base successfully purged from MongoDB.');
+      if (onAddAuditLog) onAddAuditLog('Purged RAG Knowledge Base', 'All uploaded documents and chunks removed from MongoDB.');
+    } catch (err) {
+      console.warn('Purge error:', err.message);
+      if (onShowToast) onShowToast(`Failed to purge knowledge base: ${err.message}`);
+    } finally {
+      setIsPurging(false);
+    }
+  };
+
   // Trigger vector DB full re-sync with MongoDB Atlas
   const handleSyncVectorDB = async () => {
     setIsSyncing(true);
@@ -543,7 +567,22 @@ export default function InputDataManagement({ onShowToast, onAddAuditLog }) {
           </p>
         </div>
 
-        <div className="rag-header-actions">
+        <div className="rag-header-actions" style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            className="rag-btn-sync"
+            style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}
+            onClick={handlePurgeAllKnowledge}
+            disabled={isPurging}
+            title="Purge all uploaded documents, handbooks, and vector chunks from MongoDB"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            {isPurging ? 'Purging...' : 'Purge RAG Database'}
+          </button>
+
           <button
             type="button"
             className={`rag-btn-sync ${isSyncing ? 'spinning' : ''}`}
