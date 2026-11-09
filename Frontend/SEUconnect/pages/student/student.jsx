@@ -120,11 +120,14 @@ export default function Student({ user, onLogout }) {
   useEffect(() => {
     const reg = user?.regNo || user?.studentId || user?.email;
     if (reg) {
-      api.getStudent(reg).then((res) => {
-        if (res && res.data) {
-          setStudentUser((prev) => ({ ...(prev || {}), ...res.data }));
-        }
-      }).catch(() => {});
+      const fetchStudent = (typeof api?.getStudent === 'function' ? api.getStudent : api?.getStudentRecord);
+      if (typeof fetchStudent === 'function') {
+        fetchStudent(reg).then((res) => {
+          if (res && res.data) {
+            setStudentUser((prev) => ({ ...(prev || {}), ...res.data }));
+          }
+        }).catch(() => {});
+      }
     }
   }, [user?.regNo, user?.studentId, user?.email]);
 
@@ -150,15 +153,17 @@ export default function Student({ user, onLogout }) {
     studentUser?.department || user?.department
   );
   const currentCurriculum = getCurriculumBySemester(effectiveSemester);
+  const isFreshers = Boolean(currentCurriculum?.isFreshers || effectiveSemester === 'Year 1 Semester 1');
   const enrichedUser = {
     ...(studentUser || user || {}),
     semester: effectiveSemester,
     currentSemester: effectiveSemester,
     specialization: effectiveSpecialization,
-    isFreshers: currentCurriculum?.isFreshers
+    isFreshers,
+    ...(isFreshers ? { sgpa: null, cgpa: null } : {})
   };
 
-  const rawProgressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0 && !currentCurriculum?.isFreshers)
+  const rawProgressionData = (studentUser?.progressionData && studentUser.progressionData.length > 0 && !isFreshers)
     ? studentUser.progressionData
     : (currentCurriculum?.progressionData || []);
 
@@ -563,12 +568,12 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">{currentCurriculum.semesterLabel}</span>
               </div>
               <div className="std-stat-number">
-                {currentCurriculum.isFreshers || studentUser?.sgpa === null || (studentUser?.sgpa === undefined && currentCurriculum?.defaultSgpa === null)
+                {isFreshers || studentUser?.sgpa === null || (studentUser?.sgpa === undefined && currentCurriculum?.defaultSgpa === null)
                   ? 'N/A'
                   : safeToFixed(studentUser?.sgpa ?? currentCurriculum?.defaultSgpa, 2, 'N/A')}
               </div>
               <div className="std-stat-target">
-                {currentCurriculum.isFreshers ? 'Pending Semester 1 Examinations' : 'Target: First Class (≥ 3.70)'}
+                {isFreshers ? 'Pending Semester 1 Examinations' : 'Target: First Class (≥ 3.70)'}
               </div>
             </div>
           </div>
@@ -587,13 +592,13 @@ export default function Student({ user, onLogout }) {
                 <span className="std-stat-badge">Cumulative</span>
               </div>
               <div className="std-stat-number">
-                {currentCurriculum.isFreshers || studentUser?.cgpa === null || (studentUser?.cgpa === undefined && currentCurriculum?.defaultCgpa === null)
+                {isFreshers || studentUser?.cgpa === null || (studentUser?.cgpa === undefined && currentCurriculum?.defaultCgpa === null)
                   ? 'N/A'
                   : safeToFixed(studentUser?.cgpa ?? currentCurriculum?.defaultCgpa, 2, 'N/A')}
               </div>
               <div className="std-stat-target">
                 {(() => {
-                  if (currentCurriculum.isFreshers) return 'Enrolled (Freshers)';
+                  if (isFreshers) return 'Enrolled (Freshers)';
                   const val = studentUser?.cgpa !== undefined && studentUser?.cgpa !== null
                     ? Number(studentUser.cgpa)
                     : currentCurriculum?.defaultCgpa !== undefined && currentCurriculum?.defaultCgpa !== null
