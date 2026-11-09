@@ -5,6 +5,73 @@
  * to its curriculum subjects, weekly lecture/lab timetables, matrix records, and exam schedules.
  */
 
+function resolveStudentSemester(sem, regNo, batch) {
+  const reg = String(regNo || '').trim();
+  const batchStr = String(batch || '').trim().toLowerCase();
+
+  // 1. Batch 2024 / 2025 (24-batch / Freshers / Batch 05)
+  if (/(?:^|[\/_])24[\/_]?(?:ICT|BST|\d)/i.test(reg) || batchStr.includes('batch-05') || batchStr.includes('batch 05') || batchStr.includes('2024/2025') || batchStr.includes('2024')) {
+    const s = String(sem || '').toLowerCase().trim();
+    if (s.includes('sem 2') || s.includes('semester 2') || s === '2') {
+      return 'Year 1 Semester 2';
+    }
+    return 'Year 1 Semester 1';
+  }
+
+  // 2. Batch 2023 / 2024 (23-batch / 2nd Year / Batch 04)
+  if (/(?:^|[\/_])23[\/_]?(?:ICT|BST|\d)/i.test(reg) || batchStr.includes('batch-04') || batchStr.includes('batch 04') || batchStr.includes('2023/2024')) {
+    const s = String(sem || '').toLowerCase().trim();
+    if (s.includes('sem 2') || s.includes('semester 4') || s.includes('sem 4') || s === '4') {
+      return 'Year 2 Semester 2';
+    }
+    return 'Year 2 Semester 1';
+  }
+
+  // 3. Batch 2022 / 2023 (22-batch / 3rd Year / Batch 03)
+  if (/(?:^|[\/_])22[\/_]?(?:ICT|BST|\d)/i.test(reg) || batchStr.includes('batch-03') || batchStr.includes('batch 03') || batchStr.includes('2022/2023')) {
+    const s = String(sem || '').toLowerCase().trim();
+    if (s.includes('sem 2') || s.includes('semester 6') || s.includes('sem 6') || s === '6') {
+      return 'Year 3 Semester 2';
+    }
+    return 'Year 3 Semester 1';
+  }
+
+  // 4. Batch 2021 / 2022 (21-batch / 4th Year / Batch 02)
+  if (/(?:^|[\/_])21[\/_]?(?:ICT|BST|\d)/i.test(reg) || batchStr.includes('batch-02') || batchStr.includes('batch 02') || batchStr.includes('2021/2022')) {
+    const s = String(sem || '').toLowerCase().trim();
+    if (s.includes('sem 2') || s.includes('semester 8') || s.includes('sem 8') || s === '8') {
+      return 'Year 4 Semester 2';
+    }
+    return 'Year 4 Semester 1';
+  }
+
+  // 5. Batch 2020 / 2021 (20-batch / Final Year / Batch 01)
+  if (/(?:^|[\/_])20[\/_]?(?:ICT|BST|\d)/i.test(reg) || batchStr.includes('batch-01') || batchStr.includes('batch 01') || batchStr.includes('2020/2021')) {
+    return 'Year 4 Semester 2';
+  }
+
+  return normalizeSemester(sem);
+}
+
+function resolveStudentSpecialization(spec, sem, regNo, dept) {
+  const effectiveSem = resolveStudentSemester(sem, regNo);
+  const is1stOr2ndYear = effectiveSem.includes('Year 1') || effectiveSem.includes('Year 2');
+  
+  if (is1stOr2ndYear) {
+    return 'Core Curriculum';
+  }
+
+  if (spec && spec.trim() && !spec.toLowerCase().includes('pending') && !spec.toLowerCase().includes('general') && spec !== 'Core Curriculum') {
+    return spec.trim();
+  }
+
+  const deptStr = String(dept || '').toLowerCase();
+  if (deptStr.includes('bio')) {
+    return 'Bio-Processing Technology';
+  }
+  return 'Software Systems';
+}
+
 function normalizeSemester(sem) {
   if (!sem) return 'Year 1 Semester 1';
   const s = String(sem).toLowerCase().trim();
@@ -2077,14 +2144,18 @@ function getAllCurriculumSubjects() {
   }));
 }
 
-function getCurriculumBySemester(semesterName) {
-  const normalized = normalizeSemester(semesterName);
+function getCurriculumBySemester(semesterName, optionalRegNo, optionalBatch) {
+  const normalized = (optionalRegNo || optionalBatch)
+    ? resolveStudentSemester(semesterName, optionalRegNo, optionalBatch)
+    : normalizeSemester(semesterName);
   return CURRICULUM_DATA[normalized] || CURRICULUM_DATA['Year 1 Semester 1'];
 }
 
 module.exports = {
   CURRICULUM_DATA,
   normalizeSemester,
+  resolveStudentSemester,
+  resolveStudentSpecialization,
   getCurriculumBySemester,
   ALL_SEMESTERS,
   mapExamYearSemToSemesterName,

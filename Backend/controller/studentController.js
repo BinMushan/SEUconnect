@@ -1,6 +1,6 @@
 const Student = require('../models/Student');
 const Subject = require('../models/Subject');
-const { getCurriculumBySemester, normalizeSemester } = require('../config/curriculumTimetables');
+const { getCurriculumBySemester, normalizeSemester, resolveStudentSemester, resolveStudentSpecialization } = require('../config/curriculumTimetables');
 
 // Helper to find student by studentId, indexNo, or MongoDB _id
 const findStudentByAnyIdentifier = async (identifier) => {
@@ -23,8 +23,10 @@ exports.getAllStudents = async (req, res) => {
     const students = await Student.find({}).sort({ createdAt: -1 }).lean();
     const formatted = students.map((s) => {
       const reg = s.studentId || s.registrationNo || s.regNo || '';
-      const cur = getCurriculumBySemester(s.currentSemester);
-      const isFresh = cur?.isFreshers || (s.currentSemester && (s.currentSemester.includes('1') && !s.currentSemester.includes('2')));
+      const effectiveSem = resolveStudentSemester(s.currentSemester, reg, s.batch || s.batchId);
+      const cur = getCurriculumBySemester(effectiveSem);
+      const isFresh = cur?.isFreshers || (effectiveSem.includes('1') && !effectiveSem.includes('2'));
+      const effectiveSpec = resolveStudentSpecialization(s.specialization, effectiveSem, reg, s.department);
       return {
         id: s._id ? s._id.toString() : (s.studentId || `stu-${Date.now()}`),
         _id: s._id,
@@ -37,12 +39,15 @@ exports.getAllStudents = async (req, res) => {
         department: s.department || 'Department of Information and Communication Technology',
         programme: s.degreeProgramme || s.programme || 'BICT (Hons)',
         degreeProgramme: s.degreeProgramme || s.programme || 'BICT (Hons)',
-        semester: s.currentSemester || s.semester || 'Year 1 Semester 1',
-        currentSemester: s.currentSemester || s.semester || 'Year 1 Semester 1',
-        batch: s.batch || '2025/2026',
-        batchId: s.batchId || s.batch || 'BATCH-05',
-        batchCode: s.batchCode || s.batch || 'Batch 05 (2024/2025)',
+        semester: cur.semester,
+        currentSemester: cur.semester,
+        batch: s.batch || (/(?:^|[\/_])24[\/_]?/i.test(reg) ? 'Batch 05 (2024/2025)' : '2025/2026'),
+        batchId: s.batchId || s.batch || (/(?:^|[\/_])24[\/_]?/i.test(reg) ? 'BATCH-05' : 'BATCH-03'),
+        batchCode: s.batchCode || s.batch || (/(?:^|[\/_])24[\/_]?/i.test(reg) ? 'Batch 05 (2024/2025)' : 'Batch 03 (2022/2023)'),
+        specialization: effectiveSpec,
+        isFreshers: isFresh,
         cgpa: isFresh ? null : (s.gpaCgpa?.cgpa !== undefined ? s.gpaCgpa.cgpa : (cur.defaultCgpa ?? null)),
+        sgpa: isFresh ? null : (s.gpaCgpa?.currentSgpa !== undefined ? s.gpaCgpa.currentSgpa : (cur.defaultSgpa ?? null)),
         sgpa: isFresh ? null : (s.gpaCgpa?.currentSgpa !== undefined ? s.gpaCgpa.currentSgpa : (cur.defaultSgpa ?? null)),
         credits: isFresh ? 0 : (s.gpaCgpa?.totalCreditsEarned !== undefined ? s.gpaCgpa.totalCreditsEarned : (cur.totalCredits ?? 0)),
         attendance: s.attendance?.overallAttendancePercentage !== undefined ? s.attendance.overallAttendancePercentage : (isFresh ? null : 100),
@@ -85,7 +90,13 @@ exports.getStudentByIdentifier = async (req, res) => {
     }
 
     const raw = student.toObject ? student.toObject() : { ...student };
-    const cur = getCurriculumBySemester(raw.currentSemester);
+    const regNo = raw.studentId || raw.registrationNo || raw.regNo || req.params.identifier;
+    const effectiveSemester = resolveStudentSemester(raw.currentSemester, regNo, raw.batch || raw.batchId);
+    const cur = getCurriculumBySemester(effectiveSemester);
+    const effectiveSpec = resolveStudentSpecialization(raw.specialization, effectiveSemester, regNo, raw.department);
+    raw.currentSemester = cur.semester;
+    raw.semester = cur.semester;
+    raw.specialization = effectiveSpec;
 
     let dbSubjects = [];
     try {
@@ -233,8 +244,9 @@ exports.createStudent = async (req, res) => {
     const effectiveIndex = (indexNo || effectiveId).trim().toUpperCase();
     const effectiveProgramme = degreeProgramme || programme || 'BICT (Hons)';
     const effectiveDepartment = department || 'Department of Information and Communication Technology';
-    const effectiveSemester = currentSemester || semester || 'Semester 1';
+    const effectiveSemester = resolveStudentSemester(currentSemester || semester, effectiveId, batch || batchId);
     const rawPassword = tempPassword || password || '123456';
+    const effectiveSpec = resolveStudentSpecialization(req.body.specialization, effectiveSemester, effectiveId, effectiveDepartment);
 
     if (!effectiveId || !effectiveEmail || !effectiveName) {
       return res.status(400).json({
@@ -257,7 +269,8 @@ exports.createStudent = async (req, res) => {
       department: effectiveDepartment,
       faculty: 'Faculty of Technology',
       programme: effectiveProgramme,
-      semester: effectiveSemester,
+      semester: cur.semester,
+      specialization: effectiveSpec,
       designation: 'Undergraduate',
       avatarInitial: effectiveName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'ST',
       status: 'active'
@@ -419,8 +432,10 @@ exports.createStudentsBulk = async (req, res) => {
       const effectiveIndex = (s.indexNo || effectiveId).trim().toUpperCase();
       const effectiveProgramme = s.degreeProgramme || s.programme || 'BICT (Hons)';
       const effectiveDepartment = s.department || 'Department of Information and Communication Technology';
-      const effectiveSemester = s.currentSemester || s.semester || 'Semester 1';
+      const effectiveSemester = resolveStudentSemester(s.currentSemester || s.semester, effectiveId, s.batch || s.batchId);
       const rawPassword = s.tempPassword || s.password || '123456';
+      const cur = getCurriculumBySemester(effectiveSemester);
+      const effectiveSpec = resolveStudentSpecialization(s.specialization, effectiveSemester, effectiveId, effectiveDepartment);
 
       if (!effectiveId || !effectiveEmail) continue;
 
@@ -434,7 +449,8 @@ exports.createStudentsBulk = async (req, res) => {
         department: effectiveDepartment,
         faculty: 'Faculty of Technology',
         programme: effectiveProgramme,
-        semester: effectiveSemester,
+        semester: cur.semester,
+        specialization: effectiveSpec,
         designation: 'Undergraduate',
         avatarInitial: (effectiveName || 'ST').split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase(),
         status: 'active'
