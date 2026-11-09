@@ -12,13 +12,35 @@ import FMA from '../pages/fma/fma.jsx';
 import DeptMA from '../pages/dept_ma/dept_ma.jsx';
 import RoleSwitcherBar from '../components/workflow/RoleSwitcherBar.jsx';
 import api, { authToken } from './services/api.js';
+import { resolveStudentSemester, resolveStudentSpecialization } from './services/curriculumData.js';
 
 const USER_KEY = 'seuconnect_user';
 const ROLE_KEYS = ['student', 'lecturer', 'hod', 'sar', 'dean', 'admin', 'superadmin', 'examination', 'fma', 'dept_ma', 'department_ma'];
 
 const readStoredUser = () => {
   try {
-    return JSON.parse(window.sessionStorage.getItem(USER_KEY) || 'null');
+    const raw = window.sessionStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    const u = JSON.parse(raw);
+    if (u && (u.roleKey === 'student' || u.role === 'student' || u.regNo || u.studentId)) {
+      const reg = u.regNo || u.studentId || '';
+      const resolvedSem = resolveStudentSemester(u.semester || u.currentSemester, reg, u.batch || u.batchId);
+      const resolvedSpec = resolveStudentSpecialization(u.specialization, resolvedSem, reg, u.department);
+      u.semester = resolvedSem;
+      u.currentSemester = resolvedSem;
+      u.specialization = resolvedSpec;
+      if (resolvedSem === 'Year 1 Semester 1') {
+        u.sgpa = null;
+        u.cgpa = null;
+        u.isFreshers = true;
+      }
+      try {
+        window.sessionStorage.setItem(USER_KEY, JSON.stringify(u));
+      } catch {
+        /* ignore */
+      }
+    }
+    return u;
   } catch {
     return null;
   }

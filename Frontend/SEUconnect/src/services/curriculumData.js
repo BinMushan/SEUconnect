@@ -12,7 +12,7 @@ export function resolveStudentSemester(sem, regNo, batch) {
   // 1. Batch 2024 / 2025 (24-batch / Freshers / Batch 05)
   if (/(?:^|[\/_])24[\/_]?(?:ICT|BST|\d)/i.test(reg) || batchStr.includes('batch-05') || batchStr.includes('batch 05') || batchStr.includes('2024/2025') || batchStr.includes('2024')) {
     const s = String(sem || '').toLowerCase().trim();
-    if (s.includes('sem 2') || s.includes('semester 2') || s === '2') {
+    if (s.includes('year 1 sem 2') || s.includes('year 1 semester 2') || (s.includes('semester 2') && !s.includes('year 2') && !s.includes('year 3') && !s.includes('year 4'))) {
       return 'Year 1 Semester 2';
     }
     return 'Year 1 Semester 1';
