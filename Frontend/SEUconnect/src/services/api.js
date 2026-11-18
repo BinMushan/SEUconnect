@@ -741,6 +741,10 @@ export const api = {
   /* ------------------- Official Subjects & Curriculum (MongoDB Atlas) ------------------- */
   getSemesterCurriculum: (semester) => request(`/subjects/semester/${encodeURIComponent(semester)}`).then((b) => b.data || b),
   getSubjectDetails: (code) => request(`/subjects/${encodeURIComponent(code)}`).then((b) => b.data || b),
+
+  /* ------------------- System Settings & Governance ------------------- */
+  getSystemSettings: () => request('/v1/settings').then((b) => b.data || b),
+  updateSystemSetting: (key, value, reason) => request(`/v1/settings/${encodeURIComponent(key)}`, json('PUT', { value, reason })).then((b) => b.data || b),
 };
 
 export default api;
