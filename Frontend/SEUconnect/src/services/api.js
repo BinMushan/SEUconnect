@@ -294,10 +294,21 @@ export const penaltyStorage = {
       if (item) {
         item.status = status;
         if (notes) item.clearanceNotes = notes;
+        item.clearedDate = status === 'Cleared' ? new Date().toISOString().split('T')[0] : null;
         localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
       }
     } catch {
       /* ignore storage error */
+    }
+  },
+  remove: (id) => {
+    try {
+      let list = penaltyStorage.getAll();
+      list = list.filter((p) => p.id !== id);
+      localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
+      return true;
+    } catch {
+      return false;
     }
   }
 };
@@ -741,6 +752,10 @@ export const api = {
   /* ------------------- Official Subjects & Curriculum (MongoDB Atlas) ------------------- */
   getSemesterCurriculum: (semester) => request(`/subjects/semester/${encodeURIComponent(semester)}`).then((b) => b.data || b),
   getSubjectDetails: (code) => request(`/subjects/${encodeURIComponent(code)}`).then((b) => b.data || b),
+
+  /* ------------------- System Settings & Governance ------------------- */
+  getSystemSettings: () => request('/v1/settings').then((b) => b.data || b),
+  updateSystemSetting: (key, value, reason) => request(`/v1/settings/${encodeURIComponent(key)}`, json('PUT', { value, reason })).then((b) => b.data || b),
 };
 
 export default api;

@@ -990,13 +990,21 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 12. Clear Penalty
-  const handleClearPenalty = (id) => {
+  const handleClearPenalty = (id, notes = 'Fine payment receipt verified by Faculty Administration.') => {
     setPenalties((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: 'Cleared' } : p))
+      prev.map((p) => (p.id === id ? { ...p, status: 'Cleared', clearanceNotes: notes, clearedDate: new Date().toISOString().split('T')[0] } : p))
     );
-    penaltyStorage.updateStatus(id, 'Cleared', 'Fine payment receipt verified by Faculty Administration.');
-    addAuditLog('Cleared Disciplinary Penalty', `Fine/penalty cleared for entry ${id}.`);
-    showToast('Disciplinary record cleared.');
+    penaltyStorage.updateStatus(id, 'Cleared', notes);
+    addAuditLog('Cleared Disciplinary Penalty', `Fine/penalty cleared for entry ${id}. Notes: ${notes}`);
+    showToast('Disciplinary record cleared and good standing restored.');
+  };
+
+  // 12b. Delete Penalty
+  const handleDeletePenalty = (id) => {
+    setPenalties((prev) => prev.filter((p) => p.id !== id));
+    penaltyStorage.remove(id);
+    addAuditLog('Removed Disciplinary Record', `Deleted penalty entry ${id}.`);
+    showToast('Disciplinary record removed.');
   };
 
   // 13. Add Penalty
@@ -1822,11 +1830,13 @@ export default function Admin({ user, onLogout }) {
           examinations={examinations}
           repeatCandidates={repeatCandidates}
           onClearRepeatCandidate={handleClearRepeatCandidate}
+          batches={batches}
         />
       )}
 
       {currentSection === 'results_progress' && (
         <ResultsManagement
+          batches={batches}
           students={students}
           onPublishResults={handlePublishResults}
         />
@@ -1880,8 +1890,10 @@ export default function Admin({ user, onLogout }) {
         <PenaltiesManagement
           penalties={penalties}
           batches={batches}
+          students={students}
           onClearPenalty={handleClearPenalty}
           onAddPenalty={handleAddPenalty}
+          onDeletePenalty={handleDeletePenalty}
         />
       )}
 
@@ -1903,9 +1915,13 @@ export default function Admin({ user, onLogout }) {
 
       {currentSection === 'settings' && (
         <SettingsManagement
-          onSaveSettings={() => {
-            addAuditLog('Updated Settings', 'Faculty institutional timeline and cutoffs saved.');
-            showToast('System configuration settings saved.');
+          user={user}
+          stats={stats}
+          onShowToast={showToast}
+          onAddAuditLog={addAuditLog}
+          onSaveSettings={(newSettings) => {
+            addAuditLog('Updated Settings', `Faculty timeline cutoffs saved: ${newSettings.academicYear} (${newSettings.activeSemester}).`);
+            showToast('System configuration settings saved successfully.');
           }}
         />
       )}
