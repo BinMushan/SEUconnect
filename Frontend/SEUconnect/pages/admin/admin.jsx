@@ -31,6 +31,7 @@ import SettingsManagement from './components/SettingsManagement.jsx';
 import NotificationsManagement from './components/NotificationsManagement.jsx';
 import CourseAllocationManagement from './components/CourseAllocationManagement.jsx';
 import InputDataManagement from './components/InputDataManagement.jsx';
+import AdminProfile from './components/AdminProfile.jsx';
 
 import { INITIAL_FACULTY_FORMS } from './adminData.js';
 
@@ -1648,10 +1649,11 @@ export default function Admin({ user, onLogout }) {
 
   // Custom User details for DashboardTemplate
   const adminUser = {
-    name: user?.name || 'Faculty Admin Office',
-    email: user?.email || 'Admin@gmail.com',
-    role: 'ADMIN',
-    avatarInitial: 'AD'
+    ...user,
+    name: user?.name || 'Eng. K. Thanushan',
+    email: user?.email || 'admin@gmail.com',
+    role: user?.role || 'ADMIN',
+    avatarInitial: user?.avatarInitial || 'AD'
   };
 
   // Total pending tasks for topbar notification badge
@@ -1923,6 +1925,13 @@ export default function Admin({ user, onLogout }) {
             addAuditLog('Updated Settings', `Faculty timeline cutoffs saved: ${newSettings.academicYear} (${newSettings.activeSemester}).`);
             showToast('System configuration settings saved successfully.');
           }}
+        />
+      )}
+
+      {(currentSection === 'academic_profile' || currentSection === 'profile') && (
+        <AdminProfile
+          user={adminUser}
+          onNavigate={(id) => setCurrentSection(id)}
         />
       )}
     </DashboardTemplate>
