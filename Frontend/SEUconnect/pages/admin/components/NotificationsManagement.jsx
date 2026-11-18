@@ -1,241 +1,177 @@
 import { useState, useMemo, useEffect } from 'react';
 import api, { localNotificationStorage } from '../../../src/services/api.js';
 
-/**
- * Top-level immutable initial notification dataset
- * Reflects all 61 pending faculty items across BICT & BST
- */
-const INITIAL_ADMIN_NOTIFICATIONS = [
-  {
-    id: 'NOTIF-MED-01',
-    category: 'Medicals',
-    priority: 'Urgent',
-    title: 'Emergency Medical Excuse Verification (Fracture Cast)',
-    studentName: 'T. Dinushan Weerasinghe',
-    regNo: 'SEU/IS/21/BST/032',
-    department: 'Department of Bio Systems Technology (BST)',
-    programme: 'BST (Hons)',
-    summary: 'Diagnosis: Fracture of right radius bone with cast immobilization (8 days). Attendance fell to 68%. Approval will restore attendance to 80% and grant ESA exam eligibility.',
-    meta: 'Hospital Ref: DGH/AMP/MED/1104 • District General Hospital Ampara',
-    time: '12 mins ago',
-    isRead: false,
-    actionType: 'medical',
-    targetId: 'MED-2026-015',
-    targetSection: 'attendance_medicals'
-  },
-  {
-    id: 'NOTIF-REG-01',
-    category: 'Registrations',
-    priority: 'High',
-    title: 'Course Registration Exceeding Credit Threshold (>22 Credits)',
-    studentName: 'T. Ketheeswaran',
-    regNo: 'SEU/IS/21/BST/034',
-    department: 'Department of Bio Systems Technology (BST)',
-    programme: 'BST (Hons)',
-    summary: 'Undergraduate has registered for 23 academic credits in Semester 6 (Limit is 22). Requires Head of Department (HOD) special dispensation endorsement.',
-    meta: 'App Code: REG-2024-002 • 7 Core Modules + 1 Elective',
-    time: '28 mins ago',
-    isRead: false,
-    actionType: 'registration',
-    targetId: 'REG-2024-002',
-    targetSection: 'semester_registration'
-  },
-  {
-    id: 'NOTIF-EXAM-01',
-    category: 'Examinations',
-    priority: 'Urgent',
-    title: 'Repeat Exam PIV Slip Submission Verified (Entry Clearance)',
-    studentName: 'M.R.F. Sumaiya',
-    regNo: 'SEU/IS/21/BST/042',
-    department: 'Department of Bio Systems Technology (BST)',
-    programme: 'BST (Hons)',
-    summary: 'Repeat candidate has submitted People\'s Bank Pay-In-Voucher (PIV #88391) of Rs. 500 for module BST 21013 Organic Agriculture. Awaiting Exam Branch admission slip clearance.',
-    meta: 'Reference: REP-01 • People\'s Bank Sammanthurai Branch',
-    time: '45 mins ago',
-    isRead: false,
-    actionType: 'examination',
-    targetId: 'REP-01',
-    targetSection: 'examinations'
-  },
-  {
-    id: 'NOTIF-MED-02',
-    category: 'Medicals',
-    priority: 'Urgent',
-    title: 'Dengue Fever Medical Submission (Missed Mid-Semester CA)',
-    studentName: 'K.L. Fathima Farha',
-    regNo: 'SEU/IS/22/ICT/042',
-    department: 'Department of Information & Communication Technology (BICT)',
-    programme: 'BICT (Hons)',
-    summary: 'Student was hospitalized for severe Dengue Fever (6 days). Missed ICT3102 Practical Lab Test. Medical officer certified illness; requires administrative endorsement.',
-    meta: 'Certificate Ref: MC/SEUSL/2026/892 • SEUSL Health Centre',
-    time: '1 hour ago',
-    isRead: false,
-    actionType: 'medical',
-    targetId: 'MED-2026-014',
-    targetSection: 'attendance_medicals'
-  },
-  {
-    id: 'NOTIF-REG-02',
-    category: 'Registrations',
-    priority: 'Normal',
-    title: 'Semester 5 Academic Registration Submission',
-    studentName: 'A.R. Mohamed Aslam',
-    regNo: 'SEU/IS/22/ICT/015',
-    department: 'Department of Information & Communication Technology (BICT)',
-    programme: 'BICT (Hons)',
-    summary: 'Enrolled in 21 credits across Advanced Web Architecture, Distributed DBs, Mobile Computing, and AI Fundamentals. Prerequisites verified.',
-    meta: 'App Code: REG-2024-001 • All prerequisites satisfied',
-    time: '1.5 hours ago',
-    isRead: false,
-    actionType: 'registration',
-    targetId: 'REG-2024-001',
-    targetSection: 'semester_registration'
-  },
-  {
-    id: 'NOTIF-EXAM-02',
-    category: 'Examinations',
-    priority: 'High',
-    title: 'Medical Concession Repeat Application (First Attempt Privileges)',
-    studentName: 'S. Thanushan',
-    regNo: 'SEU/IS/22/ICT/088',
-    department: 'Department of Information & Communication Technology (BICT)',
-    programme: 'BICT (Hons)',
-    summary: 'Candidate submitted approved medical certificate MC-2024-009 for Semester 2 exam absence. Requesting ESA registration with first attempt (Grade A-C) concession.',
-    meta: 'Module: ICT 12023 Object-Oriented Programming • Concession Pending',
-    time: '2 hours ago',
-    isRead: false,
-    actionType: 'examination',
-    targetId: 'REP-02',
-    targetSection: 'examinations'
-  },
-  {
-    id: 'NOTIF-MED-03',
-    category: 'Medicals',
-    priority: 'Normal',
-    title: 'Outpatient Medical Slip for Practical Lab Absence',
-    studentName: 'P. Kavindi Nilakshika',
-    regNo: 'SEU/IS/23/ICT/078',
-    department: 'Department of Information & Communication Technology (BICT)',
-    programme: 'BICT (Hons)',
-    summary: 'Acute respiratory infection treatment (3 days). Doctor recommended bed rest. Absence reported for Data Structures Lab session.',
-    meta: 'Health Centre Ref: MC/SEUSL/2026/911 • Dr. K.M. Farook',
-    time: '3 hours ago',
-    isRead: false,
-    actionType: 'medical',
-    targetId: 'MED-2026-016',
-    targetSection: 'attendance_medicals'
-  },
-  {
-    id: 'NOTIF-DIS-01',
-    category: 'Disciplinary',
-    priority: 'High',
-    title: 'Hostel Curfew Infraction & Library Textbook Fine Awaiting Recovery',
-    studentName: 'R.M. Kavinda Rathnayake',
-    regNo: 'SEU/IS/21/BST/045',
-    department: 'Department of Bio Systems Technology (BST)',
-    programme: 'BST (Hons)',
-    summary: 'Fine of Rs. 1,500 pending with Senior Proctor\'s division for overdue reference textbooks and hostel clearance. Academic results held pending settlement.',
-    meta: 'Case: PEN-01 • Senior Student Proctor Office',
-    time: '4 hours ago',
-    isRead: false,
-    actionType: 'penalty',
-    targetId: 'PEN-01',
-    targetSection: 'penalties'
-  },
-  {
-    id: 'NOTIF-REG-03',
-    category: 'Registrations',
-    priority: 'Normal',
-    title: 'Course Registration for Batch 04 (Freshers / Year 2)',
-    studentName: 'M.B.M. Bin Mushan',
-    regNo: 'SEU/IS/22/ICT/091',
-    department: 'Department of Information & Communication Technology (BICT)',
-    programme: 'BICT (Hons)',
-    summary: 'Submitted Semester 5 specialization module registration (Software Systems & Cloud Architecture). 20 credits loaded.',
-    meta: 'App Code: REG-2024-003 • Batch 03 (2022/2023)',
-    time: '5 hours ago',
-    isRead: false,
-    actionType: 'registration',
-    targetId: 'REG-2024-003',
-    targetSection: 'semester_registration'
-  },
-  {
-    id: 'NOTIF-SYS-01',
-    category: 'System',
-    priority: 'Normal',
-    title: 'Batch 05 (2024/2025) Enrollment Completed (240 Students)',
-    studentName: 'Faculty Dean & Registrar',
-    regNo: 'FACULTY-SYSTEM',
-    department: 'Dean\'s Secretariat',
-    programme: 'Faculty Wide',
-    summary: '120 BICT and 120 BST freshers enrolled across Batch 05. Initial institutional student credentials generated and synced to authentication DB.',
-    meta: 'Batch: BATCH-05 • 240 Undergraduates Provisioned',
-    time: '6 hours ago',
-    isRead: true,
-    actionType: 'system',
-    targetId: 'BATCH-05',
-    targetSection: 'student_management'
-  },
-  {
-    id: 'NOTIF-EXAM-03',
-    category: 'Examinations',
-    priority: 'Urgent',
-    title: 'End-Semester Examination Admission Card Cutoff Deadline',
-    studentName: 'Examination Branch - SEUSL',
-    regNo: 'EXAM-OFFICE',
-    department: 'Examination Branch',
-    programme: 'Faculty Wide',
-    summary: '80% Attendance Clearance lock scheduled for Friday 4:00 PM. All pending medical certificates must be finalized prior to admission card generation.',
-    meta: 'Cutoff: ESA 2026 Season • 1,200 Undergraduates Enrolled',
-    time: '8 hours ago',
-    isRead: false,
-    actionType: 'examination',
-    targetId: 'EXAM-SEASON-2026',
-    targetSection: 'examinations'
-  },
-  {
-    id: 'NOTIF-SYS-02',
-    category: 'System',
-    priority: 'Normal',
-    title: 'Dean\'s Honour List SGPA Ledger (>=3.70) Generated',
-    studentName: 'Examination Board',
-    regNo: 'SENATE-AUDIT',
-    department: 'Faculty Administration Office',
-    programme: 'BICT & BST',
-    summary: '14 Undergraduates qualified for Dean\'s List honours for the previous semester. Moderated ledger ready for Faculty Board endorsement.',
-    meta: 'Audit Reference: RES-2026-DL • Ready for Release',
-    time: '12 hours ago',
-    isRead: true,
-    actionType: 'system',
-    targetId: 'RESULTS-DEAN-LIST',
-    targetSection: 'results_progress'
-  }
-];
-
 export default function NotificationsManagement({
   stats,
+  medicals = [],
+  registrations = [],
+  repeatCandidates = [],
+  penalties = [],
   onNavigate,
   onApproveMedical,
   onRejectMedical,
   onApproveRegistration,
   onShowToast
 }) {
-  const [notifications, setNotifications] = useState(() => {
-    try {
-      const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]'));
-      const saved = localStorage.getItem('seuconnect_admin_notifications');
-      const base = saved ? JSON.parse(saved) : INITIAL_ADMIN_NOTIFICATIONS;
-      return base.filter((n) => !deleted.has(String(n.id || n._id)));
-    } catch {
-      return INITIAL_ADMIN_NOTIFICATIONS;
-    }
-  });
+  const [dbNotifications, setDbNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Synchronize live notifications from database / API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchNotifs = async () => {
+      try {
+        const res = await api.getNotifications();
+        if (isMounted && res && res.data && Array.isArray(res.data)) {
+          setDbNotifications(res.data);
+        }
+      } catch (err) {
+        console.warn('Could not fetch notifications from API:', err.message);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchNotifs();
+  }, []);
+
+  // Merge database notifications with live pending workflow items from MongoDB
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('seuconnect_admin_notifications', JSON.stringify(notifications));
-    } catch (_) {}
-  }, [notifications]);
+    const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_notif_ids') || '[]'));
+    const items = [];
+
+    // 1. Pending Medical Certificates from MongoDB
+    medicals
+      .filter((m) => m.status === 'Pending')
+      .forEach((m) => {
+        const id = `NOTIF-MED-${m.id}`;
+        if (!deleted.has(id)) {
+          items.push({
+            id,
+            category: 'Medicals',
+            priority: 'Urgent',
+            title: `Medical Excuse Verification: ${m.studentName || m.regNo}`,
+            studentName: m.studentName || 'Student',
+            regNo: m.regNo || '',
+            department: m.department || 'Faculty of Technology',
+            programme: m.programme || 'Faculty of Technology',
+            summary: `Diagnosis: ${m.diagnosis || 'Medical Certificate'} (${m.period || 'Absence'}). Attendance: ${m.attendanceBefore ?? 72}%. Endorsement required.`,
+            meta: `Ref: ${m.certificateRef || m.id} • ${m.medicalOfficer || 'Health Centre'}`,
+            time: m.submissionDate || 'Pending Action',
+            isRead: false,
+            actionType: 'medical',
+            targetId: m.id,
+            targetSection: 'attendance_medicals'
+          });
+        }
+      });
+
+    // 2. Pending Course / Add-Drop Registrations from MongoDB
+    registrations
+      .filter((r) => r.status === 'Pending')
+      .forEach((r) => {
+        const id = `NOTIF-REG-${r.id}`;
+        if (!deleted.has(id)) {
+          items.push({
+            id,
+            category: 'Registrations',
+            priority: 'High',
+            title: `Registration Approval Required: ${r.studentName || r.regNo}`,
+            studentName: r.studentName || 'Student',
+            regNo: r.regNo || '',
+            department: r.department || 'Faculty of Technology',
+            programme: r.programme || 'Faculty of Technology',
+            summary: `${r.type || 'Course Registration'} for ${r.semester || 'Current Semester'}. Modules: ${Array.isArray(r.modules) ? r.modules.join(', ') : r.modules || 'Enrolled modules'}.`,
+            meta: `App ID: ${r.id} • Total Credits: ${r.totalCredits || 15}`,
+            time: r.submissionDate || 'Pending Action',
+            isRead: false,
+            actionType: 'registration',
+            targetId: r.id,
+            targetSection: 'registration'
+          });
+        }
+      });
+
+    // 3. Pending Repeat Exam Candidates from MongoDB
+    repeatCandidates
+      .filter((c) => !c.pivSlipVerified || c.admissionStatus !== 'Cleared')
+      .forEach((c) => {
+        const id = `NOTIF-EXAM-${c.id}`;
+        if (!deleted.has(id)) {
+          items.push({
+            id,
+            category: 'Examinations',
+            priority: 'High',
+            title: `Repeat Exam Slip Verification: ${c.studentName || c.regNo}`,
+            studentName: c.studentName || 'Candidate',
+            regNo: c.regNo || '',
+            department: c.department || 'Faculty of Technology',
+            programme: c.programme || 'Faculty of Technology',
+            summary: `Repeat Application for module ${c.moduleCode || ''} (${c.moduleName || ''}) - ${c.attempt || c.attemptNumber || '2nd Attempt'}.`,
+            meta: `PIV Slip: ${c.pivNumber || c.id} • ${c.pivAmount || 'Rs. 500'}`,
+            time: c.pivDate || 'Pending Action',
+            isRead: false,
+            actionType: 'examination',
+            targetId: c.id,
+            targetSection: 'examinations'
+          });
+        }
+      });
+
+    // 4. Active Disciplinary / Penalties from Database
+    penalties
+      .filter((p) => p.status !== 'Cleared')
+      .forEach((p) => {
+        const id = `NOTIF-PEN-${p.id}`;
+        if (!deleted.has(id)) {
+          items.push({
+            id,
+            category: 'Disciplinary',
+            priority: 'Normal',
+            title: `Active Student Penalty: ${p.studentName || p.regNo}`,
+            studentName: p.studentName || 'Student',
+            regNo: p.regNo || '',
+            department: p.department || 'Faculty of Technology',
+            programme: p.batch || 'Undergraduate',
+            summary: `${p.category || 'Disciplinary Case'}: ${p.description || p.reason || 'Pending clearance'}.`,
+            meta: `Case ID: ${p.id} • Fine: ${p.amount || 'N/A'}`,
+            time: p.dateAssigned || 'Active',
+            isRead: false,
+            actionType: 'disciplinary',
+            targetId: p.id,
+            targetSection: 'penalties'
+          });
+        }
+      });
+
+    // 5. System Notifications from Backend Database API
+    dbNotifications.forEach((n) => {
+      const id = String(n._id || n.id);
+      if (!deleted.has(id)) {
+        items.push({
+          id,
+          _id: n._id,
+          category: n.category || (n.type === 'medical' ? 'Medicals' : n.type === 'registration' ? 'Registrations' : 'System'),
+          priority: n.priority || 'Normal',
+          title: n.title,
+          studentName: n.studentName || 'Institutional Notice',
+          regNo: n.trackingNumber || '',
+          department: n.department || 'Faculty Administration',
+          programme: 'Faculty of Technology',
+          summary: n.message || n.summary || '',
+          meta: `Ref: ${n.trackingNumber || id}`,
+          time: n.createdAt ? n.createdAt.split('T')[0] : 'Today',
+          isRead: !!n.isRead,
+          actionType: n.type || 'system',
+          targetId: n.relatedRequestId || id,
+          targetSection: n.targetTab || 'dashboard'
+        });
+      }
+    });
+
+    setNotifications(items);
+  }, [medicals, registrations, repeatCandidates, penalties, dbNotifications]);
 
   const [activeTab, setActiveTab] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
