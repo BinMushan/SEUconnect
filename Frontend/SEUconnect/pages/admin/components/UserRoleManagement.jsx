@@ -143,6 +143,97 @@ export const getDepartmentOptionsForRole = (role) => {
   }
 };
 
+// Institutional role identification helpers (handles both MongoDB roleKeys and display titles)
+export const isDeanUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'dean' || r === 'faculty dean' || d.includes('dean');
+};
+
+export const isHodIctUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  const dept = (u.department || '').toLowerCase();
+  const isHod = r === 'hod' || r.includes('head') || d.includes('head');
+  return isHod && (dept.includes('ict') || dept.includes('information') || dept.includes('dict') || (!dept.includes('bio') && !dept.includes('bst')));
+};
+
+export const isHodBstUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  const dept = (u.department || '').toLowerCase();
+  const isHod = r === 'hod' || r.includes('head') || d.includes('head');
+  return isHod && (dept.includes('bio') || dept.includes('bst') || dept.includes('dbst'));
+};
+
+export const isSarUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'sar' || r.includes('senior assistant registrar') || d.includes('senior assistant registrar (sar)') || (d.includes('senior assistant registrar') && !d.includes('exam'));
+};
+
+export const isExamOfficerUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  const dept = (u.department || '').toLowerCase();
+  return r === 'examination' || r === 'exam_officer' || r === 'exam' || r.includes('examination') || d.includes('examination') || dept.includes('examination branch');
+};
+
+export const isDeptMaUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'dept_ma' || r === 'department_ma' || r.includes('dept ma') || d.includes('department management assistant');
+};
+
+export const isFmaUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'fma' || r === 'faculty_ma' || r.includes('faculty management assistant') || d.includes('faculty management assistant');
+};
+
+export const isAdminUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'admin' || r === 'superadmin' || r === 'system administrator' || r === 'super admin' || d.includes('system administrator');
+};
+
+export const isLecturerUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'lecturer' || r.includes('lecturer') || r === 'demonstrator' || d.includes('lecturer');
+};
+
+export const isStudentUser = (u) => {
+  if (!u) return false;
+  const r = (u.roleKey || u.role || '').toLowerCase();
+  const d = (u.designation || '').toLowerCase();
+  return r === 'student' || r.includes('student') || d.includes('undergraduate');
+};
+
+export const formatUserRoleDisplay = (u) => {
+  if (!u) return 'User';
+  if (isDeanUser(u)) return 'Faculty Dean';
+  if (isHodIctUser(u)) return 'Head of Department (DICT)';
+  if (isHodBstUser(u)) return 'Head of Department (DBST)';
+  if (isSarUser(u)) return 'Senior Assistant Registrar (SAR)';
+  if (isExamOfficerUser(u)) return 'Examination Officer';
+  if (isDeptMaUser(u)) return 'Department Management Assistant (Dept MA)';
+  if (isFmaUser(u)) return 'Faculty Management Assistant (FMA)';
+  if (isAdminUser(u)) return 'System Administrator';
+  if (isStudentUser(u)) return 'Student';
+  if (isLecturerUser(u)) return 'Lecturer';
+  return u.role || 'User';
+};
+
 export default function UserRoleManagement({
   users,
   onAssignRole,
@@ -170,20 +261,20 @@ export default function UserRoleManagement({
   const [assignError, setAssignError] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
-  // Find leadership holders & system quota accounts
-  const currentDean = users.find((u) => u.role === 'Faculty Dean');
-  const hodIct = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('ICT') || u.department.includes('Information')));
-  const hodBst = users.find((u) => u.role === 'Head of Department (HOD)' && (u.department.includes('Biosystems') || u.department.includes('Bio') || u.department.includes('BST')));
-  const examOfficer = users.find((u) => u.role === 'Examination Officer');
-  const currentSar = users.find((u) => u.role === 'Senior Assistant Registrar (SAR)');
-  const currentDeptMa = users.find((u) => u.role === 'Department Management Assistant (Dept MA)');
-  const currentFma = users.find((u) => u.role === 'Faculty Management Assistant (FMA)');
-  const currentAdmins = users.filter((u) => u.role === 'System Administrator');
-  const lecturersCount = users.filter((u) => u.role === 'Lecturer').length;
+  // Find leadership holders & system quota accounts directly from database users
+  const currentDean = users.find(isDeanUser);
+  const hodIct = users.find(isHodIctUser);
+  const hodBst = users.find(isHodBstUser);
+  const examOfficer = users.find(isExamOfficerUser);
+  const currentSar = users.find(isSarUser);
+  const currentDeptMa = users.find(isDeptMaUser);
+  const currentFma = users.find(isFmaUser);
+  const currentAdmins = users.filter(isAdminUser);
+  const lecturersCount = users.filter((u) => isLecturerUser(u) && !isDeanUser(u) && !isHodIctUser(u) && !isHodBstUser(u)).length;
 
   const getRoleRuleNotice = (role, dept, targetUserId = null) => {
     if (role === 'Faculty Dean') {
-      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Faculty Dean');
+      const prev = users.find((u) => u.id !== targetUserId && isDeanUser(u));
       return {
         type: 'warning',
         text: `Institutional Rule (1 Dean): Appointing a new Dean will automatically step down current Dean (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
@@ -193,9 +284,8 @@ export default function UserRoleManagement({
       const isBst = dept.includes('Bio') || dept.includes('BST');
       const deptLabel = isBst ? 'BST' : 'DICT';
       const prev = users.find((u) => {
-        if (u.id === targetUserId || u.role !== 'Head of Department (HOD)') return false;
-        const uIsBst = u.department?.includes('Bio') || u.department?.includes('BST');
-        return uIsBst === isBst;
+        if (u.id === targetUserId) return false;
+        return isBst ? isHodBstUser(u) : isHodIctUser(u);
       });
       return {
         type: 'warning',
@@ -203,35 +293,35 @@ export default function UserRoleManagement({
       };
     }
     if (role === 'Senior Assistant Registrar (SAR)') {
-      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Senior Assistant Registrar (SAR)');
+      const prev = users.find((u) => u.id !== targetUserId && isSarUser(u));
       return {
         type: 'warning',
         text: `Institutional Rule (1 SAR): Appointing SAR will automatically step down current SAR (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
       };
     }
     if (role === 'Examination Officer') {
-      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Examination Officer');
+      const prev = users.find((u) => u.id !== targetUserId && isExamOfficerUser(u));
       return {
         type: 'warning',
         text: `Institutional Rule (1 Exam Officer): Appointing Examination Officer will automatically step down current officer (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
       };
     }
     if (role === 'Department Management Assistant (Dept MA)') {
-      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Department Management Assistant (Dept MA)');
+      const prev = users.find((u) => u.id !== targetUserId && isDeptMaUser(u));
       return {
         type: 'warning',
         text: `Institutional Rule (1 Dept MA): Appointing Dept MA will automatically step down current assistant (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
       };
     }
     if (role === 'Faculty Management Assistant (FMA)') {
-      const prev = users.find((u) => u.id !== targetUserId && u.role === 'Faculty Management Assistant (FMA)');
+      const prev = users.find((u) => u.id !== targetUserId && isFmaUser(u));
       return {
         type: 'warning',
         text: `Institutional Rule (1 FMA): Appointing FMA will automatically step down current assistant (${prev ? prev.name : 'Unassigned'}) to Lecturer.`
       };
     }
     if (role === 'System Administrator') {
-      const otherAdmins = users.filter((u) => u.id !== targetUserId && u.role === 'System Administrator');
+      const otherAdmins = users.filter((u) => u.id !== targetUserId && isAdminUser(u));
       if (otherAdmins.length >= 2) {
         return {
           type: 'error',
@@ -240,7 +330,7 @@ export default function UserRoleManagement({
       }
       return {
         type: 'info',
-        text: `System Quota: Exactly 2 System Administrators permitted (${otherAdmins.length}/2 active). 1 slot available.`
+        text: `System Quota: Exactly 2 System Administrators permitted (${otherAdmins.length}/2 active). ${Math.max(0, 2 - otherAdmins.length)} slot(s) available.`
       };
     }
     if (role === 'Lecturer') {
@@ -252,18 +342,18 @@ export default function UserRoleManagement({
     return null;
   };
 
-  // Filter users
+  // Filter users based on real database records
   const filteredUsers = users.filter((u) => {
     if (roleFilter === 'ALL') return true;
-    if (roleFilter === 'STUDENT') return u.role === 'Student';
-    if (roleFilter === 'LECTURER') return u.role === 'Lecturer';
-    if (roleFilter === 'HOD') return u.role === 'Head of Department (HOD)';
-    if (roleFilter === 'DEAN') return u.role === 'Faculty Dean';
-    if (roleFilter === 'SAR') return u.role === 'Senior Assistant Registrar (SAR)';
-    if (roleFilter === 'EXAM') return u.role === 'Examination Officer';
-    if (roleFilter === 'DEPT_MA') return u.role === 'Department Management Assistant (Dept MA)';
-    if (roleFilter === 'FMA') return u.role === 'Faculty Management Assistant (FMA)';
-    if (roleFilter === 'ADMIN') return u.role === 'System Administrator' || u.role === 'Super Admin';
+    if (roleFilter === 'STUDENT') return isStudentUser(u);
+    if (roleFilter === 'LECTURER') return isLecturerUser(u);
+    if (roleFilter === 'HOD') return isHodIctUser(u) || isHodBstUser(u);
+    if (roleFilter === 'DEAN') return isDeanUser(u);
+    if (roleFilter === 'SAR') return isSarUser(u);
+    if (roleFilter === 'EXAM') return isExamOfficerUser(u);
+    if (roleFilter === 'DEPT_MA') return isDeptMaUser(u);
+    if (roleFilter === 'FMA') return isFmaUser(u);
+    if (roleFilter === 'ADMIN') return isAdminUser(u);
     return true;
   });
 
@@ -277,11 +367,12 @@ export default function UserRoleManagement({
 
   const openAssignModal = (user) => {
     setEditingUser(user);
-    setAssignedRole(user.role);
-    const validDepts = getDepartmentOptionsForRole(user.role);
+    const mapped = formatUserRoleDisplay(user);
+    setAssignedRole(mapped);
+    const validDepts = getDepartmentOptionsForRole(mapped);
     const isCurrentValid = validDepts.some((d) => d.value === user.department);
     setAssignedDept(isCurrentValid ? user.department : validDepts[0].value);
-    setAssignedDesignation(user.designation || user.role);
+    setAssignedDesignation(user.designation || mapped);
     setAssignError('');
   };
 
@@ -736,40 +827,43 @@ export default function UserRoleManagement({
                         </div>
                       </td>
                       <td>
-                        <span
-                          className={`adm-badge ${
-                            u.role === 'Faculty Dean'
-                              ? 'adm-badge-warning'
-                              : u.role === 'Head of Department (HOD)'
-                              ? 'adm-badge-info'
-                              : u.role === 'Senior Assistant Registrar (SAR)'
-                              ? 'adm-badge-neutral'
-                              : u.role === 'Examination Officer'
-                              ? 'adm-badge-neutral'
-                              : u.role === 'Lecturer'
-                              ? 'adm-badge-success'
-                              : u.role === 'Department Management Assistant (Dept MA)' || u.role === 'Faculty Management Assistant (FMA)'
-                              ? 'adm-badge-info'
-                              : u.role === 'Student'
-                              ? 'adm-badge-neutral'
-                              : u.role === 'Super Admin' || u.role === 'System Administrator'
-                              ? 'adm-badge-danger'
-                              : 'adm-badge-neutral'
-                          }`}
-                          style={{ fontWeight: 700 }}
-                        >
-                          {u.role}
-                        </span>
+                        {(() => {
+                          const displayRole = formatUserRoleDisplay(u);
+                          return (
+                            <span
+                              className={`adm-badge ${
+                                isDeanUser(u)
+                                  ? 'adm-badge-warning'
+                                  : isHodIctUser(u) || isHodBstUser(u)
+                                  ? 'adm-badge-info'
+                                  : isSarUser(u) || isExamOfficerUser(u)
+                                  ? 'adm-badge-neutral'
+                                  : isLecturerUser(u)
+                                  ? 'adm-badge-success'
+                                  : isDeptMaUser(u) || isFmaUser(u)
+                                  ? 'adm-badge-info'
+                                  : isStudentUser(u)
+                                  ? 'adm-badge-neutral'
+                                  : isAdminUser(u)
+                                  ? 'adm-badge-danger'
+                                  : 'adm-badge-neutral'
+                              }`}
+                              style={{ fontWeight: 700 }}
+                            >
+                              {displayRole}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td>
                         <div style={{ fontSize: '0.8rem', color: '#475569' }}>{u.department}</div>
                       </td>
                       <td>
-                        <div style={{ fontSize: '0.76rem', color: '#64748b' }}>{u.designation || u.role}</div>
+                        <div style={{ fontSize: '0.76rem', color: '#64748b' }}>{u.designation || formatUserRoleDisplay(u)}</div>
                       </td>
                       <td>
-                        <span className={`adm-badge ${u.status === 'Active' ? 'adm-badge-success' : 'adm-badge-danger'}`}>
-                          {u.status}
+                        <span className={`adm-badge ${u.status === 'Active' || u.status === 'active' ? 'adm-badge-success' : 'adm-badge-danger'}`}>
+                          {u.status || 'Active'}
                         </span>
                       </td>
                       <td>
@@ -786,14 +880,22 @@ export default function UserRoleManagement({
                             type="button"
                             className="adm-btn-xs-secondary"
                             onClick={() => onToggleUserStatus(u.id)}
-                            style={{ color: u.status === 'Active' ? '#dc2626' : '#15803d' }}
+                            style={{ color: u.status === 'Active' || u.status === 'active' ? '#dc2626' : '#15803d' }}
                           >
-                            {u.status === 'Active' ? 'Suspend' : 'Activate'}
+                            {u.status === 'Active' || u.status === 'active' ? 'Suspend' : 'Activate'}
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
+                        <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px' }}>No user accounts found matching selected role in database.</div>
+                        <div style={{ fontSize: '0.75rem' }}>All displayed accounts reflect live database users without dummy mock filler.</div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
