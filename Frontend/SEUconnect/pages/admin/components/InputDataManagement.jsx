@@ -2,114 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import api from '../../../src/services/api.js';
 import './input_data.css';
 
-// Initial realistic institutional RAG knowledge sources for SEUSL Faculty of Technology
-const INITIAL_RAG_SOURCES = [
-  {
-    id: 'RAG-DOC-001',
-    title: 'SEUSL Faculty of Technology Examination By-Laws 2024/2025',
-    fileName: 'SEUSL_Faculty_of_Technology_Examination_ByLaws_2024.pdf',
-    type: 'pdf',
-    category: 'Examination Regulations',
-    targetAudience: 'All Students & Staff',
-    chunksCount: 64,
-    tokenCount: '34,200',
-    fileSize: '2.4 MB',
-    ingestedDate: '2026-10-18',
-    status: 'Active',
-    sampleChunks: [
-      'Section 3.1: Minimum attendance threshold of 80% in both practical and lecture hours is strictly required to be deemed eligible to receive an examination admission card for End Semester Examinations (ESA).',
-      'Section 4.2: Candidates obtaining Grade E or D in any core module must sit for the repeat examination at the next available sitting. The maximum grade attainable upon repeat is Grade C (GPA 2.0).',
-      'Section 8.5: Disqualification from sitting exams due to medical reasons requires submission of certified medical within seven (7) days of absence to the Senior Assistant Registrar (SAR).'
-    ]
-  },
-  {
-    id: 'RAG-DOC-002',
-    title: 'Student Medical Excuse 7-Day Rule and Submission Handbook',
-    fileName: 'Student_Medical_Excuse_7Day_Rule_Regulations.pdf',
-    type: 'pdf',
-    category: 'Medicals & Attendance',
-    targetAudience: 'All Undergraduates',
-    chunksCount: 18,
-    tokenCount: '8,900',
-    fileSize: '840 KB',
-    ingestedDate: '2026-10-22',
-    status: 'Active',
-    sampleChunks: [
-      'Regulation M-1: Any student absent from lectures, continuous assessments, or exams due to health conditions must obtain a medical certificate endorsed by a Government Hospital D.M.O or the SEUSL University Medical Officer (UMO).',
-      'Regulation M-2: Submissions postmarked or timestamped later than seven (7) working days from the date of commencement of sickness will be summarily rejected by the Faculty Board.'
-    ]
-  },
-  {
-    id: 'RAG-DOC-003',
-    title: 'Curriculum & Syllabi Specification: BICT (Hons) Degree Programme v2.6',
-    fileName: 'Curriculum_BICT_Honours_Degree_Specification_v2.6.pdf',
-    type: 'pdf',
-    category: 'Course Catalog & Curriculum',
-    targetAudience: 'ICT Students & Advisors',
-    chunksCount: 92,
-    tokenCount: '51,400',
-    fileSize: '4.8 MB',
-    ingestedDate: '2026-10-25',
-    status: 'Active',
-    sampleChunks: [
-      'ICT 31053 Advanced Database Systems: 3 Credits (2L + 2P). Prerequisites: ICT 21023 Relational Database Management Systems. Assessment: 40% Continuous Assessment, 60% Final End Semester Exam.',
-      'Degree Classification: First Class requires cumulative CGPA >= 3.70 with no repeat modules; Second Upper requires CGPA >= 3.30.'
-    ]
-  },
-  {
-    id: 'RAG-DOC-004',
-    title: 'Curriculum & Syllabi Specification: BST (Hons) Degree Programme v2.4',
-    fileName: 'Curriculum_BST_Honours_Degree_Specification_v2.4.pdf',
-    type: 'pdf',
-    category: 'Course Catalog & Curriculum',
-    targetAudience: 'BST Students & Advisors',
-    chunksCount: 86,
-    tokenCount: '47,800',
-    fileSize: '4.1 MB',
-    ingestedDate: '2026-10-26',
-    status: 'Active',
-    sampleChunks: [
-      'BST 31013 Bioprocess Engineering Principles: 3 Credits (2L + 2P). Course covers microbial kinetics, bioreactor design, and industrial bio-separation techniques.'
-    ]
-  },
-  {
-    id: 'RAG-DOC-005',
-    title: 'People\'s Bank PIV Remittance & Examination Fee Directory',
-    fileName: 'Peoples_Bank_PIV_Remittance_Account_Directory.txt',
-    type: 'text',
-    category: 'Faculty Forms & Administration',
-    targetAudience: 'All Undergraduates',
-    chunksCount: 8,
-    tokenCount: '3,200',
-    fileSize: '48 KB',
-    ingestedDate: '2026-10-29',
-    status: 'Active',
-    sampleChunks: [
-      'Account: People\'s Bank Sammanthurai Branch, Account No: 228-1001-9000-1702, Beneficiary: South Eastern University of Sri Lanka.',
-      'Fees: Repeat Exam Fee is LKR 250 per theory module and LKR 500 per practical module. Paid slip copy must be attached to the digital repeat form.'
-    ]
-  },
-  {
-    id: 'RAG-DOC-006',
-    title: 'Mahapola Higher Education Scholarship Disbursement Code',
-    fileName: 'Mahapola_Disbursement_Schedule_Guidelines.txt',
-    type: 'text',
-    category: 'Welfare & Scholarships',
-    targetAudience: 'All Undergraduates',
-    chunksCount: 14,
-    tokenCount: '6,100',
-    fileSize: '95 KB',
-    ingestedDate: '2026-11-01',
-    status: 'Active',
-    sampleChunks: [
-      'Eligibility for Mahapola disbursement mandates continuous active registration and no active university disciplinary penalties.',
-      'Monthly disbursement cycles are audited by the Student Welfare Division and credited through People\'s Bank student savings accounts.'
-    ]
-  }
-];
-
 export default function InputDataManagement({ onShowToast, onAddAuditLog }) {
-  const [sources, setSources] = useState(INITIAL_RAG_SOURCES);
+  const [sources, setSources] = useState([]);
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' | 'text_entry'
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,7 +67,7 @@ export default function InputDataManagement({ onShowToast, onAddAuditLog }) {
           }));
           setSources((prev) => {
             const map = new Map();
-            [...mapped, ...localCached, ...prev].forEach((item) => {
+            [...mapped, ...localCached].forEach((item) => {
               if (item && item.id && !map.has(item.id)) map.set(item.id, item);
             });
             return Array.from(map.values());
@@ -422,7 +316,7 @@ export default function InputDataManagement({ onShowToast, onAddAuditLog }) {
       try {
         localStorage.removeItem('seuconnect_handbook_sources');
       } catch (_) {}
-      setSources(INITIAL_RAG_SOURCES);
+      setSources([]);
       if (onShowToast) onShowToast(res.message || 'RAG knowledge base successfully purged from MongoDB.');
       if (onAddAuditLog) onAddAuditLog('Purged RAG Knowledge Base', 'All uploaded documents and chunks removed from MongoDB.');
     } catch (err) {
