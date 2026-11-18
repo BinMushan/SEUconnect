@@ -345,16 +345,16 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Provision a new staff / administrative user account
+// Provision a new staff / administrative user account or update existing role
 exports.provisionUser = async (req, res) => {
   try {
-    const { name, email, password, tempPassword, role, roleKey, department, designation, staffId } = req.body || {};
+    const { name, email, password, tempPassword, role, roleKey, department, designation, staffId, status } = req.body || {};
     if (!name || !email) {
       return res.status(400).json({ success: false, message: 'Name and email are required.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const rawPass = password || tempPassword || '123456';
+    const rawPass = password || tempPassword;
 
     let resolvedRoleKey = roleKey;
     if (!resolvedRoleKey && role) {
@@ -375,7 +375,6 @@ exports.provisionUser = async (req, res) => {
     const userData = {
       name: name.trim(),
       email: cleanEmail,
-      password: hashPassword(rawPass),
       role: normRole,
       roleKey: normRole,
       staffId: staffId || `STAFF-${normRole.toUpperCase()}-${Date.now().toString().slice(-4)}`,
@@ -383,8 +382,12 @@ exports.provisionUser = async (req, res) => {
       faculty: 'Faculty of Technology',
       designation: designation || role || normRole,
       avatarInitial: name.trim().split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U',
-      status: 'active',
+      status: status ? status.toLowerCase() : 'active',
     };
+
+    if (rawPass) {
+      userData.password = hashPassword(rawPass);
+    }
 
     const user = await store.users.createOrUpdate(userData);
     return res.json({
