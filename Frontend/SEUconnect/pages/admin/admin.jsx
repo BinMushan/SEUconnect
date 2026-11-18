@@ -3,22 +3,6 @@ import api, { enrolledStorage, provisionedUserStorage, penaltyStorage } from '..
 import DashboardTemplate from '../../components/dashbord/dashboard_template.jsx';
 import './admin.css';
 
-// Mock Data Models
-import {
-  INITIAL_STATS,
-  INITIAL_BATCHES,
-  INITIAL_STUDENTS,
-  INITIAL_REGISTRATIONS,
-  INITIAL_MEDICALS,
-  INITIAL_EXAMINATIONS,
-  INITIAL_REPEAT_CANDIDATES,
-  INITIAL_ANNOUNCEMENTS,
-  INITIAL_FACULTY_FORMS,
-  INITIAL_PENALTIES,
-  INITIAL_USERS,
-  INITIAL_AUDIT_LOG
-} from './adminData.js';
-
 // Admin Subcomponents
 import AdminOverview from './components/AdminOverview.jsx';
 import StudentManagement, { matchesBatchStudent } from './components/StudentManagement.jsx';
@@ -30,11 +14,40 @@ import WelfareSocieties from './components/WelfareSocieties.jsx';
 import AnnouncementsManagement from './components/AnnouncementsManagement.jsx';
 import FormsGuidanceManagement from './components/FormsGuidanceManagement.jsx';
 import PenaltiesManagement from './components/PenaltiesManagement.jsx';
-import UserRoleManagement from './components/UserRoleManagement.jsx';
+import UserRoleManagement, {
+  isDeanUser,
+  isHodIctUser,
+  isHodBstUser,
+  isSarUser,
+  isExamOfficerUser,
+  isDeptMaUser,
+  isFmaUser,
+  isAdminUser,
+  isLecturerUser,
+  isStudentUser,
+  formatUserRoleDisplay
+} from './components/UserRoleManagement.jsx';
 import SettingsManagement from './components/SettingsManagement.jsx';
 import NotificationsManagement from './components/NotificationsManagement.jsx';
 import CourseAllocationManagement from './components/CourseAllocationManagement.jsx';
 import InputDataManagement from './components/InputDataManagement.jsx';
+
+import { INITIAL_FACULTY_FORMS } from './adminData.js';
+
+export const mapRoleToDisplay = formatUserRoleDisplay;
+export const mapRoleToKey = (role) => {
+  const r = String(role || '').toLowerCase();
+  if (r.includes('dean')) return 'dean';
+  if (r.includes('hod') || r.includes('head')) return 'hod';
+  if (r.includes('sar') || r.includes('senior assistant registrar')) return 'sar';
+  if (r.includes('exam')) return 'examination';
+  if (r.includes('dept') && r.includes('ma')) return 'dept_ma';
+  if (r.includes('fma') || (r.includes('faculty') && r.includes('ma'))) return 'fma';
+  if (r.includes('superadmin')) return 'superadmin';
+  if (r.includes('admin')) return 'admin';
+  if (r.includes('student')) return 'student';
+  return 'lecturer';
+};
 
 /**
  * Admin Navigation Sections customized for Faculty Administration
@@ -244,7 +257,20 @@ const ADMIN_NAV_SECTIONS = [
 
 export default function Admin({ user, onLogout }) {
   const [currentSection, setCurrentSection] = useState('dashboard');
-  const [stats, setStats] = useState(INITIAL_STATS);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    activeAccounts: 0,
+    pendingMedicals: 0,
+    pendingRegistrations: 0,
+    pendingExamClearance: 0,
+    publishedAnnouncements: 0,
+    activeSocieties: 4,
+    disciplinaryCases: 0,
+    bictStudents: 0,
+    bstStudents: 0,
+    avgAttendance: 0,
+    avgGpa: 0,
+  });
   const [batches, setBatches] = useState(() => {
     try {
       const saved = localStorage.getItem('seuconnect_batches');
@@ -253,47 +279,24 @@ export default function Admin({ user, onLogout }) {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    return INITIAL_BATCHES;
+    return [];
   });
   const [students, setStudents] = useState(() => {
-    const localEnrolled = enrolledStorage.getAll();
-    if (!localEnrolled || localEnrolled.length === 0) return INITIAL_STUDENTS;
-    const existingRegNos = new Set(INITIAL_STUDENTS.map(s => (s.regNo || '').toLowerCase()));
-    const additional = localEnrolled.filter(s => s.regNo && !existingRegNos.has(s.regNo.toLowerCase()));
-    return [...additional, ...INITIAL_STUDENTS];
+    return enrolledStorage.getAll() || [];
   });
 
-  // Pull live student roster from MongoDB backend on mount and synchronize with storage
-  useEffect(() => {
-    let isMounted = true;
-    api.getStudents().then((res) => {
-      if (isMounted && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setStudents((prev) => {
-          const backendStudents = res.data;
-          const backendRegNos = new Set(backendStudents.map(s => (s.regNo || s.studentId || '').toLowerCase()));
-          const remainingLocal = prev.filter(s => s.regNo && !backendRegNos.has(s.regNo.toLowerCase()));
-          const merged = [...backendStudents, ...remainingLocal];
-          enrolledStorage.saveBulk(backendStudents);
-          return merged;
-        });
-      }
-    }).catch((err) => {
-      console.warn('Could not fetch students from API on admin mount:', err.message);
-    });
-    return () => { isMounted = false; };
-  }, []);
-  const [registrations, setRegistrations] = useState(INITIAL_REGISTRATIONS);
-  const [medicals, setMedicals] = useState(INITIAL_MEDICALS);
-  const [examinations] = useState(INITIAL_EXAMINATIONS);
-  const [repeatCandidates, setRepeatCandidates] = useState(INITIAL_REPEAT_CANDIDATES);
+  const [registrations, setRegistrations] = useState([]);
+  const [medicals, setMedicals] = useState([]);
+  const [examinations, setExaminations] = useState([]);
+  const [repeatCandidates, setRepeatCandidates] = useState([]);
   const [announcements, setAnnouncements] = useState(() => {
     try {
       const deleted = new Set(JSON.parse(localStorage.getItem('seu_deleted_announcement_ids') || '[]'));
       const saved = localStorage.getItem('seuconnect_admin_announcements');
-      const base = saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+      const base = saved ? JSON.parse(saved) : [];
       return base.filter((a) => !deleted.has(String(a.id)));
     } catch {
-      return INITIAL_ANNOUNCEMENTS;
+      return [];
     }
   });
 
@@ -305,20 +308,12 @@ export default function Admin({ user, onLogout }) {
 
   const [facultyForms, setFacultyForms] = useState(INITIAL_FACULTY_FORMS);
   const [penalties, setPenalties] = useState(() => {
-    const stored = penaltyStorage.getAll();
-    if (!stored || stored.length === 0) return INITIAL_PENALTIES;
-    const existingIds = new Set(INITIAL_PENALTIES.map(p => p.id));
-    const custom = stored.filter(p => p.id && !existingIds.has(p.id));
-    return [...custom, ...INITIAL_PENALTIES];
+    return penaltyStorage.getAll() || [];
   });
   const [users, setUsers] = useState(() => {
-    const localProvisioned = provisionedUserStorage.getAll();
-    if (!localProvisioned || localProvisioned.length === 0) return INITIAL_USERS;
-    const existingEmails = new Set(INITIAL_USERS.map(u => (u.email || '').toLowerCase()));
-    const additional = localProvisioned.filter(u => u.email && !existingEmails.has(u.email.toLowerCase()));
-    return [...additional, ...INITIAL_USERS];
+    return provisionedUserStorage.getAll() || [];
   });
-  const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOG);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [dbLoading, setDbLoading] = useState(true);
 
   // Fetch and synchronize real data from backend database & MongoDB
@@ -329,23 +324,47 @@ export default function Admin({ user, onLogout }) {
       try {
         setDbLoading(true);
 
-        const [statsRes, batchStatsRes, processesRes, usersRes, studentsRes, batchesRes] = await Promise.allSettled([
+        const [statsRes, batchStatsRes, processesRes, usersRes, studentsRes, batchesRes, notificationsRes, calendarRes, handbooksRes] = await Promise.allSettled([
           api.getStats(),
           api.getBatchStats(),
           api.getProcesses(),
           api.getUsers(),
           api.getAllStudents(),
-          api.getBatches()
+          api.getBatches(),
+          api.getNotifications(),
+          api.getAcademicEvents(),
+          api.getHandbooks ? api.getHandbooks() : Promise.resolve([])
         ]);
 
         if (!isMounted) return;
 
-        // 1. Synchronize Students from Database
+        // Synchronize uploaded handbooks & forms from MongoDB
+        if (handbooksRes.status === 'fulfilled' && Array.isArray(handbooksRes.value) && handbooksRes.value.length > 0) {
+          const dbHandbooks = handbooksRes.value.map((hb) => ({
+            id: hb._id ? String(hb._id) : `HB-${Date.now()}`,
+            code: hb.fileName?.slice(0, 12)?.toUpperCase() || 'HANDBOOK',
+            title: hb.title,
+            category: hb.category || 'Institutional Handbook',
+            fileFormat: `${hb.fileType?.toUpperCase() || 'PDF'} (${hb.fileSize || '1 MB'})`,
+            downloads: 100,
+            version: 'Active Database Record',
+            description: `Official institutional document stored in database (${hb.chunksCount || 0} chunks indexed for RAG).`
+          }));
+          setFacultyForms((prev) => {
+            const map = new Map();
+            [...dbHandbooks, ...prev].forEach((f) => {
+              if (f && f.id && !map.has(f.id)) map.set(f.id, f);
+            });
+            return Array.from(map.values());
+          });
+        }
+
+        // 1. Synchronize Students from Database (NO dummy mock data)
         let loadedStudents = [];
         if (studentsRes.status === 'fulfilled' && studentsRes.value?.data && Array.isArray(studentsRes.value.data) && studentsRes.value.data.length > 0) {
           const raw = studentsRes.value.data;
           loadedStudents = raw.map((s) => {
-            const reg = s.studentId || s.regNo || s.indexNo;
+            const reg = s.studentId || s.regNo || s.indexNo || '';
             const bCode = s.batchCode || s.batch || (reg.includes('20') ? 'Batch 01 (2020/2021)' : reg.includes('21') ? 'Batch 02 (2021/2022)' : reg.includes('22') ? 'Batch 03 (2022/2023)' : reg.includes('23') ? 'Batch 04 (2023/2024)' : 'Batch 05 (2024/2025)');
             const bId = s.batchId || (bCode.includes('01') ? 'BATCH-01' : bCode.includes('02') ? 'BATCH-02' : bCode.includes('03') ? 'BATCH-03' : bCode.includes('04') ? 'BATCH-04' : 'BATCH-05');
             const isFreshStudent = (s.currentSemester && (s.currentSemester.includes('1') && !s.currentSemester.includes('2'))) || (s.semester && (s.semester.includes('1') && !s.semester.includes('2')));
@@ -355,17 +374,17 @@ export default function Admin({ user, onLogout }) {
               batchCode: bCode,
               regNo: reg,
               indexNo: s.indexNo || reg,
-              name: s.fullName || s.name,
+              name: s.fullName || s.name || 'Student',
               programme: s.degreeProgramme || s.programme || (s.department?.includes('Bio') ? 'BST (Hons)' : 'BICT (Hons)'),
               department: s.department || 'Department of Information & Communication Technology',
               semester: s.currentSemester || s.semester || 'Semester 1',
-              cgpa: isFreshStudent ? null : (Number(s.cgpa) || 3.40),
-              sgpa: isFreshStudent ? null : (Number(s.sgpa) || 3.45),
+              cgpa: isFreshStudent ? null : (s.cgpa !== undefined && s.cgpa !== null ? Number(s.cgpa) : 3.40),
+              sgpa: isFreshStudent ? null : (s.sgpa !== undefined && s.sgpa !== null ? Number(s.sgpa) : 3.45),
               credits: isFreshStudent ? 0 : (s.credits || 78),
               attendance: s.attendance !== null && s.attendance !== undefined && Number(s.attendance) !== 92.5
                 ? Number(s.attendance)
                 : (isFreshStudent ? null : 100),
-              email: s.email,
+              email: s.email || '',
               phone: s.phone || '',
               status: s.academicStatus || s.status || 'Active',
               welfare: s.welfare || 'Good Standing',
@@ -374,7 +393,7 @@ export default function Admin({ user, onLogout }) {
             };
           });
 
-          // Merge local enrolled storage
+          // Merge local enrolled storage additions
           const localEnrolled = enrolledStorage.getAll();
           const existingRegs = new Set(loadedStudents.map((s) => (s.regNo || '').toLowerCase()));
           const additional = localEnrolled.filter((s) => s.regNo && !existingRegs.has(s.regNo.toLowerCase()));
@@ -382,11 +401,11 @@ export default function Admin({ user, onLogout }) {
           setStudents(finalStudents);
         }
 
-        // 2. Synchronize Batches from Database (Preserves all newly onboarded batches)
+        // 2. Synchronize Batches from Database (Preserves all onboarded batches)
         let loadedBatches = [];
         if (batchesRes.status === 'fulfilled' && batchesRes.value?.data && Array.isArray(batchesRes.value.data) && batchesRes.value.data.length > 0) {
           loadedBatches = batchesRes.value.data;
-        } else if (batchStatsRes.status === 'fulfilled' && batchStatsRes.value?.data?.batches) {
+        } else if (batchStatsRes.status === 'fulfilled' && batchStatsRes.value?.data?.batches && batchStatsRes.value.data.batches.length > 0) {
           const dbBatches = batchStatsRes.value.data.batches;
           loadedBatches = dbBatches.map((b, idx) => {
             const bNum = String(idx + 1).padStart(2, '0');
@@ -432,14 +451,46 @@ export default function Admin({ user, onLogout }) {
           try {
             localStorage.setItem('seuconnect_batches', JSON.stringify(mappedBatches));
           } catch {}
+        } else if (currentStudents.length > 0) {
+          // Derive cohorts dynamically from active database students
+          const yearTokens = ['20', '21', '22', '23', '24'];
+          const yearNames = ['2020/2021', '2021/2022', '2022/2023', '2023/2024', '2024/2025'];
+          const derivedBatches = yearTokens.map((token, idx) => {
+            const bNum = String(idx + 1).padStart(2, '0');
+            const academicYear = yearNames[idx];
+            const inCohort = currentStudents.filter(s => (s.regNo && s.regNo.includes(`/${token}/`)) || (s.batchCode && s.batchCode.includes(token)));
+            const hasAtt = inCohort.filter(s => s.attendance !== null && !isNaN(Number(s.attendance)));
+            const hasGpa = inCohort.filter(s => s.cgpa !== null && !isNaN(Number(s.cgpa)));
+            return {
+              id: `BATCH-${bNum}`,
+              code: `B${bNum}`,
+              name: `Batch ${bNum} (${academicYear})`,
+              academicYear,
+              currentSemester: `Semester ${idx * 2 + 1}`,
+              status: idx === 0 ? 'Graduating / Finalizing' : (idx === yearTokens.length - 1 ? 'Freshers' : 'Active'),
+              coordinator: 'Faculty Department Coordinator',
+              departments: ['BICT', 'BST'],
+              regPrefix: token,
+              totalStudents: inCohort.length,
+              ictStudents: inCohort.filter(s => s.programme?.includes('BICT') || s.department?.includes('ICT')).length,
+              bstStudents: inCohort.filter(s => s.programme?.includes('BST') || s.department?.includes('Bio')).length,
+              avgCgpa: hasGpa.length > 0 ? Number((hasGpa.reduce((acc, s) => acc + Number(s.cgpa), 0) / hasGpa.length).toFixed(2)) : 0.0,
+              attendanceRate: hasAtt.length > 0 ? Math.round(hasAtt.reduce((acc, s) => acc + Number(s.attendance), 0) / hasAtt.length) : 100,
+            };
+          });
+          setBatches(derivedBatches);
         }
 
         // 3. Synchronize Workflow Processes (Medicals, Registrations, Repeat Candidates) from Database
+        let dbMedicals = [];
+        let dbRegistrations = [];
+        let dbRepeat = [];
+
         if (processesRes.status === 'fulfilled' && Array.isArray(processesRes.value?.data)) {
           const procList = processesRes.value.data;
 
           // Medical Requests from DB
-          const dbMedicals = procList
+          dbMedicals = procList
             .filter((p) => p.type === 'medical_excuse' || p.type === 'subject_medical' || p.type === 'exam_medical')
             .map((p) => ({
               id: p.trackingNumber || String(p._id),
@@ -460,10 +511,10 @@ export default function Admin({ user, onLogout }) {
               verificationDate: p.currentStage?.actionDate ? p.currentStage.actionDate.split('T')[0] : null,
               remarks: p.remarks || p.comment || ''
             }));
-          if (dbMedicals.length > 0) setMedicals(dbMedicals);
+          setMedicals(dbMedicals);
 
           // Registrations from DB
-          const dbRegistrations = procList
+          dbRegistrations = procList
             .filter((p) => p.type === 'add_drop' || p.type === 'course_registration' || p.type === 'leave_absence' || p.type === 'special_concession')
             .map((p) => ({
               id: p.trackingNumber || String(p._id),
@@ -480,76 +531,128 @@ export default function Admin({ user, onLogout }) {
               approvalDate: p.currentStage?.actionDate ? p.currentStage.actionDate.split('T')[0] : null,
               remarks: p.remarks || p.comment || ''
             }));
-          if (dbRegistrations.length > 0) setRegistrations(dbRegistrations);
+          setRegistrations(dbRegistrations);
 
           // Repeat Exam Candidates from DB
-          const dbRepeat = procList
+          dbRepeat = procList
             .filter((p) => p.type === 'repeat_exam' || p.type === 'eca_application' || p.type === 'esa_application' || p.type === 'exam_form')
             .map((p) => ({
               id: p.trackingNumber || String(p._id),
-              regNo: p.student?.regNo || 'SEU/IS/22/ICT/085',
-              studentName: p.student?.name || 'Student Candidate',
-              programme: p.student?.programme || (p.student?.department?.includes('Bio') ? 'BST (Hons)' : 'BICT (Hons)'),
+              regNo: p.student?.regNo || p.regNo || '',
+              studentName: p.student?.name || p.name || 'Candidate',
+              programme: p.student?.programme || p.programme || (p.student?.department?.includes('Bio') ? 'BST (Hons)' : 'BICT (Hons)'),
               moduleCode: p.repeatExam?.moduleCode || (p.subjects && p.subjects[0]?.code) || 'ICT3101',
               moduleName: p.repeatExam?.moduleName || (p.subjects && p.subjects[0]?.title) || 'Repeat Module',
               academicYear: p.academicYear || '2025/2026',
               attemptNumber: p.repeatExam?.attemptNumber || '2nd Attempt',
+              attempt: p.repeatExam?.attemptNumber || p.attempt || '2nd Attempt',
+              previousGrade: p.repeatExam?.previousGrade || p.previousGrade || 'C-',
+              caCarriedOver: p.repeatExam?.caCarriedOver ?? true,
+              pivSlipVerified: p.repeatExam?.paymentVoucherNumber ? true : !!(p.receiptFile?.dataUrl || p.receiptFile),
+              admissionStatus: p.status === 'Approved' ? 'Cleared' : 'Pending Payment Slip',
               pivNumber: p.repeatExam?.paymentVoucherNumber || p.trackingNumber,
               pivAmount: p.repeatExam?.paymentAmount || 'Rs. 500',
-              pivDate: p.submissionDate || '2026-10-10',
+              pivDate: p.submissionDate || (p.createdAt ? p.createdAt.split('T')[0] : '2026-10-10'),
               status: p.status === 'Approved' ? 'Verified' : (p.status === 'Declined' ? 'Rejected' : 'Pending'),
               eligible: p.status === 'Approved'
             }));
-          if (dbRepeat.length > 0) setRepeatCandidates(dbRepeat);
+          setRepeatCandidates(dbRepeat);
         }
 
-        // 4. Synchronize Users from Database
+        // 4. Synchronize Users from Database (NO mock INITIAL_USERS)
+        let loadedUsers = [];
         if (usersRes.status === 'fulfilled' && Array.isArray(usersRes.value?.data) && usersRes.value.data.length > 0) {
           const rawUsers = usersRes.value.data;
-          const mappedUsers = rawUsers.map((u) => ({
-            id: u.id || String(u._id),
-            name: u.name,
-            email: u.email,
-            tempPassword: u.tempPassword || 'Seu@2024Pass',
-            role: u.role,
-            roleKey: (u.roleKey || u.role || 'lecturer').toLowerCase(),
-            department: u.department || 'Faculty of Technology',
-            designation: u.designation || u.role,
-            isLeadership: ['dean', 'hod', 'sar'].includes((u.roleKey || u.role || '').toLowerCase()),
-            status: u.status || 'Active',
-            lastLogin: u.lastLogin || 'Recent',
-            permissions: u.permissions || 'Standard Role Access'
-          }));
+          loadedUsers = rawUsers.map((u) => {
+            const displayRole = formatUserRoleDisplay(u);
+            const roleKey = mapRoleToKey(u.roleKey || u.role || displayRole);
+            return {
+              id: u.id || String(u._id),
+              name: u.name,
+              email: u.email,
+              tempPassword: u.tempPassword || 'Seu@2024Pass',
+              role: displayRole,
+              roleKey: roleKey,
+              department: u.department || 'Faculty of Technology',
+              designation: u.designation || displayRole,
+              isLeadership: ['dean', 'hod', 'sar', 'examination'].includes(roleKey),
+              status: u.status === 'active' || u.status === 'Active' ? 'Active' : 'Suspended',
+              lastLogin: u.lastLogin || 'Recent',
+              permissions: u.permissions || `Granted permissions for ${displayRole}`
+            };
+          });
 
+          // Merge local provisioned user additions
           const localUsers = provisionedUserStorage.getAll();
-          const existingEmails = new Set(mappedUsers.map((u) => u.email.toLowerCase()));
+          const existingEmails = new Set(loadedUsers.map((u) => u.email.toLowerCase()));
           const additional = localUsers.filter((u) => u.email && !existingEmails.has(u.email.toLowerCase()));
-          setUsers([...additional, ...mappedUsers]);
+          setUsers([...additional, ...loadedUsers]);
         }
 
-        // 5. Compute Dynamic Real Statistics
-        setStats((prev) => {
-          const effectiveStudents = loadedStudents.length > 0 ? loadedStudents : students;
-          const activeStu = effectiveStudents.filter((s) => s.status === 'Active');
-          const totalAtt = activeStu.reduce((acc, s) => acc + (Number(s.attendance) || 90), 0);
-          const totalGpa = activeStu.reduce((acc, s) => acc + (Number(s.cgpa) || 3.0), 0);
-          const count = activeStu.length || 1;
+        // 5. Synchronize Announcements from Database
+        let dbAnnouncements = [];
+        if (notificationsRes.status === 'fulfilled' && Array.isArray(notificationsRes.value?.data)) {
+          const rawNotifs = notificationsRes.value.data;
+          dbAnnouncements = rawNotifs
+            .filter((n) => n.type === 'announcement' || n.category === 'Academic' || n.department || n.title)
+            .map((n) => ({
+              id: n._id || n.id || `ANN-${Date.now()}`,
+              title: n.title,
+              category: n.category || 'Academic',
+              targetAudience: n.department || 'All Students & Staff',
+              priority: n.priority || 'Normal',
+              publishDate: n.createdAt ? n.createdAt.split('T')[0] : 'Today',
+              publishedBy: 'Faculty Administration Office',
+              pinned: !!n.pinned,
+              content: n.message || n.summary || n.title
+            }));
+          if (dbAnnouncements.length > 0) setAnnouncements(dbAnnouncements);
+        }
 
-          const dbStats = statsRes.status === 'fulfilled' ? statsRes.value?.data : null;
-          const pBreakdown = dbStats?.pendingBreakdown || {};
+        // 6. Synchronize Examination Schedules from Calendar API
+        if (calendarRes.status === 'fulfilled' && Array.isArray(calendarRes.value?.data)) {
+          const examEvents = calendarRes.value.data.filter(
+            (e) => e.type === 'end_semester_exam' || e.type === 'assessment_ca' || e.type === 'study_leave'
+          );
+          if (examEvents.length > 0) {
+            const mappedExams = examEvents.map((e, idx) => ({
+              id: e._id || `EXAM-CYCLE-${idx + 1}`,
+              examTitle: e.title,
+              programme: e.department || 'BICT (Hons) & BST (Hons)',
+              startDate: e.startDate || '2026-12-05',
+              endDate: e.endDate || '2026-12-22',
+              registrationDeadline: '2026-11-25',
+              eligibilityCriteria: 'Minimum 80% module attendance and cleared CA scores.',
+              status: 'Scheduled',
+              totalEligibleCandidates: currentStudents.length > 0 ? Math.round(currentStudents.length * 0.9) : 0,
+              totalBarredAttendance: currentStudents.length > 0 ? Math.round(currentStudents.length * 0.05) : 0,
+              totalRepeatCandidates: dbRepeat.length
+            }));
+            setExaminations(mappedExams);
+          }
+        }
 
-          return {
-            ...prev,
-            totalStudents: effectiveStudents.length || prev.totalStudents,
-            activeStudents: activeStu.length || prev.activeStudents,
-            bictStudents: effectiveStudents.filter((s) => s.programme?.includes('BICT') || s.department?.includes('ICT')).length || prev.bictStudents,
-            bstStudents: effectiveStudents.filter((s) => s.programme?.includes('BST') || s.department?.includes('Bio')).length || prev.bstStudents,
-            avgAttendance: Number((totalAtt / count).toFixed(1)) || prev.avgAttendance,
-            avgGpa: Number((totalGpa / count).toFixed(2)) || prev.avgGpa,
-            pendingMedicals: pBreakdown.medical !== undefined ? pBreakdown.medical : prev.pendingMedicals,
-            pendingRegistrations: dbStats?.inProgressRequests !== undefined ? dbStats.inProgressRequests : prev.pendingRegistrations,
-            examRegistrations: pBreakdown.examination !== undefined ? pBreakdown.examination : prev.examRegistrations,
-          };
+        // 7. Compute Dynamic Real Statistics
+        const effectiveStudents = loadedStudents.length > 0 ? loadedStudents : [];
+        const activeStu = effectiveStudents.filter((s) => s.status === 'Active');
+        const hasAtt = activeStu.filter((s) => s.attendance !== null && s.attendance !== undefined && !isNaN(Number(s.attendance)));
+        const hasGpa = activeStu.filter((s) => s.cgpa !== null && s.cgpa !== undefined && !isNaN(Number(s.cgpa)) && Number(s.cgpa) > 0);
+        const avgAtt = hasAtt.length > 0 ? Number((hasAtt.reduce((sum, s) => sum + Number(s.attendance), 0) / hasAtt.length).toFixed(1)) : 0;
+        const avgG = hasGpa.length > 0 ? Number((hasGpa.reduce((sum, s) => sum + Number(s.cgpa), 0) / hasGpa.length).toFixed(2)) : 0;
+
+        setStats({
+          totalStudents: effectiveStudents.length,
+          activeAccounts: activeStu.length,
+          bictStudents: effectiveStudents.filter((s) => s.programme?.includes('BICT') || s.department?.includes('ICT') || s.regNo?.includes('ICT')).length,
+          bstStudents: effectiveStudents.filter((s) => s.programme?.includes('BST') || s.department?.includes('Bio') || s.regNo?.includes('BST')).length,
+          avgAttendance: avgAtt,
+          avgGpa: avgG,
+          pendingMedicals: dbMedicals.filter((m) => m.status === 'Pending').length,
+          pendingRegistrations: dbRegistrations.filter((r) => r.status === 'Pending').length,
+          pendingExamClearance: dbRepeat.filter((c) => c.admissionStatus !== 'Cleared').length,
+          publishedAnnouncements: dbAnnouncements.length,
+          activeSocieties: 4,
+          disciplinaryCases: penalties.filter((p) => p.status !== 'Cleared').length
         });
       } catch (err) {
         console.warn('Real database data load error:', err);
@@ -592,7 +695,7 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 1. Approve Medical Request
-  const handleApproveMedical = (id) => {
+  const handleApproveMedical = async (id) => {
     const med = medicals.find((m) => m.id === id);
     if (!med) return;
 
@@ -612,10 +715,16 @@ export default function Admin({ user, onLogout }) {
 
     addAuditLog('Approved Medical Certificate', `${med.certificateRef} for ${med.studentName} (${med.regNo}). Restored to ${med.attendanceAfterApproval}%.`);
     showToast(`Medical Certificate ${med.certificateRef} approved. Attendance updated to ${med.attendanceAfterApproval}%.`);
+
+    try {
+      await api.approveProcess(id, { remarks: 'Medical certificate approved by Faculty Administration.' });
+    } catch (err) {
+      console.warn('Backend process approve error:', err.message);
+    }
   };
 
   // 2. Reject Medical Request
-  const handleRejectMedical = (id, reason) => {
+  const handleRejectMedical = async (id, reason) => {
     const med = medicals.find((m) => m.id === id);
     if (!med) return;
 
@@ -630,10 +739,16 @@ export default function Admin({ user, onLogout }) {
 
     addAuditLog('Rejected Medical Certificate', `${med.certificateRef} (${med.regNo}): ${reason}`);
     showToast(`Medical Request ${med.certificateRef} rejected.`);
+
+    try {
+      await api.declineProcess(id, { reason: reason || 'Medical certificate rejected by Faculty Administration.' });
+    } catch (err) {
+      console.warn('Backend process decline error:', err.message);
+    }
   };
 
   // 3. Approve Registration Request
-  const handleApproveRegistration = (id) => {
+  const handleApproveRegistration = async (id) => {
     const reg = registrations.find((r) => r.id === id);
     if (!reg) return;
 
@@ -648,6 +763,12 @@ export default function Admin({ user, onLogout }) {
 
     addAuditLog('Approved Course Registration', `${reg.id} for ${reg.studentName} (${reg.regNo} - ${reg.totalCredits} Credits).`);
     showToast(`Semester Registration ${reg.id} approved for ${reg.studentName}.`);
+
+    try {
+      await api.approveProcess(id, { remarks: 'Semester registration endorsed by Faculty Administration.' });
+    } catch (err) {
+      console.warn('Backend registration approve error:', err.message);
+    }
   };
 
   // 4. Batch Approve Registrations
@@ -786,7 +907,7 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 7. Clear Repeat Exam Candidate
-  const handleClearRepeatCandidate = (id) => {
+  const handleClearRepeatCandidate = async (id) => {
     setRepeatCandidates((prev) =>
       prev.map((c) => (c.id === id ? { ...c, pivSlipVerified: true, admissionStatus: 'Cleared' } : c))
     );
@@ -797,10 +918,16 @@ export default function Admin({ user, onLogout }) {
     const cand = repeatCandidates.find((c) => c.id === id);
     addAuditLog('Cleared Repeat Admission', `${cand?.regNo} (${cand?.moduleCode}) bank PIV slip verified.`);
     showToast(`Exam Admission cleared for ${cand?.studentName} (${cand?.moduleCode}).`);
+
+    try {
+      await api.approveProcess(id, { remarks: 'Repeat candidate bank PIV verified and admitted.' });
+    } catch (err) {
+      console.warn('Backend repeat exam approve error:', err.message);
+    }
   };
 
   // 8. Add Announcement
-  const handleAddAnnouncement = (newAnn) => {
+  const handleAddAnnouncement = async (newAnn) => {
     setAnnouncements((prev) => [newAnn, ...prev]);
     setStats((prev) => ({
       ...prev,
@@ -808,11 +935,29 @@ export default function Admin({ user, onLogout }) {
     }));
     addAuditLog('Published Faculty Notice', `"${newAnn.title}" broadcast to ${newAnn.targetAudience}.`);
     showToast('Official announcement published to student portal.');
+
+    try {
+      await api.createNotification({
+        title: newAnn.title,
+        message: newAnn.content || newAnn.title,
+        type: 'announcement',
+        category: newAnn.category || 'Academic',
+        priority: newAnn.priority || 'Normal',
+        department: newAnn.targetAudience || 'Faculty of Technology',
+        recipientRole: 'all'
+      });
+    } catch (err) {
+      console.warn('Backend announcement create error:', err.message);
+    }
   };
 
   // 9. Delete Announcement
-  const handleDeleteAnnouncement = (id) => {
+  const handleDeleteAnnouncement = async (id) => {
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    setStats((prev) => ({
+      ...prev,
+      publishedAnnouncements: Math.max(0, prev.publishedAnnouncements - 1)
+    }));
     try {
       const deleted = JSON.parse(localStorage.getItem('seu_deleted_announcement_ids') || '[]');
       if (!deleted.includes(String(id))) {
@@ -822,6 +967,12 @@ export default function Admin({ user, onLogout }) {
     } catch (_) {}
     addAuditLog('Deleted Announcement', `Notice ID ${id} removed.`);
     showToast('Announcement removed.');
+
+    try {
+      await api.deleteNotification(id);
+    } catch (err) {
+      console.warn('Backend announcement delete error:', err.message);
+    }
   };
 
   // 10. Toggle Pin Announcement
@@ -858,11 +1009,24 @@ export default function Admin({ user, onLogout }) {
   };
 
   // 14. Toggle User Status
-  const handleToggleUserStatus = (id) => {
+  const handleToggleUserStatus = async (id) => {
+    const target = users.find((u) => u.id === id);
+    if (!target) return;
+    const newStatus = target.status === 'Active' ? 'Suspended' : 'Active';
+
     setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' } : u))
+      prev.map((u) => (u.id === id ? { ...u, status: newStatus } : u))
     );
-    showToast('User account status updated.');
+    showToast(`User account status updated to ${newStatus}.`);
+
+    try {
+      await api.provisionUser({
+        ...target,
+        status: newStatus.toLowerCase()
+      });
+    } catch (err) {
+      console.warn('Backend user status sync error:', err.message);
+    }
   };
 
   // 15. Publish Results

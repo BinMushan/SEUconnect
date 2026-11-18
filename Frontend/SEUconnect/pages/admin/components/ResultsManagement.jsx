@@ -250,8 +250,13 @@ export default function ResultsManagement({
                   value={selectedSemester}
                   onChange={(e) => setSelectedSemester(e.target.value)}
                 >
-                  <option value="Semester 5">Semester 5 - BICT, BST & ET</option>
-                  <option value="Semester 3">Semester 3 - BICT, BST & ET</option>
+                  <option value="Semester 8">Semester 8 - Final Year Capstone & Industrial Internship</option>
+                  <option value="Semester 7">Semester 7 - Final Year Specialization</option>
+                  <option value="Semester 6">Semester 6 - Third Year Advanced Modules</option>
+                  <option value="Semester 5">Semester 5 - Third Year BICT & BST</option>
+                  <option value="Semester 4">Semester 4 - Second Year Core Modules</option>
+                  <option value="Semester 3">Semester 3 - Second Year BICT & BST</option>
+                  <option value="Semester 2">Semester 2 - First Year Foundation</option>
                   <option value="Semester 1">Semester 1 - First Year Foundation</option>
                 </select>
               </div>

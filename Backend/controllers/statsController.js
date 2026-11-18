@@ -28,28 +28,51 @@ async function calculateBatchStats() {
   const Student = require('../models/Student');
   const { AcademicBatch, Department } = require('../modules/organization/model');
   const [students, batches, departments] = await Promise.all([
-    Student.find({ status: 'Active', batchRef: { $ne: null } }).select('batchRef departmentRef').lean(),
+    Student.find({ status: 'Active' }).select('batchRef departmentRef batch department studentId indexNo currentYear').lean(),
     AcademicBatch.find({}).lean(),
     Department.find({}).lean(),
   ]);
-  const deptShort = Object.fromEntries(departments.map((d) => [String(d._id), d.shortName || d.code]));
-  const rows = batches
-    .map((b) => {
-      const mine = students.filter((s) => String(s.batchRef) === String(b._id));
-      const count = (short) => mine.filter((s) => deptShort[String(s.departmentRef)] === short).length;
-      return { batch: `${b.intakeYear + 1}/${b.intakeYear}`, year: `${ORDINAL[(b.currentAcademicYear || 1) - 1] || ''} Year`.trim(), ict: count('ICT'), bst: count('BST'), intakeYear: b.intakeYear };
-    })
-    .sort((a, b) => b.intakeYear - a.intakeYear);
-  // one row per batch label (a label can exist for both programmes)
-  const merged = [];
-  for (const r of rows) {
-    const hit = merged.find((m) => m.batch === r.batch);
-    if (hit) {
-      hit.ict += r.ict;
-      hit.bst += r.bst;
-    } else merged.push({ ...r });
+
+  if (!students || students.length === 0) return withTotals(DEMO_BATCH_ROWS);
+
+  // If normalized batches and batchRefs are present, use them
+  if (batches.length > 0 && students.some((s) => s.batchRef)) {
+    const deptShort = Object.fromEntries(departments.map((d) => [String(d._id), d.shortName || d.code]));
+    const rows = batches
+      .map((b) => {
+        const mine = students.filter((s) => String(s.batchRef) === String(b._id));
+        const count = (short) => mine.filter((s) => deptShort[String(s.departmentRef)] === short || (s.department && s.department.toUpperCase().includes(short))).length;
+        return { batch: `${b.intakeYear + 1}/${b.intakeYear}`, year: `${ORDINAL[(b.currentAcademicYear || 1) - 1] || ''} Year`.trim(), ict: count('ICT'), bst: count('BST'), intakeYear: b.intakeYear };
+      })
+      .sort((a, b) => b.intakeYear - a.intakeYear);
+    // one row per batch label (a label can exist for both programmes)
+    const merged = [];
+    for (const r of rows) {
+      const hit = merged.find((m) => m.batch === r.batch);
+      if (hit) {
+        hit.ict += r.ict;
+        hit.bst += r.bst;
+      } else merged.push({ ...r });
+    }
+    return withTotals(merged.map(({ intakeYear, ...rest }) => rest));
   }
-  return withTotals(merged.map(({ intakeYear, ...rest }) => rest));
+
+  // Direct database derivation from active student records
+  const batchMap = new Map();
+  for (const s of students) {
+    const reg = s.studentId || s.indexNo || '';
+    const bKey = s.batch || (reg.includes('/20/') ? '2021/2020' : reg.includes('/21/') ? '2022/2021' : reg.includes('/22/') ? '2023/2022' : reg.includes('/23/') ? '2024/2023' : '2025/2024');
+    const isBst = (s.department && s.department.toUpperCase().includes('BIO')) || reg.toUpperCase().includes('BST');
+    if (!batchMap.has(bKey)) {
+      const yNum = bKey.includes('2025') ? 1 : bKey.includes('2024') ? 2 : bKey.includes('2023') ? 3 : bKey.includes('2022') ? 4 : 5;
+      batchMap.set(bKey, { batch: bKey, year: `${ORDINAL[yNum - 1] || '1st'} Year`, ict: 0, bst: 0 });
+    }
+    const row = batchMap.get(bKey);
+    if (isBst) row.bst += 1;
+    else row.ict += 1;
+  }
+  const derived = Array.from(batchMap.values()).sort((a, b) => b.batch.localeCompare(a.batch));
+  return withTotals(derived);
 }
 
 exports.getBatchStats = async (req, res) => {

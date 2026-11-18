@@ -79,6 +79,44 @@ export default function CourseAllocationManagement({
     };
   }, []);
 
+  // Fetch live subjects directly from MongoDB Atlas / backend API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchDbSubjects = async () => {
+      try {
+        const res = await api.getSubjects();
+        const list = Array.isArray(res) ? res : res?.data || [];
+        if (isMounted && list.length > 0) {
+          const mapped = list.map((s) => ({
+            id: s._id ? String(s._id) : (s.id || s.code),
+            code: s.code,
+            name: s.title || s.name || s.code,
+            year: s.year ? `Year ${s.year}` : (s.semester <= 2 ? 'Year 1' : s.semester <= 4 ? 'Year 2' : s.semester <= 6 ? 'Year 3' : 'Year 4'),
+            semester: s.semesterName || `Semester ${s.semester || 1}`,
+            department: s.department?.includes('Bio') ? 'BST' : 'BICT',
+            deptName: s.department?.includes('Bio') ? 'Department of Bio Systems Technology' : 'Department of Information & Communication Technology',
+            credits: Number(s.credits || s.gpaCredits || 2),
+            type: s.category || s.type || 'Core',
+            coordinator: s.lecturer || 'Pending HOD Allocation',
+            lectureHours: Number(s.lectureHoursPerWeek || 2),
+            practicalHours: Number(s.practicalHoursPerWeek || 0),
+            syllabus: s.description || `${s.title || s.code} Curriculum Specification`,
+            prerequisites: s.prerequisites || 'None',
+            status: 'Active'
+          }));
+          setCourses(mapped);
+          try {
+            localStorage.setItem('seuconnect_admin_curriculum_courses', JSON.stringify(mapped));
+          } catch (_) {}
+        }
+      } catch (err) {
+        console.warn('Could not load subjects from backend:', err.message);
+      }
+    };
+    fetchDbSubjects();
+    return () => { isMounted = false; };
+  }, []);
+
   const [selectedDept, setSelectedDept] = useState('BICT'); // 'BICT' | 'BST'
   const [selectedSemester, setSelectedSemester] = useState('Semester 1');
   const [searchTerm, setSearchTerm] = useState('');
