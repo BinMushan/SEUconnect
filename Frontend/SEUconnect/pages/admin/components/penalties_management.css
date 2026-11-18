@@ -1,0 +1,317 @@
+/* ==========================================================================
+   SEUConnect - Penalties, Disciplinary Records & Clearances Component Styles
+   ========================================================================== */
+
+/* Top KPI Statistics Cards */
+.adm-penalties-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.adm-penalties-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-penalties-kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.adm-penalties-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-penalties-kpi-icon.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.adm-penalties-kpi-icon.amber {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.adm-penalties-kpi-icon.rose {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.adm-penalties-kpi-icon.emerald {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.adm-penalties-kpi-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-penalties-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+}
+
+.adm-penalties-kpi-val {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+/* Multi-Filter & Search Toolbar */
+.adm-penalties-toolbar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adm-penalties-search-box {
+  position: relative;
+  flex: 1 1 280px;
+  max-width: 450px;
+}
+
+.adm-penalties-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.adm-penalties-search-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.adm-penalties-search-input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.adm-penalties-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.adm-penalties-select {
+  padding: 0.52rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #334155;
+  background-color: #f8fafc;
+  outline: none;
+  cursor: pointer;
+}
+
+.adm-penalties-select:focus {
+  border-color: #2563eb;
+  background-color: #ffffff;
+}
+
+/* Dedicated Table Wrapper & Cells */
+.adm-penalties-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.adm-penalties-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.adm-penalties-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 0.95rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.adm-penalties-table td {
+  padding: 0.85rem 0.95rem;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.adm-penalties-table tr:hover td {
+  background: #fafbfd;
+}
+
+/* Status Badges */
+.adm-pen-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.adm-pen-badge.cleared {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.adm-pen-badge.pending {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.adm-pen-badge.probation {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Action Buttons */
+.adm-pen-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.adm-pen-action-btn.verify {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.adm-pen-action-btn.verify:hover {
+  background: #1d4ed8;
+}
+
+.adm-pen-action-btn.danger-icon {
+  background: transparent;
+  color: #94a3b8;
+  padding: 0.35rem;
+  border: 1px solid transparent;
+}
+
+.adm-pen-action-btn.danger-icon:hover {
+  color: #ef4444;
+  background: #fef2f2;
+  border-color: #fee2e2;
+}
+
+/* Autocomplete suggestion dropdown */
+.adm-reg-suggest-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 50;
+  margin-top: 4px;
+}
+
+.adm-reg-suggest-item {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.adm-reg-suggest-item:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Empty State */
+.adm-penalties-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #64748b;
+}
+
+.adm-penalties-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: #94a3b8;
+}
+
+.adm-penalties-empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.35rem;
+}
+
+.adm-penalties-empty-sub {
+  font-size: 0.82rem;
+  color: #64748b;
+  max-width: 440px;
+  margin: 0 auto 1.25rem;
+  line-height: 1.5;
+}
