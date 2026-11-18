@@ -189,6 +189,14 @@ export default function RegistrationManagement({
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
+                    <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px' }}>No semester registrations found.</div>
+                    <div style={{ fontSize: '0.75rem' }}>All course enrollment requests and add/drop applications are synchronized live with database records.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
