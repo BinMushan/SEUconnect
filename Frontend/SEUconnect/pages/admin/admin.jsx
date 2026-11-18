@@ -1903,9 +1903,13 @@ export default function Admin({ user, onLogout }) {
 
       {currentSection === 'settings' && (
         <SettingsManagement
-          onSaveSettings={() => {
-            addAuditLog('Updated Settings', 'Faculty institutional timeline and cutoffs saved.');
-            showToast('System configuration settings saved.');
+          user={user}
+          stats={stats}
+          onShowToast={showToast}
+          onAddAuditLog={addAuditLog}
+          onSaveSettings={(newSettings) => {
+            addAuditLog('Updated Settings', `Faculty timeline cutoffs saved: ${newSettings.academicYear} (${newSettings.activeSemester}).`);
+            showToast('System configuration settings saved successfully.');
           }}
         />
       )}
