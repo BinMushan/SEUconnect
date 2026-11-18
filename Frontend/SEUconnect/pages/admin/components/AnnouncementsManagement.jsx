@@ -95,7 +95,13 @@ export default function AnnouncementsManagement({
 
       {/* Announcements List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {filtered.map((item) => (
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem', background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0', color: '#64748b' }}>
+            <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px', fontSize: '1rem' }}>No announcements found in database.</div>
+            <div style={{ fontSize: '0.8rem' }}>Use &quot;Broadcast Official Faculty Notice&quot; above to publish announcements directly to the live database.</div>
+          </div>
+        ) : (
+          filtered.map((item) => (
           <div
             key={item.id}
             className="adm-card"
@@ -153,7 +159,7 @@ export default function AnnouncementsManagement({
               <strong style={{ color: '#0f2b5c' }}>{item.publishedBy}</strong>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {/* Create Announcement Modal */}

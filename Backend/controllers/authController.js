@@ -371,22 +371,27 @@ exports.provisionUser = async (req, res) => {
     }
 
     const normRole = normalizeRole(resolvedRoleKey || 'lecturer');
+    const existing = await store.users.findByEmail(cleanEmail);
 
     const userData = {
       name: name.trim(),
       email: cleanEmail,
       role: normRole,
       roleKey: normRole,
-      staffId: staffId || `STAFF-${normRole.toUpperCase()}-${Date.now().toString().slice(-4)}`,
-      department: department || 'Department of Information and Communication Technology',
+      staffId: staffId || (existing && existing.staffId) || `STAFF-${normRole.toUpperCase()}-${Date.now().toString().slice(-4)}`,
+      department: department || (existing && existing.department) || 'Department of Information and Communication Technology',
       faculty: 'Faculty of Technology',
       designation: designation || role || normRole,
       avatarInitial: name.trim().split(' ').map((n) => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'U',
-      status: status ? status.toLowerCase() : 'active',
+      status: status ? status.toLowerCase() : (existing && existing.status) || 'active',
     };
 
     if (rawPass) {
       userData.password = hashPassword(rawPass);
+    } else if (existing && existing.password) {
+      userData.password = existing.password;
+    } else {
+      userData.password = hashPassword('123456');
     }
 
     const user = await store.users.createOrUpdate(userData);
