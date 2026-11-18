@@ -169,6 +169,14 @@ export default function MedicalRequests({
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
+                    <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px' }}>No medical submissions found.</div>
+                    <div style={{ fontSize: '0.75rem' }}>All medical excuse requests are synchronized live with MongoDB Atlas database records.</div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

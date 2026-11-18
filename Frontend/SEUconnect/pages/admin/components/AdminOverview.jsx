@@ -438,19 +438,25 @@ export default function AdminOverview({
         </div>
 
         <div className="adm-audit-list">
-          {auditLogs.map((log) => (
-            <div key={log.id} className="adm-audit-item">
-              <div className="adm-audit-dot" />
-              <div className="adm-audit-content">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span className="adm-audit-action">{log.action}</span>
-                  <span className="adm-audit-time">{log.time}</span>
-                </div>
-                <span className="adm-audit-detail">{log.detail}</span>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Actor: {log.user}</span>
-              </div>
+          {(!auditLogs || auditLogs.length === 0) ? (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8', fontSize: '0.82rem' }}>
+              No administrative audit events recorded yet. Administrative actions (approvals, role updates, notices) will appear here in real-time.
             </div>
-          ))}
+          ) : (
+            auditLogs.map((log) => (
+              <div key={log.id} className="adm-audit-item">
+                <div className="adm-audit-dot" />
+                <div className="adm-audit-content">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span className="adm-audit-action">{log.action}</span>
+                    <span className="adm-audit-time">{log.time}</span>
+                  </div>
+                  <span className="adm-audit-detail">{log.detail}</span>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Actor: {log.user}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </div>

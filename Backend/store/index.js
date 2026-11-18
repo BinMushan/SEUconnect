@@ -324,13 +324,19 @@ const users = {
         return user;
       }
     }
-    const idx = mem.users.findIndex((u) => u.email.toLowerCase() === email);
-    const userDoc = new User(userData);
+    const idx = mem.users.findIndex((u) => u.email && u.email.toLowerCase() === email);
     if (idx >= 0) {
+      const prev = typeof mem.users[idx].toObject === 'function' ? mem.users[idx].toObject() : mem.users[idx];
+      const merged = { ...prev, ...userData };
+      if (!userData.password && prev.password) {
+        merged.password = prev.password;
+      }
+      const userDoc = new User(merged);
       mem.users[idx] = userDoc;
-    } else {
-      mem.users.unshift(userDoc);
+      return userDoc;
     }
+    const userDoc = new User(userData);
+    mem.users.unshift(userDoc);
     return userDoc;
   },
   async save(doc) {

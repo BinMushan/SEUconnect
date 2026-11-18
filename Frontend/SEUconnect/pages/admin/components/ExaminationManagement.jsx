@@ -144,6 +144,14 @@ export default function ExaminationManagement({
                       </td>
                     </tr>
                   ))}
+                  {filteredCandidates.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
+                        <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px' }}>No repeat exam candidates found.</div>
+                        <div style={{ fontSize: '0.75rem' }}>All repeat applications and bank payment vouchers are synchronized with database records.</div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -152,7 +160,13 @@ export default function ExaminationManagement({
       ) : (
         /* Examination Cycles Overview */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem' }}>
-          {examinations.map((ex) => (
+          {examinations.length === 0 ? (
+            <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '3rem 1rem', background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0', color: '#64748b' }}>
+              <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px', fontSize: '1rem' }}>No scheduled examination cycles currently in database.</div>
+              <div style={{ fontSize: '0.8rem' }}>Examination dates and schedules are pulled dynamically from the official academic calendar API.</div>
+            </div>
+          ) : (
+            examinations.map((ex) => (
             <div key={ex.id} className="adm-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
                 <span className="adm-badge adm-badge-info">{ex.status}</span>
@@ -185,7 +199,7 @@ export default function ExaminationManagement({
                 <div><strong>Criteria:</strong> {ex.eligibilityCriteria}</div>
               </div>
             </div>
-          ))}
+          )))}
         </div>
       )}
     </div>

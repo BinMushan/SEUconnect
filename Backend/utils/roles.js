@@ -2,7 +2,24 @@
 // aliases (department_ma, faculty_ma), so every role string goes through here.
 const ROLE_ALIASES = {
   department_ma: 'dept_ma',
+  'department management assistant': 'dept_ma',
   faculty_ma: 'fma',
+  'faculty management assistant': 'fma',
+  'faculty dean': 'dean',
+  dean: 'dean',
+  'system administrator': 'admin',
+  'super admin': 'superadmin',
+  'examination officer': 'examination',
+  'examination branch': 'examination',
+  'head of department': 'hod',
+  'head of department (ict)': 'hod',
+  'head of department (bst)': 'hod',
+  'head of department (dict)': 'hod',
+  'head of department (dbst)': 'hod',
+  'senior assistant registrar': 'sar',
+  'senior assistant registrar (sar)': 'sar',
+  student: 'student',
+  lecturer: 'lecturer',
 };
 
 const ALL_ROLES = ['student', 'lecturer', 'hod', 'dean', 'sar', 'examination', 'dept_ma', 'fma', 'admin', 'superadmin', 'faculty_admin', 'demonstrator'];
