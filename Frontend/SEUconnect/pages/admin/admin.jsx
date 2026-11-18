@@ -1827,6 +1827,7 @@ export default function Admin({ user, onLogout }) {
 
       {currentSection === 'results_progress' && (
         <ResultsManagement
+          batches={batches}
           students={students}
           onPublishResults={handlePublishResults}
         />
