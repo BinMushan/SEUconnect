@@ -294,10 +294,21 @@ export const penaltyStorage = {
       if (item) {
         item.status = status;
         if (notes) item.clearanceNotes = notes;
+        item.clearedDate = status === 'Cleared' ? new Date().toISOString().split('T')[0] : null;
         localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
       }
     } catch {
       /* ignore storage error */
+    }
+  },
+  remove: (id) => {
+    try {
+      let list = penaltyStorage.getAll();
+      list = list.filter((p) => p.id !== id);
+      localStorage.setItem('seuconnect_penalties', JSON.stringify(list));
+      return true;
+    } catch {
+      return false;
     }
   }
 };
