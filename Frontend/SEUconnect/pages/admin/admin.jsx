@@ -324,7 +324,7 @@ export default function Admin({ user, onLogout }) {
       try {
         setDbLoading(true);
 
-        const [statsRes, batchStatsRes, processesRes, usersRes, studentsRes, batchesRes, notificationsRes, calendarRes] = await Promise.allSettled([
+        const [statsRes, batchStatsRes, processesRes, usersRes, studentsRes, batchesRes, notificationsRes, calendarRes, handbooksRes] = await Promise.allSettled([
           api.getStats(),
           api.getBatchStats(),
           api.getProcesses(),
@@ -332,10 +332,32 @@ export default function Admin({ user, onLogout }) {
           api.getAllStudents(),
           api.getBatches(),
           api.getNotifications(),
-          api.getAcademicEvents()
+          api.getAcademicEvents(),
+          api.getHandbooks ? api.getHandbooks() : Promise.resolve([])
         ]);
 
         if (!isMounted) return;
+
+        // Synchronize uploaded handbooks & forms from MongoDB
+        if (handbooksRes.status === 'fulfilled' && Array.isArray(handbooksRes.value) && handbooksRes.value.length > 0) {
+          const dbHandbooks = handbooksRes.value.map((hb) => ({
+            id: hb._id ? String(hb._id) : `HB-${Date.now()}`,
+            code: hb.fileName?.slice(0, 12)?.toUpperCase() || 'HANDBOOK',
+            title: hb.title,
+            category: hb.category || 'Institutional Handbook',
+            fileFormat: `${hb.fileType?.toUpperCase() || 'PDF'} (${hb.fileSize || '1 MB'})`,
+            downloads: 100,
+            version: 'Active Database Record',
+            description: `Official institutional document stored in database (${hb.chunksCount || 0} chunks indexed for RAG).`
+          }));
+          setFacultyForms((prev) => {
+            const map = new Map();
+            [...dbHandbooks, ...prev].forEach((f) => {
+              if (f && f.id && !map.has(f.id)) map.set(f.id, f);
+            });
+            return Array.from(map.values());
+          });
+        }
 
         // 1. Synchronize Students from Database (NO dummy mock data)
         let loadedStudents = [];
