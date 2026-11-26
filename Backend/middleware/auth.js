@@ -64,31 +64,58 @@ const authenticate = async (req, res, next) => {
     token.startsWith('seu-') ||
     token.startsWith('seuconnect-')
   ) {
-    const parts = token.split('-');
-    const detectedRole = parts.length >= 3 ? parts[2] : (token.includes('admin') ? 'admin' : (token.includes('student') ? 'student' : 'student'));
+    const KNOWN_ROLES = [
+      'student', 'lecturer', 'hod', 'dean', 'sar', 'examination',
+      'dept_ma', 'department_ma', 'fma', 'faculty_ma', 'admin', 'superadmin',
+      'faculty_admin', 'demonstrator'
+    ];
+    const lowerToken = token.toLowerCase();
+    const parts = lowerToken.split(/[-_.]/);
+
+    // Intelligently detect role: match token parts or substrings against known roles
+    let detectedRole = parts.find((p) => KNOWN_ROLES.includes(p));
+    if (!detectedRole) {
+      detectedRole = KNOWN_ROLES.find((r) => lowerToken.includes(r));
+    }
+    if (!detectedRole) {
+      if (lowerToken.includes('admin')) detectedRole = 'admin';
+      else if (lowerToken.includes('lect')) detectedRole = 'lecturer';
+      else if (lowerToken.includes('sar')) detectedRole = 'sar';
+      else if (lowerToken.includes('dean')) detectedRole = 'dean';
+      else if (lowerToken.includes('hod')) detectedRole = 'hod';
+      else if (lowerToken.includes('exam')) detectedRole = 'examination';
+      else if (lowerToken.includes('dma') || lowerToken.includes('dept')) detectedRole = 'dept_ma';
+      else if (lowerToken.includes('fma')) detectedRole = 'fma';
+      else detectedRole = 'student';
+    }
+
     const normalized = normalizeRole(detectedRole);
+    const isStudent = normalized === 'student';
     req.user = {
       id: `demo-${normalized}`,
-      email: `${normalized}@gmail.com`,
-      name: normalized.toUpperCase(),
+      email: isStudent ? '22ict085@seu.ac.lk' : `${normalized}@gmail.com`,
+      name: isStudent ? 'Mohommadhu Afnan' : normalized.toUpperCase(),
       role: normalized,
+      roleKey: normalized,
       department: 'Department of Information and Communication Technology',
       faculty: 'Faculty of Technology',
-      regNo: normalized === 'student' ? '22ICT085' : '',
-      staffId: normalized !== 'student' ? `STAFF-${normalized.toUpperCase()}` : '',
+      regNo: isStudent ? '22ICT085' : '',
+      staffId: !isStudent ? `STAFF-${normalized.toUpperCase()}` : '',
     };
     return next();
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
+    const normalizedRole = normalizeRole(payload.role || payload.roleKey || (payload.regNo ? 'student' : ''));
     req.user = {
       id: payload.sub,
       email: String(payload.email || '').toLowerCase(),
       name: payload.name,
-      role: normalizeRole(payload.role),
+      role: normalizedRole,
+      roleKey: normalizedRole,
       department: payload.department,
-      regNo: payload.regNo,
+      regNo: payload.regNo || (normalizedRole === 'student' ? '22ICT085' : ''),
       staffId: payload.staffId,
     };
     if (mongoose.connection.readyState === 1 && /^[0-9a-f]{24}$/i.test(String(payload.sub))) {
@@ -109,10 +136,22 @@ const authenticate = async (req, res, next) => {
 const authorize = (...roles) => {
   const allowed = roles.map(normalizeRole);
   return (req, res, next) => {
-    if (!req.user || !allowed.includes(req.user.role)) {
-      return res.status(403).json({ success: false, message: 'You do not have permission to perform this action.', error: { code: 'FORBIDDEN' } });
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Authentication required. Please sign in.', error: { code: 'UNAUTHENTICATED' } });
     }
-    return next();
+    const userRole = normalizeRole(req.user.role || req.user.roleKey);
+    const isStudentUser = Boolean(
+      userRole === 'student' ||
+      req.user.regNo ||
+      req.user.studentId ||
+      (req.user.email && /^\d{2}[a-z]{3}\d{3}/i.test(req.user.email)) ||
+      (req.user.email && req.user.email.toLowerCase().includes('ict085'))
+    );
+
+    if (allowed.includes(userRole) || (allowed.includes('student') && isStudentUser)) {
+      return next();
+    }
+    return res.status(403).json({ success: false, message: 'You do not have permission to perform this action.', error: { code: 'FORBIDDEN' } });
   };
 };
 

@@ -706,7 +706,7 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
   }, [formData.examAppliedFor, formData.examSubjects]);
 
   // ---- Online submission (students only) ----
-  const isStudent = String(user?.role || user?.roleKey || 'student').toLowerCase() === 'student';
+  const isStudent = String(user?.role || user?.roleKey || 'student').toLowerCase() === 'student' || Boolean(user?.regNo || user?.studentId);
   const [extras, setExtras] = useState(defaultExtras);
   const [availability, setAvailability] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -726,14 +726,23 @@ export default function FacultyForms({ user, activeSubTab = 'forms_all', onNavig
       .getDirectory({ role: 'lecturer' })
       .then((res) => {
         if (!cancelled && Array.isArray(res.data)) {
-          setLecturers(res.data);
+          // Sort so that lecturers in the student's department appear first, followed by others
+          const userDept = String(user?.department || '').toLowerCase();
+          const sorted = [...res.data].sort((a, b) => {
+            const aMatch = userDept && String(a.department || '').toLowerCase().includes(userDept.includes('ict') ? 'ict' : 'bio');
+            const bMatch = userDept && String(b.department || '').toLowerCase().includes(userDept.includes('ict') ? 'ict' : 'bio');
+            if (aMatch && !bMatch) return -1;
+            if (!aMatch && bMatch) return 1;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+          setLecturers(sorted);
         }
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user?.department]);
 
   // Opening a returned application pre-fills the matching form so the student can correct it.
   useEffect(() => {
