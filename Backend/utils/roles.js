@@ -19,6 +19,10 @@ const ROLE_ALIASES = {
   'senior assistant registrar': 'sar',
   'senior assistant registrar (sar)': 'sar',
   student: 'student',
+  undergraduate: 'student',
+  undergrad: 'student',
+  candidate: 'student',
+  stud: 'student',
   lecturer: 'lecturer',
 };
 

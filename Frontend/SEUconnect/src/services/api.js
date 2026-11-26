@@ -458,7 +458,7 @@ export const api = {
             specialization: effectiveSpec,
             isFreshers: isFresh
           };
-          authToken.set(`local-jwt-${Date.now()}`);
+          authToken.set(`local-token-student-${Date.now()}`);
           return { success: true, user: simulatedUser, token: authToken.get() };
         }
 
@@ -477,7 +477,7 @@ export const api = {
             staffId: localStaff.staffId || localStaff.id,
             isLeadership: localStaff.isLeadership || false
           };
-          authToken.set(`local-jwt-${Date.now()}`);
+          authToken.set(`local-token-${(simulatedUser.roleKey || simulatedUser.role || 'lecturer').toLowerCase()}-${Date.now()}`);
           return { success: true, user: simulatedUser, token: authToken.get() };
         }
       }

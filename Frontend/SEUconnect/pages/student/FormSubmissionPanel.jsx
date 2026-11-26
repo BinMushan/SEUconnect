@@ -16,9 +16,19 @@ export default function FormSubmissionPanel({ type, user, formData, setFormData,
     if (!info?.needsLecturer) return undefined;
     let cancelled = false;
     api
-      .getDirectory({ role: 'lecturer', department: user?.department })
+      .getDirectory({ role: 'lecturer' })
       .then((res) => {
-        if (!cancelled) setLecturers(res.data || []);
+        if (!cancelled && Array.isArray(res.data)) {
+          const userDept = String(user?.department || '').toLowerCase();
+          const sorted = [...res.data].sort((a, b) => {
+            const aMatch = userDept && String(a.department || '').toLowerCase().includes(userDept.includes('ict') ? 'ict' : 'bio');
+            const bMatch = userDept && String(b.department || '').toLowerCase().includes(userDept.includes('ict') ? 'ict' : 'bio');
+            if (aMatch && !bMatch) return -1;
+            if (!aMatch && bMatch) return 1;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+          setLecturers(sorted);
+        }
       })
       .catch(() => {});
     return () => {
